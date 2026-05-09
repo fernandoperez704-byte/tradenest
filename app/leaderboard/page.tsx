@@ -1,3 +1,4 @@
+import Navbar from "../components/Navbar";
 export default function LeaderboardPage() {
   const players = [
     { name: "Fernando", score: 12 },
@@ -5,7 +6,8 @@ export default function LeaderboardPage() {
     { name: "CryptoKing", score: 7 },
   ];
 
-  return (
+  return (<>
+  <Navbar />
     <div className="min-h-screen bg-black text-white p-10">
       <h1 className="text-5xl font-bold text-purple-300">
         Leaderboard
@@ -23,5 +25,5 @@ export default function LeaderboardPage() {
         ))}
       </div>
     </div>
-  );
+  </>);
 }

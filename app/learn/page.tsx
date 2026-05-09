@@ -1,5 +1,8 @@
+import Navbar from "../components/Navbar";
 export default function LearnPage() {
-  return (
+  
+  return (<>
+  <Navbar />
     <div className="min-h-screen bg-black text-white p-10">
       <h1 className="text-4xl font-bold text-emerald-400">
         Learn Trading
@@ -16,5 +19,5 @@ export default function LearnPage() {
         <div className="bg-red-500 w-10 h-28"></div>
       </div>
     </div>
-  );
+  </>);
 }

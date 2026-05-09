@@ -1,5 +1,5 @@
 "use client";
-
+import Navbar from "../components/Navbar";
 import { useState } from "react";
 import {
   ComposedChart,
@@ -63,7 +63,8 @@ export default function SimulatorPage() {
     setCandles(createCandles());
   }
 
-  return (
+  return (<>
+  <Navbar />
     <main className="min-h-screen bg-black text-white p-8">
       <h1 className="text-4xl font-bold text-cyan-400 text-center">
         Trade Simulator
@@ -109,5 +110,5 @@ export default function SimulatorPage() {
         </button>
       </div>
     </main>
-  );
+  </>);
 }
