@@ -21,6 +21,7 @@ type Trade = {
   type: string;
   coin: string;
   price: number;
+  amount: number;
   time: string;
 };
 
@@ -46,6 +47,9 @@ export default function SimulatorPage() {
   const [owned, setOwned] = useState(0);
 
   const [message, setMessage] = useState("");
+
+  const [tradeAmount, setTradeAmount] =
+    useState(100);
 
   const [trades, setTrades] = useState<Trade[]>([]);
 
@@ -93,28 +97,29 @@ export default function SimulatorPage() {
   const currentPrice = prices[selectedCoin];
 
   function buyCoin() {
-    const amount = 100;
-
-    if (balance < amount) {
+    if (balance < tradeAmount) {
       setMessage("Not enough balance.");
       return;
     }
 
-    setBalance((prev) => prev - amount);
+    setBalance((prev) => prev - tradeAmount);
 
-    setOwned((prev) => prev + amount / currentPrice);
+    setOwned((prev) => prev + tradeAmount / currentPrice);
 
     setTrades((prev) => [
       {
         type: "BUY",
         coin: selectedCoin,
+        amount: tradeAmount,
         price: currentPrice,
         time: new Date().toLocaleTimeString(),
       },
       ...prev,
     ]);
 
-    setMessage(`Bought $100 of ${selectedCoin}`);
+    setMessage(
+      `Bought $${tradeAmount} of ${selectedCoin}`
+    );
   }
 
   function sellCoin() {
@@ -133,6 +138,7 @@ export default function SimulatorPage() {
       {
         type: "SELL",
         coin: selectedCoin,
+        amount: value,
         price: currentPrice,
         time: new Date().toLocaleTimeString(),
       },
@@ -158,11 +164,11 @@ export default function SimulatorPage() {
       <Navbar />
 
       <main className="min-h-screen bg-black text-white p-8">
-        <h1 className="text-4xl font-bold text-cyan-400 text-center">
+        <h1 className="text-5xl font-bold text-cyan-400 text-center mt-6">
           Multi-Coin Simulator
         </h1>
 
-        <div className="mt-6 flex justify-center gap-4">
+        <div className="mt-8 flex justify-center gap-4">
           {["BTC", "ETH", "SOL"].map((coin) => (
             <button
               key={coin}
@@ -171,7 +177,7 @@ export default function SimulatorPage() {
                   coin as "BTC" | "ETH" | "SOL"
                 )
               }
-              className={`px-6 py-2 rounded-xl font-bold ${
+              className={`px-6 py-3 rounded-xl font-bold text-lg ${
                 selectedCoin === coin
                   ? "bg-cyan-500 text-black"
                   : "bg-zinc-800"
@@ -182,25 +188,27 @@ export default function SimulatorPage() {
           ))}
         </div>
 
-        <div className="mt-6 text-center space-y-2">
-          <p className="text-2xl">
+        <div className="mt-8 text-center space-y-3">
+          <p className="text-4xl font-bold">
             {selectedCoin} Price: $
             {currentPrice.toLocaleString()}
           </p>
 
-          <p>Cash Balance: ${balance.toFixed(2)}</p>
+          <p className="text-xl">
+            Cash Balance: ${balance.toFixed(2)}
+          </p>
 
-          <p>
+          <p className="text-xl">
             {selectedCoin} Owned: {owned.toFixed(6)}
           </p>
 
-          <p className="text-emerald-400 font-bold">
+          <p className="text-2xl text-emerald-400 font-bold">
             Portfolio Value: $
             {portfolioValue.toFixed(2)}
           </p>
 
           <p
-            className={`text-xl font-bold ${
+            className={`text-2xl font-bold ${
               pnl >= 0
                 ? "text-green-400"
                 : "text-red-400"
@@ -211,7 +219,7 @@ export default function SimulatorPage() {
           </p>
         </div>
 
-        <div className="mt-8 bg-zinc-900 rounded-2xl p-6 h-[420px]">
+        <div className="mt-10 bg-zinc-900 rounded-2xl p-6 h-[420px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={history}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -226,11 +234,22 @@ export default function SimulatorPage() {
                 type="monotone"
                 dataKey="price"
                 stroke="#22c55e"
-                strokeWidth={3}
+                strokeWidth={4}
                 dot={false}
               />
             </LineChart>
           </ResponsiveContainer>
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <input
+            type="number"
+            value={tradeAmount}
+            onChange={(e) =>
+              setTradeAmount(Number(e.target.value))
+            }
+            className="bg-zinc-800 text-white px-4 py-3 rounded-xl w-48 text-center text-xl"
+          />
         </div>
 
         {message && (
@@ -239,24 +258,24 @@ export default function SimulatorPage() {
           </p>
         )}
 
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-8 flex justify-center gap-6">
           <button
             onClick={buyCoin}
-            className="px-8 py-3 bg-green-500 rounded-xl font-bold"
+            className="px-10 py-4 bg-green-500 rounded-xl font-bold text-xl"
           >
-            BUY $100
+            BUY
           </button>
 
           <button
             onClick={sellCoin}
-            className="px-8 py-3 bg-red-500 rounded-xl font-bold"
+            className="px-10 py-4 bg-red-500 rounded-xl font-bold text-xl"
           >
             SELL
           </button>
         </div>
 
-        <div className="mt-12 bg-zinc-900 rounded-2xl p-6">
-          <h2 className="text-2xl font-bold mb-4">
+        <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
+          <h2 className="text-3xl font-bold mb-6">
             Trade History
           </h2>
 
@@ -286,7 +305,11 @@ export default function SimulatorPage() {
                 </div>
 
                 <div>
-                  ${trade.price.toLocaleString()}
+                  ${trade.amount.toFixed(2)}
+                </div>
+
+                <div>
+                  @ ${trade.price.toLocaleString()}
                 </div>
 
                 <div>{trade.time}</div>
