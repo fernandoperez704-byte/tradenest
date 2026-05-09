@@ -3,62 +3,65 @@
 import { useState } from "react";
 
 export default function SimulatorPage() {
-  const [score, setScore] = useState(0);
-  const [result, setResult] = useState("");
+  const [price, setPrice] = useState(100);
+  const [balance, setBalance] = useState(10000);
+  const [shares, setShares] = useState(0);
 
-  function trade(action: string) {
-    const success = Math.random() > 0.5;
+  function movePrice() {
+    const change = Math.floor(Math.random() * 20) - 10;
+    setPrice((prev) => Math.max(1, prev + change));
+  }
 
-    if (success) {
-      setScore(score + 1);
-      setResult(`${action} trade won`);
-    } else {
-      setScore(score - 1);
-      setResult(`${action} trade lost`);
+  function buyStock() {
+    if (balance >= price) {
+      setBalance(balance - price);
+      setShares(shares + 1);
+      movePrice();
+    }
+  }
+
+  function sellStock() {
+    if (shares > 0) {
+      setBalance(balance + price);
+      setShares(shares - 1);
+      movePrice();
     }
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center">
-      <h1 className="text-5xl font-bold text-emerald-400">
+      <h1 className="text-5xl font-bold text-cyan-400 mb-8">
         Trade Simulator
       </h1>
 
-      <p className="mt-6 text-xl">
-        Practice trading risk-free.
-      </p>
-
-      <div className="mt-10 flex gap-2 items-end h-40">
-        <div className="bg-green-500 w-10 h-24"></div>
-        <div className="bg-red-500 w-10 h-32"></div>
-        <div className="bg-green-500 w-10 h-20"></div>
-        <div className="bg-red-500 w-10 h-28"></div>
-      </div>
-
-      <p className="mt-6 text-2xl font-bold">
-        Score: {score}
-      </p>
-
-      {result && (
-        <p className="mt-3 text-lg">
-          {result}
+      <div className="bg-zinc-900 p-10 rounded-2xl shadow-xl text-center">
+        <p className="text-3xl mb-4">
+          Stock Price: ${price}
         </p>
-      )}
 
-      <div className="mt-8 flex gap-4">
-        <button
-          onClick={() => trade("BUY")}
-          className="px-8 py-3 bg-emerald-500 rounded-xl"
-        >
-          BUY
-        </button>
+        <p className="text-xl mb-2">
+          Balance: ${balance}
+        </p>
 
-        <button
-          onClick={() => trade("SELL")}
-          className="px-8 py-3 bg-red-500 rounded-xl"
-        >
-          SELL
-        </button>
+        <p className="text-xl mb-8">
+          Shares Owned: {shares}
+        </p>
+
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={buyStock}
+            className="px-8 py-3 bg-green-500 rounded-xl text-black font-bold"
+          >
+            BUY
+          </button>
+
+          <button
+            onClick={sellStock}
+            className="px-8 py-3 bg-red-500 rounded-xl text-white font-bold"
+          >
+            SELL
+          </button>
+        </div>
       </div>
     </div>
   );

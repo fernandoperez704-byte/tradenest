@@ -1,38 +1,85 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [btc, setBtc] = useState<number | null>(null);
+  const [eth, setEth] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function fetchPrices() {
+      const res = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
+      );
+
+      const data = await res.json();
+
+      setBtc(data.bitcoin.usd);
+      setEth(data.ethereum.usd);
+    }
+
+    fetchPrices();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center">
-      <h1 className="text-6xl font-bold text-emerald-400">
-        TradeNest
-      </h1>
+    <main className="min-h-screen bg-black text-white px-6 py-10">
+      <div className="max-w-6xl mx-auto text-center">
+        <h1 className="text-6xl font-bold text-emerald-400">
+          TradeNest
+        </h1>
 
-      <p className="mt-4 text-xl">
-        Learn and practice trading risk-free.
-      </p>
+        <p className="mt-5 text-xl text-gray-300">
+          Learn trading without risking real money.
+        </p>
 
-      <div className="mt-10 flex flex-col gap-4">
-        <Link
-          href="/learn"
-          className="px-8 py-3 bg-cyan-500 rounded-xl text-center"
-        >
-          Learn Trading
-        </Link>
+        {/* LIVE PRICES */}
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
+          <div className="bg-zinc-900 rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-yellow-400">
+              Bitcoin
+            </h2>
 
-        <Link
-          href="/simulator"
-          className="px-8 py-3 bg-blue-500 rounded-xl text-center"
-        >
-          Trade Simulator
-        </Link>
+            <p className="mt-3 text-3xl font-bold">
+              {btc ? `$${btc.toLocaleString()}` : "Loading..."}
+            </p>
+          </div>
 
-        <Link
-          href="/leaderboard"
-          className="px-8 py-3 bg-purple-300 text-black rounded-xl text-center"
-        >
-          Leaderboard
-        </Link>
+          <div className="bg-zinc-900 rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-blue-400">
+              Ethereum
+            </h2>
+
+            <p className="mt-3 text-3xl font-bold">
+              {eth ? `$${eth.toLocaleString()}` : "Loading..."}
+            </p>
+          </div>
+        </div>
+
+        {/* NAVIGATION */}
+        <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+          <Link
+            href="/learn"
+            className="bg-emerald-500 hover:bg-emerald-600 px-8 py-4 rounded-2xl font-bold"
+          >
+            Learn Trading
+          </Link>
+
+          <Link
+            href="/simulator"
+            className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-2xl font-bold"
+          >
+            Trade Simulator
+          </Link>
+
+          <Link
+            href="/leaderboard"
+            className="bg-purple-500 hover:bg-purple-600 px-8 py-4 rounded-2xl font-bold"
+          >
+            Leaderboard
+          </Link>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
