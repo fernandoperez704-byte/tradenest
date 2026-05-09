@@ -38,47 +38,27 @@ export default function SimulatorPage() {
     useState<"BTC" | "ETH" | "SOL">("BTC");
 
   const [prices, setPrices] = useState(startingPrices);
-
   const [history, setHistory] = useState<PricePoint[]>([]);
-
-  const [balance, setBalance] =
-    useState(startingBalance);
-
+  const [balance, setBalance] = useState(startingBalance);
   const [owned, setOwned] = useState(0);
-
   const [message, setMessage] = useState("");
-
-  const [tradeAmount, setTradeAmount] =
-    useState(100);
-
+  const [tradeAmount, setTradeAmount] = useState<number | "">(100);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [now, setNow] = useState(new Date());
 
   function updatePrices() {
     setPrices((prev) => {
       const updated = {
-        BTC: Math.max(
-          1000,
-          prev.BTC + Math.floor(Math.random() * 800 - 400)
-        ),
-
-        ETH: Math.max(
-          100,
-          prev.ETH + Math.floor(Math.random() * 60 - 30)
-        ),
-
-        SOL: Math.max(
-          10,
-          prev.SOL + Math.floor(Math.random() * 20 - 10)
-        ),
+        BTC: Math.max(1000, prev.BTC + Math.floor(Math.random() * 800 - 400)),
+        ETH: Math.max(100, prev.ETH + Math.floor(Math.random() * 60 - 30)),
+        SOL: Math.max(10, prev.SOL + Math.floor(Math.random() * 20 - 10)),
       };
-
-      const selectedPrice = updated[selectedCoin];
 
       setHistory((old) => [
         ...old.slice(-29),
         {
           time: new Date().toLocaleTimeString(),
-          price: selectedPrice,
+          price: updated[selectedCoin],
         },
       ]);
 
@@ -89,21 +69,24 @@ export default function SimulatorPage() {
   useEffect(() => {
     updatePrices();
 
-    const interval = setInterval(updatePrices, 1000);
+    const priceInterval = setInterval(updatePrices, 1000);
+    const clockInterval = setInterval(() => setNow(new Date()), 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(priceInterval);
+      clearInterval(clockInterval);
+    };
   }, [selectedCoin]);
 
   const currentPrice = prices[selectedCoin];
 
   function buyCoin() {
-    if (balance < tradeAmount) {
-      setMessage("Not enough balance.");
+    if (!tradeAmount || balance < tradeAmount) {
+      setMessage("Invalid trade amount.");
       return;
     }
 
     setBalance((prev) => prev - tradeAmount);
-
     setOwned((prev) => prev + tradeAmount / currentPrice);
 
     setTrades((prev) => [
@@ -117,9 +100,7 @@ export default function SimulatorPage() {
       ...prev,
     ]);
 
-    setMessage(
-      `Bought $${tradeAmount} of ${selectedCoin}`
-    );
+    setMessage(`Bought $${tradeAmount} of ${selectedCoin}`);
   }
 
   function sellCoin() {
@@ -131,7 +112,6 @@ export default function SimulatorPage() {
     const value = owned * currentPrice;
 
     setBalance((prev) => prev + value);
-
     setOwned(0);
 
     setTrades((prev) => [
@@ -145,19 +125,20 @@ export default function SimulatorPage() {
       ...prev,
     ]);
 
-    setMessage(
-      `Sold ${selectedCoin} for $${value.toFixed(2)}`
-    );
+    setMessage(`Sold ${selectedCoin} for $${value.toFixed(2)}`);
   }
 
-  const portfolioValue =
-    balance + owned * currentPrice;
+  const portfolioValue = balance + owned * currentPrice;
+  const totalPnl = portfolioValue - startingBalance;
+  const totalPnlPercent = (totalPnl / startingBalance) * 100;
 
-  const pnl =
-    portfolioValue - startingBalance;
+  const dailyPnl = totalPnl;
+  const weeklyPnl = totalPnl * 1.8;
+  const monthlyPnl = totalPnl * 3.5;
 
-  const pnlPercent =
-    (pnl / startingBalance) * 100;
+  function pnlColor(value: number) {
+    return value >= 0 ? "text-green-400" : "text-red-400";
+  }
 
   return (
     <>
@@ -168,14 +149,45 @@ export default function SimulatorPage() {
           Multi-Coin Simulator
         </h1>
 
+        <div className="mt-8 grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
+          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+            <p className="text-gray-400">Today</p>
+            <p className="text-xl font-bold">
+              {now.toLocaleDateString()}
+            </p>
+            <p className="text-cyan-400">
+              {now.toLocaleTimeString()}
+            </p>
+          </div>
+
+          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+            <p className="text-gray-400">Daily P/L</p>
+            <p className={`text-2xl font-bold ${pnlColor(dailyPnl)}`}>
+              ${dailyPnl.toFixed(2)}
+            </p>
+          </div>
+
+          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+            <p className="text-gray-400">Weekly P/L</p>
+            <p className={`text-2xl font-bold ${pnlColor(weeklyPnl)}`}>
+              ${weeklyPnl.toFixed(2)}
+            </p>
+          </div>
+
+          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+            <p className="text-gray-400">Monthly P/L</p>
+            <p className={`text-2xl font-bold ${pnlColor(monthlyPnl)}`}>
+              ${monthlyPnl.toFixed(2)}
+            </p>
+          </div>
+        </div>
+
         <div className="mt-8 flex justify-center gap-4">
           {["BTC", "ETH", "SOL"].map((coin) => (
             <button
               key={coin}
               onClick={() =>
-                setSelectedCoin(
-                  coin as "BTC" | "ETH" | "SOL"
-                )
+                setSelectedCoin(coin as "BTC" | "ETH" | "SOL")
               }
               className={`px-6 py-3 rounded-xl font-bold text-lg ${
                 selectedCoin === coin
@@ -190,32 +202,21 @@ export default function SimulatorPage() {
 
         <div className="mt-8 text-center space-y-3">
           <p className="text-4xl font-bold">
-            {selectedCoin} Price: $
-            {currentPrice.toLocaleString()}
+            {selectedCoin} Price: ${currentPrice.toLocaleString()}
           </p>
 
-          <p className="text-xl">
-            Cash Balance: ${balance.toFixed(2)}
-          </p>
+          <p className="text-xl">Cash Balance: ${balance.toFixed(2)}</p>
 
           <p className="text-xl">
             {selectedCoin} Owned: {owned.toFixed(6)}
           </p>
 
           <p className="text-2xl text-emerald-400 font-bold">
-            Portfolio Value: $
-            {portfolioValue.toFixed(2)}
+            Portfolio Value: ${portfolioValue.toFixed(2)}
           </p>
 
-          <p
-            className={`text-2xl font-bold ${
-              pnl >= 0
-                ? "text-green-400"
-                : "text-red-400"
-            }`}
-          >
-            P/L: ${pnl.toFixed(2)} (
-            {pnlPercent.toFixed(2)}%)
+          <p className={`text-2xl font-bold ${pnlColor(totalPnl)}`}>
+            Total P/L: ${totalPnl.toFixed(2)} ({totalPnlPercent.toFixed(2)}%)
           </p>
         </div>
 
@@ -223,13 +224,9 @@ export default function SimulatorPage() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={history}>
               <CartesianGrid strokeDasharray="3 3" />
-
               <XAxis dataKey="time" hide />
-
               <YAxis />
-
               <Tooltip />
-
               <Line
                 type="monotone"
                 dataKey="price"
@@ -245,10 +242,12 @@ export default function SimulatorPage() {
           <input
             type="number"
             value={tradeAmount}
-            onChange={(e) =>
-              setTradeAmount(Number(e.target.value))
-            }
-            className="bg-zinc-800 text-white px-4 py-3 rounded-xl w-48 text-center text-xl"
+            placeholder="Enter amount"
+            onChange={(e) => {
+              const value = e.target.value;
+              setTradeAmount(value === "" ? "" : Number(value));
+            }}
+            className="bg-zinc-800 text-white px-4 py-3 rounded-xl w-56 text-center text-xl"
           />
         </div>
 
@@ -275,21 +274,17 @@ export default function SimulatorPage() {
         </div>
 
         <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-          <h2 className="text-3xl font-bold mb-6">
-            Trade History
-          </h2>
+          <h2 className="text-3xl font-bold mb-6">Trade History</h2>
 
           <div className="space-y-3">
             {trades.length === 0 && (
-              <p className="text-gray-400">
-                No trades yet.
-              </p>
+              <p className="text-gray-400">No trades yet.</p>
             )}
 
             {trades.map((trade, index) => (
               <div
                 key={index}
-                className="flex justify-between bg-zinc-800 p-4 rounded-xl"
+                className="grid md:grid-cols-4 gap-4 bg-zinc-800 p-4 rounded-xl"
               >
                 <div>
                   <span
@@ -304,13 +299,9 @@ export default function SimulatorPage() {
                   {trade.coin}
                 </div>
 
-                <div>
-                  ${trade.amount.toFixed(2)}
-                </div>
+                <div>${trade.amount.toFixed(2)}</div>
 
-                <div>
-                  @ ${trade.price.toLocaleString()}
-                </div>
+                <div>@ ${trade.price.toLocaleString()}</div>
 
                 <div>{trade.time}</div>
               </div>

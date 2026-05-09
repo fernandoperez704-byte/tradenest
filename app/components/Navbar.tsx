@@ -2,32 +2,37 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="w-full bg-zinc-950 border-b border-zinc-800 px-8 py-4 flex justify-between items-center">
-      <h1 className="text-2xl font-bold text-cyan-400">
-        TradeNest
-      </h1>
-
-      <div className="flex gap-8 text-lg font-medium">
+    <nav className="w-full bg-zinc-950 border-b border-zinc-800 px-8 py-4">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link
-          href="/learn"
-          className="hover:text-cyan-400 transition"
+          href="/"
+          className="text-2xl font-bold text-cyan-400 hover:text-cyan-300 transition"
         >
-          Learn
+          TradeNest
         </Link>
 
-        <Link
-          href="/simulator"
-          className="hover:text-cyan-400 transition"
-        >
-          Simulator
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/learn"
+            className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-cyan-500 hover:text-black transition"
+          >
+            Learn
+          </Link>
 
-        <Link
-          href="/leaderboard"
-          className="hover:text-cyan-400 transition"
-        >
-          Leaderboard
-        </Link>
+          <Link
+            href="/simulator"
+            className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-cyan-500 hover:text-black transition"
+          >
+            Simulator
+          </Link>
+
+          <Link
+            href="/leaderboard"
+            className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-cyan-500 hover:text-black transition"
+          >
+            Leaderboard
+          </Link>
+        </div>
       </div>
     </nav>
   );
