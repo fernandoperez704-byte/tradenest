@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
+import Navbar from "./components/Navbar";
 export default function Home() {
   const [btc, setBtc] = useState<number | null>(null);
   const [eth, setEth] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchPrices() {
-      const res = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
-      );
+  const res = await fetch(
+  "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
+);
 
       const data = await res.json();
 
@@ -22,7 +22,8 @@ export default function Home() {
     fetchPrices();
   }, []);
 
-  return (
+  return (<>
+  <Navbar />
     <main className="min-h-screen bg-black text-white px-6 py-10">
       <div className="max-w-6xl mx-auto text-center">
         <h1 className="text-6xl font-bold text-emerald-400">
@@ -81,5 +82,5 @@ export default function Home() {
         </div>
       </div>
     </main>
-  );
+  </>);
 }
