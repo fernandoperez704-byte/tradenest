@@ -32,6 +32,15 @@ export default function Navbar() {
           >
             Leaderboard
           </Link>
+        <a href="/news" className="hover:text-cyan-400">
+  News
+</a>
+<Link
+  href="/profile"
+  className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-cyan-500 hover:text-black transition"
+>
+  Profile
+</Link>
         </div>
       </div>
     </nav>

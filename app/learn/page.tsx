@@ -60,6 +60,41 @@ export default function LearnPage() {
               </div>
             ))}
           </div>
+          
+          <div className="mt-12 bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+  <h2 className="text-3xl font-bold text-cyan-400">
+    Quick Beginner Quiz
+  </h2>
+
+  <div className="mt-6 space-y-6">
+    <div>
+      <p className="text-xl font-bold">
+        1. What does buying mean?
+      </p>
+      <p className="text-gray-400 mt-2">
+        Buying means entering a trade because you believe the price may go higher.
+      </p>
+    </div>
+
+    <div>
+      <p className="text-xl font-bold">
+        2. What does P/L stand for?
+      </p>
+      <p className="text-gray-400 mt-2">
+        Profit and Loss.
+      </p>
+    </div>
+
+    <div>
+      <p className="text-xl font-bold">
+        3. Why is risk management important?
+      </p>
+      <p className="text-gray-400 mt-2">
+        It helps protect your money and prevents one bad trade from ruining your account.
+      </p>
+    </div>
+  </div>
+</div>
         </div>
       </main>
     </>

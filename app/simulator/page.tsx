@@ -95,7 +95,6 @@ export default function SimulatorPage() {
         SOL: Math.max(10, prev.SOL + Math.random() * 20 - 10),
         XRP: Math.max(0.1, prev.XRP + Math.random() * 0.2 - 0.1),
         DOGE: Math.max(0.01, prev.DOGE + Math.random() * 0.02 - 0.01),
-
         AAPL: Math.max(50, prev.AAPL + Math.random() * 8 - 4),
         TSLA: Math.max(50, prev.TSLA + Math.random() * 12 - 6),
         NVDA: Math.max(100, prev.NVDA + Math.random() * 20 - 10),
@@ -188,11 +187,30 @@ export default function SimulatorPage() {
     setMessage(`Sold ${selectedCoin} for $${value.toFixed(2)}`);
   }
 
+  function resetAccount() {
+    setBalance(startingBalance);
+
+    setPositions({
+      BTC: 0,
+      ETH: 0,
+      SOL: 0,
+      XRP: 0,
+      DOGE: 0,
+      AAPL: 0,
+      TSLA: 0,
+      NVDA: 0,
+      AMZN: 0,
+      META: 0,
+    });
+
+    setTrades([]);
+    setMessage("Practice account reset.");
+  }
+
   const portfolioValue =
     balance +
     Object.entries(positions).reduce(
-      (total, [symbol, qty]) =>
-        total + qty * prices[symbol as AssetSymbol],
+      (total, [symbol, qty]) => total + qty * prices[symbol as AssetSymbol],
       0
     );
 
@@ -258,6 +276,34 @@ export default function SimulatorPage() {
             <p className="text-gray-400">Monthly P/L</p>
             <p className={`text-2xl font-bold ${pnlColor(totalPnl)}`}>
               ${totalPnl.toFixed(2)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
+          <div className="bg-zinc-900 rounded-2xl p-5 text-center">
+            <p className="text-gray-400">Active Market</p>
+            <p className="text-2xl font-bold text-cyan-400 mt-2">{market}</p>
+          </div>
+
+          <div className="bg-zinc-900 rounded-2xl p-5 text-center">
+            <p className="text-gray-400">Selected Asset</p>
+            <p className="text-2xl font-bold text-cyan-400 mt-2">
+              {selectedCoin}
+            </p>
+          </div>
+
+          <div className="bg-zinc-900 rounded-2xl p-5 text-center">
+            <p className="text-gray-400">Open Positions</p>
+            <p className="text-2xl font-bold text-cyan-400 mt-2">
+              {Object.values(positions).filter((qty) => qty > 0).length}
+            </p>
+          </div>
+
+          <div className="bg-zinc-900 rounded-2xl p-5 text-center">
+            <p className="text-gray-400">Total Trades</p>
+            <p className="text-2xl font-bold text-cyan-400 mt-2">
+              {trades.length}
             </p>
           </div>
         </div>
@@ -375,72 +421,93 @@ export default function SimulatorPage() {
               />
             </div>
 
+            <div className="flex justify-center">
+              <button
+                onClick={resetAccount}
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  fontWeight: "bold",
+                  marginTop: "16px",
+                  border: "2px solid cyan",
+                }}
+              >
+                Reset Practice Account
+              </button>
+            </div>
+
             {message && (
               <p className="text-center mt-6 text-xl font-bold">{message}</p>
             )}
 
-            <div className="mt-8 flex justify-center gap-6">
+            <div className="mt-6 flex justify-center gap-3">
+              {[100, 500, 1000].map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setTradeAmount(amount)}
+                  className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-500 hover:text-black"
+                >
+                  ${amount}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setTradeAmount(Number(balance.toFixed(0)))}
+                className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-600"
+              >
+                MAX
+              </button>
+            </div>
+
+            <div className="mt-6 flex justify-center gap-4">
               <button
                 onClick={buyCoin}
-                className="px-10 py-4 bg-green-500 rounded-xl font-bold text-xl"
+                className="w-36 rounded-xl bg-green-500 px-6 py-3 text-lg font-bold text-white hover:bg-green-600"
               >
                 BUY
               </button>
 
               <button
                 onClick={sellCoin}
-                className="px-10 py-4 bg-red-500 rounded-xl font-bold text-xl"
+                className="w-36 rounded-xl bg-red-500 px-6 py-3 text-lg font-bold text-white hover:bg-red-600"
               >
                 SELL
               </button>
             </div>
-<div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-  <h2 className="text-3xl font-bold mb-6">
-    Open Positions
-  </h2>
 
-  <div className="space-y-3">
-    {Object.entries(positions)
-      .filter(([, qty]) => qty > 0)
-      .map(([symbol, qty]) => {
-        const current =
-          prices[symbol as keyof typeof prices];
+            <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
+              <h2 className="text-3xl font-bold mb-6">Open Positions</h2>
 
-        const value = qty * current;
+              <div className="space-y-3">
+                {Object.entries(positions)
+                  .filter(([, qty]) => qty > 0)
+                  .map(([symbol, qty]) => {
+                    const current = prices[symbol as AssetSymbol];
+                    const value = qty * current;
 
-        return (
-          <div
-            key={symbol}
-            className="grid md:grid-cols-4 gap-4 bg-zinc-800 p-4 rounded-xl"
-          >
-            <div className="font-bold text-cyan-400">
-              {symbol}
+                    return (
+                      <div
+                        key={symbol}
+                        className="grid md:grid-cols-4 gap-4 bg-zinc-800 p-4 rounded-xl"
+                      >
+                        <div className="font-bold text-cyan-400">{symbol}</div>
+                        <div>Qty: {qty.toFixed(6)}</div>
+                        <div>Price: ${current.toLocaleString()}</div>
+                        <div className="text-green-400 font-bold">
+                          ${value.toFixed(2)}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {Object.values(positions).every((qty) => qty === 0) && (
+                  <p className="text-gray-400">No open positions.</p>
+                )}
+              </div>
             </div>
 
-            <div>
-              Qty: {qty.toFixed(6)}
-            </div>
-
-            <div>
-              Price: ${current.toLocaleString()}
-            </div>
-
-            <div className="text-green-400 font-bold">
-              ${value.toFixed(2)}
-            </div>
-          </div>
-        );
-      })}
-
-    {Object.values(positions).every(
-      (qty) => qty === 0
-    ) && (
-      <p className="text-gray-400">
-        No open positions.
-      </p>
-    )}
-  </div>
-</div>
             <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
               <h2 className="text-3xl font-bold mb-6">Trade History</h2>
 
@@ -468,9 +535,7 @@ export default function SimulatorPage() {
                     </div>
 
                     <div>${trade.amount.toFixed(2)}</div>
-
                     <div>@ ${trade.price.toLocaleString()}</div>
-
                     <div>{trade.time}</div>
                   </div>
                 ))}
