@@ -8,7 +8,7 @@ export default function HomePage() {
       <main className="min-h-screen bg-black text-white p-8">
         <section className="max-w-6xl mx-auto text-center mt-16">
           <h1 className="text-6xl font-bold text-cyan-400">
-            TradeNest
+            TradeNestX
           </h1>
 
           <p className="mt-6 text-2xl text-gray-300">

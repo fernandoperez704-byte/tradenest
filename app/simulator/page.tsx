@@ -272,6 +272,16 @@ export default function SimulatorPage() {
     </div>
   </div>
 </div>
+<div className="mt-6 overflow-hidden rounded-xl bg-zinc-900 py-3">
+  <div className="animate-[marquee_20s_linear_infinite] whitespace-nowrap text-lg font-bold text-cyan-400">
+    BTC ${prices.BTC.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
+    ETH ${prices.ETH.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
+    SOL ${prices.SOL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+    TSLA ${prices.TSLA.toFixed(2)} ▼ &nbsp;&nbsp;&nbsp;
+    NVDA ${prices.NVDA.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+    AAPL ${prices.AAPL.toFixed(2)} ▲
+  </div>
+</div>
         <div className="mt-8 grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
           <div className="bg-zinc-900 p-5 rounded-2xl text-center">
             <p className="text-gray-400">Today</p>
@@ -441,21 +451,49 @@ export default function SimulatorPage() {
                 {totalPnlPercent.toFixed(2)}%)
               </p>
             </div>
-
-            <div className="mt-10 bg-zinc-900 rounded-2xl p-6 h-[420px]">
+<div className="mt-8 flex justify-center gap-3">
+  {["1H", "4H", "1D", "1W", "1M"].map(
+    (timeframe) => (
+      <button
+        key={timeframe}
+        className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-500 hover:text-black"
+      >
+        {timeframe}
+      </button>
+    )
+  )}
+</div>
+            <div className="mt-10 bg-[#0f0f10] border border-zinc-800 rounded-2xl p-6 h-[420px] shadow-2xl">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={history}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid
+  stroke="#27272a"
+  strokeDasharray="2 2"
+/>
                   <XAxis dataKey="time" hide />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="price"
-                    stroke="#22c55e"
-                    strokeWidth={4}
-                    dot={false}
-                  />
+                  <YAxis
+  domain={["auto", "auto"]}
+  tick={{ fill: "#a1a1aa" }}
+/>
+                  <Tooltip
+  contentStyle={{
+    backgroundColor: "#18181b",
+    border: "1px solid #3f3f46",
+    borderRadius: "12px",
+    color: "white",
+  }}
+  labelStyle={{
+    color: "#22d3ee",
+  }}
+/>
+                 <Line
+  type="monotone"
+  dataKey="price"
+  stroke="#00ff88"
+  strokeWidth={3}
+  dot={false}
+  animationDuration={300}
+/>
                 </LineChart>
               </ResponsiveContainer>
             </div>
