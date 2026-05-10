@@ -360,20 +360,47 @@ export default function SimulatorPage() {
                 <button
                   key={coin.symbol}
                   onClick={() => setSelectedCoin(coin.symbol)}
-                  className={`w-full rounded-xl border p-4 text-left ${
+                  className={`w-full rounded-xl border p-3 text-left ${
                     selectedCoin === coin.symbol
                       ? "border-cyan-400 bg-cyan-500 text-black"
                       : "border-zinc-700 bg-zinc-800"
                   }`}
                 >
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-xl font-bold">{coin.symbol}</p>
-                      <p className="text-sm opacity-70">{coin.name}</p>
-                    </div>
+<div className="flex items-start justify-between">
+  <div>
+    <p className="text-xl font-bold">{coin.symbol}</p>
+    <p className="text-sm opacity-70">{coin.name}</p>
+  </div>
 
-                    <p className="font-bold">${coin.price.toLocaleString()}</p>
-                  </div>
+  <p className="font-bold">${coin.price.toLocaleString()}</p>
+</div>
+
+<div className="mt-2 overflow-hidden">
+  <svg
+  viewBox="0 0 100 40"
+  width="100"
+  height="30"
+>
+ <polyline
+  points={`0,30 15,22 30,26 45,14 60,18 75,8 100,12`}
+  fill="none"
+  stroke="lime"
+  strokeWidth="4"
+  strokeLinecap="round"
+>
+  <animate
+    attributeName="points"
+    dur="2s"
+    repeatCount="indefinite"
+    values="
+      0,30 15,22 30,26 45,14 60,18 75,8 100,12;
+      0,25 15,28 30,18 45,22 60,10 75,16 100,8;
+      0,30 15,22 30,26 45,14 60,18 75,8 100,12
+    "
+  />
+</polyline>
+  </svg>
+</div>
                 </button>
               ))}
             </div>
