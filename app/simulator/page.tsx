@@ -55,6 +55,19 @@ const stockPrices = {
 
 const startingBalance = 10000;
 
+const emptyPositions: Record<AssetSymbol, number> = {
+  BTC: 0,
+  ETH: 0,
+  SOL: 0,
+  XRP: 0,
+  DOGE: 0,
+  AAPL: 0,
+  TSLA: 0,
+  NVDA: 0,
+  AMZN: 0,
+  META: 0,
+};
+
 export default function SimulatorPage() {
   const [market, setMarket] = useState<"CRYPTO" | "STOCKS">("CRYPTO");
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
@@ -65,19 +78,10 @@ export default function SimulatorPage() {
   });
 
   const [history, setHistory] = useState<PricePoint[]>([]);
-
-  const [positions, setPositions] = useState<Record<AssetSymbol, number>>({
-    BTC: 0,
-    ETH: 0,
-    SOL: 0,
-    XRP: 0,
-    DOGE: 0,
-    AAPL: 0,
-    TSLA: 0,
-    NVDA: 0,
-    AMZN: 0,
-    META: 0,
-  });
+  const [positions, setPositions] =
+    useState<Record<AssetSymbol, number>>(emptyPositions);
+  const [averagePrices, setAveragePrices] =
+    useState<Record<AssetSymbol, number>>(emptyPositions);
 
   const [balance, setBalance] = useState(startingBalance);
   const [message, setMessage] = useState("");
@@ -134,12 +138,26 @@ export default function SimulatorPage() {
     }
 
     const quantity = tradeAmount / currentPrice;
+    const oldQty = positions[selectedCoin];
+    const oldAvg = averagePrices[selectedCoin];
+
+    const newQty = oldQty + quantity;
+
+    const newAvg =
+      oldQty > 0
+        ? (oldQty * oldAvg + quantity * currentPrice) / newQty
+        : currentPrice;
 
     setBalance((prev) => prev - tradeAmount);
 
     setPositions((prev) => ({
       ...prev,
-      [selectedCoin]: prev[selectedCoin] + quantity,
+      [selectedCoin]: newQty,
+    }));
+
+    setAveragePrices((prev) => ({
+      ...prev,
+      [selectedCoin]: newAvg,
     }));
 
     setTrades((prev) => [
@@ -173,6 +191,11 @@ export default function SimulatorPage() {
       [selectedCoin]: 0,
     }));
 
+    setAveragePrices((prev) => ({
+      ...prev,
+      [selectedCoin]: 0,
+    }));
+
     setTrades((prev) => [
       {
         type: "SELL",
@@ -189,20 +212,8 @@ export default function SimulatorPage() {
 
   function resetAccount() {
     setBalance(startingBalance);
-
-    setPositions({
-      BTC: 0,
-      ETH: 0,
-      SOL: 0,
-      XRP: 0,
-      DOGE: 0,
-      AAPL: 0,
-      TSLA: 0,
-      NVDA: 0,
-      AMZN: 0,
-      META: 0,
-    });
-
+    setPositions(emptyPositions);
+    setAveragePrices(emptyPositions);
     setTrades([]);
     setMessage("Practice account reset.");
   }
@@ -486,17 +497,38 @@ export default function SimulatorPage() {
                   .map(([symbol, qty]) => {
                     const current = prices[symbol as AssetSymbol];
                     const value = qty * current;
+                    const avgPrice = averagePrices[symbol as AssetSymbol];
+                    const positionPnl = (current - avgPrice) * qty;
+
+                    const positionPnlPercent =
+                      avgPrice > 0
+                        ? ((current - avgPrice) / avgPrice) * 100
+                        : 0;
 
                     return (
                       <div
                         key={symbol}
-                        className="grid md:grid-cols-4 gap-4 bg-zinc-800 p-4 rounded-xl"
+                        className="grid md:grid-cols-6 gap-4 bg-zinc-800 p-4 rounded-xl"
                       >
                         <div className="font-bold text-cyan-400">{symbol}</div>
+
                         <div>Qty: {qty.toFixed(6)}</div>
+
                         <div>Price: ${current.toLocaleString()}</div>
-                        <div className="text-green-400 font-bold">
-                          ${value.toFixed(2)}
+
+                        <div>Value: ${value.toFixed(2)}</div>
+
+                        <div>Avg: ${avgPrice.toFixed(2)}</div>
+
+                        <div
+                          className={`font-bold ${
+                            positionPnl >= 0
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }`}
+                        >
+                          ${positionPnl.toFixed(2)} (
+                          {positionPnlPercent.toFixed(2)}%)
                         </div>
                       </div>
                     );
