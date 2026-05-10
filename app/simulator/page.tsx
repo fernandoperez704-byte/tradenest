@@ -257,7 +257,21 @@ export default function SimulatorPage() {
         <h1 className="text-5xl font-bold text-cyan-400 text-center mt-6">
           Multi-Coin Simulator
         </h1>
+<div className="mt-6 flex justify-center">
+  <div className="flex flex-wrap justify-center gap-4">
+    <div className="w-56 bg-green-500 text-center text-black px-4 py-2 rounded-xl font-bold">
+      Crypto Market: OPEN
+    </div>
 
+    <div className="w-56 bg-cyan-500 text-center text-black px-4 py-2 rounded-xl font-bold">
+      Stocks Market: LIVE
+    </div>
+
+    <div className="w-56 bg-orange-400 text-center text-black px-4 py-2 rounded-xl font-bold">
+      Volatility: HIGH
+    </div>
+  </div>
+</div>
         <div className="mt-8 grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
           <div className="bg-zinc-900 p-5 rounded-2xl text-center">
             <p className="text-gray-400">Today</p>
@@ -514,7 +528,202 @@ export default function SimulatorPage() {
                 SELL
               </button>
             </div>
+<div className="mt-14 bg-zinc-900 rounded-2xl p-6">
+  <h2 className="text-3xl font-bold mb-6">
+    Top Movers
+  </h2>
 
+  <div className="grid md:grid-cols-2 gap-4">
+    {watchlist.map((coin) => {
+      const change =
+        ((coin.price -
+          (coin.price * 0.97)) /
+          (coin.price * 0.97)) *
+        100;
+
+      return (
+        <div
+          key={coin.symbol}
+          className="bg-zinc-800 rounded-xl p-4 flex justify-between items-center"
+        >
+          <div>
+            <p className="font-bold text-cyan-400">
+              {coin.symbol}
+            </p>
+
+            <p className="text-sm text-gray-400">
+              {coin.name}
+            </p>
+          </div>
+
+          <div
+            className={`font-bold ${
+              change >= 0
+                ? "text-green-400"
+                : "text-red-400"
+            }`}
+          >
+            {change.toFixed(2)}%
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+<div className="mt-6 bg-zinc-900 rounded-2xl p-6">
+  <h2 className="text-3xl font-bold mb-4">
+    Trading Tips
+  </h2>
+
+  <div className="space-y-3 text-gray-300">
+    <p>• Never risk your full balance on one trade.</p>
+    <p>• Watch your open positions before buying more.</p>
+    <p>• Use the simulator to practice entries and exits.</p>
+    <p>• Green does not always mean buy. Red does not always mean sell.</p>
+  </div>
+</div>
+<div className="mt-6 bg-zinc-900 rounded-2xl p-6">
+  <h2 className="text-3xl font-bold mb-6">
+    Market News
+  </h2>
+
+  <div className="space-y-4">
+    <div className="bg-zinc-800 rounded-xl p-4">
+      <p className="font-bold text-cyan-400">
+        BTC Surges Above Resistance
+      </p>
+
+      <p className="text-gray-400 mt-1">
+        Bitcoin volatility increases as traders
+        react to market momentum.
+      </p>
+    </div>
+
+    <div className="bg-zinc-800 rounded-xl p-4">
+      <p className="font-bold text-cyan-400">
+        Tesla Leads Tech Rally
+      </p>
+
+      <p className="text-gray-400 mt-1">
+        TSLA and NVDA continue showing strong
+        trading activity.
+      </p>
+    </div>
+
+    <div className="bg-zinc-800 rounded-xl p-4">
+      <p className="font-bold text-cyan-400">
+        Altcoins See Increased Volume
+      </p>
+
+      <p className="text-gray-400 mt-1">
+        SOL and XRP traders return after recent
+        price swings.
+      </p>
+    </div>
+  </div>
+</div>
+<div className="mt-14 bg-zinc-900 rounded-2xl p-6 text-center">
+  <h2 className="text-3xl font-bold mb-4">
+    Fear & Greed Index
+  </h2>
+
+  <div className="text-6xl font-bold text-green-400">
+    72
+  </div>
+
+  <p className="mt-4 text-xl text-gray-300">
+    Market Sentiment: Greed
+  </p>
+
+  <div className="mt-6 h-4 rounded-full bg-zinc-800 overflow-hidden">
+    <div
+      className="h-full bg-green-400"
+      style={{ width: "72%" }}
+    />
+  </div>
+</div>
+<div className="mt-14 grid md:grid-cols-3 gap-4">
+  <div className="bg-zinc-900 rounded-2xl p-6 text-center">
+    <p className="text-gray-400">
+      Best Performer
+    </p>
+
+    <p className="text-3xl font-bold text-green-400 mt-2">
+      BTC
+    </p>
+  </div>
+
+  <div className="bg-zinc-900 rounded-2xl p-6 text-center">
+    <p className="text-gray-400">
+      Worst Performer
+    </p>
+
+    <p className="text-3xl font-bold text-red-400 mt-2">
+      XRP
+    </p>
+  </div>
+
+  <div className="bg-zinc-900 rounded-2xl p-6 text-center">
+    <p className="text-gray-400">
+      Win Rate
+    </p>
+
+    <p className="text-3xl font-bold text-cyan-400 mt-2">
+      68%
+    </p>
+  </div>
+</div>
+<div className="mt-14 bg-zinc-900 rounded-2xl p-6">
+  <h2 className="text-3xl font-bold mb-6">
+    Portfolio Allocation
+  </h2>
+
+  <div className="space-y-4">
+    {Object.entries(positions)
+      .filter(([, qty]) => qty > 0)
+      .map(([symbol, qty]) => {
+        const value =
+          qty *
+          prices[symbol as AssetSymbol];
+
+        const percent =
+          portfolioValue > 0
+            ? (value / portfolioValue) * 100
+            : 0;
+
+        return (
+          <div key={symbol}>
+            <div className="flex justify-between mb-1">
+              <span className="font-bold text-cyan-400">
+                {symbol}
+              </span>
+
+              <span>
+                {percent.toFixed(2)}%
+              </span>
+            </div>
+
+            <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
+              <div
+                className="h-full bg-cyan-400"
+                style={{
+                  width: `${percent}%`,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+
+    {Object.values(positions).every(
+      (qty) => qty === 0
+    ) && (
+      <p className="text-gray-400">
+        No active allocations.
+      </p>
+    )}
+  </div>
+</div>
             <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
               <h2 className="text-3xl font-bold mb-6">Open Positions</h2>
 
@@ -566,7 +775,52 @@ export default function SimulatorPage() {
                 )}
               </div>
             </div>
+<div className="mt-14 bg-zinc-900 rounded-2xl p-6">
+  <h2 className="text-3xl font-bold mb-6">
+    Recent Activity
+  </h2>
 
+  <div className="space-y-4">
+    {trades.slice(0, 5).map((trade, index) => (
+      <div
+        key={index}
+        className="bg-zinc-800 rounded-xl p-4 flex justify-between items-center"
+      >
+        <div>
+          <p
+            className={`font-bold ${
+              trade.type === "BUY"
+                ? "text-green-400"
+                : "text-red-400"
+            }`}
+          >
+            {trade.type} {trade.coin}
+          </p>
+
+          <p className="text-gray-400 text-sm">
+            {trade.time}
+          </p>
+        </div>
+
+        <div className="text-right">
+          <p className="font-bold">
+            ${trade.amount.toFixed(2)}
+          </p>
+
+          <p className="text-gray-400 text-sm">
+            @ ${trade.price.toLocaleString()}
+          </p>
+        </div>
+      </div>
+    ))}
+
+    {trades.length === 0 && (
+      <p className="text-gray-400">
+        No recent activity.
+      </p>
+    )}
+  </div>
+</div>
             <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
               <h2 className="text-3xl font-bold mb-6">Trade History</h2>
 
