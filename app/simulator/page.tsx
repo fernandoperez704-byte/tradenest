@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "../components/Navbar";
+
 import { useEffect, useState } from "react";
 import {
   LineChart,
@@ -91,32 +92,33 @@ export default function SimulatorPage() {
 
   const currentPrice = prices[selectedCoin];
 
-  function updatePrices() {
-    setPrices((prev) => {
-      const updated = {
-        BTC: Math.max(1000, prev.BTC + Math.random() * 800 - 400),
-        ETH: Math.max(100, prev.ETH + Math.random() * 60 - 30),
-        SOL: Math.max(10, prev.SOL + Math.random() * 20 - 10),
-        XRP: Math.max(0.1, prev.XRP + Math.random() * 0.2 - 0.1),
-        DOGE: Math.max(0.01, prev.DOGE + Math.random() * 0.02 - 0.01),
-        AAPL: Math.max(50, prev.AAPL + Math.random() * 8 - 4),
-        TSLA: Math.max(50, prev.TSLA + Math.random() * 12 - 6),
-        NVDA: Math.max(100, prev.NVDA + Math.random() * 20 - 10),
-        AMZN: Math.max(50, prev.AMZN + Math.random() * 6 - 3),
-        META: Math.max(50, prev.META + Math.random() * 10 - 5),
-      };
+function updatePrices() {
+  setPrices((prev) => {
+    const updated = {
+      BTC: Math.max(1000, prev.BTC + Math.random() * 800 - 400),
+      ETH: Math.max(100, prev.ETH + Math.random() * 60 - 30),
+      SOL: Math.max(10, prev.SOL + Math.random() * 20 - 10),
+      XRP: Math.max(0.1, prev.XRP + Math.random() * 0.2 - 0.1),
+      DOGE: Math.max(0.01, prev.DOGE + Math.random() * 0.02 - 0.01),
 
-      setHistory((old) => [
-        ...old.slice(-29),
-        {
-          time: new Date().toLocaleTimeString(),
-          price: updated[selectedCoin],
-        },
-      ]);
+      AAPL: Math.max(50, prev.AAPL + Math.random() * 8 - 4),
+      TSLA: Math.max(50, prev.TSLA + Math.random() * 12 - 6),
+      NVDA: Math.max(100, prev.NVDA + Math.random() * 20 - 10),
+      AMZN: Math.max(50, prev.AMZN + Math.random() * 6 - 3),
+      META: Math.max(50, prev.META + Math.random() * 10 - 5),
+    };
 
-      return updated;
-    });
-  }
+    setHistory((old) => [
+      ...old.slice(-29),
+      {
+        time: new Date().toLocaleTimeString(),
+        price: updated[selectedCoin],
+      },
+    ]);
+
+    return updated;
+  });
+}
 
   useEffect(() => {
     setNow(new Date());
