@@ -1,8 +1,10 @@
 "use client";
 
 import Navbar from "../components/Navbar";
-
+import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { collection, addDoc } from "firebase/firestore";
 import {
   LineChart,
   Line,
@@ -70,6 +72,7 @@ const emptyPositions: Record<AssetSymbol, number> = {
 };
 
 export default function SimulatorPage() {
+const { user } = useUser();
   const [market, setMarket] = useState<"CRYPTO" | "STOCKS">("CRYPTO");
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
 
@@ -172,6 +175,17 @@ function updatePrices() {
       },
       ...prev,
     ]);
+if (user) {
+  addDoc(collection(db, "trades"), {
+    userId: user.id,
+    userName: user.firstName || "Trader",
+  type: "BUY",
+  coin: selectedCoin,
+  amount: tradeAmount,
+  price: currentPrice,
+  created: new Date(),
+    });
+}
 
     setMessage(`Bought $${tradeAmount} of ${selectedCoin}`);
   }
@@ -198,16 +212,17 @@ function updatePrices() {
       [selectedCoin]: 0,
     }));
 
-    setTrades((prev) => [
-      {
-        type: "SELL",
-        coin: selectedCoin,
-        amount: value,
-        price: currentPrice,
-        time: new Date().toLocaleTimeString(),
-      },
-      ...prev,
-    ]);
+  if (user) {
+  addDoc(collection(db, "trades"), {
+    userId: user.id,
+    userName: user.firstName || "Trader",
+    type: "SELL",
+    coin: selectedCoin,
+    amount: value,
+    price: currentPrice,
+    created: new Date(),
+  });
+}
 
     setMessage(`Sold ${selectedCoin} for $${value.toFixed(2)}`);
   }
@@ -256,7 +271,7 @@ function updatePrices() {
       <Navbar />
 
       <main className="min-h-screen bg-black text-white p-8">
-        <h1 className="text-5xl font-bold text-cyan-400 text-center mt-6">
+        <h1 className="text-3xl md:text-5xl font-bold text-cyan-400 text-center mt-6">
           Multi-Coin Simulator
         </h1>
 <div className="mt-6 flex justify-center">
@@ -285,7 +300,7 @@ function updatePrices() {
   </div>
 </div>
         <div className="mt-8 grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
-          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+          <div className="bg-zinc-900 p-4 md:p-5 rounded-2xl text-center">
             <p className="text-gray-400">Today</p>
             <p className="text-xl font-bold">
               {now ? now.toLocaleDateString() : "--/--/----"}
@@ -295,21 +310,21 @@ function updatePrices() {
             </p>
           </div>
 
-          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+          <div className="bg-zinc-900 p-4 md:p-5 rounded-2xl text-center">
             <p className="text-gray-400">Daily P/L</p>
             <p className={`text-2xl font-bold ${pnlColor(totalPnl)}`}>
               ${totalPnl.toFixed(2)}
             </p>
           </div>
 
-          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+          <div className="bg-zinc-900 p-4 md:p-5 rounded-2xl text-center">
             <p className="text-gray-400">Weekly P/L</p>
             <p className={`text-2xl font-bold ${pnlColor(totalPnl)}`}>
               ${totalPnl.toFixed(2)}
             </p>
           </div>
 
-          <div className="bg-zinc-900 p-5 rounded-2xl text-center">
+          <div className="bg-zinc-900 p-4 md:p-5 rounded-2xl text-center">
             <p className="text-gray-400">Monthly P/L</p>
             <p className={`text-2xl font-bold ${pnlColor(totalPnl)}`}>
               ${totalPnl.toFixed(2)}
@@ -345,7 +360,7 @@ function updatePrices() {
           </div>
         </div>
 
-        <div className="mt-10 grid lg:grid-cols-[260px_1fr] gap-6 max-w-6xl mx-auto">
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 max-w-6xl mx-auto">
           <div className="bg-zinc-900 rounded-2xl p-4 h-fit">
             <div className="flex gap-2 mb-4">
               <button
@@ -434,7 +449,7 @@ function updatePrices() {
 
           <div>
             <div className="text-center space-y-3">
-              <p className="text-4xl font-bold">
+              <p className="text-2xl md:text-4xl font-bold">
                 {selectedCoin} Price: ${currentPrice.toLocaleString()}
               </p>
 
@@ -534,7 +549,7 @@ function updatePrices() {
               <p className="text-center mt-6 text-xl font-bold">{message}</p>
             )}
 
-            <div className="mt-6 flex justify-center gap-3">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
               {[100, 500, 1000].map((amount) => (
                 <button
                   key={amount}
@@ -556,20 +571,20 @@ function updatePrices() {
             <div className="mt-6 flex justify-center gap-4">
               <button
                 onClick={buyCoin}
-                className="w-36 rounded-xl bg-green-500 px-6 py-3 text-lg font-bold text-white hover:bg-green-600"
+                className="w-full md:w-36 rounded-xl bg-green-500 px-6 py-3 text-lg font-bold text-white hover:bg-green-600"
               >
                 BUY
               </button>
 
               <button
                 onClick={sellCoin}
-                className="w-36 rounded-xl bg-red-500 px-6 py-3 text-lg font-bold text-white hover:bg-red-600"
+                className="w-full md:w-36 rounded-xl bg-red-500 px-6 py-3 text-lg font-bold text-white hover:bg-red-600"
               >
                 SELL
               </button>
             </div>
 <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-  <h2 className="text-3xl font-bold mb-6">
+  <h2 className="text-2xl md:text-3xl font-bold mb-6">
     Top Movers
   </h2>
 
@@ -623,7 +638,7 @@ function updatePrices() {
   </div>
 </div>
 <div className="mt-6 bg-zinc-900 rounded-2xl p-6">
-  <h2 className="text-3xl font-bold mb-6">
+  <h2 className="text-2xl md:text-3xl font-bold mb-6">
     Market News
   </h2>
 
@@ -714,7 +729,7 @@ function updatePrices() {
   </div>
 </div>
 <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-  <h2 className="text-3xl font-bold mb-6">
+  <h2 className="text-2xl md:text-3xl font-bold mb-6">
     Portfolio Allocation
   </h2>
 
@@ -765,7 +780,7 @@ function updatePrices() {
   </div>
 </div>
             <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-              <h2 className="text-3xl font-bold mb-6">Open Positions</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-6">Open Positions</h2>
 
               <div className="space-y-3">
                 {Object.entries(positions)
@@ -784,7 +799,7 @@ function updatePrices() {
                     return (
                       <div
                         key={symbol}
-                        className="grid md:grid-cols-6 gap-4 bg-zinc-800 p-4 rounded-xl"
+                        className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-zinc-800 p-4 rounded-xl text-sm md:text-base"
                       >
                         <div className="font-bold text-cyan-400">{symbol}</div>
 
@@ -816,7 +831,7 @@ function updatePrices() {
               </div>
             </div>
 <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-  <h2 className="text-3xl font-bold mb-6">
+  <h2 className="text-2xl md:text-3xl font-bold mb-6">
     Recent Activity
   </h2>
 
@@ -862,7 +877,7 @@ function updatePrices() {
   </div>
 </div>
             <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-              <h2 className="text-3xl font-bold mb-6">Trade History</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-6">Trade History</h2>
 
               <div className="space-y-3">
                 {trades.length === 0 && (
