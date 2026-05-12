@@ -3,11 +3,21 @@
 import Navbar from "../components/Navbar";
 
 const traders = [
-  { rank: 1, name: "Alex", profit: 1240, winRate: "72%" },
-  { rank: 2, name: "Mia", profit: 980, winRate: "68%" },
-  { rank: 3, name: "Jordan", profit: 720, winRate: "61%" },
-  { rank: 4, name: "Sam", profit: 410, winRate: "55%" },
-  { rank: 5, name: "You", profit: 0, winRate: "0%" },
+  {
+    name: "Fernando",
+    pnl: 2450,
+    winRate: 68,
+  },
+  {
+    name: "Alex",
+    pnl: 1820,
+    winRate: 61,
+  },
+  {
+    name: "Sarah",
+    pnl: 1390,
+    winRate: 57,
+  },
 ];
 
 export default function LeaderboardPage() {
@@ -18,38 +28,36 @@ export default function LeaderboardPage() {
       <main className="min-h-screen bg-black text-white p-8">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-5xl font-bold text-cyan-400 text-center mt-6">
-            Leaderboard
+            Global Leaderboard
           </h1>
 
-          <p className="text-center text-gray-400 mt-4 text-xl">
-            Track top paper traders and improve your ranking.
-          </p>
+          <div className="mt-10 space-y-4">
+            {traders.map((trader, index) => (
+              <div
+                key={trader.name}
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-full bg-cyan-500 text-black flex items-center justify-center font-bold text-2xl">
+                    #{index + 1}
+                  </div>
 
-          <div className="mt-10 bg-zinc-900 rounded-2xl p-6">
-            <div className="grid grid-cols-4 text-gray-400 font-bold border-b border-zinc-700 pb-4">
-              <p>Rank</p>
-              <p>Name</p>
-              <p>Profit</p>
-              <p>Win Rate</p>
-            </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {trader.name}
+                    </h2>
 
-            <div className="space-y-3 mt-4">
-              {traders.map((trader) => (
-                <div
-                  key={trader.rank}
-                  className={`grid grid-cols-4 rounded-xl p-4 ${
-                    trader.name === "You"
-                      ? "bg-cyan-500 text-black font-bold"
-                      : "bg-zinc-800"
-                  }`}
-                >
-                  <p>#{trader.rank}</p>
-                  <p>{trader.name}</p>
-                  <p>${trader.profit.toLocaleString()}</p>
-                  <p>{trader.winRate}</p>
+                    <p className="text-gray-400">
+                      Win Rate: {trader.winRate}%
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="text-green-400 text-3xl font-bold">
+                  +${trader.pnl.toLocaleString()}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </main>

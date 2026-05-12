@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 import {
   LineChart,
   Line,
@@ -154,7 +154,12 @@ function updatePrices() {
         : currentPrice;
 
     setBalance((prev) => prev - tradeAmount);
-
+if (user) {
+  setDoc(doc(db, "portfolios", user.id), {
+    balance: balance - Number(tradeAmount),
+    updated: new Date(),
+  });
+}
     setPositions((prev) => ({
       ...prev,
       [selectedCoin]: newQty,
@@ -201,7 +206,12 @@ if (user) {
     const value = ownedAmount * currentPrice;
 
     setBalance((prev) => prev + value);
-
+if (user) {
+  setDoc(doc(db, "portfolios", user.id), {
+    balance: balance + value,
+    updated: new Date(),
+  });
+}
     setPositions((prev) => ({
       ...prev,
       [selectedCoin]: 0,
@@ -212,7 +222,18 @@ if (user) {
       [selectedCoin]: 0,
     }));
 
-  if (user) {
+  setTrades((prev) => [
+  {
+    type: "SELL",
+    coin: selectedCoin,
+    amount: value,
+    price: currentPrice,
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
+
+if (user) {
   addDoc(collection(db, "trades"), {
     userId: user.id,
     userName: user.firstName || "Trader",

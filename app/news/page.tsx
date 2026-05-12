@@ -1,29 +1,22 @@
-import Navbar from "../components/Navbar";
+"use client";
 
-const news = [
-  {
-    title: "Bitcoin pushes higher as crypto market gains momentum",
-    source: "Crypto Daily",
-    time: "2h ago",
-  },
-  {
-    title: "NVIDIA stock jumps after AI demand increases",
-    source: "Market Watch",
-    time: "4h ago",
-  },
-  {
-    title: "Tesla volatility rises ahead of earnings report",
-    source: "Trading News",
-    time: "6h ago",
-  },
-  {
-    title: "Ethereum trading volume climbs this week",
-    source: "Coin Journal",
-    time: "8h ago",
-  },
-];
+import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
 
 export default function NewsPage() {
+  const [news, setNews] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadNews() {
+      const response = await fetch("/api/news");
+      const data = await response.json();
+
+      setNews(data);
+    }
+
+    loadNews();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -50,7 +43,6 @@ export default function NewsPage() {
 
                 <div className="flex justify-between mt-4 text-gray-400">
                   <p>{item.source}</p>
-                  <p>{item.time}</p>
                 </div>
               </div>
             ))}
