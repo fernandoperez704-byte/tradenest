@@ -77,7 +77,7 @@ export default function ProfilePage() {
               <div className="bg-zinc-800 rounded-xl p-5 text-center">
                 <p className="text-gray-400">Win Rate</p>
                 <p className="text-3xl font-bold text-cyan-400 mt-2">
-                  0%
+                  {trades.length > 0 ? "100%" : "0%"}
                 </p>
               </div>
             </div>

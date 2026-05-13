@@ -4,7 +4,17 @@ import Navbar from "../components/Navbar";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, addDoc, doc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+} from "firebase/firestore";
 import {
   LineChart,
   Line,
@@ -88,6 +98,53 @@ const { user } = useUser();
     useState<Record<AssetSymbol, number>>(emptyPositions);
 
   const [balance, setBalance] = useState(startingBalance);
+  useEffect(() => {
+  async function loadPortfolio() {
+    if (!user) return;
+
+    const portfolioRef = doc(db, "portfolios", user.id);
+
+    const portfolioSnap = await getDoc(portfolioRef);
+
+    if (portfolioSnap.exists()) {
+      const data = portfolioSnap.data();
+
+      if (data.balance) {
+        setBalance(data.balance);
+      }
+      if (data.positions) {
+  setPositions(data.positions);
+}
+
+if (data.averagePrices) {
+  setAveragePrices(data.averagePrices);
+}
+    }
+  }
+
+  loadPortfolio();
+}, [user]);
+useEffect(() => {
+  async function loadTrades() {
+    if (!user) return;
+
+    const q = query(
+      collection(db, "trades"),
+      where("userId", "==", user.id)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const loadedTrades = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    setTrades(loadedTrades as any[]);
+  }
+
+  loadTrades();
+}, [user]);
   const [message, setMessage] = useState("");
   const [tradeAmount, setTradeAmount] = useState<number | "">(100);
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -155,10 +212,18 @@ function updatePrices() {
 
     setBalance((prev) => prev - tradeAmount);
 if (user) {
-  setDoc(doc(db, "portfolios", user.id), {
-    balance: balance - Number(tradeAmount),
-    updated: new Date(),
-  });
+ setDoc(doc(db, "portfolios", user.id), {
+  balance: balance - Number(tradeAmount),
+  positions: {
+    ...positions,
+    [selectedCoin]: newQty,
+  },
+  averagePrices: {
+    ...averagePrices,
+    [selectedCoin]: newAvg,
+  },
+  updated: new Date(),
+});
 }
     setPositions((prev) => ({
       ...prev,
@@ -207,10 +272,18 @@ if (user) {
 
     setBalance((prev) => prev + value);
 if (user) {
-  setDoc(doc(db, "portfolios", user.id), {
-    balance: balance + value,
-    updated: new Date(),
-  });
+ setDoc(doc(db, "portfolios", user.id), {
+  balance: balance + value,
+  positions: {
+    ...positions,
+    [selectedCoin]: 0,
+  },
+  averagePrices: {
+    ...averagePrices,
+    [selectedCoin]: 0,
+  },
+  updated: new Date(),
+});
 }
     setPositions((prev) => ({
       ...prev,
@@ -248,13 +321,28 @@ if (user) {
     setMessage(`Sold ${selectedCoin} for $${value.toFixed(2)}`);
   }
 
-  function resetAccount() {
-    setBalance(startingBalance);
-    setPositions(emptyPositions);
-    setAveragePrices(emptyPositions);
-    setTrades([]);
-    setMessage("Practice account reset.");
-  }
+function resetAccount() {
+  setBalance(startingBalance);
+  setPositions(emptyPositions);
+  setAveragePrices(emptyPositions);
+  setTrades([]);
+  setMessage("Practice account reset.");
+
+ if (user) {
+  deleteDoc(doc(db, "portfolios", user.id));
+
+  const q = query(
+    collection(db, "trades"),
+    where("userId", "==", user.id)
+  );
+
+  getDocs(q).then((snapshot) => {
+    snapshot.docs.forEach((tradeDoc) => {
+      deleteDoc(doc(db, "trades", tradeDoc.id));
+    });
+  });
+}
+}
 
   const portfolioValue =
     balance +
