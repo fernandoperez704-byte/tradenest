@@ -213,6 +213,7 @@ function updatePrices() {
     setBalance((prev) => prev - tradeAmount);
 if (user) {
  setDoc(doc(db, "portfolios", user.id), {
+  userName: user.firstName || "Trader",
   balance: balance - Number(tradeAmount),
   positions: {
     ...positions,
@@ -273,6 +274,7 @@ if (user) {
     setBalance((prev) => prev + value);
 if (user) {
  setDoc(doc(db, "portfolios", user.id), {
+  userName: user.firstName || "Trader",
   balance: balance + value,
   positions: {
     ...positions,

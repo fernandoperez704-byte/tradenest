@@ -1,26 +1,34 @@
 "use client";
 
 import Navbar from "../components/Navbar";
-
-const traders = [
-  {
-    name: "Fernando",
-    pnl: 2450,
-    winRate: 68,
-  },
-  {
-    name: "Alex",
-    pnl: 1820,
-    winRate: 61,
-  },
-  {
-    name: "Sarah",
-    pnl: 1390,
-    winRate: 57,
-  },
-];
+import { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function LeaderboardPage() {
+  const [leaders, setLeaders] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadLeaderboard() {
+      const snapshot = await getDocs(
+        collection(db, "portfolios")
+      );
+
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const sorted = data.sort(
+        (a: any, b: any) => b.balance - a.balance
+      );
+
+      setLeaders(sorted);
+    }
+
+    loadLeaderboard();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -31,10 +39,14 @@ export default function LeaderboardPage() {
             Global Leaderboard
           </h1>
 
+          <p className="text-center text-gray-400 mt-4 text-xl">
+            Top paper trading accounts.
+          </p>
+
           <div className="mt-10 space-y-4">
-            {traders.map((trader, index) => (
+            {leaders.map((leader, index) => (
               <div
-                key={trader.name}
+                key={leader.id}
                 className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between"
               >
                 <div className="flex items-center gap-6">
@@ -44,17 +56,17 @@ export default function LeaderboardPage() {
 
                   <div>
                     <h2 className="text-2xl font-bold">
-                      {trader.name}
+                      {leader.userName || "Trader"}
                     </h2>
 
                     <p className="text-gray-400">
-                      Win Rate: {trader.winRate}%
+                      Portfolio Balance
                     </p>
                   </div>
                 </div>
 
-                <div className="text-green-400 text-3xl font-bold">
-                  +${trader.pnl.toLocaleString()}
+                <div className="text-cyan-400 text-3xl font-bold">
+                  ${Number(leader.balance).toLocaleString()}
                 </div>
               </div>
             ))}
