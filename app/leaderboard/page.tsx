@@ -3,31 +3,30 @@
 import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+} from "firebase/firestore";
 
 export default function LeaderboardPage() {
   const [leaders, setLeaders] = useState<any[]>([]);
 
-  useEffect(() => {
-    async function loadLeaderboard() {
-      const snapshot = await getDocs(
-        collection(db, "portfolios")
-      );
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "portfolios"), (snapshot) => {
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+    const sorted = data.sort(
+      (a: any, b: any) => b.balance - a.balance
+    );
 
-      const sorted = data.sort(
-        (a: any, b: any) => b.balance - a.balance
-      );
+    setLeaders(sorted);
+  });
 
-      setLeaders(sorted);
-    }
-
-    loadLeaderboard();
-  }, []);
+  return () => unsub();
+}, []);
 
   return (
     <>
