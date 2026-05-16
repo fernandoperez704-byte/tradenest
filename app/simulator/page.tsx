@@ -183,13 +183,46 @@ export default function SimulatorPage() {
 const { user } = useUser();
   const [market, setMarket] = useState<"CRYPTO" | "STOCKS">("CRYPTO");
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 const [searchTerm, setSearchTerm] = useState("");
   const [prices, setPrices] = useState({
     ...cryptoPrices,
     ...stockPrices,
   });
 
-  const [history, setHistory] = useState<PricePoint[]>([]);
+  const [history, setHistory] = useState<PricePoint[]>(() => {
+  const initialHistory: PricePoint[] = [];
+
+  let lastPrice = cryptoPrices.BTC;
+
+  for (let i = 0; i < 120; i++) {
+    const open = lastPrice;
+
+    const close =
+      open + (Math.random() * 2000 - 1000);
+
+    const high =
+      Math.max(open, close) +
+      Math.random() * 500;
+
+    const low =
+      Math.min(open, close) -
+      Math.random() * 500;
+
+    initialHistory.push({
+      time: `${i}`,
+      price: close,
+      open,
+      high,
+      low,
+      close,
+    });
+
+    lastPrice = close;
+  }
+
+  return initialHistory;
+});
   const [positions, setPositions] =
     useState<Record<AssetSymbol, number>>(emptyPositions);
   const [averagePrices, setAveragePrices] =
@@ -249,13 +282,69 @@ useEffect(() => {
   const [now, setNow] = useState<Date | null>(null);
 
   const currentPrice = prices[selectedCoin];
+  function buildHistory(symbol: AssetSymbol, timeframe: string) {
+  const candles: PricePoint[] = [];
+  let lastPrice = prices[symbol] ?? 100;
+
+  const volatilityMap = {
+    "1M": 0.004,
+    "5M": 0.008,
+    "15M": 0.012,
+    "1H": 0.02,
+    "4H": 0.035,
+    "1D": 0.055,
+    "1W": 0.09,
+    "1MO": 0.14,
+  };
+
+  const volatility =
+    volatilityMap[timeframe as keyof typeof volatilityMap] ?? 0.01;
+
+  for (let i = 0; i < 120; i++) {
+    const open = lastPrice;
+    const close = open + open * (Math.random() * volatility * 2 - volatility);
+    const high = Math.max(open, close) + open * volatility * 0.4;
+    const low = Math.min(open, close) - open * volatility * 0.4;
+
+    candles.push({
+      time: `${i}`,
+      price: close,
+      open,
+      high,
+      low,
+      close,
+    });
+
+    lastPrice = close;
+  }
+
+  return candles;
+}
   const chartRef = useRef<HTMLDivElement | null>(null);
 
 function updatePrices() {
   setPrices((prev) => {
     const updated = Object.fromEntries(
       Object.entries(prev).map(([symbol, price]) => {
-        const move = price * (Math.random() * 0.02 - 0.01);
+        const volatilityMap = {
+  "1M": 0.008,
+  "5M": 0.012,
+  "15M": 0.018,
+  "1H": 0.025,
+  "4H": 0.04,
+  "1D": 0.06,
+  "1W": 0.09,
+  "1MO": 0.14,
+};
+
+const volatility =
+  volatilityMap[
+    selectedTimeframe as keyof typeof volatilityMap
+  ];
+
+const move =
+  price *
+  (Math.random() * volatility * 2 - volatility);
 
         return [
           symbol,
@@ -276,7 +365,7 @@ setHistory((old) => {
   const low = Math.min(open, close) * 0.997;
 
   return [
-    ...old.slice(-29),
+    ...old.slice(-120),
     {
       time: new Date().toLocaleTimeString(),
       price: close,
@@ -296,14 +385,28 @@ setHistory((old) => {
     setNow(new Date());
     updatePrices();
 
-    const priceInterval = setInterval(updatePrices, 1000);
+    const timeframeSpeed = {
+  "1M": 1000,
+  "5M": 1500,
+  "15M": 2000,
+  "1H": 3000,
+  "4H": 4000,
+  "1D": 5000,
+  "1W": 6000,
+  "1MO": 7000,
+};
+
+const priceInterval = setInterval(
+  updatePrices,
+  timeframeSpeed[selectedTimeframe as keyof typeof timeframeSpeed]
+);
     const clockInterval = setInterval(() => setNow(new Date()), 1000);
 
     return () => {
       clearInterval(priceInterval);
       clearInterval(clockInterval);
     };
-  }, [selectedCoin]);
+  }, [selectedCoin, selectedTimeframe]);
 
 
   useEffect(() => {
@@ -313,6 +416,7 @@ setHistory((old) => {
 
   const chart = createChart(chartRef.current, {
     layout: {
+  attributionLogo: false,
       background: {
         type: ColorType.Solid,
         color: "#0f172a",
@@ -323,8 +427,17 @@ setHistory((old) => {
       vertLines: { color: "#1f2937" },
       horzLines: { color: "#1f2937" },
     },
+    handleScroll: {
+  mouseWheel: true,
+  pressedMouseMove: true,
+},
+
+handleScale: {
+  mouseWheel: true,
+  pinch: true,
+},
     width: chartRef.current.clientWidth,
-    height: 700,
+    height: 620,
     rightPriceScale: {
       borderColor: "#27272a",
     },
@@ -350,6 +463,8 @@ setHistory((old) => {
       close: item.close,
     }))
   );
+  chart.timeScale().fitContent();
+chart.timeScale().scrollToRealTime();
 
   const handleResize = () => {
     if (!chartRef.current) return;
@@ -584,57 +699,99 @@ function resetAccount() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-black text-white p-8">
-        <h1 className="text-3xl md:text-5xl font-bold text-cyan-400 text-center mt-6">
-          Trading Simulator
-        </h1>
+      <main className="min-h-screen bg-gradient-to-b from-black via-[#050816] to-black text-white p-8 selection:bg-cyan-500/30">
+     <h1 className="text-4xl md:text-6xl font-black tracking-tight text-cyan-400 text-center mt-6">
+  Trading Simulator
+</h1>
+
+<p className="mt-3 text-center text-zinc-500 text-sm md:text-base tracking-wide">
+  Professional multi-asset paper trading platform
+</p>
 <div className="mt-6 flex justify-center">
   <div className="flex flex-wrap justify-center gap-4">
 
     <div className="w-56 bg-green-500/10 border border-green-500 text-center text-green-400 px-4 py-2 rounded-xl font-bold">
-      Crypto Market: OPEN
+      Crypto Market • OPEN
     </div>
 
     <div className="w-56 bg-cyan-500/10 border border-cyan-500 text-center text-cyan-400 px-4 py-2 rounded-xl font-bold">
-      Stocks Market: LIVE
+      US Markets • LIVE
     </div>
 
     <div className="w-56 bg-orange-500/10 border border-orange-500 text-center text-orange-400 px-4 py-2 rounded-xl font-bold">
-      Volatility: HIGH
+      Market Volatility • HIGH
     </div>
 
   </div>
 </div>
-<div className="mt-6 overflow-hidden rounded-xl bg-[#131722] border border-zinc-800 py-2">
-  <div className="animate-[marquee_28s_linear_infinite] whitespace-nowrap text-sm font-bold tracking-wide text-green-400">
-    BTC ${prices.BTC.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
-    ETH ${prices.ETH.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
-    SOL ${prices.SOL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-    TSLA ${prices.TSLA.toFixed(2)} ▼ &nbsp;&nbsp;&nbsp;
-    NVDA ${prices.NVDA.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-    AAPL ${prices.AAPL.toFixed(2)} ▲
+<div className="mt-6 mx-auto max-w-[1800px] overflow-hidden rounded-xl bg-[#131722] border border-zinc-800 py-2">
+  <div className="animate-[marquee_40s_linear_infinite] whitespace-nowrap text-sm font-bold tracking-wide text-green-400">
+   BTC ${prices.BTC.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
+ETH ${prices.ETH.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
+SOL ${prices.SOL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+XRP ${prices.XRP.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+DOGE ${prices.DOGE.toFixed(3)} ▲ &nbsp;&nbsp;&nbsp;
+ADA $1.24 ▲ &nbsp;&nbsp;&nbsp;
+AVAX $42.81 ▼ &nbsp;&nbsp;&nbsp;
+LINK $18.44 ▲ &nbsp;&nbsp;&nbsp;
+BNB $642.55 ▲ &nbsp;&nbsp;&nbsp;
+SUI $1.92 ▲ &nbsp;&nbsp;&nbsp;
+PEPE $0.000012 ▲ &nbsp;&nbsp;&nbsp;
+TSLA ${prices.TSLA.toFixed(2)} ▼ &nbsp;&nbsp;&nbsp;
+NVDA ${prices.NVDA.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+AAPL ${prices.AAPL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+META $542.33 ▲ &nbsp;&nbsp;&nbsp;
+AMZN ${prices.AMZN.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+MSFT $428.12 ▲ &nbsp;&nbsp;&nbsp;
+GOOGL $182.41 ▼ &nbsp;&nbsp;&nbsp;
+AMD $174.88 ▲ &nbsp;&nbsp;&nbsp;
+PLTR $31.52 ▲ &nbsp;&nbsp;&nbsp;
+COIN $245.66 ▲ &nbsp;&nbsp;&nbsp;
+MSTR $1712.90 ▲
+BTC ${prices.BTC.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
+ETH ${prices.ETH.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
+SOL ${prices.SOL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+XRP ${prices.XRP.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+DOGE ${prices.DOGE.toFixed(3)} ▲ &nbsp;&nbsp;&nbsp;
+ADA $1.24 ▲ &nbsp;&nbsp;&nbsp;
+AVAX $42.81 ▼ &nbsp;&nbsp;&nbsp;
+LINK $18.44 ▲ &nbsp;&nbsp;&nbsp;
+BNB $642.55 ▲ &nbsp;&nbsp;&nbsp;
+SUI $1.92 ▲ &nbsp;&nbsp;&nbsp;
+PEPE $0.000012 ▲ &nbsp;&nbsp;&nbsp;
+TSLA ${prices.TSLA.toFixed(2)} ▼ &nbsp;&nbsp;&nbsp;
+NVDA ${prices.NVDA.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+AAPL ${prices.AAPL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+META $542.33 ▲ &nbsp;&nbsp;&nbsp;
+AMZN ${prices.AMZN.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
+MSFT $428.12 ▲ &nbsp;&nbsp;&nbsp;
+GOOGL $182.41 ▼ &nbsp;&nbsp;&nbsp;
+AMD $174.88 ▲ &nbsp;&nbsp;&nbsp;
+PLTR $31.52 ▲ &nbsp;&nbsp;&nbsp;
+COIN $245.66 ▲ &nbsp;&nbsp;&nbsp;
+MSTR $1712.90 ▲
   </div>
 </div>
     <div className="mt-8 grid md:grid-cols-4 gap-4 max-w-[1600px] mx-auto items-stretch">
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center">
+  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
     <p className="text-xl font-bold">
       Today: {now ? now.toLocaleDateString() : "--/--/----"}
     </p>
   </div>
 
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center">
+  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
     <p className={`text-xl font-bold ${pnlColor(totalPnl)}`}>
       Daily P/L: ${totalPnl.toFixed(2)}
     </p>
   </div>
 
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center">
+  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
     <p className={`text-xl font-bold ${pnlColor(totalPnl)}`}>
       Weekly P/L: ${totalPnl.toFixed(2)}
     </p>
   </div>
 
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center">
+  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
     <p className={`text-xl font-bold ${pnlColor(totalPnl)}`}>
       Monthly P/L: ${totalPnl.toFixed(2)}
     </p>
@@ -667,8 +824,8 @@ function resetAccount() {
   </div>
 </div>
 
-        <div className="mt-10 grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_320px] gap-6 w-full max-w-[1800px] mx-auto">
-          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[820px] overflow-y-auto scrollbar-hide">
+        <div className="mt-10 grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_320px] gap-8 w-full max-w-[1800px] mx-auto">
+          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] overflow-y-auto scrollbar-hide">
             <div className="flex gap-2 mb-4 justify-start">
               <button
                 onClick={() => {
@@ -730,7 +887,16 @@ onChange={(e) => setSearchTerm(e.target.value)}
   .map((coin) => (
                 <button
                   key={coin.symbol}
-                  onClick={() => setSelectedCoin(coin.symbol)}
+                  onClick={() => {
+  setSelectedCoin(coin.symbol);
+
+  setHistory(
+    buildHistory(
+      coin.symbol,
+      selectedTimeframe
+    )
+  );
+}}
                   className={`w-full rounded-lg border border-zinc-800 bg-[#131722] p-2.5 text-left transition-all duration-200 hover:scale-[1.01] hover:bg-zinc-900 ${
                     selectedCoin === coin.symbol
                       ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
@@ -783,23 +949,34 @@ onChange={(e) => setSearchTerm(e.target.value)}
   
    
 
-            <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 h-[820px] flex flex-col overflow-hidden">
+            <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 h-[760px] flex flex-col overflow-hidden">
           <div className="flex justify-start gap-2 mb-4">
   {["1M", "5M", "15M", "1H", "4H", "1D", "1W", "1MO"].map(
     (timeframe) => (
-      <button
-        key={timeframe}
-        className="rounded-md border border-zinc-700 bg-[#111827] px-3 py-1.5 text-xs font-bold text-zinc-400 hover:border-green-500 hover:text-green-400 transition-all"
-      >
-        {timeframe}
-      </button>
+     <button
+  key={timeframe}
+  onClick={() => {
+  setSelectedTimeframe(timeframe);
+  setHistory(
+    buildHistory(selectedCoin, timeframe)
+  );
+}}
+  className={`rounded-md border px-3 py-1.5 text-xs font-bold transition-all ${
+    selectedTimeframe === timeframe
+      ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+      : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+  }`}
+>
+  {timeframe}
+</button>
     )
   )}
 </div>
+
 <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
   <div>
     <h2 className="text-xl font-black tracking-wide text-white">
-      {selectedCoin}/USD
+      {selectedCoin}/USD · {selectedTimeframe}
     </h2>
 
     <p className="text-xs text-zinc-600 mt-1 tracking-wide">
@@ -993,7 +1170,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
         return (
           <div
             key={coin}
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500 transition-all duration-300"
+            className="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500 hover:bg-[#1c1c20] transition-all duration-300"
           >
             <div className="grid grid-cols-7 gap-6 items-center">
               <div>
@@ -1142,11 +1319,22 @@ if (user) {
       Trading Tips
     </h2>
 
-    <div className="space-y-3 text-sm text-zinc-300">
-      <p>• Never risk your full balance on one trade.</p>
-      <p>• Watch your open positions before buying more.</p>
-      <p>• Use the simulator to practice entries and exits.</p>
-      <p>• Green does not always mean buy. Red does not always mean sell.</p>
+    <div className="space-y-4 text-sm text-zinc-300">
+     <p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
+  • Never risk more than 2% on a single trade.
+</p>
+
+<p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
+  • Wait for confirmation before entering volatile moves.
+</p>
+
+<p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
+  • Protect profits using stop loss and take profit levels.
+</p>
+
+<p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
+  • Focus on consistency instead of chasing big wins.
+</p>
     </div>
   </div>
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center">
@@ -1154,7 +1342,7 @@ if (user) {
       Fear & Greed Index
     </h2>
 
-    <div className="text-6xl font-black text-green-400">
+    <div className="text-7xl font-black text-green-400 tracking-tight">
       72
     </div>
 
@@ -1164,7 +1352,7 @@ if (user) {
 
     <div className="mt-6 h-4 rounded-full bg-zinc-800 overflow-hidden">
       <div
-        className="h-full bg-green-400"
+        className="h-full bg-gradient-to-r from-green-500 to-green-300"
         style={{ width: "72%" }}
       />
     </div>
@@ -1201,7 +1389,7 @@ if (user) {
 
               <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
                 <div
-                  className="h-full bg-cyan-400"
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300"
                   style={{
                     width: `${percent}%`,
                   }}
@@ -1223,7 +1411,7 @@ if (user) {
   </div>
   <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
 
-  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+  <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/50 transition-all duration-300">
     <p className="text-sm font-bold tracking-wide text-zinc-500">
       BEST PERFORMER
     </p>
@@ -1239,7 +1427,7 @@ if (user) {
     </div>
   </div>
 
-  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+  <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/50 transition-all duration-300">
     <p className="text-sm font-bold tracking-wide text-zinc-500">
       WIN RATE
     </p>
@@ -1267,7 +1455,7 @@ if (user) {
                 {trades.map((trade, index) => (
                   <div
                     key={index}
-                    className="grid md:grid-cols-4 gap-4 bg-zinc-800 p-4 rounded-xl"
+                    className="grid md:grid-cols-4 gap-4 bg-[#18181b] border border-zinc-800 p-4 rounded-xl hover:border-cyan-500/50 transition-all duration-300"
                   >
                     <div>
                       <span
