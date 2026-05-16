@@ -44,7 +44,9 @@ export default function Navbar() {
             </button>
           </SignUpButton>
 
-          <UserButton />
+          <div suppressHydrationWarning>
+  <UserButton />
+</div>
         </div>
       </div>
     </nav>
