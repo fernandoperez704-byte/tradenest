@@ -5,61 +5,47 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-black text-white p-8">
-        <section className="max-w-6xl mx-auto text-center mt-16">
-          <h1 className="text-6xl font-bold text-cyan-400">
-            TradeNestX
+      <main className="relative min-h-screen overflow-hidden bg-black p-8 text-white">
+       <div className="absolute inset-0 overflow-hidden">
+
+  <div className="absolute left-[-10%] top-[-10%] h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[140px]" />
+
+  <div className="absolute right-[-10%] top-[20%] h-[400px] w-[400px] rounded-full bg-blue-500/10 blur-[140px]" />
+
+  <div className="absolute bottom-[-10%] left-[30%] h-[500px] w-[500px] rounded-full bg-cyan-400/10 blur-[160px]" />
+
+</div>
+
+<div className="relative z-10">
+        <section className="mx-auto flex min-h-[78vh] max-w-6xl flex-col items-center justify-center text-center">
+          <h1 className="text-7xl md:text-8xl font-black tracking-tight">
+            <span className="text-white">TradeNest</span>
+<span className="text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.7)]">X</span>
           </h1>
 
-          <p className="mt-6 text-2xl text-gray-300">
+          <p className="mt-8 max-w-3xl text-xl md:text-3xl leading-relaxed text-zinc-300">
             Learn trading, practice with paper money, and track your progress.
           </p>
 
-          <div className="mt-10 flex justify-center gap-4">
+          <div className="mt-12 flex flex-wrap justify-center gap-5">
             <a
               href="/learn"
-              className="bg-cyan-500 text-black px-8 py-4 rounded-xl font-bold"
+              className="rounded-2xl bg-cyan-500 px-8 py-4 font-black text-black transition-all duration-300 hover:-translate-y-[2px] hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.35)]"
             >
               Start Learning
             </a>
 
             <a
               href="/simulator"
-              className="bg-zinc-800 px-8 py-4 rounded-xl font-bold"
+              className="rounded-2xl border border-zinc-700 bg-[#18181b] px-8 py-4 font-black text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-500/40 hover:text-cyan-400"
             >
               Open Simulator
             </a>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mt-16">
-            <div className="bg-zinc-900 p-6 rounded-2xl">
-              <h2 className="text-2xl font-bold text-cyan-400">
-                Learn
-              </h2>
-              <p className="text-gray-400 mt-3">
-                Beginner-friendly lessons about stocks, crypto, buying, selling, and risk.
-              </p>
-            </div>
-
-            <div className="bg-zinc-900 p-6 rounded-2xl">
-              <h2 className="text-2xl font-bold text-cyan-400">
-                Practice
-              </h2>
-              <p className="text-gray-400 mt-3">
-                Use a paper trading simulator before risking real money.
-              </p>
-            </div>
-
-            <div className="bg-zinc-900 p-6 rounded-2xl">
-              <h2 className="text-2xl font-bold text-cyan-400">
-                Compete
-              </h2>
-              <p className="text-gray-400 mt-3">
-                Track your progress and climb the leaderboard.
-              </p>
-            </div>
-          </div>
+          
         </section>
+        </div>
       </main>
     </>
   );
