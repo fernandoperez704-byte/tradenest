@@ -8,13 +8,13 @@ export default function Navbar() {
   const pathname = usePathname();
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-black/80 backdrop-blur-xl">
-  <div className="max-w-[1800px] mx-auto flex items-center justify-between px-8 h-[72px]">
+  <div className="page-container flex items-center justify-between h-[72px]">
 
-  <div className="flex items-center gap-16">
+  <div className="flex items-center gap-8 xl:gap-16">
 
     <Link
       href="/"
-      className="text-4xl font-black tracking-tight text-cyan-400 transition-all duration-300 hover:text-cyan-300"
+      className="text-3xl md:text-4xl font-black tracking-tight text-cyan-400 transition-all duration-300 hover:text-cyan-300"
     >
       TradeNestX
     </Link>
@@ -23,7 +23,7 @@ export default function Navbar() {
 
       <Link
         href="/learn"
-        className={`px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
+        className={`px-4 xl:px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
           pathname === "/learn"
             ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
             : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -34,7 +34,7 @@ export default function Navbar() {
 
       <Link
         href="/simulator"
-        className={`px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
+        className={`px-4 xl:px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
           pathname === "/simulator"
             ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
             : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -45,7 +45,7 @@ export default function Navbar() {
 
       <Link
         href="/leaderboard"
-        className={`px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
+        className={`px-4 xl:px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
           pathname === "/leaderboard"
             ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
             : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -56,7 +56,7 @@ export default function Navbar() {
 
       <Link
         href="/news"
-        className={`px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
+        className={`px-4 xl:px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
           pathname === "/news"
             ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
             : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -67,7 +67,7 @@ export default function Navbar() {
 
       <Link
         href="/profile"
-        className={`px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
+        className={`px-4 xl:px-5 h-11 flex items-center rounded-xl border text-sm font-semibold transition-all duration-200 hover:-translate-y-[1px] ${
           pathname === "/profile"
             ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
             : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"

@@ -184,7 +184,9 @@ const { user } = useUser();
   const [market, setMarket] = useState<"CRYPTO" | "STOCKS">("CRYPTO");
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
-const [searchTerm, setSearchTerm] = useState("");
+  const [activeBottomTab, setActiveBottomTab] = useState<"POSITIONS" | "HISTORY" | "ORDERS">("POSITIONS");
+const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a candle");
+  const [searchTerm, setSearchTerm] = useState("");
   const [prices, setPrices] = useState({
     ...cryptoPrices,
     ...stockPrices,
@@ -278,6 +280,16 @@ useEffect(() => {
 }, [user]);
   const [message, setMessage] = useState("");
   const [tradeAmount, setTradeAmount] = useState<number | "">(100);
+  const [takeProfit, setTakeProfit] = useState<number | "">("");
+const [stopLoss, setStopLoss] = useState<number | "">("");
+const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
+const [limitPrice, setLimitPrice] = useState<number | "">("");
+const [pendingLimitOrder, setPendingLimitOrder] = useState<{
+  coin: AssetSymbol;
+  amount: number;
+  limitPrice: number;
+  side: "BUY" | "SELL";
+} | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [now, setNow] = useState<Date | null>(null);
 
@@ -407,8 +419,73 @@ const priceInterval = setInterval(
       clearInterval(clockInterval);
     };
   }, [selectedCoin, selectedTimeframe]);
+useEffect(() => {
+  if (!pendingLimitOrder) return;
 
+  const current = prices[pendingLimitOrder.coin];
 
+  if (
+    pendingLimitOrder.side === "BUY" &&
+    current <= pendingLimitOrder.limitPrice
+  ) {
+    const savedOrder = pendingLimitOrder;
+
+    setSelectedCoin(savedOrder.coin);
+    setTradeAmount(savedOrder.amount);
+    setLimitPrice("");
+    setPendingLimitOrder(null);
+
+    setTimeout(() => {
+      buyCoin();
+      setMessage(`Limit BUY filled for ${savedOrder.coin}`);
+    }, 0);
+  }
+
+  if (
+    pendingLimitOrder.side === "SELL" &&
+    current >= pendingLimitOrder.limitPrice
+  ) {
+    const savedOrder = pendingLimitOrder;
+
+    setSelectedCoin(savedOrder.coin);
+    setLimitPrice("");
+    setPendingLimitOrder(null);
+
+    setTimeout(() => {
+      sellCoin();
+      setMessage(`Limit SELL filled for ${savedOrder.coin}`);
+    }, 0);
+  }
+}, [prices]);
+useEffect(() => {
+  if (positions[selectedCoin] <= 0) return;
+
+  const current = prices[selectedCoin];
+
+  if (
+    takeProfit !== "" &&
+    current >= Number(takeProfit)
+  ) {
+    sellCoin();
+
+    setMessage(`Take Profit hit on ${selectedCoin}`);
+
+    setTakeProfit("");
+    setStopLoss("");
+  }
+
+  if (
+    stopLoss !== "" &&
+    current <= Number(stopLoss)
+  ) {
+    sellCoin();
+
+    setMessage(`Stop Loss hit on ${selectedCoin}`);
+
+    setTakeProfit("");
+    setStopLoss("");
+  }
+}, [prices]);
   useEffect(() => {
   if (!chartRef.current || history.length === 0) return;
 
@@ -437,13 +514,21 @@ handleScale: {
   pinch: true,
 },
     width: chartRef.current.clientWidth,
-    height: 620,
+    height: 590,
     rightPriceScale: {
       borderColor: "#27272a",
     },
-    timeScale: {
-      borderColor: "#27272a",
-    },
+timeScale: {
+  visible: true,
+  borderVisible: true,
+  borderColor: "#3f3f46",
+  timeVisible: false,
+  secondsVisible: false,
+  fixLeftEdge: true,
+  fixRightEdge: true,
+  barSpacing: 12,
+  minBarSpacing: 8,
+},
   });
 
   const candleSeries = chart.addSeries(CandlestickSeries, {
@@ -455,17 +540,44 @@ handleScale: {
   });
 
   candleSeries.setData(
-    history.map((item, index) => ({
-      time: (index + 1) as any,
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      close: item.close,
-    }))
+  history.map((item, index) => {
+  const date = new Date();
+  date.setDate(date.getDate() - (history.length - index));
+
+  return {
+    time: {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+    } as any,
+    open: item.open,
+    high: item.high,
+    low: item.low,
+    close: item.close,
+  };
+})
   );
   chart.timeScale().fitContent();
 chart.timeScale().scrollToRealTime();
+chart.subscribeCrosshairMove((param) => {
+  if (!param.time) {
+    setSelectedCandleDate("Hover a candle");
+    return;
+  }
 
+  const time = param.time as any;
+
+  if (typeof time === "object") {
+    const date = new Date(time.year, time.month - 1, time.day);
+
+    setSelectedCandleDate(
+      date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+    );
+  }
+});
   const handleResize = () => {
     if (!chartRef.current) return;
 
@@ -488,6 +600,24 @@ chart.timeScale().scrollToRealTime();
     }
 
     const quantity = tradeAmount / currentPrice;
+    if (
+  orderType === "LIMIT" &&
+  limitPrice !== "" &&
+  currentPrice > Number(limitPrice)
+) {
+ setPendingLimitOrder({
+  coin: selectedCoin,
+  amount: Number(tradeAmount),
+  limitPrice: Number(limitPrice),
+  side: "BUY",
+});
+
+  setMessage(
+    `Limit order placed for ${selectedCoin} at $${Number(limitPrice).toFixed(2)}`
+  );
+
+  return;
+}
     const oldQty = positions[selectedCoin];
     const oldAvg = averagePrices[selectedCoin];
 
@@ -547,9 +677,29 @@ if (user) {
 }
 
     setMessage(`Bought $${tradeAmount} of ${selectedCoin}`);
+    if (orderType === "LIMIT") {
+  setLimitPrice("");
+}
   }
 
   function sellCoin() {
+    if (
+  orderType === "LIMIT" &&
+  limitPrice !== ""
+) {
+  setPendingLimitOrder({
+    coin: selectedCoin,
+    amount: positions[selectedCoin] * currentPrice,
+    limitPrice: Number(limitPrice),
+    side: "SELL",
+  });
+
+  setMessage(
+    `Limit sell order placed for ${selectedCoin} at $${Number(limitPrice).toFixed(2)}`
+  );
+
+  return;
+}
     const ownedAmount = positions[selectedCoin];
 
     if (ownedAmount <= 0) {
@@ -699,133 +849,10 @@ function resetAccount() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-gradient-to-b from-black via-[#050816] to-black text-white p-8 selection:bg-cyan-500/30">
-     <h1 className="text-4xl md:text-6xl font-black tracking-tight text-cyan-400 text-center mt-6">
-  Trading Simulator
-</h1>
+      <main className="page-shell selection:bg-cyan-500/30">
 
-<p className="mt-3 text-center text-zinc-500 text-sm md:text-base tracking-wide">
-  Professional multi-asset paper trading platform
-</p>
-<div className="mt-6 flex justify-center">
-  <div className="flex flex-wrap justify-center gap-4">
-
-    <div className="w-56 bg-green-500/10 border border-green-500 text-center text-green-400 px-4 py-2 rounded-xl font-bold">
-      Crypto Market • OPEN
-    </div>
-
-    <div className="w-56 bg-cyan-500/10 border border-cyan-500 text-center text-cyan-400 px-4 py-2 rounded-xl font-bold">
-      US Markets • LIVE
-    </div>
-
-    <div className="w-56 bg-orange-500/10 border border-orange-500 text-center text-orange-400 px-4 py-2 rounded-xl font-bold">
-      Market Volatility • HIGH
-    </div>
-
-  </div>
-</div>
-<div className="mt-6 mx-auto max-w-[1800px] overflow-hidden rounded-xl bg-[#131722] border border-zinc-800 py-2">
-  <div className="animate-[marquee_40s_linear_infinite] whitespace-nowrap text-sm font-bold tracking-wide text-green-400">
-   BTC ${prices.BTC.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
-ETH ${prices.ETH.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
-SOL ${prices.SOL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-XRP ${prices.XRP.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-DOGE ${prices.DOGE.toFixed(3)} ▲ &nbsp;&nbsp;&nbsp;
-ADA $1.24 ▲ &nbsp;&nbsp;&nbsp;
-AVAX $42.81 ▼ &nbsp;&nbsp;&nbsp;
-LINK $18.44 ▲ &nbsp;&nbsp;&nbsp;
-BNB $642.55 ▲ &nbsp;&nbsp;&nbsp;
-SUI $1.92 ▲ &nbsp;&nbsp;&nbsp;
-PEPE $0.000012 ▲ &nbsp;&nbsp;&nbsp;
-TSLA ${prices.TSLA.toFixed(2)} ▼ &nbsp;&nbsp;&nbsp;
-NVDA ${prices.NVDA.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-AAPL ${prices.AAPL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-META $542.33 ▲ &nbsp;&nbsp;&nbsp;
-AMZN ${prices.AMZN.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-MSFT $428.12 ▲ &nbsp;&nbsp;&nbsp;
-GOOGL $182.41 ▼ &nbsp;&nbsp;&nbsp;
-AMD $174.88 ▲ &nbsp;&nbsp;&nbsp;
-PLTR $31.52 ▲ &nbsp;&nbsp;&nbsp;
-COIN $245.66 ▲ &nbsp;&nbsp;&nbsp;
-MSTR $1712.90 ▲
-BTC ${prices.BTC.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
-ETH ${prices.ETH.toFixed(0)} ▲ &nbsp;&nbsp;&nbsp;
-SOL ${prices.SOL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-XRP ${prices.XRP.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-DOGE ${prices.DOGE.toFixed(3)} ▲ &nbsp;&nbsp;&nbsp;
-ADA $1.24 ▲ &nbsp;&nbsp;&nbsp;
-AVAX $42.81 ▼ &nbsp;&nbsp;&nbsp;
-LINK $18.44 ▲ &nbsp;&nbsp;&nbsp;
-BNB $642.55 ▲ &nbsp;&nbsp;&nbsp;
-SUI $1.92 ▲ &nbsp;&nbsp;&nbsp;
-PEPE $0.000012 ▲ &nbsp;&nbsp;&nbsp;
-TSLA ${prices.TSLA.toFixed(2)} ▼ &nbsp;&nbsp;&nbsp;
-NVDA ${prices.NVDA.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-AAPL ${prices.AAPL.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-META $542.33 ▲ &nbsp;&nbsp;&nbsp;
-AMZN ${prices.AMZN.toFixed(2)} ▲ &nbsp;&nbsp;&nbsp;
-MSFT $428.12 ▲ &nbsp;&nbsp;&nbsp;
-GOOGL $182.41 ▼ &nbsp;&nbsp;&nbsp;
-AMD $174.88 ▲ &nbsp;&nbsp;&nbsp;
-PLTR $31.52 ▲ &nbsp;&nbsp;&nbsp;
-COIN $245.66 ▲ &nbsp;&nbsp;&nbsp;
-MSTR $1712.90 ▲
-  </div>
-</div>
-    <div className="mt-8 grid md:grid-cols-4 gap-4 max-w-[1600px] mx-auto items-stretch">
-  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
-    <p className="text-xl font-bold">
-      Today: {now ? now.toLocaleDateString() : "--/--/----"}
-    </p>
-  </div>
-
-  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
-    <p className={`text-xl font-bold ${pnlColor(totalPnl)}`}>
-      Daily P/L: ${totalPnl.toFixed(2)}
-    </p>
-  </div>
-
-  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
-    <p className={`text-xl font-bold ${pnlColor(totalPnl)}`}>
-      Weekly P/L: ${totalPnl.toFixed(2)}
-    </p>
-  </div>
-
-  <div className="bg-[#18181b] border border-zinc-800 h-full min-h-[80px] flex items-center justify-center p-4 md:p-5 rounded-xl text-center hover:border-cyan-500/40 transition-all duration-300">
-    <p className={`text-xl font-bold ${pnlColor(totalPnl)}`}>
-      Monthly P/L: ${totalPnl.toFixed(2)}
-    </p>
-  </div>
-</div>
-
-<div className="mt-6 grid md:grid-cols-4 gap-4 max-w-[1600px] mx-auto items-stretch">
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center rounded-xl p-5 text-center">
-    <p className="text-xl font-bold text-cyan-400">
-      Active Market: {market}
-    </p>
-  </div>
-
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center rounded-xl p-5 text-center">
-    <p className="text-xl font-bold text-cyan-400">
-      Selected Asset: {selectedCoin}
-    </p>
-  </div>
-
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center rounded-xl p-5 text-center">
-    <p className="text-xl font-bold text-cyan-400">
-      Open Positions: {Object.values(positions).filter((qty) => qty > 0).length}
-    </p>
-  </div>
-
-  <div className="bg-zinc-900 h-full min-h-[80px] flex items-center justify-center rounded-xl p-5 text-center">
-    <p className="text-xl font-bold text-cyan-400">
-      Total Trades: {trades.length}
-    </p>
-  </div>
-</div>
-
-        <div className="mt-10 grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_320px] gap-8 w-full max-w-[1800px] mx-auto">
-          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] overflow-y-auto scrollbar-hide">
+<div className="mt-2 grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_320px] gap-6 xl:gap-8 w-full page-container">
+          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] overflow-y-scroll scrollbar-hide">
             <div className="flex gap-2 mb-4 justify-start">
               <button
                 onClick={() => {
@@ -984,15 +1011,33 @@ onChange={(e) => setSearchTerm(e.target.value)}
     </p>
   </div>
 
-  <p className="text-2xl font-black text-white tracking-wide">
+  <div className="text-right">
+  <p className="text-base font-bold tracking-wide text-zinc-400 mb-1">
+    {now ? now.toLocaleTimeString() : "--:--:--"}
+  </p>
+
+  <p className="text-2xl font-black text-white tracking-wide leading-none">
     ${(currentPrice ?? 0).toLocaleString()}
   </p>
 </div>
+</div>
 <div className="flex-1 rounded-xl overflow-hidden">
- <div
-  ref={chartRef}
-  className="h-full w-full"
-/>
+  <div
+    ref={chartRef}
+    className="h-[590px] w-full"
+  />
+
+  <div className="flex items-center justify-between border-t border-zinc-800 bg-[#0f172a] px-4 py-2 text-xs font-bold text-zinc-500">
+    <span>Mar</span>
+    <span>Apr</span>
+    <span>May</span>
+    <span>Jun</span>
+    <span>Jul</span>
+    <span>Aug</span>
+    <span className="text-cyan-400">
+      {selectedCandleDate}
+    </span>
+  </div>
 </div>
 </div>
 
@@ -1023,16 +1068,26 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 <div className="mt-4 grid grid-cols-2 gap-3">
   <input
-    type="number"
-    placeholder="Take Profit"
-    className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-3 rounded-xl w-full text-center text-sm focus:outline-none focus:border-green-500"
-  />
+  type="number"
+  placeholder="Take Profit"
+  value={takeProfit}
+  onChange={(e) => {
+    const value = e.target.value;
+    setTakeProfit(value === "" ? "" : Number(value));
+  }}
+  className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-3 rounded-xl w-full text-center text-sm focus:outline-none focus:border-green-500"
+/>
 
-  <input
-    type="number"
-    placeholder="Stop Loss"
-    className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-3 rounded-xl w-full text-center text-sm focus:outline-none focus:border-red-500"
-  />
+ <input
+  type="number"
+  placeholder="Stop Loss"
+  value={stopLoss}
+  onChange={(e) => {
+    const value = e.target.value;
+    setStopLoss(value === "" ? "" : Number(value));
+  }}
+  className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-3 rounded-xl w-full text-center text-sm focus:outline-none focus:border-red-500"
+/>
 </div>
 
 <div className="mt-4">
@@ -1056,17 +1111,38 @@ onChange={(e) => setSearchTerm(e.target.value)}
     ORDER TYPE
   </p>
 
-  <div className="grid grid-cols-2 gap-2">
-    {["Market", "Limit"].map((type) => (
-      <button
-        key={type}
-        className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-bold text-zinc-400 transition-all hover:border-cyan-500 hover:text-cyan-400"
-      >
-        {type}
-      </button>
-    ))}
-  </div>
+<div className="grid grid-cols-2 gap-2">
+  {["MARKET", "LIMIT"].map((type) => (
+    <button
+      key={type}
+      onClick={() =>
+        setOrderType(type as "MARKET" | "LIMIT")
+      }
+      className={`rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
+        orderType === type
+          ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+          : "border-zinc-700 bg-[#0f172a] text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
+      }`}
+    >
+      {type}
+    </button>
+  ))}
 </div>
+</div>
+{orderType === "LIMIT" && (
+  <div className="mt-4">
+    <input
+      type="number"
+      placeholder="Enter Limit Price"
+      value={limitPrice}
+      onChange={(e) => {
+        const value = e.target.value;
+        setLimitPrice(value === "" ? "" : Number(value));
+      }}
+      className="bg-[#0f172a] border border-zinc-700 text-white px-4 py-3 rounded-xl w-full text-center text-lg focus:outline-none focus:border-cyan-500"
+    />
+  </div>
+)}
   <div className="mt-4 flex flex-wrap justify-center gap-2">
     {[100, 500, 1000].map((amount) => (
       <button
@@ -1135,351 +1211,330 @@ onChange={(e) => setSearchTerm(e.target.value)}
 </div> 
       </div>
       </div>
-      <div className="mt-10 bg-zinc-900 rounded-2xl p-8 border border-zinc-800 shadow-2xl">
-  <div className="flex items-center justify-between mb-8">
-    <h2 className="text-4xl font-bold text-white">
-      Open Positions
-    </h2>
+    <div className="mt-8 page-container">
+  <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-6">
 
-    <div className="bg-cyan-500/20 text-cyan-400 px-4 py-2 rounded-xl text-sm font-bold">
-      LIVE PORTFOLIO
+    <div className="flex items-center justify-between mb-8 border-b border-zinc-800 pb-4">
+      <div className="flex gap-3">
+
+        <button
+          onClick={() => setActiveBottomTab("POSITIONS")}
+          className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
+            activeBottomTab === "POSITIONS"
+              ? "bg-cyan-500 text-black"
+              : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
+          }`}
+        >
+          Open Positions
+        </button>
+
+        <button
+          onClick={() => setActiveBottomTab("HISTORY")}
+          className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
+            activeBottomTab === "HISTORY"
+              ? "bg-cyan-500 text-black"
+              : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
+          }`}
+        >
+          Trade History
+        </button>
+<button
+  onClick={() => setActiveBottomTab("ORDERS")}
+  className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
+    activeBottomTab === "ORDERS"
+      ? "bg-cyan-500 text-black"
+      : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
+  }`}
+>
+  Open Orders
+</button>
+      </div>
+
+      
     </div>
+
+    {activeBottomTab === "POSITIONS" && (
+      <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
+
+        {Object.entries(positions)
+          .filter(([_, qty]) => Number(qty) > 0)
+          .map(([coin, qty]) => {
+            const currentPrice =
+              prices[coin as keyof typeof prices];
+
+            const avgPrice =
+              averagePrices[coin as keyof typeof averagePrices];
+
+            const marketValue =
+              Number(qty) * currentPrice;
+
+            const pnl =
+              marketValue - Number(qty) * avgPrice;
+
+            return (
+              <div
+                key={coin}
+                className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
+              >
+   <div className="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
+  <div>
+    <p className="text-cyan-400 text-2xl font-bold">
+      {coin}
+    </p>
+
+    <p className="text-gray-400 text-sm mt-1">
+      Position
+    </p>
   </div>
 
-  <div className="space-y-4">
-    {Object.entries(positions)
-      .filter(([_, qty]) => Number(qty) > 0)
-      .map(([coin, qty]) => {
-        const currentPrice =
-          prices[coin as keyof typeof prices];
+  <div>
+    <p className="text-gray-400 text-sm">
+      Quantity
+    </p>
 
-        const avgPrice =
-          averagePrices[coin as keyof typeof averagePrices];
+    <p className="text-xl font-bold text-white">
+      {Number(qty).toFixed(6)}
+    </p>
+  </div>
 
-        const marketValue =
-          Number(qty) * currentPrice;
+  <div>
+    <p className="text-gray-400 text-sm">
+      Market Price
+    </p>
 
-        const pnl =
-          marketValue - Number(qty) * avgPrice;
+    <p className="text-xl font-bold text-white">
+      ${currentPrice.toLocaleString()}
+    </p>
+  </div>
 
-        const pnlPercent =
-          avgPrice > 0
-            ? (pnl / (Number(qty) * avgPrice)) * 100
-            : 0;
+  <div>
+    <p className="text-gray-400 text-sm">
+      Market Value
+    </p>
 
-        return (
-          <div
-            key={coin}
-            className="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500 hover:bg-[#1c1c20] transition-all duration-300"
-          >
-            <div className="grid grid-cols-7 gap-6 items-center">
-              <div>
-                <p className="text-cyan-400 text-2xl font-bold">
-                  {coin}
-                </p>
+    <p className="text-xl font-bold text-white">
+      ${marketValue.toFixed(2)}
+    </p>
+  </div>
 
-                <p className="text-gray-400 text-sm mt-1">
-                  Position
-                </p>
-              </div>
+  <div>
+    <p className="text-gray-400 text-sm">
+      Avg Cost
+    </p>
 
-              <div>
-                <p className="text-gray-400 text-sm">
-                  Quantity
-                </p>
+    <p className="text-xl font-bold text-white">
+      ${avgPrice.toFixed(2)}
+    </p>
+  </div>
 
-                <p className="text-xl font-bold text-white">
-                  {Number(qty).toFixed(6)}
-                </p>
-              </div>
+  <div>
+    <p className="text-gray-400 text-sm">
+      Unrealized P/L
+    </p>
 
-              <div>
-                <p className="text-gray-400 text-sm">
-                  Market Price
-                </p>
+    <p
+      className={`text-2xl font-bold ${
+        pnl >= 0 ? "text-green-400" : "text-red-400"
+      }`}
+    >
+      ${pnl.toFixed(2)}
+    </p>
+  </div>
+  <div>
+  <p className="text-gray-400 text-sm">
+    TP / SL
+  </p>
 
-                <p className="text-xl font-bold text-white">
-                  ${currentPrice.toLocaleString()}
-                </p>
-              </div>
+  <p className="text-sm font-bold text-green-400">
+    TP: {takeProfit !== "" ? `$${Number(takeProfit).toFixed(2)}` : "Not set"}
+  </p>
 
-              <div>
-                <p className="text-gray-400 text-sm">
-                  Market Value
-                </p>
+  <p className="text-sm font-bold text-red-400 mt-1">
+    SL: {stopLoss !== "" ? `$${Number(stopLoss).toFixed(2)}` : "Not set"}
+  </p>
+</div>
 
-                <p className="text-xl font-bold text-white">
-                  ${marketValue.toFixed(2)}
-                </p>
-              </div>
+  <div className="flex justify-end">
+    <button
+      onClick={() => {
+        const sellValue = Number(qty) * currentPrice;
 
-              <div>
-                <p className="text-gray-400 text-sm">
-                  Avg Cost
-                </p>
+        setBalance((prev) => prev + sellValue);
 
-                <p className="text-xl font-bold text-white">
-                  ${avgPrice.toFixed(2)}
-                </p>
-              </div>
+        setPositions((prev) => ({
+          ...prev,
+          [coin]: 0,
+        }));
 
-              <div>
-                <p className="text-gray-400 text-sm">
-                  Unrealized P/L
-                </p>
+        setAveragePrices((prev) => ({
+          ...prev,
+          [coin]: 0,
+        }));
 
-                <p
-                  className={`text-2xl font-bold ${
-                    pnl >= 0
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  ${pnl.toFixed(2)}
-                </p>
+        setTrades((prev) => [
+          {
+            type: "SELL",
+            coin: coin as AssetSymbol,
+            amount: sellValue,
+            price: currentPrice,
+            time: new Date().toLocaleTimeString(),
+          },
+          ...prev,
+        ]);
 
-                <p
-                  className={`text-sm font-bold ${
-                    pnlPercent >= 0
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  ({pnlPercent.toFixed(2)}%)
-                </p>
-                <div className="flex justify-end">
-  <button
-    onClick={() => {
-      const sellValue =
-        Number(qty) * currentPrice;
-
-      setBalance((prev) => prev + sellValue);
-
-      setPositions((prev) => ({
-        ...prev,
-        [coin]: 0,
-      }));
-
-      setAveragePrices((prev) => ({
-        ...prev,
-        [coin]: 0,
-      }));
-      setTrades((prev) => [
-  {
-    type: "SELL",
-    coin: coin as AssetSymbol,
-    amount: sellValue,
-    price: currentPrice,
-    time: new Date().toLocaleTimeString(),
-  },
-  ...prev,
-]);
-
-if (user) {
-  addDoc(collection(db, "trades"), {
-    userId: user.id,
-    userName: user.firstName || "Trader",
-    type: "SELL",
-    coin: coin,
-    amount: sellValue,
-    price: currentPrice,
-    created: new Date(),
-  });
-}
-    }}
-    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-400"
-  >
-    Close
-  </button>
+        if (user) {
+          addDoc(collection(db, "trades"), {
+            userId: user.id,
+            userName: user.firstName || "Trader",
+            type: "SELL",
+            coin: coin,
+            amount: sellValue,
+            price: currentPrice,
+            created: new Date(),
+          });
+        }
+      }}
+      className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-400"
+    >
+      Close
+    </button>
+  </div>
 </div>
               </div>
-            </div>
+            );
+          })}
+
+        {Object.values(positions).every(
+          (qty) => Number(qty) === 0
+        ) && (
+          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+            <p className="text-2xl font-bold text-zinc-300">
+              No Open Positions
+            </p>
+
+            <p className="text-zinc-500 mt-2">
+              Your active trades will appear here.
+            </p>
           </div>
-        );
-      })}
+        )}
 
-    {Object.values(positions).every(
-      (qty) => Number(qty) === 0
-    ) && (
-      <div className="bg-zinc-800 rounded-2xl p-10 text-center border border-zinc-700">
-        <p className="text-2xl font-bold text-gray-300">
-          No Open Positions
-        </p>
-
-        <p className="text-gray-500 mt-2">
-          Your active trades will appear here.
-        </p>
       </div>
     )}
-  </div>
-   <div className="mt-10 grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-    <h2 className="text-2xl font-bold mb-4">
-      Trading Tips
-    </h2>
+    {activeBottomTab === "HISTORY" && (
+      <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
 
-    <div className="space-y-4 text-sm text-zinc-300">
-     <p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
-  • Never risk more than 2% on a single trade.
-</p>
+        {trades.length === 0 ? (
+          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+            <p className="text-2xl font-bold text-zinc-300">
+              No Trade History
+            </p>
 
-<p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
-  • Wait for confirmation before entering volatile moves.
-</p>
+            <p className="text-zinc-500 mt-2">
+              Completed trades will appear here.
+            </p>
+          </div>
+        ) : (
+          trades.map((trade, index) => (
+            <div
+              key={index}
+              className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
+            >
+              <div className="flex items-center justify-between">
 
-<p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
-  • Protect profits using stop loss and take profit levels.
-</p>
-
-<p className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-3">
-  • Focus on consistency instead of chasing big wins.
-</p>
-    </div>
-  </div>
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center">
-    <h2 className="text-2xl font-bold mb-4">
-      Fear & Greed Index
-    </h2>
-
-    <div className="text-7xl font-black text-green-400 tracking-tight">
-      72
-    </div>
-
-    <p className="mt-4 text-lg text-zinc-300">
-      Market Sentiment: Greed
-    </p>
-
-    <div className="mt-6 h-4 rounded-full bg-zinc-800 overflow-hidden">
-      <div
-        className="h-full bg-gradient-to-r from-green-500 to-green-300"
-        style={{ width: "72%" }}
-      />
-    </div>
-  </div>
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-    <h2 className="text-2xl font-bold mb-4">
-      Portfolio Allocation
-    </h2>
-
-    <div className="space-y-4">
-      {Object.entries(positions)
-        .filter(([, qty]) => qty > 0)
-        .map(([symbol, qty]) => {
-          const value =
-            qty *
-            prices[symbol as AssetSymbol];
-
-          const percent =
-            portfolioValue > 0
-              ? (value / portfolioValue) * 100
-              : 0;
-
-          return (
-            <div key={symbol}>
-              <div className="flex justify-between mb-1">
-                <span className="font-bold text-cyan-400">
-                  {symbol}
-                </span>
-
-                <span>
-                  {percent.toFixed(2)}%
-                </span>
-              </div>
-
-              <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300"
-                  style={{
-                    width: `${percent}%`,
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
-
-      {Object.values(positions).every(
-        (qty) => qty === 0
-      ) && (
-        <p className="text-zinc-500">
-          No active allocations.
-        </p>
-      )}
-    </div>
-  </div>
-  </div>
-  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-  <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/50 transition-all duration-300">
-    <p className="text-sm font-bold tracking-wide text-zinc-500">
-      BEST PERFORMER
-    </p>
-
-    <div className="mt-4">
-      <p className="text-4xl font-black text-cyan-400">
-        BTC
-      </p>
-
-      <p className="text-lg font-bold text-green-400 mt-2">
-        +12.45%
-      </p>
-    </div>
-  </div>
-
-  <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/50 transition-all duration-300">
-    <p className="text-sm font-bold tracking-wide text-zinc-500">
-      WIN RATE
-    </p>
-
-    <div className="mt-4">
-      <p className="text-4xl font-black text-white">
-        68%
-      </p>
-
-      <p className="text-lg text-zinc-500 mt-2">
-        34 Winning Trades
-      </p>
-    </div>
-  </div>
-
-</div>
-            <div className="mt-14 bg-zinc-900 rounded-2xl p-6">
-              <h2 className="text-2xl md:text-3xl font-bold mb-6">Trade History</h2>
-
-              <div className="space-y-3">
-                {trades.length === 0 && (
-                  <p className="text-gray-400">No trades yet.</p>
-                )}
-
-                {trades.map((trade, index) => (
-                  <div
-                    key={index}
-                    className="grid md:grid-cols-4 gap-4 bg-[#18181b] border border-zinc-800 p-4 rounded-xl hover:border-cyan-500/50 transition-all duration-300"
+                <div>
+                  <p
+                    className={`text-xl font-black ${
+                      trade.type === "BUY"
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
                   >
-                    <div>
-                      <span
-                        className={
-                          trade.type === "BUY"
-                            ? "text-green-400"
-                            : "text-red-400"
-                        }
-                      >
-                        {trade.type}
-                      </span>{" "}
-                      {trade.coin}
-                    </div>
+                    {trade.type}
+                  </p>
 
-                    <div>${trade.amount.toFixed(2)}</div>
-                    <div>@ ${trade.price.toLocaleString()}</div>
-                    <div>{trade.time}</div>
-                  </div>
-                ))}
+                  <p className="text-zinc-500 mt-1">
+                    {trade.coin}
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-white font-bold text-lg">
+                    ${trade.amount.toFixed(2)}
+                  </p>
+
+                  <p className="text-zinc-500 text-sm mt-1">
+                    ${trade.price.toFixed(2)}
+                  </p>
+
+                  <p className="text-zinc-600 text-xs mt-1">
+                    {trade.time}
+                  </p>
+                </div>
+
               </div>
             </div>
-          
- </div>
+          ))
+        )}
 
+      </div>
+    )}
+{activeBottomTab === "ORDERS" && (
+  <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
+
+    {!pendingLimitOrder ? (
+      <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+        <p className="text-2xl font-bold text-zinc-300">
+          No Open Orders
+        </p>
+
+        <p className="text-zinc-500 mt-2">
+          Pending limit orders will appear here.
+        </p>
+      </div>
+    ) : (
+      <div className="bg-[#0f172a] border border-cyan-500/30 rounded-2xl p-6">
+        <div className="flex items-center justify-between">
+
+          <div>
+            <p className="text-xl font-black text-cyan-400">
+              LIMIT {pendingLimitOrder.side}
+            </p>
+
+            <p className="mt-1 text-zinc-500">
+              {pendingLimitOrder.coin}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-lg font-bold text-white">
+              ${pendingLimitOrder.limitPrice.toLocaleString()}
+            </p>
+
+            <p className="mt-1 text-zinc-500 text-sm">
+              ${pendingLimitOrder.amount}
+            </p>
+            <button
+  onClick={() => {
+    setPendingLimitOrder(null);
+    setMessage("Limit order canceled.");
+  }}
+  className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 transition-all hover:bg-red-500/20"
+>
+  Cancel
+</button>
+          </div>
+
+        </div>
+
+     
+      </div>
+    )}
+
+  </div>
+)}
+  </div>
+</div>
       </main>
     </>
   );
