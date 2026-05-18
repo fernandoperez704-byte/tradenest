@@ -8,7 +8,7 @@ import Navbar from "../components/Navbar";
 export default function LearnPage() {
   const [activeLesson, setActiveLesson] = useState("roadmap");
   const lessons = [
-  { id: "roadmap", label: "Beginner Roadmap" },
+  { id: "roadmap", label: "Beginner Introduction" },
   { id: "candlesticks", label: "Candlestick Basics" },
   { id: "risk", label: "Beginner Risk Rules" },
   { id: "support", label: "Support & Resistance" },
@@ -30,8 +30,8 @@ const activeLessonIndex = lessons.findIndex(
       <Navbar />
 
       <main className="page-shell">
-        <div className="page-container max-w-[1700px]">
-  <div className="mt-10 grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_300px] gap-8">
+        <div className="page-container max-w-[1500px] 2xl:max-w-[1700px]">
+  <div className="mt-6 grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[280px_minmax(0,1fr)] gap-6 2xl:gap-8">
          <aside className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-fit xl:sticky xl:top-24">
   <p className="text-sm font-black tracking-wide text-zinc-500 mb-4">
     LESSONS
@@ -59,73 +59,108 @@ const activeLessonIndex = lessons.findIndex(
       
 {activeLesson === "roadmap" && (
 <div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight text-cyan-300 leading-tight">
-    Beginner Roadmap
-    
-  </h2>
+  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+  <span className="text-cyan-300">
+    Welcome To
+  </span>{" "}
+
+  <span className="text-white">
+    TradeNest
+  </span>
+
+  <span className="text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.7)]">
+    X
+  </span>
+</h2>
 
   <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Follow these simple steps to begin learning trading the right way.
+    TradeNestX is built to help beginners learn trading step by step, practice safely, and build confidence before risking real money.
   </p>
 
-  <div className="mt-10 space-y-5">
+<div className="mt-10 grid gap-6">
 
-    <div className="bg-[#18181b] border border-white/5 rounded-[28px] p-7 transition-all duration-200 hover:-translate-y-[2px] hover:-translate-y-[2px] hover:-translate-y-[2px] hover:border-cyan-400/40 hover:bg-[#1a1f2e] hover:-translate-y-[2px]">
-      <p className="text-cyan-400 font-black text-xl">
-        Step 1 — Learn The Basics
+  <div className="rounded-[28px] border border-cyan-500/10 bg-gradient-to-br from-cyan-500/5 via-[#131722] to-[#0f172a] p-7 backdrop-blur-sm">
+
+    <p className="text-sm font-black tracking-[0.3em] text-cyan-400">
+      BEGINNER SAFE LEARNING
+    </p>
+
+    <h3 className="mt-4 text-xl md:text-2xl font-black leading-tight text-white">
+  Learn first. Practice safely. Trade with confidence.
+</h3>
+
+    <p className="mt-5 max-w-5xl text-[17px] leading-8 text-zinc-300">
+      Most beginners fail because they jump into live markets too quickly without understanding risk management, psychology, or market structure.
+    </p>
+
+    <p className="mt-5 max-w-5xl text-[17px] leading-8 text-zinc-400">
+      TradeNestX gives beginners a safer way to learn through structured lessons, guided practice, and a realistic trading simulator designed to build confidence step by step.
+    </p>
+
+  </div>
+
+  <div className="grid md:grid-cols-2 gap-6">
+
+    <div className="rounded-[28px] border border-white/5 bg-[#18181b] p-7 transition-all duration-300 hover:border-cyan-400/30 hover:bg-[#1a1f2e]">
+
+      <p className="text-2xl font-black text-cyan-400">
+        Why Beginners Fail
       </p>
 
-      <p className="text-zinc-300 mt-3 text-[17px] leading-7">
-        Start by learning what stocks, crypto, candlesticks, support, resistance, and trends mean before risking money.
-      </p>
+      <ul className="mt-6 space-y-4 text-zinc-300">
+
+        <li>• No risk management</li>
+
+        <li>• Emotional trading decisions</li>
+
+        <li>• Using real money too early</li>
+
+        <li>• Lack of trading education</li>
+
+        <li>• No structured learning path</li>
+
+      </ul>
     </div>
 
-    <div className="bg-[#18181b] border border-white/5 rounded-[28px] p-7 transition-all duration-200 hover:-translate-y-[2px] hover:-translate-y-[2px] hover:-translate-y-[2px] hover:border-cyan-400/40 hover:bg-[#1a1f2e] hover:-translate-y-[2px]">
-  <p className="text-cyan-400 font-black text-xl">
-    Step 2 — Practice On A Simulator
-  </p>
+    <div className="rounded-[28px] border border-cyan-500/20 bg-cyan-500/10 p-7 transition-all duration-300 hover:border-cyan-400/40">
 
-  <p className="text-zinc-300 mt-3 text-[17px] leading-7">
-    Use TradeNestX to practice entering trades, reading charts, setting stop losses, and managing risk without using real money.
-  </p>
-</div>
-
-<div className="bg-[#18181b] border border-white/5 rounded-[28px] p-7 transition-all duration-200 hover:-translate-y-[2px] hover:-translate-y-[2px] hover:-translate-y-[2px] hover:border-cyan-400/40 hover:bg-[#1a1f2e] hover:-translate-y-[2px]">
-  <p className="text-cyan-400 font-black text-xl">
-    Step 3 — Open A Trading Account
-  </p>
-
-  <p className="text-zinc-300 mt-3 text-[17px] leading-7">
-    Once you understand the basics and feel comfortable trading on the simulator, you can open a real trading account with a trusted broker or crypto exchange.
-  </p>
-</div>
-
-    <div className="bg-[#18181b] border border-white/5 rounded-[28px] p-7 transition-all duration-200 hover:-translate-y-[2px] hover:-translate-y-[2px] hover:-translate-y-[2px] hover:border-cyan-400/40 hover:bg-[#1a1f2e] hover:-translate-y-[2px]">
-      <p className="text-cyan-400 font-black text-xl">
-        Step 4 — Focus On Risk Management
+      <p className="text-2xl font-black text-white">
+        Why TradeNest<span className="text-cyan-400">X</span> Is Different
       </p>
 
-      <p className="text-zinc-300 mt-3 text-[17px] leading-7">
-        Professional traders protect their capital first. Never risk your full account on one trade.
-      </p>
-    </div>
+      <ul className="mt-6 space-y-4 text-zinc-200">
 
-    <div className="bg-[#18181b] border border-white/5 rounded-[28px] p-7 transition-all duration-200 hover:-translate-y-[2px] hover:-translate-y-[2px] hover:-translate-y-[2px] hover:border-cyan-400/40 hover:bg-[#1a1f2e] hover:-translate-y-[2px]">
-      <p className="text-cyan-400 font-black text-xl">
-        Step 5 — Stay Consistent
-      </p>
+        <li>• Beginner-focused academy</li>
 
-      <p className="text-zinc-300 mt-3 text-[17px] leading-7">
-        Trading is a skill that takes time. Focus on consistency, discipline, and learning instead of chasing fast profits.
-      </p>
+        <li>• Realistic trading simulator</li>
+
+        <li>• Step-by-step learning structure</li>
+
+        <li>• Risk management education</li>
+
+        <li>• Practice before real markets</li>
+
+      </ul>
     </div>
 
   </div>
+
+  <div className="mt-8 flex justify-center">
+    <button
+      onClick={() => setActiveLesson("candlesticks")}
+      className="rounded-2xl bg-cyan-500 px-8 py-4 text-lg font-black text-black transition-all duration-300 hover:-translate-y-[2px] hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.35)]"
+    >
+      Start Learning Candlesticks →
+    </button>
+  </div>
+
+</div>
+
 </div>
 )}
 {activeLesson === "candlesticks" && (
 <div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight text-cyan-300 leading-tight">
+  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
     Candlestick Basics
   </h2>
 
@@ -1025,44 +1060,7 @@ const activeLessonIndex = lessons.findIndex(
 )}
 </section>
 
-<aside className="bg-[#111827] border border-zinc-700 rounded-2xl p-5 h-fit xl:sticky xl:top-24">
-  <p className="text-sm font-black tracking-wide text-zinc-500">
-    COURSE PROGRESS
-  </p>
 
-  <div className="mt-5">
-    <p className="text-4xl font-black text-cyan-400">
-      {activeLessonIndex + 1}/{lessons.length}
-    </p>
-
-    <p className="mt-2 text-sm text-zinc-500">
-      Current lesson progress
-    </p>
-  </div>
-
-  <div className="mt-6 h-3 overflow-hidden rounded-full bg-[#0f172a]">
-    <div
-      className="h-full rounded-full bg-cyan-400 transition-all duration-300"
-      style={{
-        width: `${((activeLessonIndex + 1) / lessons.length) * 100}%`,
-      }}
-    />
-  </div>
-
-  <button
-    onClick={() => {
-      const nextIndex = Math.min(
-        activeLessonIndex + 1,
-        lessons.length - 1
-      );
-
-      setActiveLesson(lessons[nextIndex].id);
-    }}
-    className="mt-6 w-full rounded-xl bg-cyan-500 px-4 py-3 text-sm font-black text-black transition-all hover:bg-cyan-400"
-  >
-    Next Lesson
-  </button>
-</aside>
 
 </div>
 </div>
