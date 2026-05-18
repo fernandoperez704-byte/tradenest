@@ -8,7 +8,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/70 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
+    <nav className="sticky top-0 z-50 w-full border-b border-cyan-500/10 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
       <div className="page-container flex h-[78px] items-center justify-between">
         <div className="flex items-center gap-8 xl:gap-16">
           <Link href="/" className="group flex items-center">
