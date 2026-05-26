@@ -400,6 +400,11 @@ onClick={() => {
   setSelectedMarketImage(-1);
   setMarketLessonSlide(-1);
   setRiskLessonSlide(-1);
+
+  document.getElementById("lesson-content")?.scrollTo({
+  top: 0,
+  behavior: "auto",
+});
 }}
        className={`group relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left text-sm font-black tracking-wide transition-all duration-300 ${
   activeLesson === lesson.id
@@ -421,7 +426,10 @@ onClick={() => {
   </div>
 </aside>
 
-<section className="min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide">
+<section
+  id="lesson-content"
+  className="min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide"
+>
           
       
 {activeLesson === "roadmap" && (
