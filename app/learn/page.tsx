@@ -10,30 +10,50 @@ export default function LearnPage() {
   const [selectedAsset, setSelectedAsset] = useState("stocks");
   const [selectedJourney, setSelectedJourney] = useState("crypto");
   const [selectedSupportType, setSelectedSupportType] = useState("support");
-  const [selectedTrendType, setSelectedTrendType] = useState("uptrend");
+  
   const [selectedRiskType, setSelectedRiskType] = useState("stoploss");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1min");
   const [selectedVolumeType, setSelectedVolumeType] = useState("high");
   const [selectedSupplyDemand, setSelectedSupplyDemand] = useState("demand");
-  const [selectedMistake, setSelectedMistake] = useState("revenge");
-  const [selectedBreakoutType, setSelectedBreakoutType] = useState("breakout");
+  
+  
   const [selectedCandleType, setSelectedCandleType] = useState("bullish");
   const [selectedOrderType, setSelectedOrderType] = useState("market");
   const [selectedPsychology, setSelectedPsychology] = useState("fear");
   const [selectedTradePlan, setSelectedTradePlan] = useState("entry");
-  const [selectedBullBear, setSelectedBullBear] = useState("bullish");
+  
   const [selectedMarketType, setSelectedMarketType] = useState("buyers");
   const [selectedChartReading, setSelectedChartReading] = useState("trend");
   const [selectedTradingTerm, setSelectedTradingTerm] = useState("spread");
   const [selectedCheckpoint, setSelectedCheckpoint] = useState("question1");
   const [selectedLiveTopic, setSelectedLiveTopic] = useState("small");
   const [selectedPainPoint, setSelectedPainPoint] = useState("charts");
+  const [painPointDelay, setPainPointDelay] = useState(5000);
   const [selectedMarketImage, setSelectedMarketImage] = useState(-1);
   const [marketSlide, setMarketSlide] = useState(0);
   const [marketLessonSlide, setMarketLessonSlide] = useState(-1);
   const [riskLessonSlide, setRiskLessonSlide] = useState(-1);
+  const [timeframeSlide, setTimeframeSlide] = useState(-1);
+  const [candlestickSlide, setCandlestickSlide] = useState(-1);
+  const [volumeSlide, setVolumeSlide] = useState(-1);
+  const [supportSlide, setSupportSlide] = useState(-1);
+  const [supplyDemandSlide, setSupplyDemandSlide] = useState(-1);
+  const [patternSlide, setPatternSlide] = useState(-1);
+  const [tradePlanSlide, setTradePlanSlide] = useState(-1);
+  const [psychologySlide, setPsychologySlide] = useState(-1);
+  const [termsSlide, setTermsSlide] = useState(-1);
+  const [quizScore, setQuizScore] = useState(0);
+const [quizSubmitted, setQuizSubmitted] = useState(false);
+const [quizAnswers, setQuizAnswers] = useState<{ [key: number]: string }>({});
+const [quizError, setQuizError] = useState("");
+const [submittedAnswers, setSubmittedAnswers] = useState<{
+  [key: number]: string;
+}>({});
+const [cooldownActive, setCooldownActive] = useState(false);
+const [nextAttemptTime, setNextAttemptTime] = useState<number | null>(null);
   const [gabyQuestion, setGabyQuestion] = useState("");
   const [lastQuestion, setLastQuestion] = useState("");
+  const [lastTopic, setLastTopic] = useState("");
 const [gabyAnswer, setGabyAnswer] = useState(
   "Hi, I’m Gaby. Ask me anything about this lesson."
   
@@ -45,7 +65,165 @@ useEffect(() => {
   setIsGabyTyping(false);
   setLastQuestion("");
 }, []);
- const lessons = [
+
+useEffect(() => {
+  const savedCooldown = localStorage.getItem(
+    "tradenestxQuizCooldown"
+  );
+
+  if (!savedCooldown) return;
+
+  const cooldownEnd = Number(savedCooldown);
+
+  if (Date.now() < cooldownEnd) {
+    setCooldownActive(true);
+    setNextAttemptTime(cooldownEnd);
+  }
+}, []);
+
+useEffect(() => {
+  const slides = [
+    "charts",
+    "fear",
+    "info",
+    "roadmap",
+  ];
+
+  const interval = setInterval(() => {
+    setSelectedPainPoint((current) => {
+      const index = slides.indexOf(current);
+      return slides[(index + 1) % slides.length];
+    });
+
+    setPainPointDelay(5000);
+  }, painPointDelay);
+
+  return () => clearInterval(interval);
+}, [painPointDelay]);
+
+const checkpointQuestions = [
+{
+  question: "What does a bullish trend mean?",
+  options: [
+    "Price moving lower",
+    "Price moving higher",
+    "Price moving sideways",
+    "Low volume",
+  ],
+  answer: "Price moving higher",
+  reviewLesson: "Market Trends",
+},
+
+{
+  question: "What does a support level represent?",
+  options: [
+    "A guaranteed buy signal",
+    "A chart pattern",
+    "Area where buyers may step in",
+    "Area where sellers always win",
+  ],
+  answer: "Area where buyers may step in",
+  reviewLesson: "Support & Resistance",
+},
+
+{
+  question: "What does volume measure?",
+  options: [
+    "Volatility",
+    "Profit",
+    "Risk",
+    "Amount traded",
+  ],
+  answer: "Amount traded",
+  reviewLesson: "Volume Basics",
+},
+
+{
+  question: "What is a pullback?",
+  options: [
+    "Temporary move against a trend",
+    "A breakout",
+    "A support zone",
+    "A market order",
+  ],
+  answer: "Temporary move against a trend",
+  reviewLesson: "Essential Trading Terms",
+},
+
+{
+  question: "What is risk management designed to do?",
+  options: [
+    "Increase leverage",
+    "Protect capital",
+    "Predict markets",
+    "Guarantee profits",
+  ],
+  answer: "Protect capital",
+  reviewLesson: "Protecting Your Capital",
+},
+
+{
+  question: "What does FOMO stand for?",
+  options: [
+    "Future Order Management Operation",
+    "Fear Of Market Oscillation",
+    "Fast Order Market Option",
+    "Fear Of Missing Out",
+  ],
+  answer: "Fear Of Missing Out",
+  reviewLesson: "Trading Psychology",
+},
+
+{
+  question: "What is a spread?",
+  options: [
+    "Volume spike",
+    "Market cap",
+    "Difference between bid and ask",
+    "Price trend",
+  ],
+  answer: "Difference between bid and ask",
+  reviewLesson: "Essential Trading Terms",
+},
+
+{
+  question: "What is liquidity?",
+  options: [
+    "Ease of buying and selling",
+    "A trend reversal",
+    "A chart timeframe",
+    "A candlestick pattern",
+  ],
+  answer: "Ease of buying and selling",
+  reviewLesson: "Essential Trading Terms",
+},
+
+{
+  question: "What is a breakout?",
+  options: [
+    "A stop loss",
+    "Price moves beyond a key level",
+    "A losing trade",
+    "A pullback",
+  ],
+  answer: "Price moves beyond a key level",
+  reviewLesson: "Chart Patterns",
+},
+
+{
+  question: "What does a portfolio represent?",
+  options: [
+    "A timeframe",
+    "One trade",
+    "A chart pattern",
+    "All your investments together",
+  ],
+  answer: "All your investments together",
+  reviewLesson: "Essential Trading Terms",
+},
+];
+
+const lessons = [
   { id: "roadmap", label: "Beginner Introduction" },
 
   { id: "buying", label: "What Are You Buying?" },
@@ -56,9 +234,9 @@ useEffect(() => {
 
   { id: "risk", label: "Protecting Your Capital" },
 
-  { id: "timeframes", label: "Trading Timeframes" },
-
   { id: "candlesticks", label: "Candlestick Basics" },
+
+  { id: "timeframes", label: "Trading Timeframes" },
 
   { id: "volume", label: "Volume Basics" },
 
@@ -66,19 +244,11 @@ useEffect(() => {
 
   { id: "supplydemand", label: "Supply & Demand" },
 
-  { id: "trends", label: "Market Trends" },
-
-  { id: "technical", label: "Reading The Charts" },
-
-  { id: "breakouts", label: "Breakouts vs Fakeouts" },
+  { id: "patterns", label: "Chart Patterns" },
 
   { id: "setups", label: "Building A Trade Plan" },
 
-  { id: "mistakes", label: "Common Beginner Mistakes" },
-
   { id: "psychology", label: "Trading Psychology" },
-
-  { id: "longshort", label: "Bullish vs Bearish Trading" },
 
   { id: "vocabulary", label: "Essential Trading Terms" },
 
@@ -98,7 +268,9 @@ const question = (customQuestion || gabyQuestion).toLowerCase().trim();
 
 const contextualQuestion =
   lastQuestion
-    ? `Previous question: ${lastQuestion}\nCurrent question: ${question}`
+    ? `Previous topic: ${lastTopic || "unknown"}
+Previous question: ${lastQuestion}
+Current question: ${question}`
     : question;
 if (
   question.includes("market open") ||
@@ -131,33 +303,189 @@ setLastQuestion(question);
 setGabyQuestion("");
 return;
 }
-if (
-  question.includes("stock") ||
-  question.includes("crypto") ||
-  question.includes("forex") ||
-  question.includes("option") ||
-  question.includes("supply and demand") ||
-  question.includes("candlestick") ||
-  question.includes("prices move") ||
-  question.includes("volatility") ||
-  question.includes("liquidity") ||
-  question.includes("panic") ||
-question.includes("market order") ||
-question.includes("limit order") ||
-question.includes("safer") ||
-question.includes("limit orders") ||
-question.includes("beginners focus") ||
-question.includes("market open") ||
-question.includes("stock market") ||
-question.includes("risk management") ||
-question.includes("stop losses") ||
-question.includes("revenge trading") ||
-question.includes("protecting capital") ||
-question.includes("capital important") 
-) {
+const localQuestions = [
+  "what is a stock?",
+  "what is a stock",
+  "why do prices move?",
+  "why do prices move",
+  "what is crypto?",
+  "what is crypto",
+  "what should beginners focus on?",
+  "what should beginners focus on",
+
+  "what is a market order?",
+  "what is a market order",
+  "what is a limit order?",
+  "what is a limit order",
+  "which order is safer?",
+  "which order is safer",
+  "why do traders use limit orders?",
+  "why do traders use limit orders",
+
+  "what is risk management?",
+  "what is risk management",
+  "why do traders use stop losses?",
+  "why do traders use stop losses",
+  "what is revenge trading?",
+  "what is revenge trading",
+  "why is protecting capital important?",
+  "why is protecting capital important",
+
+  "what is a timeframe?",
+  "what is a timeframe",
+  "why do timeframes matter?",
+  "why do timeframes matter",
+
+  "what is a candlestick?",
+  "what is a candlestick",
+  "what is a bullish candle?",
+  "what is a bullish candle",
+  "what is a bearish candle?",
+  "what is a bearish candle",
+  "what does a long wick mean?",
+  "what does a long wick mean",
+
+  "what is volume?",
+  "what is volume",
+  "why does volume matter?",
+  "why does volume matter",
+  "what is high volume?",
+  "what is high volume",
+  "what is low volume?",
+  "what is low volume",
+
+  "what is support?",
+  "what is support",
+  "what is resistance?",
+  "what is resistance",
+  "why do support and resistance matter?",
+  "why do support and resistance matter",
+  "what is a breakout?",
+  "what is a breakout",
+
+  "why do timeframes matter?",
+"why do timeframes matter",
+
+"which timeframe is best for beginners?",
+"which timeframe is best for beginners",
+
+"why do lower timeframes feel stressful?",
+"why do lower timeframes feel stressful",
+
+"what is volatility?",
+"what is volatility",
+
+"what is supply and demand?",
+"what is supply and demand",
+
+"why do markets panic?",
+"why do markets panic",
+
+"what is supply?",
+"what is supply",
+"what is demand?",
+"what is demand",
+"what is a demand zone?",
+"what is a demand zone",
+"what is a supply zone?",
+"what is a supply zone",
+
+"what is a chart pattern?",
+"what is a chart pattern",
+
+"what is a double top?",
+"what is a double top",
+
+"what is a double bottom?",
+"what is a double bottom",
+
+"what is a head and shoulders pattern?",
+"what is a head and shoulders pattern",
+
+"what is a trade plan?",
+"what is a trade plan",
+
+"why do traders use trade plans?",
+"why do traders use trade plans",
+
+"what is risk reward?",
+"what is risk reward",
+
+"why is a checklist important?",
+"why is a checklist important",
+
+"what is trading psychology?",
+"what is trading psychology",
+
+"what is fear in trading?",
+"what is fear in trading",
+
+"what is greed in trading?",
+"what is greed in trading",
+
+"what is fomo trading?",
+"what is fomo trading",
+
+"why is patience important?",
+"why is patience important",
+
+"what is a bid?",
+"what is a bid",
+
+"what is an ask?",
+"what is an ask",
+
+"what is a spread?",
+"what is a spread",
+
+"what is volatility?",
+"what is volatility",
+
+"what is liquidity?",
+"what is liquidity",
+
+"what is market cap?",
+"what is market cap",
+
+];
+
+const cleanQuestion = question.replace(/[?.,!]/g, "").trim();
+
+const cleanLocalQuestions = localQuestions.map((q) =>
+  q.replace(/[?.,!]/g, "").trim()
+);
+
+if (cleanLocalQuestions.includes(cleanQuestion))
+ {
   setIsGabyTyping(true);
 
 setTimeout(() => {
+  if (question.includes("crypto")) {
+  setLastTopic("crypto");
+} else if (question.includes("stock")) {
+  setLastTopic("stocks");
+} else if (question.includes("forex")) {
+  setLastTopic("forex");
+} else if (question.includes("volatility")) {
+  setLastTopic("volatility");
+} else if (question.includes("market order")) {
+  setLastTopic("market orders");
+} else if (question.includes("limit order")) {
+  setLastTopic("limit orders");
+} else if (question.includes("risk")) {
+  setLastTopic("risk management");
+} else if (question.includes("candlestick")) {
+  setLastTopic("candlesticks");
+} else if (question.includes("timeframe")) {
+  setLastTopic("timeframes");
+} else if (question.includes("1 minute")) {
+  setLastTopic("timeframes");
+} else if (question.includes("1 hour")) {
+  setLastTopic("timeframes");
+} else if (question.includes("daily")) {
+  setLastTopic("timeframes");
+}
+
   if (
   question.includes("best place") ||
   question.includes("where") ||
@@ -191,6 +519,14 @@ setTimeout(() => {
   setGabyAnswer(
     "Crypto is a digital asset that trades online 24/7. Crypto markets can move very fast and are known for high volatility."
   );
+} else if (
+  question === "which timeframe is best for beginners" ||
+  question === "which timeframe is best for beginners?"
+) {
+  setGabyAnswer(
+    "Many beginners find higher timeframes easier to read because they contain less noise and clearer market direction."
+  );
+
 
 } else if (
   question.includes("beginner") ||
@@ -216,8 +552,8 @@ setTimeout(() => {
   );
 
 } else if (
-  question.includes("supply") ||
-  question.includes("demand")
+  question === "what is supply and demand" ||
+  question === "what is supply and demand?"
 ) {
   setGabyAnswer(
     "Supply and demand means selling pressure versus buying pressure. More demand can push price up. More supply can push price down."
@@ -326,14 +662,318 @@ setTimeout(() => {
   setGabyAnswer(
     "Risk management helps traders protect their capital by controlling losses and position size."
   );
+  } else if (
+  question === "what is a timeframe" ||
+  question === "what is a timeframe?"
+) {
+  setGabyAnswer(
+    "A timeframe is the amount of time each candlestick represents on a chart. Examples include 1 minute, 5 minutes, 1 hour, and 1 day."
+  );
 
+} else if (
+  question === "why do timeframes matter" ||
+  question === "why do timeframes matter?"
+) {
+  setGabyAnswer(
+    "Timeframes help traders understand market movement from different perspectives. Lower timeframes show more detail, while higher timeframes often show stronger trends."
+  );
+
+
+
+} else if (
+  question === "why do lower timeframes feel stressful" ||
+  question === "why do lower timeframes feel stressful?"
+) {
+  setGabyAnswer(
+    "Lower timeframes move quickly and can create emotional decision-making. Many beginners overtrade when watching very fast charts."
+  );
+
+  } else if (
+  question === "what is a candlestick?" ||
+  question === "what is a candlestick"
+) {
+  setGabyAnswer(
+    "A candlestick is a visual representation of price movement during a specific period of time. Every candlestick shows the open, high, low, and close price."
+  );
+
+} else if (
+  question === "what is a bullish candle?" ||
+  question === "what is a bullish candle"
+) {
+  setGabyAnswer(
+    "A bullish candle closes higher than it opened. It shows buyers were stronger than sellers during that period."
+  );
+
+} else if (
+  question === "what is a bearish candle?" ||
+  question === "what is a bearish candle"
+) {
+  setGabyAnswer(
+    "A bearish candle closes lower than it opened. It shows sellers were stronger than buyers during that period."
+  );
+
+} else if (
+  question === "what does a long wick mean?" ||
+  question === "what does a long wick mean"
+) {
+  setGabyAnswer(
+    "A long wick can show price rejection. It means price moved in one direction but was pushed back before the candle closed."
+  );
+
+  } else if (
+  question === "what is volume" ||
+  question === "what is volume?"
+) {
+  setGabyAnswer(
+    "Volume shows how much trading activity happened during a period of time. Higher volume means more buyers and sellers are participating."
+  );
+
+} else if (
+  question === "why does volume matter" ||
+  question === "why does volume matter?"
+) {
+  setGabyAnswer(
+    "Volume matters because it can help confirm the strength behind a price move. A move with strong volume is usually more meaningful than a move with weak volume."
+  );
+
+} else if (
+  question === "what is high volume" ||
+  question === "what is high volume?"
+) {
+  setGabyAnswer(
+    "High volume means a lot of trading activity is happening. It can show strong interest, momentum, or important market movement."
+  );
+
+} else if (
+  question === "what is low volume" ||
+  question === "what is low volume?"
+) {
+  setGabyAnswer(
+    "Low volume means fewer traders are participating. Price movement on low volume can be weaker or less reliable."
+  );
   
+} else if (
+  question === "what is support" ||
+  question === "what is support?"
+) {
+  setGabyAnswer(
+    "Support is a price area where buyers have previously stepped in and pushed price higher. It often acts like a floor beneath price."
+  );
+
+} else if (
+  question === "what is resistance" ||
+  question === "what is resistance?"
+) {
+  setGabyAnswer(
+    "Resistance is a price area where sellers have previously stepped in and pushed price lower. It often acts like a ceiling above price."
+  );
+
+} else if (
+  question === "why do support and resistance matter" ||
+  question === "why do support and resistance matter?"
+) {
+  setGabyAnswer(
+    "Support and resistance help traders identify important price levels where the market may react, reverse, pause, or break through."
+  );
+
+} else if (
+  question === "what is a breakout" ||
+  question === "what is a breakout?"
+) {
+  setGabyAnswer(
+    "A breakout happens when price moves through support or resistance with strength. Breakouts can signal the beginning of a new trend or momentum move."
+  );
+
+} else if (
+  question === "what is supply" ||
+  question === "what is supply?"
+) {
+  setGabyAnswer(
+    "Supply means selling pressure. When there is more supply than demand, sellers can push price lower."
+  );
+
+} else if (
+  question === "what is demand" ||
+  question === "what is demand?"
+) {
+  setGabyAnswer(
+    "Demand means buying pressure. When there is more demand than supply, buyers can push price higher."
+  );
+
+} else if (
+  question === "what is a demand zone" ||
+  question === "what is a demand zone?"
+) {
+  setGabyAnswer(
+    "A demand zone is an area where buyers previously stepped in strongly and pushed price higher."
+  );
+
+} else if (
+  question === "what is a supply zone" ||
+  question === "what is a supply zone?"
+) {
+  setGabyAnswer(
+    "A supply zone is an area where sellers previously stepped in strongly and pushed price lower."
+  );
+
+} else if (
+  question === "what is a chart pattern" ||
+  question === "what is a chart pattern?"
+) {
+  setGabyAnswer(
+    "A chart pattern is a repeating price formation that traders use to identify possible market direction and trading opportunities."
+  );
+
+} else if (
+  question === "what is a double top" ||
+  question === "what is a double top?"
+) {
+  setGabyAnswer(
+    "A double top is a bearish chart pattern where price tests a resistance area twice and fails to move higher."
+  );
+
+} else if (
+  question === "what is a double bottom" ||
+  question === "what is a double bottom?"
+) {
+  setGabyAnswer(
+    "A double bottom is a bullish chart pattern where price tests a support area twice and holds before moving higher."
+  );
+
+} else if (
+  question === "what is a head and shoulders pattern" ||
+  question === "what is a head and shoulders pattern?"
+) {
+  setGabyAnswer(
+    "A head and shoulders pattern is a bearish reversal pattern that can signal a trend change from bullish to bearish."
+  );
+
+} else if (
+  question === "what is a trade plan" ||
+  question === "what is a trade plan?"
+) {
+  setGabyAnswer(
+    "A trade plan is a set of rules that tells you when to enter, where to place your stop loss, where to take profit, and how much risk to take before entering a trade."
+  );
+
+} else if (
+  question === "why do traders use trade plans" ||
+  question === "why do traders use trade plans?"
+) {
+  setGabyAnswer(
+    "Traders use trade plans to reduce emotional decisions and stay consistent. A plan helps you know what to do before the trade starts."
+  );
+
+} else if (
+  question === "what is risk reward" ||
+  question === "what is risk reward?"
+) {
+  setGabyAnswer(
+    "Risk reward compares how much you are risking to how much you may gain. For example, risking $50 to try to make $100 is a 1 to 2 risk reward."
+  );
+
+} else if (
+  question === "why is a checklist important" ||
+  question === "why is a checklist important?"
+) {
+  setGabyAnswer(
+    "A checklist helps you confirm your setup before entering a trade. It keeps you from rushing into random or emotional trades."
+  );
+
+} else if (
+  question === "what is trading psychology" ||
+  question === "what is trading psychology?"
+) {
+  setGabyAnswer(
+    "Trading psychology is how your emotions and mindset affect your trading decisions. Fear, greed, patience, and discipline can all impact how you trade."
+  );
+
+} else if (
+  question === "what is fear in trading" ||
+  question === "what is fear in trading?"
+) {
+  setGabyAnswer(
+    "Fear in trading can make beginners exit too early, avoid good setups, or panic when price moves against them."
+  );
+
+} else if (
+  question === "what is greed in trading" ||
+  question === "what is greed in trading?"
+) {
+  setGabyAnswer(
+    "Greed in trading can make traders risk too much, ignore targets, hold too long, or chase bigger profits without a plan."
+  );
+
+} else if (
+  question === "what is fomo trading" ||
+  question === "what is fomo trading?"
+) {
+  setGabyAnswer(
+    "FOMO trading means Fear Of Missing Out. It happens when a trader enters late because they are afraid of missing a big move."
+  );
+
+} else if (
+  question === "why is patience important" ||
+  question === "why is patience important?"
+) {
+  setGabyAnswer(
+    "Patience helps traders wait for quality setups instead of forcing random trades. Many beginners lose money because they trade too often."
+  );
+
+} else if (
+  question === "what is a bid" ||
+  question === "what is a bid?"
+) {
+  setGabyAnswer(
+    "A bid is the highest price a buyer is willing to pay for an asset."
+  );
+
+} else if (
+  question === "what is an ask" ||
+  question === "what is an ask?"
+) {
+  setGabyAnswer(
+    "An ask is the lowest price a seller is willing to accept for an asset."
+  );
+
+} else if (
+  question === "what is a spread" ||
+  question === "what is a spread?"
+) {
+  setGabyAnswer(
+    "The spread is the difference between the bid price and the ask price."
+  );
+
+} else if (
+  question === "what is volatility" ||
+  question === "what is volatility?"
+) {
+  setGabyAnswer(
+    "Volatility measures how much and how quickly price moves up and down."
+  );
+
+} else if (
+  question === "what is liquidity" ||
+  question === "what is liquidity?"
+) {
+  setGabyAnswer(
+    "Liquidity refers to how easily an asset can be bought or sold without significantly affecting its price."
+  );
+
+} else if (
+  question === "what is market cap" ||
+  question === "what is market cap?"
+) {
+  setGabyAnswer(
+    "Market capitalization is the total value of an asset. It is calculated by multiplying price by the total circulating supply."
+  );
+
 } else {
   setGabyAnswer(
     "The best place to start learning is directly inside TradeNestX. Begin with the beginner lessons to understand charts, candlesticks, volatility, market orders, limit orders, and risk management step-by-step. After learning the basics, practice safely on the TradeNestX simulator before risking real money. TradeNestX is designed to help beginners build confidence through education and practice first."
   );
-
 }
+
 
 setIsGabyTyping(false);
 setLastQuestion(question);
@@ -372,7 +1012,13 @@ try {
 }
 
 setIsGabyTyping(false);
+
 setLastQuestion(question);
+
+if (!lastTopic) {
+  setLastTopic(activeLesson);
+}
+
 setGabyQuestion("");
 }
   return (
@@ -400,8 +1046,21 @@ onClick={() => {
   setSelectedMarketImage(-1);
   setMarketLessonSlide(-1);
   setRiskLessonSlide(-1);
-
+  setTimeframeSlide(-1);
+  setCandlestickSlide(-1);
+  setVolumeSlide(-1);
+  setSupportSlide(-1);
+  setSupplyDemandSlide(-1);
+  setPatternSlide(-1);
+  setTradePlanSlide(-1);
+  setPsychologySlide(-1);
+  setTermsSlide(-1);
   document.getElementById("lesson-content")?.scrollTo({
+  top: 0,
+  behavior: "auto",
+});
+
+window.scrollTo({
   top: 0,
   behavior: "auto",
 });
@@ -449,7 +1108,10 @@ onClick={() => {
   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
     <button
-      onClick={() => setSelectedPainPoint("charts")}
+      onClick={() => {
+  setSelectedPainPoint("charts");
+  setPainPointDelay(20000);
+}}
       className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
         selectedPainPoint === "charts"
           ? "border-cyan-400 bg-cyan-500/10"
@@ -457,12 +1119,15 @@ onClick={() => {
       }`}
     >
       <p className="text-white font-black text-[20px]">
-        Confusing Charts
+        Learn Trading
       </p>
     </button>
 
     <button
-      onClick={() => setSelectedPainPoint("fear")}
+      onClick={() => {
+  setSelectedPainPoint("fear");
+  setPainPointDelay(20000);
+}}
       className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
         selectedPainPoint === "fear"
           ? "border-red-400 bg-red-500/10"
@@ -470,12 +1135,15 @@ onClick={() => {
       }`}
     >
       <p className="text-white font-black text-[20px]">
-        Fear Of Losing Money
+        Build Confidence
       </p>
     </button>
 
     <button
-      onClick={() => setSelectedPainPoint("info")}
+      onClick={() => {
+  setSelectedPainPoint("info");
+  setPainPointDelay(20000);
+}}
       className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
         selectedPainPoint === "info"
           ? "border-orange-400 bg-orange-500/10"
@@ -483,12 +1151,15 @@ onClick={() => {
       }`}
     >
       <p className="text-white font-black text-[20px]">
-        Too Much Information
+        Practice Risk-Free
       </p>
     </button>
 
     <button
-      onClick={() => setSelectedPainPoint("roadmap")}
+      onClick={() => {
+  setSelectedPainPoint("roadmap");
+  setPainPointDelay(20000);
+}}
       className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
         selectedPainPoint === "roadmap"
           ? "border-emerald-400 bg-emerald-500/10"
@@ -496,7 +1167,7 @@ onClick={() => {
       }`}
     >
       <p className="text-white font-black text-[20px]">
-        No Clear Roadmap
+        Follow A Roadmap
       </p>
     </button>
 
@@ -511,11 +1182,11 @@ onClick={() => {
         {selectedPainPoint === "charts" && (
           <>
             <h3 className="text-4xl font-black text-white leading-tight">
-              Why Charts Feel Confusing
-            </h3>
+  Learn Trading Step By Step
+</h3>
 
             <p className="mt-5 text-zinc-400 text-lg leading-8">
-              Most beginners see random candles without understanding trend direction or market structure.
+              TradeNestX breaks trading into simple lessons designed for complete beginners. Learn one concept at a time and build a strong foundation.
             </p>
 
             <div className="mt-8 space-y-5">
@@ -527,11 +1198,11 @@ onClick={() => {
 
                 <div>
                   <p className="text-white font-bold">
-                    Too many candles
+                    Understand charts
                   </p>
 
                   <p className="text-zinc-500 mt-1">
-                    Hard to know what matters.
+                    Learn what price movement is really telling you.
                   </p>
                 </div>
               </div>
@@ -543,11 +1214,11 @@ onClick={() => {
 
                 <div>
                   <p className="text-white font-bold">
-                    No clear direction
+                    Learn market structure
                   </p>
 
                   <p className="text-zinc-500 mt-1">
-                    Price moves up and down creating confusion.
+                    Understand trends, support, and resistance.
                   </p>
                 </div>
               </div>
@@ -559,11 +1230,11 @@ onClick={() => {
 
                 <div>
                   <p className="text-white font-bold">
-                    Lack of structure
+                    Build a strong foundation
                   </p>
 
                   <p className="text-zinc-500 mt-1">
-                    Without support and resistance, charts feel random.
+                    Master the basics before moving to advanced concepts.
                   </p>
                 </div>
               </div>
@@ -574,35 +1245,35 @@ onClick={() => {
 {selectedPainPoint === "fear" && (
   <>
     <h3 className="text-4xl font-black text-white leading-tight">
-      Why Beginners Fear Losing Money
+      Build Confidence Before You Trade
     </h3>
 
     <p className="mt-5 text-zinc-400 text-lg leading-8">
-      New traders often feel fear because they do not understand position size, stop losses, or how much money they are risking.
+      Confidence comes from education, preparation, and practice — not from guessing or rushing into trades.
     </p>
 
     <div className="mt-8 space-y-5">
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10 text-red-400 font-black">1</div>
         <div>
-          <p className="text-white font-bold">Risk feels unknown</p>
-          <p className="text-zinc-500 mt-1">Beginners enter trades without knowing the possible loss.</p>
+          <p className="text-white font-bold">Learn risk control</p>
+          <p className="text-zinc-500 mt-1">Understand how to protect your capital before entering trades.</p>
         </div>
       </div>
 
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10 text-red-400 font-black">2</div>
         <div>
-          <p className="text-white font-bold">Emotions take over</p>
-          <p className="text-zinc-500 mt-1">Fear can cause panic selling or avoiding good setups.</p>
+          <p className="text-white font-bold">Manage emotions</p>
+          <p className="text-zinc-500 mt-1">Build discipline so emotions do not control every decision.</p>
         </div>
       </div>
 
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10 text-red-400 font-black">3</div>
         <div>
-          <p className="text-white font-bold">No plan creates stress</p>
-          <p className="text-zinc-500 mt-1">A trading plan helps reduce emotional decisions.</p>
+          <p className="text-white font-bold">Follow a plan</p>
+          <p className="text-zinc-500 mt-1">Use clear rules for entries, exits, and risk.</p>
         </div>
       </div>
     </div>
@@ -612,35 +1283,35 @@ onClick={() => {
 {selectedPainPoint === "info" && (
   <>
     <h3 className="text-4xl font-black text-white leading-tight">
-      Why Too Much Information Hurts Beginners
+      Practice Without Risking Real Money
     </h3>
 
     <p className="mt-5 text-zinc-400 text-lg leading-8">
-      Beginners often jump between strategies, videos, indicators, and opinions before mastering the basics.
+      Apply what you learn inside the TradeNestX simulator and gain experience in a safe environment before risking real money.
     </p>
 
     <div className="mt-8 space-y-5">
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-400 font-black">1</div>
         <div>
-          <p className="text-white font-bold">Too many strategies</p>
-          <p className="text-zinc-500 mt-1">Learning everything at once makes trading feel harder.</p>
+          <p className="text-white font-bold">Paper trading</p>
+          <p className="text-zinc-500 mt-1">Practice buying and selling without financial risk.</p>
         </div>
       </div>
 
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-400 font-black">2</div>
         <div>
-          <p className="text-white font-bold">Conflicting advice</p>
-          <p className="text-zinc-500 mt-1">One person says buy, another says sell, and beginners get stuck.</p>
+          <p className="text-white font-bold">Learn from mistakes</p>
+          <p className="text-zinc-500 mt-1">Every trade becomes a learning opportunity.</p>
         </div>
       </div>
 
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-400 font-black">3</div>
         <div>
-          <p className="text-white font-bold">Basics get skipped</p>
-          <p className="text-zinc-500 mt-1">TradeNestX teaches the foundation first before advanced ideas.</p>
+          <p className="text-white font-bold">Build experience safely</p>
+          <p className="text-zinc-500 mt-1">Develop confidence before entering live markets.</p>
         </div>
       </div>
     </div>
@@ -650,35 +1321,35 @@ onClick={() => {
 {selectedPainPoint === "roadmap" && (
   <>
     <h3 className="text-4xl font-black text-white leading-tight">
-      Why Beginners Need A Clear Roadmap
+      Follow A Proven Learning Path
     </h3>
 
     <p className="mt-5 text-zinc-400 text-lg leading-8">
-      Most new traders do not fail because they are not smart. They fail because they do not know what to learn first.
+      TradeNestX guides you from complete beginner to confident simulator trader through a structured step-by-step learning journey.
     </p>
 
     <div className="mt-8 space-y-5">
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-black">1</div>
         <div>
-          <p className="text-white font-bold">Start with foundations</p>
-          <p className="text-zinc-500 mt-1">Learn what markets are, how orders work, and how charts move.</p>
+          <p className="text-white font-bold">Learn</p>
+          <p className="text-zinc-500 mt-1">Master the fundamentals through beginner-friendly lessons.</p>
         </div>
       </div>
 
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-black">2</div>
         <div>
-          <p className="text-white font-bold">Practice safely</p>
-          <p className="text-zinc-500 mt-1">Use the simulator before risking real money.</p>
+          <p className="text-white font-bold">Practice</p>
+          <p className="text-zinc-500 mt-1">Apply what you learn inside the TradeNestX simulator.</p>
         </div>
       </div>
 
       <div className="flex gap-4">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-black">3</div>
         <div>
-          <p className="text-white font-bold">Build confidence slowly</p>
-          <p className="text-zinc-500 mt-1">Progress comes from repetition, discipline, and structure.</p>
+          <p className="text-white font-bold">Graduate</p>
+          <p className="text-zinc-500 mt-1">Complete the academy and continue building real trading skills.</p>
         </div>
       </div>
     </div>
@@ -691,14 +1362,14 @@ onClick={() => {
         <img
           src={
   selectedPainPoint === "charts"
-    ? "/learn/pain/charts-confusing.png"
+    ? "/learn/journey/learn-trading.png"
     : selectedPainPoint === "fear"
-    ? "/learn/pain/fear-losing-money.png"
+    ? "/learn/journey/build-confidence.png"
     : selectedPainPoint === "info"
-    ? "/learn/pain/too-much-information.png"
-    : "/learn/pain/no-roadmap.png"
+    ? "/learn/journey/practice-risk-free.png"
+    : "/learn/journey/follow-roadmap.png"
 }
-          alt="Confusing Charts"
+          alt="TradeNestX Learning Journey"
           className="h-full w-full object-cover"
         />
 
@@ -709,11 +1380,6 @@ onClick={() => {
   </div>
 
 </div>
-
-
-
-
-
 
 </>
 )}
@@ -892,133 +1558,7 @@ onClick={() => {
   
 )}
 
-{activeLesson === "longshort" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Bullish vs Bearish Trading
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Markets constantly move between bullish and bearish conditions. Traders must learn who controls the market before entering trades.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 gap-6">
-
-    <button
-      onClick={() => setSelectedBullBear("bullish")}
-      className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 hover:-translate-y-[4px] ${
-        selectedBullBear === "bullish"
-          ? "border-cyan-400 bg-cyan-500/10"
-          : "border-white/5"
-      }`}
-    >
-      <h3 className="text-2xl font-black text-green-400">
-        Bullish Market
-      </h3>
-
-      <p className="mt-4 text-zinc-300 leading-7">
-        Buyers are stronger and price trends upward.
-      </p>
-    </button>
-
-    <button
-      onClick={() => setSelectedBullBear("bearish")}
-      className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 hover:-translate-y-[4px] ${
-        selectedBullBear === "bearish"
-          ? "border-cyan-400 bg-cyan-500/10"
-          : "border-white/5"
-      }`}
-    >
-      <h3 className="text-2xl font-black text-red-400">
-        Bearish Market
-      </h3>
-
-      <p className="mt-4 text-zinc-300 leading-7">
-        Sellers are stronger and price trends downward.
-      </p>
-    </button>
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    {selectedBullBear === "bullish" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Bullish = Buyers Control Price
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Bullish markets create higher highs and higher lows as buyers continue pushing price upward.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-
-          <div className="relative h-64 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute left-8 bottom-16 h-16 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-24 h-24 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-34 h-28 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-56 bottom-46 h-36 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-72 bottom-60 h-44 w-6 rounded-sm bg-cyan-400" />
-
-            <div className="absolute left-10 bottom-14 h-[3px] w-[300px] rotate-[-24deg] bg-green-400/70" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Bullish trend example
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedBullBear === "bearish" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Bearish = Sellers Control Price
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Bearish markets create lower highs and lower lows as sellers continue pushing price downward.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-
-          <div className="relative h-64 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute left-8 bottom-58 h-42 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-24 bottom-48 h-34 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-40 bottom-40 h-28 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-56 bottom-28 h-20 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-72 bottom-16 h-16 w-6 rounded-sm bg-cyan-400" />
-
-            <div className="absolute left-10 bottom-56 h-[3px] w-[300px] rotate-[24deg] bg-red-400/70" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Bearish trend example
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
 {activeLesson === "market" && (
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
@@ -1436,910 +1976,7 @@ alt="Orders lesson"
   </div>
 )}
 
-{activeLesson === "candlesticks" && (
-<div className="mt-6 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
 
-  <div className="flex items-center gap-3">
-    <div className="h-3 w-3 rounded-full bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.9)]" />
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      MARKET FOUNDATIONS
-    </p>
-  </div>
-
-  <h2 className="mt-5 text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Candlestick Basics
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Candlesticks help traders understand price movement, momentum, and market psychology by showing how buyers and sellers behaved during a specific period of time.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-5 gap-6">
-
-    {[
-      {
-        id: "bullish",
-        title: "Bullish",
-        color: "text-green-400",
-        text: "Buyers pushed price higher.",
-      },
-      {
-        id: "bearish",
-        title: "Bearish",
-        color: "text-red-400",
-        text: "Sellers pushed price lower.",
-      },
-      {
-        id: "doji",
-        title: "Doji",
-        color: "text-cyan-400",
-        text: "Buyers and sellers are undecided.",
-      },
-      {
-        id: "hammer",
-        title: "Hammer",
-        color: "text-orange-400",
-        text: "Possible bullish reversal candle.",
-      },
-      {
-        id: "engulfing",
-        title: "Engulfing",
-        color: "text-yellow-400",
-        text: "One strong candle takes control.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedCandleType(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-6 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedCandleType === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[15px] leading-7">
-          {item.text}
-        </p>
-      </button>
-    ))}
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      CANDLE VISUAL EXAMPLE
-    </p>
-
-    {selectedCandleType === "bullish" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Bullish Candle = Buyers In Control
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A bullish candle closes above where it opened. This means buyers pushed the price higher during that candle.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Close is above the open</p>
-            <p>• Buyers controlled the candle</p>
-            <p>• Usually shown as green</p>
-            <p>• Can show upward momentum</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-72 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden flex items-center justify-center">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="relative flex flex-col items-center">
-              <p className="mb-3 text-green-400 text-xs font-black tracking-wide">
-                HIGH
-              </p>
-
-              <div className="w-[3px] h-12 bg-green-400" />
-
-              <div className="w-20 h-32 rounded-md bg-green-400 shadow-[0_0_30px_rgba(74,222,128,0.35)]" />
-
-              <div className="w-[3px] h-12 bg-green-400" />
-
-              <p className="mt-3 text-green-400 text-xs font-black tracking-wide">
-                LOW
-              </p>
-            </div>
-
-            <p className="absolute right-8 top-20 text-green-400 font-black">
-              Close ↑
-            </p>
-
-            <p className="absolute right-8 bottom-24 text-zinc-400 font-black">
-              Open
-            </p>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price opened lower and closed higher
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedCandleType === "bearish" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Bearish Candle = Sellers In Control
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A bearish candle closes below where it opened. This means sellers pushed the price lower during that candle.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Close is below the open</p>
-            <p>• Sellers controlled the candle</p>
-            <p>• Usually shown as red</p>
-            <p>• Can show downward momentum</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="relative h-72 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden flex items-center justify-center">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="relative flex flex-col items-center">
-              <p className="mb-3 text-red-400 text-xs font-black tracking-wide">
-                HIGH
-              </p>
-
-              <div className="w-[3px] h-12 bg-red-400" />
-
-              <div className="w-20 h-32 rounded-md bg-red-400 shadow-[0_0_30px_rgba(248,113,113,0.35)]" />
-
-              <div className="w-[3px] h-12 bg-red-400" />
-
-              <p className="mt-3 text-red-400 text-xs font-black tracking-wide">
-                LOW
-              </p>
-            </div>
-
-            <p className="absolute right-8 top-24 text-zinc-400 font-black">
-              Open
-            </p>
-
-            <p className="absolute right-8 bottom-20 text-red-400 font-black">
-              Close ↓
-            </p>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price opened higher and closed lower
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedCandleType === "doji" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Doji = Market Indecision
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A doji candle forms when price opens and closes near the same level. It shows buyers and sellers are fighting without clear control.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Open and close are close together</p>
-            <p>• Buyers and sellers are balanced</p>
-            <p>• Can appear before reversals</p>
-            <p>• Shows hesitation</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-72 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden flex items-center justify-center">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="relative flex flex-col items-center">
-              <div className="w-[3px] h-24 bg-cyan-400" />
-              <div className="w-24 h-[6px] rounded-full bg-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.35)]" />
-              <div className="w-[3px] h-24 bg-cyan-400" />
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Open and close are nearly equal
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedCandleType === "hammer" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Hammer = Buyers Fight Back
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A hammer has a small body near the top and a long lower wick. It can show sellers pushed price down, but buyers recovered.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Long lower wick</p>
-            <p>• Small body near the top</p>
-            <p>• Buyers rejected lower prices</p>
-            <p>• Can signal reversal after a drop</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-          <div className="relative h-72 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden flex items-center justify-center">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="relative flex flex-col items-center">
-              <div className="w-[3px] h-6 bg-orange-400" />
-              <div className="w-20 h-12 rounded-md bg-orange-400 shadow-[0_0_25px_rgba(251,146,60,0.35)]" />
-              <div className="w-[3px] h-36 bg-orange-400" />
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Long lower wick shows rejection
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedCandleType === "engulfing" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Engulfing = One Side Takes Control
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            An engulfing pattern happens when a strong candle completely overtakes the previous candle, showing a shift in control.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Larger candle covers prior candle</p>
-            <p>• Shows stronger momentum</p>
-            <p>• Can be bullish or bearish</p>
-            <p>• Signals possible shift in control</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-yellow-500/20 bg-[#050816] p-6">
-          <div className="relative h-72 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden flex items-center justify-center gap-8">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="relative flex flex-col items-center">
-              <div className="w-[2px] h-8 bg-red-400" />
-              <div className="w-12 h-20 rounded-md bg-red-400" />
-              <div className="w-[2px] h-8 bg-red-400" />
-            </div>
-
-            <div className="relative flex flex-col items-center">
-              <div className="w-[3px] h-10 bg-green-400" />
-              <div className="w-20 h-36 rounded-md bg-green-400 shadow-[0_0_25px_rgba(74,222,128,0.35)]" />
-              <div className="w-[3px] h-10 bg-green-400" />
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Strong candle overtakes previous candle
-          </p>
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
-{activeLesson === "timeframes" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Trading Timeframes
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Different timeframes show different levels of market movement. Traders use timeframes based on their strategy and trading style.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "1min",
-        title: "1 Minute",
-        color: "text-red-400",
-        text: "Very fast movement used mostly by scalpers and aggressive day traders.",
-      },
-      {
-        id: "15min",
-        title: "15 Minute",
-        color: "text-orange-400",
-        text: "Popular for intraday trading and short-term setups.",
-      },
-      {
-        id: "1hour",
-        title: "1 Hour",
-        color: "text-cyan-400",
-        text: "Helps traders see clearer trends and market structure.",
-      },
-      {
-        id: "daily",
-        title: "Daily",
-        color: "text-green-400",
-        text: "Shows the bigger picture and long-term market direction.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedTimeframe(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedTimeframe === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
-        </p>
-      </button>
-    ))}
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      TIMEFRAME EXAMPLE
-    </p>
-
-    {selectedTimeframe === "1min" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            1 Minute = Fast & Noisy
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Lower timeframes move quickly and contain more market noise. Beginners often struggle because price changes very fast.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Fast candle movement</p>
-            <p>• High emotional pressure</p>
-            <p>• More fakeouts</p>
-            <p>• Requires fast decisions</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 top-6 rounded-xl bg-red-500/20 border border-red-400/20 px-3 py-1 text-xs font-black text-red-400">
-              HIGH VOLATILITY
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Fast intraday movement
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedTimeframe === "15min" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            15 Minute = Balanced Intraday View
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Many traders use the 15-minute chart because it balances speed with cleaner market structure.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Cleaner setups</p>
-            <p>• Good for day traders</p>
-            <p>• Less noise than 1-minute</p>
-            <p>• Better trend visibility</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 top-6 rounded-xl bg-orange-500/20 border border-orange-400/20 px-3 py-1 text-xs font-black text-orange-400">
-              POPULAR DAY TRADING TIMEFRAME
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Balanced market structure
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedTimeframe === "1hour" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            1 Hour = Clearer Trend Structure
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            The 1-hour chart helps traders see trends more clearly while filtering out smaller price fluctuations.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Cleaner trend direction</p>
-            <p>• Less emotional trading</p>
-            <p>• Better structure visibility</p>
-            <p>• Popular swing timeframe</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 top-6 rounded-xl bg-cyan-500/20 border border-cyan-400/20 px-3 py-1 text-xs font-black text-cyan-400">
-              CLEANER TREND VIEW
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Better market structure visibility
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedTimeframe === "daily" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Daily = The Bigger Picture
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Daily charts focus on broader market direction and long-term trends instead of short-term noise.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Long-term market direction</p>
-            <p>• Less emotional movement</p>
-            <p>• Cleaner analysis</p>
-            <p>• Stronger trend confirmation</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 top-6 rounded-xl bg-green-500/20 border border-green-400/20 px-3 py-1 text-xs font-black text-green-400">
-              BIGGER MARKET PICTURE
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Long-term trend analysis
-          </p>
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
-
-{activeLesson === "volume" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Volume Basics
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Volume shows how much trading activity is happening. It helps traders understand whether a move is strong or weak.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-3 gap-6">
-
-    {[
-      {
-        id: "high",
-        title: "High Volume",
-        color: "text-green-400",
-        text: "Strong participation from buyers or sellers.",
-      },
-      {
-        id: "low",
-        title: "Low Volume",
-        color: "text-yellow-400",
-        text: "Weak participation and less reliable movement.",
-      },
-      {
-        id: "breakout",
-        title: "Volume Breakout",
-        color: "text-cyan-400",
-        text: "A breakout is stronger when volume increases.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedVolumeType(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedVolumeType === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
-        </p>
-      </button>
-    ))}
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      VOLUME EXAMPLE
-    </p>
-
-    {selectedVolumeType === "high" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            High Volume = Strong Participation
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            High volume means many traders are involved. When price moves with high volume, the move is usually more meaningful.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="h-56 rounded-2xl bg-[#0f172a] border border-white/5 flex items-end gap-3 px-6 py-5">
-            <div className="w-8 h-12 bg-green-400 rounded-t-lg" />
-            <div className="w-8 h-20 bg-green-400 rounded-t-lg" />
-            <div className="w-8 h-28 bg-green-400 rounded-t-lg" />
-            <div className="w-8 h-36 bg-green-400 rounded-t-lg" />
-            <div className="w-8 h-44 bg-green-400 rounded-t-lg shadow-[0_0_20px_rgba(74,222,128,0.35)]" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Volume increasing with strength
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedVolumeType === "low" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Low Volume = Weak Participation
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Low volume means fewer traders are involved. Moves with low volume may be weaker and less reliable.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-yellow-500/20 bg-[#050816] p-6">
-          <div className="h-56 rounded-2xl bg-[#0f172a] border border-white/5 flex items-end gap-3 px-6 py-5">
-            <div className="w-8 h-12 bg-yellow-400 rounded-t-lg" />
-            <div className="w-8 h-16 bg-yellow-400 rounded-t-lg" />
-            <div className="w-8 h-10 bg-yellow-400 rounded-t-lg" />
-            <div className="w-8 h-14 bg-yellow-400 rounded-t-lg" />
-            <div className="w-8 h-11 bg-yellow-400 rounded-t-lg" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Lower activity and weaker confirmation
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedVolumeType === "breakout" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Breakouts Need Volume Confirmation
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A breakout with rising volume can show stronger demand. A breakout with weak volume may fail more easily.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 top-24 h-[3px] bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.5)]" />
-
-            <div className="absolute left-8 bottom-20 h-16 w-8 rounded-t-md bg-green-400" />
-            <div className="absolute left-24 bottom-28 h-24 w-8 rounded-t-md bg-green-400" />
-            <div className="absolute left-40 bottom-36 h-28 w-8 rounded-t-md bg-green-400" />
-            <div className="absolute left-56 bottom-44 h-36 w-8 rounded-t-md bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.35)]" />
-
-            <div className="absolute left-8 bottom-4 h-4 w-8 bg-cyan-400/60" />
-            <div className="absolute left-24 bottom-4 h-7 w-8 bg-cyan-400/60" />
-            <div className="absolute left-40 bottom-4 h-10 w-8 bg-cyan-400/60" />
-            <div className="absolute left-56 bottom-4 h-16 w-8 bg-cyan-400/80" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Breakout confirmed by volume
-          </p>
-        </div>
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
-
-{activeLesson === "supplydemand" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Supply & Demand
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Markets move because of buyers and sellers. Supply and demand zones help traders identify where strong reactions may happen.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-3 gap-6">
-
-    {[
-      {
-        id: "demand",
-        title: "Demand Zone",
-        color: "text-green-400",
-        text: "An area where buyers become aggressive and push price higher.",
-      },
-      {
-        id: "supply",
-        title: "Supply Zone",
-        color: "text-red-400",
-        text: "An area where sellers enter and push price lower.",
-      },
-      {
-        id: "imbalance",
-        title: "Market Imbalance",
-        color: "text-cyan-400",
-        text: "When one side becomes much stronger than the other.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedSupplyDemand(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedSupplyDemand === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
-        </p>
-      </button>
-    ))}
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      MARKET EXAMPLE
-    </p>
-
-    {selectedSupplyDemand === "demand" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Demand Zone = Buyers Step In
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Demand zones are areas where buyers become aggressive and push price upward. Traders watch these areas for possible rebounds.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Strong buying activity</p>
-            <p>• Price rejection lower</p>
-            <p>• Momentum shifts upward</p>
-            <p>• Possible support reaction</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 right-6 bottom-20 h-[3px] bg-green-400 shadow-[0_0_20px_rgba(74,222,128,0.4)]" />
-
-            <div className="absolute left-8 bottom-28 h-12 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-24 bottom-20 h-14 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-40 bottom-16 h-20 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-56 bottom-32 h-24 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-72 bottom-48 h-30 w-6 rounded-sm bg-green-400 shadow-[0_0_20px_rgba(74,222,128,0.35)]" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Buyers defend the demand zone
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedSupplyDemand === "supply" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Supply Zone = Sellers Take Control
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Supply zones are areas where sellers overwhelm buyers and force price downward.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Heavy selling pressure</p>
-            <p>• Price rejection higher</p>
-            <p>• Momentum shifts downward</p>
-            <p>• Possible resistance reaction</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 right-6 top-20 h-[3px] bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.4)]" />
-
-            <div className="absolute left-8 bottom-20 h-20 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-36 h-24 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-44 h-20 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-56 bottom-28 h-26 w-6 rounded-sm bg-red-400" />
-            <div className="absolute left-72 bottom-12 h-30 w-6 rounded-sm bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.35)]" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Sellers defend the supply zone
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedSupplyDemand === "imbalance" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Imbalance = One Side Dominates
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Imbalances happen when buyers or sellers become much stronger, causing fast movement in one direction.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Explosive momentum</p>
-            <p>• Strong directional movement</p>
-            <p>• Aggressive market participation</p>
-            <p>• Often leads to breakouts</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-8 bottom-18 h-16 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-24 h-22 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-32 h-28 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-56 bottom-42 h-38 w-6 rounded-sm bg-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.4)]" />
-            <div className="absolute left-72 bottom-58 h-44 w-6 rounded-sm bg-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.5)]" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Strong imbalance creates momentum
-          </p>
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
 {activeLesson === "risk" && (
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
@@ -2523,2020 +2160,1859 @@ alt="Orders lesson"
 
 </div>
 )}
-{activeLesson === "support" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Support & Resistance
-  </h2>
+{activeLesson === "timeframes" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Support and resistance are important price zones where buyers and sellers may react.
-  </p>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Trading Timeframes
+        </h2>
 
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "support",
-        title: "Support",
-        color: "text-green-400",
-        text: "A price area where buyers may step in and stop price from falling.",
-      },
-      {
-        id: "resistance",
-        title: "Resistance",
-        color: "text-red-400",
-        text: "A price area where sellers may step in and stop price from rising.",
-      },
-      {
-        id: "breakout",
-        title: "Breakout",
-        color: "text-cyan-400",
-        text: "When price pushes strongly through an important level.",
-      },
-      {
-        id: "retest",
-        title: "Retest",
-        color: "text-orange-400",
-        text: "When price returns to test a broken level before continuing.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedSupportType(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedSupportType === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Trading timeframes help traders understand how fast markets move and how long trades may last.
         </p>
-      </button>
-    ))}
 
+        <div className="mt-8 space-y-6 max-w-[290px]">
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              1
+            </div>
+
+            <div>
+              <h3 className="font-black text-white">
+                Lower timeframes move faster
+              </h3>
+
+              <p className="mt-1 text-zinc-500 leading-7">
+                Smaller timeframes can feel fast, emotional, and noisy.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              2
+            </div>
+
+            <div>
+              <h3 className="font-black text-white">
+                Higher timeframes show cleaner trends
+              </h3>
+
+              <p className="mt-1 text-zinc-500 leading-7">
+                Bigger timeframes usually show stronger market direction.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              3
+            </div>
+
+            <div>
+              <h3 className="font-black text-white">
+                Patience matters
+              </h3>
+
+              <p className="mt-1 text-zinc-500 leading-7">
+                Many beginners overtrade because they focus only on fast charts.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            timeframeSlide === -1
+              ? "/learn/timeframes/trading-timeframes.png"
+              : [
+                  "/learn/timeframes/1m-vs-1h.png",
+                  "/learn/timeframes/scalping-vs-swing.png",
+                  "/learn/timeframes/market-noise.png",
+                  "/learn/timeframes/higher-timeframe-trend.png",
+                  "/learn/timeframes/lower-timeframe-stress.png",
+                  "/learn/timeframes/multi-timeframe-analysis.png",
+                  "/learn/timeframes/timeframe-ladder.png",
+
+                  
+
+                ][timeframeSlide]
+          }
+          alt="Trading Timeframes"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+
+          <button
+            onClick={() =>
+              setTimeframeSlide((prev) => (prev === -1 ? 6 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, 4, 5, 6, ].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setTimeframeSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  timeframeSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setTimeframeSlide((prev) => (prev === 6 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+
+                <p className="text-cyan-300 font-bold">
+                  Gaby is typing...
+                </p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              "What is a timeframe?",
+              "Why do timeframes matter?",
+              "Which timeframe is best for beginners?",
+              "Why do lower timeframes feel stressful?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      VISUAL MARKET EXAMPLE
-    </p>
-
-    {selectedSupportType === "support" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Support = Buyers Defend A Price Area
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Support is where price stops falling because buyers become interested. Beginners often look for price reactions near support.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 bottom-16 h-[3px] bg-green-400 shadow-[0_0_20px_rgba(74,222,128,0.5)]" />
-            <div className="absolute left-8 bottom-28 h-16 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-24 bottom-20 h-24 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-40 bottom-16 h-20 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-56 bottom-24 h-32 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-72 bottom-36 h-20 w-4 rounded-t-md bg-green-400" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price bounces from support
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedSupportType === "resistance" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Resistance = Sellers Defend A Price Area
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Resistance is where price stops rising because sellers become active. Traders watch these areas for weakness or rejection.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 top-16 h-[3px] bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.5)]" />
-            <div className="absolute left-8 bottom-20 h-20 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-24 bottom-32 h-28 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-40 bottom-36 h-20 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-56 bottom-24 h-28 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-72 bottom-16 h-20 w-4 rounded-t-md bg-red-400" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price rejects from resistance
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedSupportType === "breakout" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Breakout = Price Pushes Through A Level
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A breakout happens when price moves strongly above resistance or below support. Strong breakouts often happen with momentum.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 top-24 h-[3px] bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.5)]" />
-            <div className="absolute left-8 bottom-20 h-16 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-24 bottom-28 h-24 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-40 bottom-36 h-28 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-56 bottom-44 h-36 w-4 rounded-t-md bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.35)]" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price breaks above resistance
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedSupportType === "retest" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Retest = Price Checks A Broken Level
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            After a breakout, price may return to the old level before continuing. This is called a retest.
-          </p>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 bottom-24 h-[3px] bg-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.5)]" />
-            <div className="absolute left-8 bottom-20 h-20 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-24 bottom-32 h-32 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-40 bottom-40 h-28 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-56 bottom-24 h-20 w-4 rounded-t-md bg-orange-400" />
-            <div className="absolute left-72 bottom-36 h-36 w-4 rounded-t-md bg-green-400" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Broken level becomes support
-          </p>
-        </div>
-      </div>
-    )}
-
-  </div>
-
-</div>
 )}
-{activeLesson === "setups" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
+{activeLesson === "candlesticks" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Building A Trade Plan
-  </h2>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Candlestick Basics
+        </h2>
 
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    A trade plan helps traders make decisions before emotions take over. Every trade should have a clear entry, stop loss, target, and risk plan.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "entry",
-        title: "Entry",
-        color: "text-cyan-400",
-        text: "Where you plan to enter the trade.",
-      },
-      {
-        id: "stop",
-        title: "Stop Loss",
-        color: "text-red-400",
-        text: "Where you exit if the trade goes wrong.",
-      },
-      {
-        id: "target",
-        title: "Profit Target",
-        color: "text-green-400",
-        text: "Where you may take profit if the trade works.",
-      },
-      {
-        id: "risk",
-        title: "Risk Plan",
-        color: "text-orange-400",
-        text: "How much you are willing to risk.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedTradePlan(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedTradePlan === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Candlesticks are the foundation of chart reading. Learning them helps traders understand price movement and market behavior.
         </p>
-      </button>
-    ))}
 
+        <div className="mt-8 space-y-6 max-w-[290px]">
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              1
+            </div>
+
+            <div>
+              <h3 className="font-black text-white">
+                One candle tells a story
+              </h3>
+
+              <p className="mt-1 text-zinc-500 leading-7">
+                Every candle shows a battle between buyers and sellers.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              2
+            </div>
+
+            <div>
+              <h3 className="font-black text-white">
+                Candle size matters
+              </h3>
+
+              <p className="mt-1 text-zinc-500 leading-7">
+                Large candles often show stronger momentum than small candles.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              3
+            </div>
+
+            <div>
+              <h3 className="font-black text-white">
+                Wicks show rejection
+              </h3>
+
+              <p className="mt-1 text-zinc-500 leading-7">
+                Long wicks can reveal areas where price was rejected.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+
+        <img
+          src={
+            candlestickSlide === -1
+              ? "/learn/candlesticks/candlestick-basics.png"
+              : [
+                  "/learn/candlesticks/bullish-vs-bearish-candle.png",
+                  "/learn/candlesticks/big-body-vs-small-body.png",
+                  "/learn/candlesticks/long-wick-rejection.png",
+                  "/learn/candlesticks/common-candlesticks.png",
+                  "/learn/candlesticks/candles-tell-a-story.png",
+                ][candlestickSlide]
+          }
+          alt="Candlestick Basics"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setCandlestickSlide((prev) => (prev === -1 ? 4 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, 4].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setCandlestickSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  candlestickSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setCandlestickSlide((prev) => (prev === 4 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+
+      </div>
+    </div>
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+
+                <p className="text-cyan-300 font-bold">
+                  Gaby is typing...
+                </p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+ "What is a candlestick?",
+  "What is a bullish candle?",
+  "What is a bearish candle?",
+  "What does a long wick mean?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      TRADE PLAN EXAMPLE
-    </p>
-
-    {selectedTradePlan === "entry" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Entry = Your Planned Starting Point
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A good entry is not random. Traders enter when price reaches an area that matches their plan.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Enter near a planned level</p>
-            <p>• Avoid chasing late moves</p>
-            <p>• Wait for confirmation</p>
-            <p>• Follow your setup rules</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-8 right-8 bottom-28 h-[3px] bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.4)]" />
-
-            <div className="absolute right-8 bottom-36 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-cyan-400 font-black">
-              ENTRY
-            </div>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Plan your entry before the trade
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedTradePlan === "stop" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Stop Loss = Your Protection Level
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Your stop loss defines the point where the trade idea is wrong. It protects your account from large damage.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Protects your account</p>
-            <p>• Prevents oversized losses</p>
-            <p>• Removes emotional guessing</p>
-            <p>• Defines trade risk</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-8 right-8 bottom-32 h-[3px] bg-cyan-400" />
-            <div className="absolute left-8 right-8 bottom-18 h-[3px] bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.4)]" />
-
-            <p className="absolute right-8 bottom-40 text-cyan-400 font-black">
-              ENTRY
-            </p>
-
-            <p className="absolute right-8 bottom-8 text-red-400 font-black">
-              STOP LOSS
-            </p>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Stop loss defines controlled risk
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedTradePlan === "target" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Profit Target = Your Planned Exit
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            A profit target helps traders know where they may take gains before greed takes over.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Defines where to take profit</p>
-            <p>• Reduces greed-based decisions</p>
-            <p>• Creates structure</p>
-            <p>• Helps measure risk/reward</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-8 right-8 top-18 h-[3px] bg-green-400 shadow-[0_0_20px_rgba(74,222,128,0.4)]" />
-            <div className="absolute left-8 right-8 bottom-32 h-[3px] bg-cyan-400" />
-
-            <p className="absolute right-8 top-8 text-green-400 font-black">
-              TARGET
-            </p>
-
-            <p className="absolute right-8 bottom-40 text-cyan-400 font-black">
-              ENTRY
-            </p>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Target defines planned profit
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedTradePlan === "risk" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Risk Plan = Know The Loss Before Entry
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Before entering, traders decide how much they are willing to lose. This helps avoid emotional and oversized trades.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Decide risk before entry</p>
-            <p>• Use smaller position sizes</p>
-            <p>• Avoid risking the full account</p>
-            <p>• Protect long-term consistency</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5 text-center">
-              <p className="text-green-400 text-2xl font-black">1%</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">LOW RISK</p>
-            </div>
-
-            <div className="rounded-2xl border border-orange-400/20 bg-orange-500/10 p-5 text-center">
-              <p className="text-orange-400 text-2xl font-black">5%</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">HIGHER</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-center">
-              <p className="text-red-400 text-2xl font-black">20%</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">DANGER</p>
-            </div>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Risk must be controlled before entry
-          </p>
-        </div>
-      </div>
-    )}
-
-  </div>
-
-</div>
 )}
 
-{activeLesson === "mistakes" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
+{activeLesson === "volume" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Common Beginner Mistakes
-  </h2>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Volume Basics
+        </h2>
 
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Most beginner losses come from emotional decisions, poor risk management, and rushing into trades without a plan.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "revenge",
-        title: "Revenge Trading",
-        color: "text-red-400",
-        text: "Trying to win back losses quickly after a bad trade.",
-      },
-      {
-        id: "overtrading",
-        title: "Overtrading",
-        color: "text-orange-400",
-        text: "Taking too many trades instead of waiting for quality setups.",
-      },
-      {
-        id: "fomo",
-        title: "FOMO",
-        color: "text-cyan-400",
-        text: "Entering late because you are afraid of missing the move.",
-      },
-      {
-        id: "norisk",
-        title: "Ignoring Risk",
-        color: "text-green-400",
-        text: "Focusing only on profit while forgetting account protection.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedMistake(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedMistake === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Volume shows how much trading activity is happening. It helps beginners understand the strength behind price movement.
         </p>
-      </button>
-    ))}
 
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      COACHING EXAMPLE
-    </p>
-
-    {selectedMistake === "revenge" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Revenge Trading = Trading Angry
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            After a loss, beginners may try to force another trade to win the money back. This usually leads to bigger losses.
-          </p>
-
-          <div className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5">
-            <p className="text-red-400 font-black">
-              Coach Tip
-            </p>
-            <p className="mt-2 text-zinc-300 leading-7">
-              After a loss, pause. Review the trade. Do not enter another trade just because you are frustrated.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="grid gap-4">
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5">
-              <p className="text-red-400 text-xl font-black">Loss</p>
-              <p className="mt-2 text-zinc-400">Trader gets emotional</p>
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              1
             </div>
-
-            <div className="rounded-2xl border border-orange-400/20 bg-orange-500/10 p-5">
-              <p className="text-orange-400 text-xl font-black">Forced Trade</p>
-              <p className="mt-2 text-zinc-400">No setup, no plan</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5">
-              <p className="text-red-400 text-xl font-black">Bigger Loss</p>
-              <p className="mt-2 text-zinc-400">Emotion damages account</p>
+            <div>
+              <h3 className="font-black text-white">Volume shows activity</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                High volume means more traders are participating in the move.
+              </p>
             </div>
           </div>
 
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Emotional trading creates a loss cycle
-          </p>
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              2
+            </div>
+            <div>
+              <h3 className="font-black text-white">Volume confirms strength</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                A price move with strong volume can be more meaningful than a move with weak volume.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              3
+            </div>
+            <div>
+              <h3 className="font-black text-white">Low volume can be weak</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Low volume may show less interest, weaker conviction, or slower market movement.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    )}
 
-    {selectedMistake === "overtrading" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Overtrading = Too Many Low-Quality Trades
-          </h3>
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            volumeSlide === -1
+              ? "/learn/volume/volume-basics.png"
+              : [
+                  "/learn/volume/high-vs-low-volume.png",
+                  "/learn/volume/volume-confirms-move.png",
+                  "/learn/volume/volume-breakout.png",
+                  "/learn/volume/volume-spike.png",
+                  "/learn/volume/volume-and-candlesticks.png",
+                ][volumeSlide]
+          }
+          alt="Volume Basics"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
 
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            More trades does not mean more profits. Beginners often trade too much because they feel they need to always be active.
-          </p>
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setVolumeSlide((prev) => (prev === -1 ? 4 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
 
-          <div className="mt-6 rounded-2xl border border-orange-500/20 bg-orange-500/10 p-5">
-            <p className="text-orange-400 font-black">
-              Coach Tip
-            </p>
-            <p className="mt-2 text-zinc-300 leading-7">
-              Wait for clean setups. A disciplined trader does not need to trade every candle.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 p-5 text-center">
-              <p className="text-orange-400 text-3xl font-black">12</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">RANDOM TRADES</p>
-            </div>
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 p-5 text-center">
-              <p className="text-green-400 text-3xl font-black">2</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">QUALITY SETUPS</p>
-            </div>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Quality beats quantity
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedMistake === "fomo" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            FOMO = Chasing Late Entries
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            FOMO happens when a trader enters after price already moved because they are afraid of missing out.
-          </p>
-
-          <div className="mt-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-5">
-            <p className="text-cyan-400 font-black">
-              Coach Tip
-            </p>
-            <p className="mt-2 text-zinc-300 leading-7">
-              If the move is already gone, let it go. Wait for the next clean setup.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-10 bottom-16 h-[3px] w-[260px] rotate-[-25deg] bg-green-400/70" />
-            <div className="absolute left-10 bottom-10 h-10 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-24 h-14 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-38 bottom-42 h-20 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-52 bottom-66 h-28 w-6 rounded-sm bg-green-400" />
-            <div className="absolute right-12 top-10 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-400 font-black">
-              Late Entry
-            </div>
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, 4].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setVolumeSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  volumeSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
           </div>
 
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Chasing after the move increases risk
-          </p>
+          <button
+            onClick={() =>
+              setVolumeSlide((prev) => (prev === 4 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
         </div>
       </div>
-    )}
+    </div>
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+  <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
-    {selectedMistake === "norisk" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Ignoring Risk = Trading Without Protection
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Beginners sometimes focus only on how much they can make, but professional traders focus first on how much they can lose.
-          </p>
-
-          <div className="mt-6 rounded-2xl border border-green-500/20 bg-green-500/10 p-5">
-            <p className="text-green-400 font-black">
-              Coach Tip
-            </p>
-            <p className="mt-2 text-zinc-300 leading-7">
-              Before every trade, know your entry, stop loss, target, and position size.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="grid gap-4">
-            <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5">
-              <p className="text-cyan-400 text-xl font-black">Entry</p>
-              <p className="mt-2 text-zinc-400">Where trade starts</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5">
-              <p className="text-red-400 text-xl font-black">Stop Loss</p>
-              <p className="mt-2 text-zinc-400">Where risk is controlled</p>
-            </div>
-
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5">
-              <p className="text-green-400 text-xl font-black">Target</p>
-              <p className="mt-2 text-zinc-400">Where profit may be taken</p>
-            </div>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Plan the risk before the reward
-          </p>
-        </div>
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
-{activeLesson === "trends" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Market Trends
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Trends help traders understand the direction of the market and avoid trading against momentum.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-3 gap-6">
-
-    {[
-      {
-        id: "uptrend",
-        title: "Uptrend",
-        color: "text-green-400",
-        text: "Price makes higher highs and higher lows.",
-      },
-      {
-        id: "downtrend",
-        title: "Downtrend",
-        color: "text-red-400",
-        text: "Price makes lower highs and lower lows.",
-      },
-      {
-        id: "sideways",
-        title: "Sideways",
-        color: "text-yellow-400",
-        text: "Price moves inside a range without clear direction.",
-      },
-    ].map((trend) => (
-      <button
-        key={trend.id}
-        onClick={() => setSelectedTrendType(trend.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedTrendType === trend.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${trend.color}`}>
-          {trend.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {trend.text}
-        </p>
-      </button>
-    ))}
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      VISUAL TREND EXAMPLE
-    </p>
-
-    {selectedTrendType === "uptrend" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Uptrend = Buyers Control The Market
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            In an uptrend, price keeps creating higher highs and higher lows. Traders often look for buying opportunities with the trend.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Higher highs</p>
-            <p>• Higher lows</p>
-            <p>• Buying pressure</p>
-            <p>• Momentum moving upward</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-          <div className="absolute left-8 bottom-10 h-12 w-6 rounded-t-md bg-green-400" />
-<div className="absolute left-20 bottom-18 h-18 w-6 rounded-t-md bg-green-400" />
-<div className="absolute left-32 bottom-14 h-14 w-6 rounded-t-md bg-red-400" />
-<div className="absolute left-44 bottom-26 h-24 w-6 rounded-t-md bg-green-400" />
-<div className="absolute left-56 bottom-22 h-18 w-6 rounded-t-md bg-red-400" />
-<div className="absolute left-68 bottom-34 h-30 w-6 rounded-t-md bg-green-400" />
-<div className="absolute left-80 bottom-28 h-20 w-6 rounded-t-md bg-red-400" />
-<div className="absolute left-92 bottom-42 h-36 w-6 rounded-t-md bg-green-400" />
-<div className="absolute left-[26rem] bottom-36 h-24 w-6 rounded-t-md bg-red-400" />
-<div className="absolute left-[30rem] bottom-52 h-40 w-6 rounded-t-md bg-green-400 shadow-[0_0_20px_rgba(74,222,128,0.35)]" />
-            <div className="absolute left-10 bottom-16 h-[3px] w-[330px] rotate-[-24deg] bg-green-400/70 shadow-[0_0_20px_rgba(74,222,128,0.4)]" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Higher highs and higher lows
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedTrendType === "downtrend" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Downtrend = Sellers Control The Market
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            In a downtrend, price keeps creating lower highs and lower lows. Traders avoid forcing bullish trades against strong selling pressure.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Lower highs</p>
-            <p>• Lower lows</p>
-            <p>• Selling pressure</p>
-            <p>• Momentum moving downward</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
- <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-  <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-  {[
-    { x: 20, y: 160, h: 44, wick: 72, color: "red" },
-    { x: 38, y: 148, h: 40, wick: 68, color: "red" },
-    { x: 56, y: 152, h: 24, wick: 52, color: "green" },
-    { x: 74, y: 132, h: 42, wick: 70, color: "red" },
-    { x: 92, y: 136, h: 22, wick: 54, color: "green" },
-    { x: 110, y: 116, h: 36, wick: 60, color: "red" },
-    { x: 128, y: 120, h: 20, wick: 46, color: "green" },
-    { x: 146, y: 98, h: 34, wick: 56, color: "red" },
-    { x: 164, y: 104, h: 18, wick: 42, color: "green" },
-    { x: 182, y: 82, h: 30, wick: 52, color: "red" },
-    { x: 200, y: 88, h: 16, wick: 40, color: "green" },
-    { x: 218, y: 66, h: 34, wick: 58, color: "red" },
-    { x: 236, y: 72, h: 18, wick: 42, color: "green" },
-    { x: 254, y: 50, h: 32, wick: 56, color: "red" },
-    { x: 272, y: 56, h: 18, wick: 44, color: "green" },
-    { x: 290, y: 34, h: 38, wick: 64, color: "red" },
-  ].map((candle, index) => (
-    <div key={index}>
-
-      <div
-        className={`absolute w-[1px] ${
-          candle.color === "green" ? "bg-green-400" : "bg-red-400"
-        }`}
-        style={{
-          left: `${candle.x + 5}px`,
-          bottom: `${candle.y - 10}px`,
-          height: `${candle.wick}px`,
-        }}
+    <div className="flex items-center justify-center pl-2">
+      <img
+        src="/gaby.png"
+        alt="Gaby AI"
+        className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
       />
+    </div>
 
-      <div
-        className={`absolute w-[10px] rounded-sm ${
-          candle.color === "green" ? "bg-green-400" : "bg-red-400"
-        }`}
-        style={{
-          left: `${candle.x}px`,
-          bottom: `${candle.y}px`,
-          height: `${candle.h}px`,
-        }}
-      />
+    <div>
+
+      <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+        {isGabyTyping ? (
+          <div className="flex items-center gap-3 pl-4">
+            <div className="flex gap-1">
+              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+            </div>
+
+            <p className="text-cyan-300 font-bold">
+              Gaby is typing...
+            </p>
+          </div>
+        ) : (
+          <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+            {gabyAnswer}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          "What is volume?",
+          "Why does volume matter?",
+          "What is high volume?",
+          "What is low volume?",
+        ].map((question) => (
+          <button
+            key={question}
+            onClick={() => {
+              askGaby(question);
+              setGabyQuestion("");
+            }}
+            className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+          >
+            {question}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 flex gap-3">
+        <input
+          value={gabyQuestion}
+          onChange={(e) => setGabyQuestion(e.target.value)}
+          placeholder="Ask Gaby anything about this lesson..."
+          className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+        />
+
+        <button
+          onClick={() => askGaby(gabyQuestion)}
+          disabled={isGabyTyping}
+          className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+        </button>
+      </div>
 
     </div>
-  ))}
-
-  <div className="absolute left-10 bottom-44 h-[3px] w-[330px] rotate-[24deg] bg-red-400/70 shadow-[0_0_20px_rgba(248,113,113,0.4)]" />
-
-</div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Lower highs and lower lows
-          </p>
-        </div>
-
-      </div>
-    )}
-
-    {selectedTrendType === "sideways" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Sideways Market = No Clear Direction
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            In a sideways market, price moves inside a range. Beginners should be careful because fakeouts are common when momentum is weak.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Price moves between support and resistance</p>
-            <p>• Momentum is weaker</p>
-            <p>• Breakouts can fail</p>
-            <p>• Patience matters</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-yellow-500/20 bg-[#050816] p-6">
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 top-16 h-[3px] bg-yellow-400/70" />
-            <div className="absolute left-6 right-6 bottom-16 h-[3px] bg-yellow-400/70" />
-
-            <div className="absolute left-8 bottom-20 h-20 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-24 bottom-32 h-28 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-40 bottom-24 h-20 w-4 rounded-t-md bg-green-400" />
-            <div className="absolute left-56 bottom-36 h-24 w-4 rounded-t-md bg-red-400" />
-            <div className="absolute left-72 bottom-20 h-18 w-4 rounded-t-md bg-green-400" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price moves inside a range
-          </p>
-        </div>
-
-      </div>
-    )}
-
   </div>
-
 </div>
+  </div>
 )}
 
-{activeLesson === "technical" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
+{activeLesson === "support" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Reading The Charts
-  </h2>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Support & Resistance
+        </h2>
 
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Charts help traders understand market direction, key price levels, momentum, and possible trading opportunities.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "trend",
-        title: "Trend Direction",
-        color: "text-green-400",
-        text: "Shows whether price is moving up, down, or sideways.",
-      },
-      {
-        id: "levels",
-        title: "Key Levels",
-        color: "text-cyan-400",
-        text: "Support and resistance areas where price may react.",
-      },
-      {
-        id: "volume",
-        title: "Volume",
-        color: "text-orange-400",
-        text: "Shows how much trading activity supports the move.",
-      },
-      {
-        id: "structure",
-        title: "Market Structure",
-        color: "text-red-400",
-        text: "Helps identify higher highs, lower lows, and trend changes.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedChartReading(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedChartReading === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Support and resistance are important price zones where buyers or sellers may react.
         </p>
-      </button>
-    ))}
 
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              1
+            </div>
+            <div>
+              <h3 className="font-black text-white">Support acts like a floor</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Support is an area where buyers may step in and push price higher.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              2
+            </div>
+            <div>
+              <h3 className="font-black text-white">Resistance acts like a ceiling</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Resistance is an area where sellers may step in and push price lower.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              3
+            </div>
+            <div>
+              <h3 className="font-black text-white">Breakouts can happen</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Price can bounce from these levels or break through them with strength.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            supportSlide === -1
+              ? "/learn/support/support-resistance-basics.png"
+              : [
+                  "/learn/support/support-floor.png",
+                  "/learn/support/resistance-ceiling.png",
+                  "/learn/support/support-breakdown.png",
+                  "/learn/support/resistance-breakout.png",
+                  "/learn/support/role-reversal.png",
+                ][supportSlide]
+          }
+          alt="Support and Resistance"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setSupportSlide((prev) => (prev === -1 ? 4 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, 4].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setSupportSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  supportSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setSupportSlide((prev) => (prev === 4 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+
+                <p className="text-cyan-300 font-bold">
+                  Gaby is typing...
+                </p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              "What is support?",
+              "What is resistance?",
+              "Why do support and resistance matter?",
+              "What is a breakout?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      CHART READING EXAMPLE
-    </p>
-
-    {selectedChartReading === "trend" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Trend Direction = The Market’s Path
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            The first thing traders look for is direction. Is price moving higher, lower, or sideways?
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Uptrend means buyers are stronger</p>
-            <p>• Downtrend means sellers are stronger</p>
-            <p>• Sideways means no clear direction</p>
-            <p>• Trade with the trend when possible</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="relative h-64 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute left-8 bottom-18 h-16 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-26 h-22 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-34 h-28 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-56 bottom-46 h-36 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-72 bottom-60 h-44 w-6 rounded-sm bg-cyan-400" />
-
-            <div className="absolute left-10 bottom-16 h-[3px] w-[300px] rotate-[-24deg] bg-green-400/70" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Trend shows market direction
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedChartReading === "levels" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Key Levels = Areas Where Price Reacts
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Support and resistance levels help traders find areas where price may bounce, reject, or break through.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Support can stop price from falling</p>
-            <p>• Resistance can stop price from rising</p>
-            <p>• Broken levels can become new levels</p>
-            <p>• Levels help plan entries and exits</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-          <div className="relative h-64 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-            <div className="absolute left-6 right-6 top-20 h-[3px] bg-red-400" />
-            <div className="absolute left-6 right-6 bottom-20 h-[3px] bg-green-400" />
-
-            <p className="absolute left-8 top-10 text-red-400 font-black">
-              Resistance
-            </p>
-
-            <p className="absolute left-8 bottom-10 text-green-400 font-black">
-              Support
-            </p>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price reacts around key levels
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedChartReading === "volume" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Volume = Strength Behind The Move
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Volume helps confirm whether a move has strong participation or weak interest.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• High volume gives stronger confirmation</p>
-            <p>• Low volume can signal weakness</p>
-            <p>• Breakouts need volume</p>
-            <p>• Volume helps judge momentum</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-          <div className="h-64 rounded-2xl bg-[#0f172a] border border-white/5 flex items-end gap-4 px-8 py-6">
-            <div className="w-8 h-12 bg-orange-400 rounded-t-lg" />
-            <div className="w-8 h-20 bg-orange-400 rounded-t-lg" />
-            <div className="w-8 h-28 bg-orange-400 rounded-t-lg" />
-            <div className="w-8 h-40 bg-orange-400 rounded-t-lg" />
-            <div className="w-8 h-52 bg-orange-400 rounded-t-lg" />
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Rising volume confirms strength
-          </p>
-        </div>
-      </div>
-    )}
-
-    {selectedChartReading === "structure" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Market Structure = How Price Builds A Trend
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Market structure helps traders understand whether price is continuing a trend or starting to reverse.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Higher highs show bullish structure</p>
-            <p>• Lower lows show bearish structure</p>
-            <p>• Broken structure can warn of reversal</p>
-            <p>• Structure gives context before entry</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5 text-center">
-              <p className="text-green-400 text-2xl font-black">HH</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">HIGHER HIGH</p>
-            </div>
-
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5 text-center">
-              <p className="text-green-400 text-2xl font-black">HL</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">HIGHER LOW</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-center">
-              <p className="text-red-400 text-2xl font-black">LH</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">LOWER HIGH</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-center">
-              <p className="text-red-400 text-2xl font-black">LL</p>
-              <p className="mt-2 text-zinc-500 text-xs font-bold">LOWER LOW</p>
-            </div>
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Structure explains trend behavior
-          </p>
-        </div>
-      </div>
-    )}
-
-  </div>
-
-</div>
 )}
-{activeLesson === "breakouts" && (
-<div className="mt-14 bg-[#131722] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-    Breakouts vs Fakeouts
-  </h2>
+{activeLesson === "supplydemand" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <p className="text-zinc-500 text-lg mt-3 leading-8 max-w-3xl">
-    Not every breakout succeeds. Traders must learn the difference between real momentum and false moves.
-  </p>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Supply & Demand
+        </h2>
 
-  <div className="mt-10 grid md:grid-cols-2 gap-6">
-
-    {[
-      {
-        id: "breakout",
-        title: "Real Breakout",
-        color: "text-green-400",
-        text: "Price breaks a level with strong momentum and participation.",
-      },
-      {
-        id: "fakeout",
-        title: "Fakeout",
-        color: "text-red-400",
-        text: "Price briefly breaks a level but quickly reverses.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedBreakoutType(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedBreakoutType === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Supply and demand explain why price moves up, moves down, or reacts at important zones.
         </p>
-      </button>
-    ))}
 
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      BREAKOUT EXAMPLE
-    </p>
-
-    {selectedBreakoutType === "breakout" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Real Breakout = Strong Momentum
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Real breakouts usually happen with strong momentum, increasing volume, and continued price movement after the breakout.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Strong momentum</p>
-            <p>• Higher volume</p>
-            <p>• Buyers stay in control</p>
-            <p>• Price continues higher</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 right-6 top-28 h-[3px] bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.4)]" />
-
-            <div className="absolute left-8 bottom-24 h-18 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-28 h-22 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-34 h-28 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-56 bottom-46 h-38 w-6 rounded-sm bg-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.5)]" />
-            <div className="absolute left-72 bottom-64 h-44 w-6 rounded-sm bg-green-400 shadow-[0_0_25px_rgba(74,222,128,0.5)]" />
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price continues after the breakout
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedBreakoutType === "fakeout" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Fakeout = Failed Breakout
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Fakeouts trap traders by breaking a level briefly before reversing back inside the range.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Weak continuation</p>
-            <p>• Traders trapped</p>
-            <p>• Fast reversal</p>
-            <p>• False momentum</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-            <div className="absolute left-6 right-6 top-28 h-[3px] bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.4)]" />
-
-            <div className="absolute left-8 bottom-24 h-18 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-30 h-24 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-42 h-38 w-6 rounded-sm bg-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.5)]" />
-            <div className="absolute left-56 bottom-26 h-26 w-6 rounded-sm bg-red-400 shadow-[0_0_25px_rgba(248,113,113,0.5)]" />
-            <div className="absolute left-72 bottom-12 h-30 w-6 rounded-sm bg-red-400" />
-
-            <div className="absolute right-8 top-8 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-400 font-black">
-              Trap
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              1
             </div>
-
+            <div>
+              <h3 className="font-black text-white">Demand pushes price up</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Demand means buyers are interested and may push price higher.
+              </p>
+            </div>
           </div>
 
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Price fails and reverses
-          </p>
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              2
+            </div>
+            <div>
+              <h3 className="font-black text-white">Supply pushes price down</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Supply means sellers are active and may push price lower.
+              </p>
+            </div>
+          </div>
 
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              3
+            </div>
+            <div>
+              <h3 className="font-black text-white">Zones matter more than lines</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Traders often look for areas where buyers or sellers reacted strongly before.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            supplyDemandSlide === -1
+              ? "/learn/supplydemand/supply-demand-basics.png"
+              : [
+                  "/learn/supplydemand/demand-zone.png",
+                  "/learn/supplydemand/supply-zone.png",
+                  "/learn/supplydemand/price-imbalance.png",
+                  "/learn/supplydemand/zone-retest.png",
+                  "/learn/supplydemand/supply-demand-vs-support-resistance.png",
+                ][supplyDemandSlide]
+          }
+          alt="Supply and Demand"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setSupplyDemandSlide((prev) => (prev === -1 ? 4 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, 4].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setSupplyDemandSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  supplyDemandSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setSupplyDemandSlide((prev) => (prev === 4 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+
+                <p className="text-cyan-300 font-bold">
+                  Gaby is typing...
+                </p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              "What is supply?",
+              "What is demand?",
+              "What is a demand zone?",
+              "What is a supply zone?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
         </div>
 
       </div>
-    )}
-
+    </div>
   </div>
-
-</div>
 )}
+
+{activeLesson === "patterns" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Chart Patterns
+        </h2>
+
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Chart patterns help traders recognize repeated price behavior and possible market direction.
+        </p>
+
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              1
+            </div>
+            <div>
+              <h3 className="font-black text-white">Patterns show market behavior</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Patterns form when buyers and sellers repeat similar reactions on a chart.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              2
+            </div>
+            <div>
+              <h3 className="font-black text-white">They are not guarantees</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Patterns can help with direction, but traders still need confirmation and risk control.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
+              3
+            </div>
+            <div>
+              <h3 className="font-black text-white">Context matters</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Strong patterns work best near support, resistance, supply, demand, or trend areas.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            patternSlide === -1
+              ? "/learn/patterns/chart-patterns-basics.png"
+              : [
+                  "/learn/patterns/double-top.png",
+                  "/learn/patterns/double-bottom.png",
+                  "/learn/patterns/ascending-triangle.png",
+                  "/learn/patterns/descending-triangle.png",
+                  "/learn/patterns/head-and-shoulders.png",
+                ][patternSlide]
+          }
+          alt="Chart Patterns"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setPatternSlide((prev) => (prev === -1 ? 4 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, 4].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setPatternSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  patternSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setPatternSlide((prev) => (prev === 4 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+
+                <p className="text-cyan-300 font-bold">
+                  Gaby is typing...
+                </p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              "What is a chart pattern?",
+              "What is a double top?",
+              "What is a double bottom?",
+              "What is a head and shoulders pattern?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+
+{activeLesson === "setups" && (
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Building A Trade Plan
+        </h2>
+
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          A trade plan helps traders make decisions before entering a trade instead of reacting emotionally.
+        </p>
+
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">1</div>
+            <div>
+              <h3 className="font-black text-white">Know your entry</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Decide exactly where your trade idea begins before entering.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">2</div>
+            <div>
+              <h3 className="font-black text-white">Control your risk</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Set your stop loss and risk amount before the trade starts.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">3</div>
+            <div>
+              <h3 className="font-black text-white">Plan your target</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Know where you may take profit before emotions take over.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            tradePlanSlide === -1
+              ? "/learn/tradeplan/trade-plan-basics.png"
+              : [
+                  "/learn/tradeplan/entry-stop-target.png",
+                  "/learn/tradeplan/risk-reward.png",
+                  "/learn/tradeplan/checklist-before-trade.png",
+                  "/learn/tradeplan/common-plan-mistakes.png",
+                ][tradePlanSlide]
+          }
+          alt="Building A Trade Plan"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setTradePlanSlide((prev) => (prev === -1 ? 3 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, ].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setTradePlanSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  tradePlanSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setTradePlanSlide((prev) => (prev === 3 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+                <p className="text-cyan-300 font-bold">Gaby is typing...</p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              "What is a trade plan?",
+              "Why do traders use trade plans?",
+              "What is risk reward?",
+              "Why is a checklist important?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+
 {activeLesson === "psychology" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Trading Psychology
-  </h2>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Trading Psychology
+        </h2>
 
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Trading is not only about charts and strategies. Emotions heavily influence decision making and can impact performance.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "fear",
-        title: "Fear",
-        color: "text-red-400",
-        text: "Fear can cause traders to exit too early or avoid good setups.",
-      },
-      {
-        id: "greed",
-        title: "Greed",
-        color: "text-green-400",
-        text: "Greed can push traders to risk too much chasing profits.",
-      },
-      {
-        id: "discipline",
-        title: "Discipline",
-        color: "text-cyan-400",
-        text: "Discipline helps traders follow their plan consistently.",
-      },
-      {
-        id: "patience",
-        title: "Patience",
-        color: "text-orange-400",
-        text: "Good traders wait for quality setups instead of forcing trades.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedPsychology(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 ease-out hover:-translate-y-[4px] ${
-          selectedPsychology === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 text-[16px] leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Trading psychology helps beginners understand how emotions affect decisions before, during, and after a trade.
         </p>
-      </button>
-    ))}
 
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">1</div>
+            <div>
+              <h3 className="font-black text-white">Emotions affect decisions</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Fear and greed can make traders exit too early, chase price, or ignore their rules.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">2</div>
+            <div>
+              <h3 className="font-black text-white">Patience protects beginners</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Waiting for a quality setup is better than forcing random trades.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">3</div>
+            <div>
+              <h3 className="font-black text-white">Professional traders think long term</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                They focus on process, consistency, and discipline instead of one trade.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            psychologySlide === -1
+              ? "/learn/psychology/psychology-basics.png"
+              : [
+                  "/learn/psychology/fear-vs-greed.png",
+                  "/learn/psychology/fomo-trading.png",
+                  "/learn/psychology/patience-in-trading.png",
+                  "/learn/psychology/thinking-like-a-professional.png",
+                ][psychologySlide]
+          }
+          alt="Trading Psychology"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setPsychologySlide((prev) => (prev === -1 ? 3 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setPsychologySlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  psychologySlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setPsychologySlide((prev) => (prev === 3 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+                <p className="text-cyan-300 font-bold">Gaby is typing...</p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-3">
+            {[
+              "What is trading psychology?",
+              "What is fear in trading?",
+              "What is greed in trading?",
+              "What is FOMO trading?",
+              "Why is patience important?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    <p className="text-sm font-black tracking-[0.25em] text-cyan-400">
-      MINDSET EXAMPLE
-    </p>
-
-    {selectedPsychology === "fear" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Fear = Hesitation & Panic
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Fear can make traders close winning trades too early or panic during temporary market pullbacks.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Panic selling</p>
-            <p>• Closing trades too early</p>
-            <p>• Avoiding valid setups</p>
-            <p>• Emotional decision making</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4">
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5">
-              <p className="text-red-400 text-2xl font-black">
-                Panic Exit
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Trader exits before the setup finishes.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-orange-400/20 bg-orange-500/10 p-5">
-              <p className="text-orange-400 text-2xl font-black">
-                Emotional Reaction
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Decisions become emotional instead of logical.
-              </p>
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Fear weakens discipline
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedPsychology === "greed" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Greed = Risking Too Much
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Greed pushes traders to overtrade, increase position sizes, and chase unrealistic profits.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Oversized positions</p>
-            <p>• Chasing profits</p>
-            <p>• Ignoring risk management</p>
-            <p>• Taking impulsive trades</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4">
-
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5">
-              <p className="text-green-400 text-2xl font-black">
-                Bigger Position
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Trader risks too much trying to make more money.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-5">
-              <p className="text-red-400 text-2xl font-black">
-                Bigger Loss
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Greed increases account damage when wrong.
-              </p>
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Greed increases unnecessary risk
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedPsychology === "discipline" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Discipline = Following The Plan
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Discipline helps traders stay consistent even during emotional market conditions.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Following the strategy</p>
-            <p>• Respecting stop losses</p>
-            <p>• Staying consistent</p>
-            <p>• Avoiding emotional trades</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4">
-
-            <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5">
-              <p className="text-cyan-400 text-2xl font-black">
-                Trading Plan
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Trader follows rules before entering trades.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5">
-              <p className="text-green-400 text-2xl font-black">
-                Consistency
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Long-term success comes from repeated discipline.
-              </p>
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Discipline builds consistency
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedPsychology === "patience" && (
-      <div className="mt-6 grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Patience = Waiting For Quality
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Patient traders wait for strong setups instead of forcing trades during weak conditions.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Waiting for clean setups</p>
-            <p>• Avoiding random trades</p>
-            <p>• Better trade selection</p>
-            <p>• Lower emotional pressure</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4">
-
-            <div className="rounded-2xl border border-orange-400/20 bg-orange-500/10 p-5">
-              <p className="text-orange-400 text-2xl font-black">
-                Waiting
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Trader ignores weak setups and waits patiently.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-5">
-              <p className="text-green-400 text-2xl font-black">
-                Quality Setup
-              </p>
-
-              <p className="mt-2 text-zinc-400">
-                Better opportunities appear with patience.
-              </p>
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Patience improves decision quality
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
 )}
+
 {activeLesson === "vocabulary" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Essential Trading Terms
-  </h2>
+      <div>
+        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+          Essential Trading Terms
+        </h2>
 
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Traders use specific terms every day. Understanding this language helps beginners read charts, follow lessons, and communicate more confidently.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "spread",
-        title: "Spread",
-        color: "text-cyan-400",
-        text: "Difference between buy and sell price.",
-      },
-      {
-        id: "liquidity",
-        title: "Liquidity",
-        color: "text-green-400",
-        text: "How easily an asset can be traded.",
-      },
-      {
-        id: "slippage",
-        title: "Slippage",
-        color: "text-orange-400",
-        text: "Unexpected change in execution price.",
-      },
-      {
-        id: "marketcap",
-        title: "Market Cap",
-        color: "text-red-400",
-        text: "Total value of a company or asset.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedTradingTerm(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 hover:-translate-y-[4px] ${
-          selectedTradingTerm === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 leading-7">
-          {item.text}
+        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
+          Learn the common trading words you will see on charts, platforms, and market discussions.
         </p>
-      </button>
-    ))}
 
+        <div className="mt-8 space-y-6 max-w-[290px]">
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">1</div>
+            <div>
+              <h3 className="font-black text-white">Learn common terms</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Understanding trading terms helps you read charts and follow market discussions.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">2</div>
+            <div>
+              <h3 className="font-black text-white">Understand market language</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                Most trading platforms and communities use these words every day.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-5">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">3</div>
+            <div>
+              <h3 className="font-black text-white">Build trading confidence</h3>
+              <p className="mt-1 text-zinc-500 leading-7">
+                The more terms you understand, the easier it becomes to make informed decisions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
+        <img
+          src={
+            termsSlide === -1
+              ? "/learn/terms/trading-terms-basics.png"
+              : [
+    "/learn/terms/spread.png",
+  "/learn/terms/liquidity.png",
+  "/learn/terms/market-cap.png",
+  "/learn/terms/common-trading-words.png",
+                ][termsSlide]
+          }
+          alt="Essential Trading Terms"
+          className="block w-full h-[625px] object-fill bg-white"
+        />
+
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+          <button
+            onClick={() =>
+              setTermsSlide((prev) => (prev === -1 ? 3 : prev - 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {[-1, 0, 1, 2, 3, ].map((dot) => (
+              <button
+                key={dot}
+                onClick={() => setTermsSlide(dot)}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                  termsSlide === dot
+                    ? "bg-cyan-400 scale-125"
+                    : "bg-zinc-600 hover:bg-zinc-400"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setTermsSlide((prev) => (prev === 3 ? -1 : prev + 1))
+            }
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
+
+        <div className="flex items-center justify-center pl-2">
+          <img
+            src="/gaby.png"
+            alt="Gaby AI"
+            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+          />
+        </div>
+
+        <div>
+          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
+            {isGabyTyping ? (
+              <div className="flex items-center gap-3 pl-4">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
+                </div>
+                <p className="text-cyan-300 font-bold">Gaby is typing...</p>
+              </div>
+            ) : (
+              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
+                {gabyAnswer}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              "What is a bid?",
+              "What is an ask?",
+              "What is a spread?",
+              "What is volatility?",
+              "What is liquidity?",
+              "What is market cap?",
+            ].map((question) => (
+              <button
+                key={question}
+                onClick={() => {
+                  askGaby(question);
+                  setGabyQuestion("");
+                }}
+                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              value={gabyQuestion}
+              onChange={(e) => setGabyQuestion(e.target.value)}
+              placeholder="Ask Gaby anything about this lesson..."
+              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
+            />
+
+            <button
+              onClick={() => askGaby(gabyQuestion)}
+              disabled={isGabyTyping}
+              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    {selectedTradingTerm === "spread" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Spread = Buy vs Sell Difference
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            The spread is the small gap between the highest buyer price and the lowest seller price.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Smaller spreads are usually better</p>
-            <p>• High liquidity lowers spreads</p>
-            <p>• Spread affects trade cost</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4">
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 p-5">
-              <p className="text-green-400 text-2xl font-black">
-                BUY = $100.00
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-red-500/10 border border-red-400/20 p-5">
-              <p className="text-red-400 text-2xl font-black">
-                SELL = $99.95
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedTradingTerm === "liquidity" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Liquidity = Easy Trading
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            High liquidity means traders can quickly buy or sell without heavily moving the price.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• More buyers and sellers</p>
-            <p>• Faster order execution</p>
-            <p>• Usually smaller spreads</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-          <div className="grid grid-cols-3 gap-4 h-56">
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center justify-center text-green-400 text-4xl font-black">
-              $
-            </div>
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center justify-center text-green-400 text-4xl font-black">
-              $
-            </div>
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center justify-center text-green-400 text-4xl font-black">
-              $
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    )}
-
-    {selectedTradingTerm === "slippage" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Slippage = Unexpected Price Change
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Slippage happens when price changes before the order finishes executing.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Common during volatility</p>
-            <p>• Fast movement increases slippage</p>
-            <p>• Market orders are more exposed</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4">
-
-            <div className="rounded-2xl bg-cyan-500/10 border border-cyan-400/20 p-5">
-              <p className="text-cyan-400 text-2xl font-black">
-                Expected = $100
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 p-5">
-              <p className="text-orange-400 text-2xl font-black">
-                Executed = $101
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedTradingTerm === "marketcap" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-          <h3 className="text-3xl font-black text-white">
-            Market Cap = Total Market Value
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Market capitalization measures the total value of a company or cryptocurrency.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Large market caps are often more stable</p>
-            <p>• Small caps move faster</p>
-            <p>• Measures company or asset size</p>
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6 flex items-center justify-center h-56">
-
-          <div className="h-40 w-40 rounded-full border-4 border-red-400 flex items-center justify-center text-red-400 text-3xl font-black shadow-[0_0_40px_rgba(248,113,113,0.35)]">
-            $1T
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
 )}
 
 {activeLesson === "quiz" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
+  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Trader Checkpoint
-  </h2>
+    <div>
+<h2 className="text-5xl md:text-6xl font-black tracking-tight leading-tight">
+  <span className="text-white">TradeNest</span>
+  <span className="text-cyan-400">X</span>
+  <span className="text-white"> Graduation Challenge</span>
+</h2>
 
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Before moving forward, traders should review the most important beginner concepts learned so far.
-  </p>
+<p className="mt-5 text-zinc-400 text-lg leading-8 max-w-3xl">
+  Complete the final assessment and prove you're ready for the simulator.
+</p>
 
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "question1",
-        title: "Market Direction",
-        color: "text-green-400",
-        text: "Can you identify bullish and bearish trends?",
-      },
-      {
-        id: "question2",
-        title: "Risk Management",
-        color: "text-red-400",
-        text: "Do you understand stop losses and risk?",
-      },
-      {
-        id: "question3",
-        title: "Chart Reading",
-        color: "text-cyan-400",
-        text: "Can you identify trends and key levels?",
-      },
-      {
-        id: "question4",
-        title: "Trading Psychology",
-        color: "text-orange-400",
-        text: "Can emotions affect trading decisions?",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedCheckpoint(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 hover:-translate-y-[4px] ${
-          selectedCheckpoint === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 leading-7">
-          {item.text}
-        </p>
-      </button>
-    ))}
-
+<div className="mt-6 flex flex-wrap gap-4">
+  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3">
+    <p className="text-cyan-300 font-black">10 Questions</p>
   </div>
 
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    {selectedCheckpoint === "question1" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Can You Identify Market Direction?
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Traders should recognize whether buyers or sellers are controlling the market before entering trades.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Bullish = higher highs</p>
-            <p>• Bearish = lower lows</p>
-            <p>• Trend direction matters</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute left-8 bottom-18 h-16 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-24 bottom-26 h-22 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-40 bottom-34 h-28 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-56 bottom-46 h-36 w-6 rounded-sm bg-green-400" />
-            <div className="absolute left-72 bottom-60 h-44 w-6 rounded-sm bg-cyan-400" />
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedCheckpoint === "question2" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Do You Understand Risk Management?
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Protecting your account is one of the most important parts of trading.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Stop losses protect capital</p>
-            <p>• Smaller risk improves survival</p>
-            <p>• Never risk everything on one trade</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-
-          <div className="grid grid-cols-3 gap-4 h-56">
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center justify-center text-green-400 text-2xl font-black">
-              1%
-            </div>
-
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 flex items-center justify-center text-orange-400 text-2xl font-black">
-              5%
-            </div>
-
-            <div className="rounded-2xl bg-red-500/10 border border-red-400/20 flex items-center justify-center text-red-400 text-2xl font-black">
-              20%
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedCheckpoint === "question3" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Can You Read A Basic Chart?
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Traders should understand trends, support, resistance, and market structure before trading.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Identify support and resistance</p>
-            <p>• Understand trend direction</p>
-            <p>• Watch market structure</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
-
-          <div className="relative h-56 rounded-2xl bg-[#0f172a] border border-white/5 overflow-hidden">
-
-            <div className="absolute left-6 right-6 top-20 h-[3px] bg-red-400" />
-            <div className="absolute left-6 right-6 bottom-20 h-[3px] bg-green-400" />
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedCheckpoint === "question4" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Can Emotions Affect Trading?
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Fear, greed, impatience, and revenge trading can heavily affect decision making.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Fear causes hesitation</p>
-            <p>• Greed increases risk</p>
-            <p>• Discipline improves consistency</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4 h-56">
-
-            <div className="rounded-2xl bg-red-500/10 border border-red-400/20 flex items-center justify-center text-red-400 text-2xl font-black">
-              FEAR
-            </div>
-
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 flex items-center justify-center text-orange-400 text-2xl font-black">
-              GREED
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
+  <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-3">
+    <p className="text-emerald-300 font-black">Pass Score: 80%</p>
   </div>
 
+  <div className="rounded-2xl border border-yellow-400/20 bg-yellow-500/10 px-5 py-3">
+    <p className="text-yellow-300 font-black">Required: 8 / 10</p>
+  </div>
 </div>
+    </div>
+
+    <div className="mt-8 space-y-6">
+      {checkpointQuestions.map((item, index) => (
+        <div
+          key={index}
+          className="rounded-[28px] border border-white/10 bg-[#111827] p-6"
+        >
+          <p className="text-cyan-300 font-black">
+            Question {index + 1}
+          </p>
+
+          <h3 className="mt-3 text-2xl font-black text-white">
+            {item.question}
+          </h3>
+
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {item.options.map((option, optionIndex) => (
+              <button
+                key={option}
+                onClick={() =>
+                  setQuizAnswers({
+                    ...quizAnswers,
+                    [index]: option,
+                  })
+                }
+                className={`rounded-2xl border px-5 py-4 text-left font-bold transition-all duration-300 ${
+                  quizAnswers[index] === option
+                    ? "border-cyan-400 bg-cyan-500/10 text-cyan-300"
+                    : "border-white/10 bg-[#0b1120] text-zinc-300 hover:border-cyan-400/40 hover:text-white"
+                }`}
+              >
+                <>
+  <span className="mr-3 font-black text-cyan-300">
+    {["A", "B", "C", "D"][optionIndex]}.
+  </span>
+  {option}
+</>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+{quizError && (
+  <div className="mt-8 rounded-2xl border border-orange-400/30 bg-orange-500/10 p-5">
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20 text-orange-300 font-black">
+        !
+      </div>
+
+      <div>
+        <p className="font-black text-orange-300">
+          Checkpoint Cooldown Active
+        </p>
+
+        <p className="text-zinc-300 mt-1">
+          {quizError}
+        </p>
+      </div>
+    </div>
+  </div>
 )}
+    <div className="mt-8 flex flex-wrap gap-4">
+      <button
+onClick={() => {
+  if (cooldownActive && nextAttemptTime) {
+    if (Date.now() < nextAttemptTime) {
+      setQuizError(
+        "You recently completed the checkpoint. Please review your lessons and try again in 30 minutes."
+      );
+      return;
+    }
+
+    setCooldownActive(false);
+  }
+
+  if (Object.keys(quizAnswers).length < checkpointQuestions.length) {
+    setQuizError(
+      `Please answer all ${
+        checkpointQuestions.length
+      } questions before submitting. You still have ${
+        checkpointQuestions.length - Object.keys(quizAnswers).length
+      } remaining.`
+    );
+    return;
+  }
+
+  const score = checkpointQuestions.reduce((total, item, index) => {
+    return quizAnswers[index] === item.answer ? total + 1 : total;
+  }, 0);
+
+  const nextTime = Date.now() + 30 * 60 * 1000;
+
+  setCooldownActive(true);
+  setNextAttemptTime(nextTime);
+
+  localStorage.setItem(
+    "tradenestxQuizCooldown",
+    nextTime.toString()
+  );
+
+setQuizError("");
+setQuizScore(score);
+setQuizSubmitted(true);
+setSubmittedAnswers(quizAnswers);
+
+setQuizAnswers({});
+}}
+        className="rounded-2xl bg-cyan-400 px-8 py-4 font-black text-black transition-all duration-300 hover:scale-[1.02]"
+      >
+        Submit Checkpoint
+      </button>
+
+   
+    </div>
+
+    {quizSubmitted && (
+      <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-8 shadow-[0_0_45px_rgba(34,211,238,0.18)]">
+        <p className="text-cyan-300 font-black text-lg">
+          Your Score
+        </p>
+
+<h3 className="mt-3 text-6xl font-black text-white">
+  {quizScore} / {checkpointQuestions.length}
+</h3>
+
+<p className="mt-2 text-cyan-300 text-xl font-black">
+  {Math.round(
+    (quizScore / checkpointQuestions.length) * 100
+  )}%
+</p>
+
+{quizScore < 8 && checkpointQuestions
+  .map((item, index) => ({
+    ...item,
+    index,
+    userAnswer: submittedAnswers[index],
+  }))
+  .filter((item) => item.userAnswer !== item.answer)
+  .length > 0 && (
+  <div className="mt-6 rounded-2xl border border-orange-400/30 bg-orange-500/10 p-5">
+    <p className="text-orange-300 font-black text-lg">
+      Lessons To Review
+    </p>
+
+    <div className="mt-4 space-y-3">
+      {checkpointQuestions
+        .map((item, index) => ({
+          ...item,
+          index,
+          userAnswer: submittedAnswers[index],
+        }))
+        .filter((item) => item.userAnswer !== item.answer)
+        .map((item) => (
+          <div key={item.index} className="text-zinc-300">
+            Question {item.index + 1}: Review{" "}
+            <span className="font-black text-white">
+              {item.reviewLesson}
+            </span>
+          </div>
+        ))}
+    </div>
+  </div>
+)}
+
+        {quizScore >= 8 ? (
+          <>
+            <p className="mt-5 text-2xl font-black text-emerald-300">
+              Congratulations! You completed the TradeNestX Beginner Academy.
+            </p>
+
+            <p className="mt-3 text-zinc-400 leading-8 max-w-3xl">
+              You now understand the foundation of trading. Before entering the simulator, complete the TradeNestX Simulator Guide to learn every tool, panel, and feature available on the platform.
+            </p>
+
+<button
+  onClick={() => setActiveLesson("simulator-guide")}
+  className="mt-6 inline-flex rounded-2xl bg-cyan-400 px-8 py-4 font-black text-black transition-all duration-300 hover:scale-[1.02]"
+>
+  Go To Simulator Guide
+</button>
+          </>
+        ) : (
+          <>
+            <p className="mt-5 text-2xl font-black text-orange-300">
+              Keep practicing. Review the beginner lessons and try again.
+            </p>
+
+            <p className="mt-3 text-zinc-400 leading-8 max-w-3xl">
+              A strong trader builds confidence through repetition. Go back through the lessons you missed and retake the checkpoint.
+            </p>
+          </>
+        )}
+      </div>
+    )}
+
+  </div>
+)}
+
+
 {activeLesson === "practice" && (
 <div className="mt-14 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-[28px] border border-cyan-500/20 p-10 text-center">
   <h2 className="text-5xl font-black text-cyan-300">

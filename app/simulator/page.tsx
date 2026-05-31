@@ -181,7 +181,7 @@ const emptyPositions: Record<AssetSymbol, number> = {
 
 export default function SimulatorPage() {
 const { user } = useUser();
-  const [market, setMarket] = useState<"CRYPTO" | "STOCKS">("CRYPTO");
+  const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
   const [activeBottomTab, setActiveBottomTab] = useState<"POSITIONS" | "HISTORY" | "ORDERS">("POSITIONS");
@@ -283,6 +283,11 @@ useEffect(() => {
   const [takeProfit, setTakeProfit] = useState<number | "">("");
 const [stopLoss, setStopLoss] = useState<number | "">("");
 const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
+const [leverage, setLeverage] = useState(1);
+const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
+const [marginUsed, setMarginUsed] = useState(0);
+const [futuresPositions, setFuturesPositions] = useState<any[]>([]);
+const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
   coin: AssetSymbol;
@@ -294,6 +299,14 @@ const [pendingLimitOrder, setPendingLimitOrder] = useState<{
   const [now, setNow] = useState<Date | null>(null);
 
   const currentPrice = prices[selectedCoin];
+  const maintenanceBuffer = 0.005;
+
+const liquidationPrice =
+  marketMode === "FUTURES" && leverage > 1
+    ? positionType === "LONG"
+      ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
+      : currentPrice * (1 + 1 / leverage - maintenanceBuffer)
+    : 0;
   function buildHistory(symbol: AssetSymbol, timeframe: string) {
   const candles: PricePoint[] = [];
   let lastPrice = prices[symbol] ?? 100;
@@ -389,6 +402,50 @@ setHistory((old) => {
   ];
 });
 
+setFuturesPositions((prev) => {
+  const liquidatedPositions = prev.filter((position) => {
+    const current = updated[position.coin as AssetSymbol];
+
+    return position.side === "LONG"
+      ? current <= position.liquidationPrice
+      : current >= position.liquidationPrice;
+  });
+
+  if (liquidatedPositions.length > 0) {
+    setMessage("A futures position was liquidated.");
+
+    setMarginUsed((prevMargin) =>
+      Math.max(
+        0,
+        prevMargin -
+          liquidatedPositions.reduce(
+            (total, position) => total + position.margin,
+            0
+          )
+      )
+    );
+
+    setFuturesHistory((prevHistory) => [
+      ...liquidatedPositions.map((position) => ({
+        ...position,
+        exitPrice: updated[position.coin as AssetSymbol],
+        pnl: -position.margin,
+        status: "LIQUIDATED",
+        time: new Date().toLocaleTimeString(),
+      })),
+      ...prevHistory,
+    ]);
+  }
+
+  return prev.filter((position) => {
+    const current = updated[position.coin as AssetSymbol];
+
+    return position.side === "LONG"
+      ? current > position.liquidationPrice
+      : current < position.liquidationPrice;
+  });
+});
+
     return updated;
   });
 }
@@ -457,6 +514,9 @@ useEffect(() => {
     }, 0);
   }
 }, [prices]);
+
+
+
 useEffect(() => {
   if (positions[selectedCoin] <= 0) return;
 
@@ -599,7 +659,13 @@ chart.subscribeCrosshairMove((param) => {
       return;
     }
 
-    const quantity = tradeAmount / currentPrice;
+    const effectiveTradeSize =
+  marketMode === "FUTURES"
+    ? Number(tradeAmount) * leverage
+    : Number(tradeAmount);
+
+const quantity =
+  effectiveTradeSize / currentPrice;
     if (
   orderType === "LIMIT" &&
   limitPrice !== "" &&
@@ -628,7 +694,11 @@ chart.subscribeCrosshairMove((param) => {
         ? (oldQty * oldAvg + quantity * currentPrice) / newQty
         : currentPrice;
 
-    setBalance((prev) => prev - tradeAmount);
+    setBalance((prev) => prev - Number(tradeAmount));
+
+if (marketMode === "FUTURES") {
+  setMarginUsed((prev) => prev + Number(tradeAmount));
+}
 if (user) {
  setDoc(doc(db, "portfolios", user.id), {
   userName: user.firstName || "Trader",
@@ -682,6 +752,58 @@ if (user) {
 }
   }
 
+  function openFuturesPosition(side: "LONG" | "SHORT") {
+  if (!tradeAmount || balance < Number(tradeAmount)) {
+    setMessage("Invalid margin amount.");
+    return;
+  }
+
+  const margin = Number(tradeAmount);
+  const positionSize = margin * leverage;
+  const quantity = positionSize / currentPrice;
+
+ const maintenanceBuffer = 0.005;
+
+const liquidation =
+  leverage > 1
+    ? side === "LONG"
+      ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
+      : currentPrice * (1 + 1 / leverage - maintenanceBuffer)
+    : 0;
+
+  setBalance((prev) => prev - margin);
+  setMarginUsed((prev) => prev + margin);
+
+  setFuturesPositions((prev) => [
+    {
+      coin: selectedCoin,
+      side,
+      margin,
+      leverage,
+      quantity,
+      entryPrice: currentPrice,
+      liquidationPrice: liquidation,
+      time: new Date().toLocaleTimeString(),
+    },
+    ...prev,
+  ]);
+
+setFuturesHistory((prev) => [
+  {
+    coin: selectedCoin,
+    side,
+    margin,
+    leverage,
+    entryPrice: currentPrice,
+    liquidationPrice: liquidation,
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
+
+  setMessage(`${side} ${selectedCoin} opened with ${leverage}x leverage`);
+}
+
   function sellCoin() {
     if (
   orderType === "LIMIT" &&
@@ -710,6 +832,10 @@ if (user) {
     const value = ownedAmount * currentPrice;
 
     setBalance((prev) => prev + value);
+
+if (marketMode === "FUTURES") {
+  setMarginUsed((prev) => Math.max(0, prev - Number(tradeAmount || 0)));
+}
 if (user) {
  setDoc(doc(db, "portfolios", user.id), {
   userName: user.firstName || "Trader",
@@ -735,12 +861,16 @@ if (user) {
       [selectedCoin]: 0,
     }));
 
-  setTrades((prev) => [
+  const spotPnl =
+  value - ownedAmount * averagePrices[selectedCoin];
+
+setTrades((prev) => [
   {
     type: "SELL",
     coin: selectedCoin,
     amount: value,
     price: currentPrice,
+    pnl: spotPnl,
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
@@ -765,8 +895,9 @@ function resetAccount() {
   setBalance(startingBalance);
   setPositions(emptyPositions);
   setAveragePrices(emptyPositions);
-  setTrades([]);
-  setMessage("Practice account reset.");
+setTrades([]);
+setMarginUsed(0);
+setMessage("Practice account reset.");
 
  if (user) {
   deleteDoc(doc(db, "portfolios", user.id));
@@ -799,7 +930,7 @@ function resetAccount() {
   }
 
  const watchlist =
-  market === "CRYPTO"
+  marketMode === "SPOT"
     ? [
         { symbol: "BTC" as AssetSymbol, name: "Bitcoin", price: prices.BTC },
         { symbol: "ETH" as AssetSymbol, name: "Ethereum", price: prices.ETH },
@@ -856,30 +987,30 @@ function resetAccount() {
             <div className="flex gap-2 mb-4 justify-start">
               <button
                 onClick={() => {
-                  setMarket("CRYPTO");
-                  setSelectedCoin("BTC");
+                 setMarketMode("SPOT");
+                 setSelectedCoin("BTC");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                  market === "CRYPTO"
+                  marketMode === "SPOT"
                     ? "bg-cyan-500 text-black"
                     : "bg-zinc-800"
                 }`}
               >
-                Crypto
+                Spot
               </button>
 
               <button
                 onClick={() => {
-                  setMarket("STOCKS");
-                  setSelectedCoin("AAPL");
+                  setMarketMode("FUTURES");
+                  setSelectedCoin("BTC");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                  market === "STOCKS"
+                  marketMode === "FUTURES"
                     ? "bg-cyan-500 text-black"
                     : "bg-zinc-800"
                 }`}
               >
-                Stocks
+                Futures
               </button>
             </div>
 
@@ -1043,6 +1174,34 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
             <div className="space-y-6 xl:col-span-1">
 
+              <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-5">
+  <h2 className="text-xl font-black text-white mb-4">
+    Account Summary
+  </h2>
+
+  <div className="space-y-3 text-sm">
+    <div className="flex items-center justify-between">
+      <span className="text-zinc-500">Cash Balance</span>
+      <span className="font-bold text-white">${balance.toFixed(2)}</span>
+    </div>
+
+    <div className="flex items-center justify-between">
+      <span className="text-zinc-500">Portfolio Value</span>
+      <span className="font-bold text-cyan-400">${portfolioValue.toFixed(2)}</span>
+    </div>
+
+    <div className="flex items-center justify-between">
+      <span className="text-zinc-500">Margin Used</span>
+      <span className="font-bold text-orange-400">${marginUsed.toFixed(2)}</span>
+    </div>
+
+    <div className="flex items-center justify-between">
+      <span className="text-zinc-500">Available</span>
+      <span className="font-bold text-green-400">${balance.toFixed(2)}</span>
+    </div>
+  </div>
+</div>
+
   <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-5 h-fit">
   <div className="flex items-center justify-between mb-6">
   <h2 className="text-2xl font-bold">
@@ -1090,22 +1249,29 @@ onChange={(e) => setSearchTerm(e.target.value)}
 />
 </div>
 
-<div className="mt-4">
-  <p className="mb-2 text-xs font-bold tracking-wide text-zinc-500">
-    LEVERAGE
-  </p>
+{marketMode === "FUTURES" && (
+  <div className="mt-4">
+    <p className="mb-2 text-xs font-bold tracking-wide text-zinc-500">
+      LEVERAGE
+    </p>
 
-  <div className="grid grid-cols-4 gap-2">
-    {["1x", "2x", "5x", "10x"].map((lev) => (
-      <button
-        key={lev}
-        className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-bold text-zinc-400 transition-all hover:border-cyan-500 hover:text-cyan-400"
-      >
-        {lev}
-      </button>
-    ))}
+    <div className="grid grid-cols-4 gap-2">
+      {[1, 2, 5, 10, 20, 50].map((lev) => (
+        <button
+          key={lev}
+          onClick={() => setLeverage(lev)}
+          className={`rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
+            leverage === lev
+              ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+              : "border-zinc-700 bg-[#0f172a] text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
+          }`}
+        >
+          {lev}x
+        </button>
+      ))}
+    </div>
   </div>
-</div>
+)}
 <div className="mt-4">
   <p className="mb-2 text-xs font-bold tracking-wide text-zinc-500">
     ORDER TYPE
@@ -1163,7 +1329,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 <div className="mt-4 rounded-xl border border-zinc-700 bg-[#0f172a] p-4">
   <div className="flex items-center justify-between text-sm">
-    <span className="text-zinc-500">Position Size</span>
+    <span className="text-zinc-500">Trade Amount</span>
 
     <span className="font-bold text-white">
       ${tradeAmount || 0}
@@ -1171,26 +1337,76 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 
   <div className="mt-2 flex items-center justify-between text-sm">
+    <span className="text-zinc-500">
+      {marketMode === "FUTURES" ? "Position Size" : "Order Value"}
+    </span>
+
+    <span className="font-bold text-cyan-400">
+      ${((Number(tradeAmount) || 0) * (marketMode === "FUTURES" ? leverage : 1)).toFixed(2)}
+    </span>
+  </div>
+
+  {marketMode === "FUTURES" && (
+    <>
+      <div className="mt-2 flex items-center justify-between text-sm">
+        <span className="text-zinc-500">Leverage</span>
+
+        <span className="font-bold text-white">
+          {leverage}x
+        </span>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between text-sm">
+        <span className="text-zinc-500">Margin Used</span>
+
+        <span className="font-bold text-orange-400">
+          ${marginUsed.toFixed(2)}
+        </span>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between text-sm">
+        <span className="text-zinc-500">Est. Liquidation</span>
+
+        <span className="font-bold text-red-400">
+          {leverage > 1 ? `$${liquidationPrice.toFixed(2)}` : "N/A"}
+        </span>
+      </div>
+    </>
+  )}
+
+  <div className="mt-2 flex items-center justify-between text-sm">
     <span className="text-zinc-500">Estimated Fee</span>
 
     <span className="font-bold text-zinc-300">
-      ${((Number(tradeAmount) || 0) * 0.001).toFixed(2)}
+      ${(((Number(tradeAmount) || 0) * (marketMode === "FUTURES" ? leverage : 1)) * 0.001).toFixed(2)}
     </span>
   </div>
 </div>
   <div className="mt-4 grid grid-cols-2 gap-3">
     <button
-      onClick={buyCoin}
+  onClick={() => {
+  if (marketMode === "FUTURES") {
+    openFuturesPosition("LONG");
+  } else {
+    buyCoin();
+  }
+}}
       className="rounded-xl bg-green-500 px-6 py-3 text-lg font-black text-black transition-all hover:scale-[1.02] hover:bg-green-400"
     >
-      BUY
+      {marketMode === "FUTURES" ? "LONG" : "BUY"}
     </button>
 
     <button
-      onClick={sellCoin}
+      onClick={() => {
+  if (marketMode === "FUTURES") {
+    openFuturesPosition("SHORT");
+  } else {
+    sellCoin();
+  }
+}}
       className="rounded-xl bg-red-500 px-6 py-3 text-lg font-black text-white transition-all hover:scale-[1.02] hover:bg-red-400"
     >
-      SELL
+      {marketMode === "FUTURES" ? "SHORT" : "SELL"}
     </button>
   </div>
 
@@ -1225,7 +1441,9 @@ onChange={(e) => setSearchTerm(e.target.value)}
               : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
           }`}
         >
-          Open Positions
+          {marketMode === "FUTURES"
+  ? "Futures Positions"
+  : "Spot Positions"}
         </button>
 
         <button
@@ -1236,7 +1454,9 @@ onChange={(e) => setSearchTerm(e.target.value)}
               : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
           }`}
         >
-          Trade History
+          {marketMode === "FUTURES"
+  ? "Futures History"
+  : "Spot History"}
         </button>
 <button
   onClick={() => setActiveBottomTab("ORDERS")}
@@ -1246,7 +1466,9 @@ onChange={(e) => setSearchTerm(e.target.value)}
       : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
   }`}
 >
-  Open Orders
+  {marketMode === "FUTURES"
+  ? "Futures Orders"
+  : "Spot Orders"}
 </button>
       </div>
 
@@ -1255,7 +1477,126 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
     {activeBottomTab === "POSITIONS" && (
       <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
+{marketMode === "FUTURES" &&
+  futuresPositions.map((position, index) => (
+    <div
+      key={index}
+      className="bg-[#0f172a] border border-cyan-500/30 rounded-2xl p-6 mb-4"
+    >
+  <div className="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
+  <div>
+    <p className="text-cyan-400 text-2xl font-bold">
+      {position.coin}
+    </p>
 
+    <p className={`text-sm mt-1 font-bold ${
+      position.side === "LONG" ? "text-green-400" : "text-red-400"
+    }`}>
+      {position.side}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-gray-400 text-sm">Entry</p>
+    <p className="text-xl font-bold text-white">
+      ${position.entryPrice.toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-gray-400 text-sm">Current</p>
+    <p className="text-xl font-bold text-white">
+      ${prices[position.coin as AssetSymbol].toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-gray-400 text-sm">Position Size</p>
+    <p className="text-xl font-bold text-white">
+      ${(position.margin * position.leverage).toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-gray-400 text-sm">Leverage</p>
+    <p className="text-xl font-bold text-white">
+      {position.leverage}x
+    </p>
+  </div>
+
+  <div>
+    <p className="text-gray-400 text-sm">Liquidation</p>
+    <p className="text-xl font-bold text-red-400">
+      ${position.liquidationPrice.toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+  <p className="text-gray-400 text-sm">Unrealized P/L</p>
+
+{(() => {
+  const current = prices[position.coin as AssetSymbol];
+
+  const pnl =
+    position.side === "LONG"
+      ? (current - position.entryPrice) * position.quantity
+      : (position.entryPrice - current) * position.quantity;
+
+  return (
+    <p
+      className={`text-2xl font-bold ${
+        pnl >= 0 ? "text-green-400" : "text-red-400"
+      }`}
+    >
+      ${pnl.toFixed(2)}
+    </p>
+  );
+})()}
+  </div>
+
+  <div className="flex justify-end">
+ <button
+  onClick={() => {
+    const current = prices[position.coin as AssetSymbol];
+
+    const pnl =
+      position.side === "LONG"
+        ? (current - position.entryPrice) * position.quantity
+        : (position.entryPrice - current) * position.quantity;
+
+    setBalance((prev) => prev + position.margin + pnl);
+
+    setMarginUsed((prev) =>
+      Math.max(0, prev - position.margin)
+    );
+
+    setFuturesPositions((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
+
+    setFuturesHistory((prev) => [
+      {
+        ...position,
+        exitPrice: current,
+        pnl,
+        status: "CLOSED",
+        time: new Date().toLocaleTimeString(),
+      },
+      ...prev,
+    ]);
+
+    setMessage(
+      `${position.side} ${position.coin} closed. P/L: $${pnl.toFixed(2)}`
+    );
+  }}
+  className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-400"
+>
+  Close
+</button>
+  </div>
+</div>
+    </div>
+))}
         {Object.entries(positions)
           .filter(([_, qty]) => Number(qty) > 0)
           .map(([coin, qty]) => {
@@ -1404,9 +1745,10 @@ onChange={(e) => setSearchTerm(e.target.value)}
             );
           })}
 
-        {Object.values(positions).every(
-          (qty) => Number(qty) === 0
-        ) && (
+        {marketMode === "SPOT" &&
+  Object.values(positions).every(
+    (qty) => Number(qty) === 0
+  ) && (
           <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
             <p className="text-2xl font-bold text-zinc-300">
               No Open Positions
@@ -1424,58 +1766,134 @@ onChange={(e) => setSearchTerm(e.target.value)}
     {activeBottomTab === "HISTORY" && (
       <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
 
-        {trades.length === 0 ? (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">
-              No Trade History
+{marketMode === "FUTURES" ? (
+  futuresHistory.length === 0 ? (
+    <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+      <p className="text-2xl font-bold text-zinc-300">
+        No Futures History
+      </p>
+
+      <p className="text-zinc-500 mt-2">
+        Completed futures trades will appear here.
+      </p>
+    </div>
+  ) : (
+    futuresHistory.map((trade, index) => (
+      <div
+        key={index}
+        className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p
+              className={`text-xl font-black ${
+                trade.side === "LONG"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {trade.side}
             </p>
 
-            <p className="text-zinc-500 mt-2">
-              Completed trades will appear here.
+            <p className="text-zinc-500 mt-1">
+              {trade.coin}
             </p>
           </div>
-        ) : (
-          trades.map((trade, index) => (
-            <div
-              key={index}
-              className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
+
+          <div className="text-right">
+            <p className="text-white font-bold text-lg">
+              Margin: ${trade.margin}
+            </p>
+
+{trade.pnl !== undefined && (
+  <p
+    className={`text-lg font-black ${
+      trade.pnl >= 0 ? "text-green-400" : "text-red-400"
+    }`}
+  >
+    P/L: ${trade.pnl.toFixed(2)}
+  </p>
+)}
+
+<p className="text-zinc-500 text-sm mt-1">
+  Entry: ${trade.entryPrice.toFixed(2)} · {trade.leverage}x
+</p>
+
+<p className="text-red-400 text-sm mt-1">
+  Liq: ${trade.liquidationPrice.toFixed(2)}
+</p>
+            <p className="text-zinc-600 text-xs mt-1">
+              {trade.time}
+            </p>
+          </div>
+        </div>
+      </div>
+    ))
+  )
+) : (
+  trades.length === 0 ? (
+    <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+      <p className="text-2xl font-bold text-zinc-300">
+        No Spot History
+      </p>
+
+      <p className="text-zinc-500 mt-2">
+        Completed spot trades will appear here.
+      </p>
+    </div>
+  ) : (
+    trades.map((trade, index) => (
+      <div
+        key={index}
+        className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p
+              className={`text-xl font-black ${
+                trade.type === "BUY"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
             >
-              <div className="flex items-center justify-between">
+              {trade.type}
+            </p>
 
-                <div>
-                  <p
-                    className={`text-xl font-black ${
-                      trade.type === "BUY"
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {trade.type}
-                  </p>
+            <p className="text-zinc-500 mt-1">
+              {trade.coin}
+            </p>
+          </div>
 
-                  <p className="text-zinc-500 mt-1">
-                    {trade.coin}
-                  </p>
-                </div>
+          <div className="text-right">
+            <p className="text-white font-bold text-lg">
+              ${trade.amount.toFixed(2)}
+            </p>
 
-                <div className="text-right">
-                  <p className="text-white font-bold text-lg">
-                    ${trade.amount.toFixed(2)}
-                  </p>
+<p className="text-zinc-500 text-sm mt-1">
+  ${trade.price.toFixed(2)}
+</p>
 
-                  <p className="text-zinc-500 text-sm mt-1">
-                    ${trade.price.toFixed(2)}
-                  </p>
+{(trade as any).pnl !== undefined && (
+  <p
+    className={`text-sm font-black mt-1 ${
+      (trade as any).pnl >= 0
+        ? "text-green-400"
+        : "text-red-400"
+    }`}
+  >
+    P/L: ${(trade as any).pnl.toFixed(2)}
+  </p>
+)}
 
-                  <p className="text-zinc-600 text-xs mt-1">
-                    {trade.time}
-                  </p>
-                </div>
-
-              </div>
-            </div>
-          ))
-        )}
+            <p className="text-zinc-600 text-xs mt-1">
+              {trade.time}
+            </p>
+          </div>
+        </div>
+      </div>
+    ))
+  )
+)}
 
       </div>
     )}
