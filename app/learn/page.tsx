@@ -1705,11 +1705,13 @@ window.scrollTo({
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -1851,17 +1853,18 @@ window.scrollTo({
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 
-        <img
-
- src={[
-  "/learn/orders/market-order.png",
-  "/learn/orders/limit-order.png",
-  "/learn/orders/market-vs-limit.png",
-  "/learn/orders/speed-vs-precision.png",
-][marketSlide]}
-alt="Orders lesson"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={[
+    "/learn/orders/market-order.webp",
+    "/learn/orders/limit-order.webp",
+    "/learn/orders/market-vs-limit.webp",
+    "/learn/orders/speed-vs-precision.webp",
+  ][marketSlide]}
+  alt="Orders lesson"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
 <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
 
@@ -1910,11 +1913,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+  <Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -2101,11 +2106,13 @@ alt="Orders lesson"
   <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
     <div className="flex items-center justify-center pl-2">
-      <img
-        src="/gaby.png"
-        alt="Gaby AI"
-        className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-      />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
     </div>
 
     <div>
@@ -2301,11 +2308,13 @@ alt="Orders lesson"
     <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -2495,11 +2504,13 @@ alt="Orders lesson"
     <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -2675,11 +2686,13 @@ alt="Orders lesson"
   <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
     <div className="flex items-center justify-center pl-2">
-      <img
-        src="/gaby.png"
-        alt="Gaby AI"
-        className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-      />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
     </div>
 
     <div>
@@ -2858,11 +2871,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -3040,11 +3055,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -3222,11 +3239,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -3397,11 +3416,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -3569,11 +3590,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
@@ -3742,11 +3765,13 @@ alt="Orders lesson"
       <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 
         <div className="flex items-center justify-center pl-2">
-          <img
-            src="/gaby.png"
-            alt="Gaby AI"
-            className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-          />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
         </div>
 
         <div>
