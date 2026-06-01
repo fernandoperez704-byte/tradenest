@@ -1095,7 +1095,7 @@ window.scrollTo({
 <>
 <div className="mb-8 overflow-hidden rounded-[40px] border border-cyan-500/10 bg-[#0f172a] shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 <Image
-  src="/learn/intro/tradenestx-education-intro.png"
+  src="/learn/intro/tradenestx-education-intro.webp"
   alt="TradeNestX Education Intro"
   width={1200}
   height={800}
@@ -1364,12 +1364,12 @@ window.scrollTo({
 <Image
   src={
     selectedPainPoint === "charts"
-      ? "/learn/journey/learn-trading.png"
+      ? "/learn/journey/learn-trading.webp"
       : selectedPainPoint === "fear"
-      ? "/learn/journey/build-confidence.png"
+      ? "/learn/journey/build-confidence.webp"
       : selectedPainPoint === "info"
-      ? "/learn/journey/practice-risk-free.png"
-      : "/learn/journey/follow-roadmap.png"
+      ? "/learn/journey/practice-risk-free.webp"
+      : "/learn/journey/follow-roadmap.webp"
   }
   alt="TradeNestX Learning Journey"
   width={1200}
@@ -1641,15 +1641,15 @@ window.scrollTo({
 <Image
   src={
     marketLessonSlide === -1
-      ? "/learn/market/how-market-works.png"
+      ? "/learn/market/how-market-works.webp"
       : [
-          "/learn/market/buyers.png",
-          "/learn/market/sellers.png",
-          "/learn/market/buyers-vs-sellers.png",
-          "/learn/market/supply.png",
-          "/learn/market/demand.png",
-          "/learn/market/supply-vs-demand.png",
-          "/learn/market/volatility.png",
+          "/learn/market/buyers.webp",
+          "/learn/market/sellers.webp",
+          "/learn/market/buyers-vs-sellers.webp",
+          "/learn/market/supply.webp",
+          "/learn/market/demand.webp",
+          "/learn/market/supply-vs-demand.webp",
+          "/learn/market/volatility.webp",
         ][marketLessonSlide]
   }
   alt="Market lesson"
@@ -2039,24 +2039,26 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            riskLessonSlide === -1
-              ? "/learn/risk/protecting-your-capital.png"
-              : [
-                  "/learn/risk/small-risk-vs-big-risk.png",
-                  "/learn/risk/stop-loss-protection.png",
-                  "/learn/risk/revenge-trading.png",               
-                  "/learn/risk/risk-to-reward.png",
-                  "/learn/risk/overtrading-warning.png",
-                  "/learn/risk/protecting-capital-pyramid.png",
-                  "/learn/risk/one-bad-trade.png",
-                  "/learn/risk/demo-first.png",
-                ][riskLessonSlide]
-          }
-          alt="Protecting Your Capital"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    riskLessonSlide === -1
+      ? "/learn/risk/protecting-your-capital.webp"
+      : [
+          "/learn/risk/small-risk-vs-big-risk.webp",
+          "/learn/risk/stop-loss-protection.webp",
+          "/learn/risk/revenge-trading.webp",
+          "/learn/risk/risk-to-reward.webp",
+          "/learn/risk/overtrading-warning.webp",
+          "/learn/risk/protecting-capital-pyramid.webp",
+          "/learn/risk/one-bad-trade.webp",
+          "/learn/risk/demo-first.webp",
+        ][riskLessonSlide]
+  }
+  alt="Protecting Your Capital"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -2238,26 +2240,25 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            timeframeSlide === -1
-              ? "/learn/timeframes/trading-timeframes.png"
-              : [
-                  "/learn/timeframes/1m-vs-1h.png",
-                  "/learn/timeframes/scalping-vs-swing.png",
-                  "/learn/timeframes/market-noise.png",
-                  "/learn/timeframes/higher-timeframe-trend.png",
-                  "/learn/timeframes/lower-timeframe-stress.png",
-                  "/learn/timeframes/multi-timeframe-analysis.png",
-                  "/learn/timeframes/timeframe-ladder.png",
-
-                  
-
-                ][timeframeSlide]
-          }
-          alt="Trading Timeframes"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    timeframeSlide === -1
+      ? "/learn/timeframes/trading-timeframes.webp"
+      : [
+          "/learn/timeframes/1m-vs-1h.webp",
+          "/learn/timeframes/scalping-vs-swing.webp",
+          "/learn/timeframes/market-noise.webp",
+          "/learn/timeframes/higher-timeframe-trend.webp",
+          "/learn/timeframes/lower-timeframe-stress.webp",
+          "/learn/timeframes/multi-timeframe-analysis.webp",
+          "/learn/timeframes/timeframe-ladder.webp",
+        ][timeframeSlide]
+  }
+  alt="Trading Timeframes"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
 
@@ -2437,21 +2438,23 @@ alt="Orders lesson"
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 
-        <img
-          src={
-            candlestickSlide === -1
-              ? "/learn/candlesticks/candlestick-basics.png"
-              : [
-                  "/learn/candlesticks/bullish-vs-bearish-candle.png",
-                  "/learn/candlesticks/big-body-vs-small-body.png",
-                  "/learn/candlesticks/long-wick-rejection.png",
-                  "/learn/candlesticks/common-candlesticks.png",
-                  "/learn/candlesticks/candles-tell-a-story.png",
-                ][candlestickSlide]
-          }
-          alt="Candlestick Basics"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    candlestickSlide === -1
+      ? "/learn/candlesticks/candlestick-basics.webp"
+      : [
+          "/learn/candlesticks/bullish-vs-bearish-candle.webp",
+          "/learn/candlesticks/big-body-vs-small-body.webp",
+          "/learn/candlesticks/long-wick-rejection.webp",
+          "/learn/candlesticks/common-candlesticks.webp",
+          "/learn/candlesticks/candles-tell-a-story.webp",
+        ][candlestickSlide]
+  }
+  alt="Candlestick Basics"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -2615,21 +2618,23 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            volumeSlide === -1
-              ? "/learn/volume/volume-basics.png"
-              : [
-                  "/learn/volume/high-vs-low-volume.png",
-                  "/learn/volume/volume-confirms-move.png",
-                  "/learn/volume/volume-breakout.png",
-                  "/learn/volume/volume-spike.png",
-                  "/learn/volume/volume-and-candlesticks.png",
-                ][volumeSlide]
-          }
-          alt="Volume Basics"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+  <Image
+  src={
+    volumeSlide === -1
+      ? "/learn/volume/volume-basics.webp"
+      : [
+          "/learn/volume/high-vs-low-volume.webp",
+          "/learn/volume/volume-confirms-move.webp",
+          "/learn/volume/volume-breakout.webp",
+          "/learn/volume/volume-spike.webp",
+          "/learn/volume/volume-and-candlesticks.webp",
+        ][volumeSlide]
+  }
+  alt="Volume Basics"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -2795,21 +2800,23 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            supportSlide === -1
-              ? "/learn/support/support-resistance-basics.png"
-              : [
-                  "/learn/support/support-floor.png",
-                  "/learn/support/resistance-ceiling.png",
-                  "/learn/support/support-breakdown.png",
-                  "/learn/support/resistance-breakout.png",
-                  "/learn/support/role-reversal.png",
-                ][supportSlide]
-          }
-          alt="Support and Resistance"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    supportSlide === -1
+      ? "/learn/support/support-resistance-basics.webp"
+      : [
+          "/learn/support/support-floor.webp",
+          "/learn/support/resistance-ceiling.webp",
+          "/learn/support/support-breakdown.webp",
+          "/learn/support/resistance-breakout.webp",
+          "/learn/support/role-reversal.webp",
+        ][supportSlide]
+  }
+  alt="Support and Resistance"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -2975,21 +2982,23 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            supplyDemandSlide === -1
-              ? "/learn/supplydemand/supply-demand-basics.png"
-              : [
-                  "/learn/supplydemand/demand-zone.png",
-                  "/learn/supplydemand/supply-zone.png",
-                  "/learn/supplydemand/price-imbalance.png",
-                  "/learn/supplydemand/zone-retest.png",
-                  "/learn/supplydemand/supply-demand-vs-support-resistance.png",
-                ][supplyDemandSlide]
-          }
-          alt="Supply and Demand"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    supplyDemandSlide === -1
+      ? "/learn/supplydemand/supply-demand-basics.webp"
+      : [
+          "/learn/supplydemand/demand-zone.webp",
+          "/learn/supplydemand/supply-zone.webp",
+          "/learn/supplydemand/price-imbalance.webp",
+          "/learn/supplydemand/zone-retest.webp",
+          "/learn/supplydemand/supply-demand-vs-support-resistance.webp",
+        ][supplyDemandSlide]
+  }
+  alt="Supply and Demand"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -3155,21 +3164,23 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            patternSlide === -1
-              ? "/learn/patterns/chart-patterns-basics.png"
-              : [
-                  "/learn/patterns/double-top.png",
-                  "/learn/patterns/double-bottom.png",
-                  "/learn/patterns/ascending-triangle.png",
-                  "/learn/patterns/descending-triangle.png",
-                  "/learn/patterns/head-and-shoulders.png",
-                ][patternSlide]
-          }
-          alt="Chart Patterns"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    patternSlide === -1
+      ? "/learn/patterns/chart-patterns-basics.webp"
+      : [
+          "/learn/patterns/double-top.webp",
+          "/learn/patterns/double-bottom.webp",
+          "/learn/patterns/ascending-triangle.webp",
+          "/learn/patterns/descending-triangle.webp",
+          "/learn/patterns/head-and-shoulders.webp",
+        ][patternSlide]
+  }
+  alt="Chart Patterns"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -3329,20 +3340,22 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            tradePlanSlide === -1
-              ? "/learn/tradeplan/trade-plan-basics.png"
-              : [
-                  "/learn/tradeplan/entry-stop-target.png",
-                  "/learn/tradeplan/risk-reward.png",
-                  "/learn/tradeplan/checklist-before-trade.png",
-                  "/learn/tradeplan/common-plan-mistakes.png",
-                ][tradePlanSlide]
-          }
-          alt="Building A Trade Plan"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    tradePlanSlide === -1
+      ? "/learn/tradeplan/trade-plan-basics.webp"
+      : [
+          "/learn/tradeplan/entry-stop-target.webp",
+          "/learn/tradeplan/risk-reward.webp",
+          "/learn/tradeplan/checklist-before-trade.webp",
+          "/learn/tradeplan/common-plan-mistakes.webp",
+        ][tradePlanSlide]
+  }
+  alt="Building A Trade Plan"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -3499,20 +3512,22 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            psychologySlide === -1
-              ? "/learn/psychology/psychology-basics.png"
-              : [
-                  "/learn/psychology/fear-vs-greed.png",
-                  "/learn/psychology/fomo-trading.png",
-                  "/learn/psychology/patience-in-trading.png",
-                  "/learn/psychology/thinking-like-a-professional.png",
-                ][psychologySlide]
-          }
-          alt="Trading Psychology"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    psychologySlide === -1
+      ? "/learn/psychology/psychology-basics.webp"
+      : [
+          "/learn/psychology/fear-vs-greed.webp",
+          "/learn/psychology/fomo-trading.webp",
+          "/learn/psychology/patience-in-trading.webp",
+          "/learn/psychology/thinking-like-a-professional.webp",
+        ][psychologySlide]
+  }
+  alt="Trading Psychology"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -3670,20 +3685,22 @@ alt="Orders lesson"
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-        <img
-          src={
-            termsSlide === -1
-              ? "/learn/terms/trading-terms-basics.png"
-              : [
-    "/learn/terms/spread.png",
-  "/learn/terms/liquidity.png",
-  "/learn/terms/market-cap.png",
-  "/learn/terms/common-trading-words.png",
-                ][termsSlide]
-          }
-          alt="Essential Trading Terms"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    termsSlide === -1
+      ? "/learn/terms/trading-terms-basics.webp"
+      : [
+          "/learn/terms/spread.webp",
+          "/learn/terms/liquidity.webp",
+          "/learn/terms/market-cap.webp",
+          "/learn/terms/common-trading-words.webp",
+        ][termsSlide]
+  }
+  alt="Essential Trading Terms"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
