@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
@@ -1094,11 +1094,13 @@ window.scrollTo({
 {activeLesson === "roadmap" && (
 <>
 <div className="mb-8 overflow-hidden rounded-[40px] border border-cyan-500/10 bg-[#0f172a] shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-  <img
-    src="/learn/intro/tradenestx-education-intro.png"
-    alt="TradeNestX Education Intro"
-    className="block w-full object-contain"
-  />
+<Image
+  src="/learn/intro/tradenestx-education-intro.png"
+  alt="TradeNestX Education Intro"
+  width={1200}
+  height={800}
+  className="block w-full object-contain"
+/>
 </div>
 
 
@@ -1359,19 +1361,21 @@ window.scrollTo({
 
       <div className="overflow-hidden rounded-[28px] border border-white/5 bg-[#0f172a]">
 
-        <img
-          src={
-  selectedPainPoint === "charts"
-    ? "/learn/journey/learn-trading.png"
-    : selectedPainPoint === "fear"
-    ? "/learn/journey/build-confidence.png"
-    : selectedPainPoint === "info"
-    ? "/learn/journey/practice-risk-free.png"
-    : "/learn/journey/follow-roadmap.png"
-}
-          alt="TradeNestX Learning Journey"
-          className="h-full w-full object-cover"
-        />
+<Image
+  src={
+    selectedPainPoint === "charts"
+      ? "/learn/journey/learn-trading.png"
+      : selectedPainPoint === "fear"
+      ? "/learn/journey/build-confidence.png"
+      : selectedPainPoint === "info"
+      ? "/learn/journey/practice-risk-free.png"
+      : "/learn/journey/follow-roadmap.png"
+  }
+  alt="TradeNestX Learning Journey"
+  width={1200}
+  height={800}
+  className="h-full w-full object-cover"
+/>
 
       </div>
 
@@ -1435,22 +1439,24 @@ window.scrollTo({
       </div>
 
 <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-  <img
-    src={
-  selectedMarketImage === -1
-    ? "/learn/markets/what-are-you-buying.png"
-    : [
-        "/learn/markets/stocks.png",
-        "/learn/markets/crypto.png",
-        "/learn/markets/forex.png",
-        "/learn/markets/index.png",
-        "/learn/markets/futures.png",
-        "/learn/markets/options.png",
-      ][selectedMarketImage]
-}
-    alt="Market example"
-    className="block w-full h-auto object-contain"
-  />
+<Image
+  src={
+    selectedMarketImage === -1
+      ? "/learn/markets/what-are-you-buying.png"
+      : [
+          "/learn/markets/stocks.png",
+          "/learn/markets/crypto.png",
+          "/learn/markets/forex.png",
+          "/learn/markets/index.png",
+          "/learn/markets/futures.png",
+          "/learn/markets/options.png",
+        ][selectedMarketImage]
+  }
+  alt="Market example"
+  width={1200}
+  height={800}
+  className="block w-full h-auto object-contain"
+/>
 
   <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 border-t border-white/10 bg-[#050816] px-4 py-3 -mt-1">
 {[
@@ -1487,11 +1493,13 @@ window.scrollTo({
  <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
   <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
 <div className="flex items-center justify-center pl-2">
-  <img
-    src="/gaby.png"
-    alt="Gaby AI"
-    className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-  />
+<Image
+  src="/gaby.png"
+  alt="Gaby AI"
+  width={210}
+  height={210}
+  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+/>
 </div>
 
     <div>
@@ -1630,23 +1638,25 @@ window.scrollTo({
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 
-        <img
-src={
-  marketLessonSlide === -1
-    ? "/learn/market/how-market-works.png"
-    : [
-        "/learn/market/buyers.png",
-        "/learn/market/sellers.png",
-        "/learn/market/buyers-vs-sellers.png",
-        "/learn/market/supply.png",
-        "/learn/market/demand.png",
-        "/learn/market/supply-vs-demand.png",
-        "/learn/market/volatility.png",
-      ][marketLessonSlide]
-}
-          alt="Market lesson"
-          className="block w-full h-[625px] object-fill bg-white"
-        />
+<Image
+  src={
+    marketLessonSlide === -1
+      ? "/learn/market/how-market-works.png"
+      : [
+          "/learn/market/buyers.png",
+          "/learn/market/sellers.png",
+          "/learn/market/buyers-vs-sellers.png",
+          "/learn/market/supply.png",
+          "/learn/market/demand.png",
+          "/learn/market/supply-vs-demand.png",
+          "/learn/market/volatility.png",
+        ][marketLessonSlide]
+  }
+  alt="Market lesson"
+  width={1200}
+  height={800}
+  className="block w-full h-[625px] object-fill bg-white"
+/>
 
 <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
 
