@@ -929,52 +929,28 @@ setMessage("Practice account reset.");
     return value >= 0 ? "text-green-400" : "text-red-400";
   }
 
- const watchlist =
-  marketMode === "SPOT"
-    ? [
-        { symbol: "BTC" as AssetSymbol, name: "Bitcoin", price: prices.BTC },
-        { symbol: "ETH" as AssetSymbol, name: "Ethereum", price: prices.ETH },
-        { symbol: "SOL" as AssetSymbol, name: "Solana", price: prices.SOL },
-        { symbol: "XRP" as AssetSymbol, name: "XRP", price: prices.XRP },
-        { symbol: "DOGE" as AssetSymbol, name: "Dogecoin", price: prices.DOGE },
-        { symbol: "ADA" as AssetSymbol, name: "Cardano", price: prices.ADA },
-        { symbol: "AVAX" as AssetSymbol, name: "Avalanche", price: prices.AVAX },
-        { symbol: "LINK" as AssetSymbol, name: "Chainlink", price: prices.LINK },
-        { symbol: "MATIC" as AssetSymbol, name: "Polygon", price: prices.MATIC },
-        { symbol: "DOT" as AssetSymbol, name: "Polkadot", price: prices.DOT },
-        { symbol: "SHIB" as AssetSymbol, name: "Shiba Inu", price: prices.SHIB },
-        { symbol: "LTC" as AssetSymbol, name: "Litecoin", price: prices.LTC },
-        { symbol: "BCH" as AssetSymbol, name: "Bitcoin Cash", price: prices.BCH },
-        { symbol: "UNI" as AssetSymbol, name: "Uniswap", price: prices.UNI },
-        { symbol: "ATOM" as AssetSymbol, name: "Cosmos", price: prices.ATOM },
-        { symbol: "ETC" as AssetSymbol, name: "Ethereum Classic", price: prices.ETC },
-        { symbol: "XLM" as AssetSymbol, name: "Stellar", price: prices.XLM },
-        { symbol: "FIL" as AssetSymbol, name: "Filecoin", price: prices.FIL },
-        { symbol: "APT" as AssetSymbol, name: "Aptos", price: prices.APT },
-        { symbol: "OP" as AssetSymbol, name: "Optimism", price: prices.OP },
-      ]
-    : [
-        { symbol: "AAPL" as AssetSymbol, name: "Apple", price: prices.AAPL },
-        { symbol: "TSLA" as AssetSymbol, name: "Tesla", price: prices.TSLA },
-        { symbol: "NVDA" as AssetSymbol, name: "NVIDIA", price: prices.NVDA },
-        { symbol: "AMZN" as AssetSymbol, name: "Amazon", price: prices.AMZN },
-        { symbol: "META" as AssetSymbol, name: "Meta", price: prices.META },
-        { symbol: "MSFT" as AssetSymbol, name: "Microsoft", price: prices.MSFT },
-        { symbol: "AMD" as AssetSymbol, name: "AMD", price: prices.AMD },
-        { symbol: "NFLX" as AssetSymbol, name: "Netflix", price: prices.NFLX },
-        { symbol: "COIN" as AssetSymbol, name: "Coinbase", price: prices.COIN },
-        { symbol: "GOOGL" as AssetSymbol, name: "Google", price: prices.GOOGL },
-        { symbol: "PLTR" as AssetSymbol, name: "Palantir", price: prices.PLTR },
-        { symbol: "SMCI" as AssetSymbol, name: "Super Micro", price: prices.SMCI },
-        { symbol: "ARM" as AssetSymbol, name: "ARM", price: prices.ARM },
-        { symbol: "SNOW" as AssetSymbol, name: "Snowflake", price: prices.SNOW },
-        { symbol: "SHOP" as AssetSymbol, name: "Shopify", price: prices.SHOP },
-        { symbol: "RBLX" as AssetSymbol, name: "Roblox", price: prices.RBLX },
-        { symbol: "DIS" as AssetSymbol, name: "Disney", price: prices.DIS },
-        { symbol: "JPM" as AssetSymbol, name: "JPMorgan", price: prices.JPM },
-        { symbol: "BA" as AssetSymbol, name: "Boeing", price: prices.BA },
-        { symbol: "NIO" as AssetSymbol, name: "NIO", price: prices.NIO },
-      ];
+const watchlist = [
+  { symbol: "BTC" as AssetSymbol, name: "Bitcoin", price: prices.BTC },
+  { symbol: "ETH" as AssetSymbol, name: "Ethereum", price: prices.ETH },
+  { symbol: "SOL" as AssetSymbol, name: "Solana", price: prices.SOL },
+  { symbol: "XRP" as AssetSymbol, name: "XRP", price: prices.XRP },
+  { symbol: "DOGE" as AssetSymbol, name: "Dogecoin", price: prices.DOGE },
+  { symbol: "ADA" as AssetSymbol, name: "Cardano", price: prices.ADA },
+  { symbol: "AVAX" as AssetSymbol, name: "Avalanche", price: prices.AVAX },
+  { symbol: "LINK" as AssetSymbol, name: "Chainlink", price: prices.LINK },
+  { symbol: "MATIC" as AssetSymbol, name: "Polygon", price: prices.MATIC },
+  { symbol: "DOT" as AssetSymbol, name: "Polkadot", price: prices.DOT },
+  { symbol: "SHIB" as AssetSymbol, name: "Shiba Inu", price: prices.SHIB },
+  { symbol: "LTC" as AssetSymbol, name: "Litecoin", price: prices.LTC },
+  { symbol: "BCH" as AssetSymbol, name: "Bitcoin Cash", price: prices.BCH },
+  { symbol: "UNI" as AssetSymbol, name: "Uniswap", price: prices.UNI },
+  { symbol: "ATOM" as AssetSymbol, name: "Cosmos", price: prices.ATOM },
+  { symbol: "ETC" as AssetSymbol, name: "Ethereum Classic", price: prices.ETC },
+  { symbol: "XLM" as AssetSymbol, name: "Stellar", price: prices.XLM },
+  { symbol: "FIL" as AssetSymbol, name: "Filecoin", price: prices.FIL },
+  { symbol: "APT" as AssetSymbol, name: "Aptos", price: prices.APT },
+  { symbol: "OP" as AssetSymbol, name: "Optimism", price: prices.OP },
+];
 
   return (
     <>
@@ -995,9 +971,9 @@ setMessage("Practice account reset.");
                     ? "bg-cyan-500 text-black"
                     : "bg-zinc-800"
                 }`}
-              >
-                Spot
-              </button>
+>
+  Crypto Spot
+</button>
 
               <button
                 onClick={() => {
@@ -1009,9 +985,9 @@ setMessage("Practice account reset.");
                     ? "bg-cyan-500 text-black"
                     : "bg-zinc-800"
                 }`}
-              >
-                Futures
-              </button>
+>
+  Crypto Futures
+</button>
             </div>
 
             <div className="flex items-center justify-between mb-4">
@@ -1133,9 +1109,9 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
 <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
   <div>
-    <h2 className="text-xl font-black tracking-wide text-white">
-      {selectedCoin}/USD · {selectedTimeframe}
-    </h2>
+<h2 className="text-xl font-black tracking-wide text-white">
+  {selectedCoin}/USD · {marketMode === "SPOT" ? "Spot" : "Futures"} · {selectedTimeframe}
+</h2>
 
     <p className="text-xs text-zinc-600 mt-1 tracking-wide">
       Real-time simulated market data
