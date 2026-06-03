@@ -279,6 +279,7 @@ useEffect(() => {
   loadTrades();
 }, [user]);
   const [message, setMessage] = useState("");
+  const [showResetModal, setShowResetModal] = useState(false);
   const [tradeAmount, setTradeAmount] = useState<number | "">(100);
   const [takeProfit, setTakeProfit] = useState<number | "">("");
 const [stopLoss, setStopLoss] = useState<number | "">("");
@@ -346,6 +347,8 @@ const liquidationPrice =
   return candles;
 }
   const chartRef = useRef<HTMLDivElement | null>(null);
+  const chartInstanceRef = useRef<any>(null);
+const candleSeriesRef = useRef<any>(null);
 
 function updatePrices() {
   setPrices((prev) => {
@@ -546,38 +549,36 @@ useEffect(() => {
     setStopLoss("");
   }
 }, [prices]);
-  useEffect(() => {
+useEffect(() => {
   if (!chartRef.current || history.length === 0) return;
 
-  chartRef.current.innerHTML = "";
-
-  const chart = createChart(chartRef.current, {
-    layout: {
-  attributionLogo: false,
-      background: {
-        type: ColorType.Solid,
-        color: "#0f172a",
+  if (!chartInstanceRef.current) {
+    const chart = createChart(chartRef.current, {
+      layout: {
+        attributionLogo: false,
+        background: {
+          type: ColorType.Solid,
+          color: "#0f172a",
+        },
+        textColor: "#d4d4d8",
       },
-      textColor: "#d4d4d8",
-    },
-    grid: {
-      vertLines: { color: "#1f2937" },
-      horzLines: { color: "#1f2937" },
-    },
-    handleScroll: {
-  mouseWheel: true,
-  pressedMouseMove: true,
-},
-
-handleScale: {
-  mouseWheel: true,
-  pinch: true,
-},
-    width: chartRef.current.clientWidth,
-    height: 590,
-    rightPriceScale: {
-      borderColor: "#27272a",
-    },
+      grid: {
+        vertLines: { color: "#1f2937" },
+        horzLines: { color: "#1f2937" },
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+      },
+      handleScale: {
+        mouseWheel: true,
+        pinch: true,
+      },
+      width: chartRef.current.clientWidth,
+      height: 520,
+      rightPriceScale: {
+        borderColor: "#27272a",
+      },
 timeScale: {
   visible: true,
   borderVisible: true,
@@ -586,72 +587,72 @@ timeScale: {
   secondsVisible: false,
   fixLeftEdge: true,
   fixRightEdge: true,
-  barSpacing: 12,
-  minBarSpacing: 8,
+  rightOffset: 0,
+  barSpacing: 7,
+  minBarSpacing: 4,
 },
-  });
-
-  const candleSeries = chart.addSeries(CandlestickSeries, {
-    upColor: "#16a34a",
-    downColor: "#dc2626",
-    borderVisible: false,
-    wickUpColor: "#16a34a",
-    wickDownColor: "#dc2626",
-  });
-
-  candleSeries.setData(
-  history.map((item, index) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (history.length - index));
-
-  return {
-    time: {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-    } as any,
-    open: item.open,
-    high: item.high,
-    low: item.low,
-    close: item.close,
-  };
-})
-  );
-  chart.timeScale().fitContent();
-chart.timeScale().scrollToRealTime();
-chart.subscribeCrosshairMove((param) => {
-  if (!param.time) {
-    setSelectedCandleDate("Hover a candle");
-    return;
-  }
-
-  const time = param.time as any;
-
-  if (typeof time === "object") {
-    const date = new Date(time.year, time.month - 1, time.day);
-
-    setSelectedCandleDate(
-      date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })
-    );
-  }
-});
-  const handleResize = () => {
-    if (!chartRef.current) return;
-
-    chart.applyOptions({
-      width: chartRef.current.clientWidth,
     });
-  };
 
-  window.addEventListener("resize", handleResize);
+    const candleSeries = chart.addSeries(CandlestickSeries, {
+      upColor: "#16a34a",
+      downColor: "#dc2626",
+      borderVisible: false,
+      wickUpColor: "#16a34a",
+      wickDownColor: "#dc2626",
+    });
 
-  return () => {
-    window.removeEventListener("resize", handleResize);
-    chart.remove();
-  };
+    chartInstanceRef.current = chart;
+    candleSeriesRef.current = candleSeries;
+
+    const handleResize = () => {
+      if (!chartRef.current || !chartInstanceRef.current) return;
+
+      chartInstanceRef.current.applyOptions({
+        width: chartRef.current.clientWidth,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    chart.subscribeCrosshairMove((param) => {
+      if (!param.time) {
+        setSelectedCandleDate("Hover a candle");
+        return;
+      }
+
+      const time = param.time as any;
+
+      if (typeof time === "object") {
+        const date = new Date(time.year, time.month - 1, time.day);
+
+        setSelectedCandleDate(
+          date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
+        );
+      }
+    });
+  }
+
+  candleSeriesRef.current?.setData(
+    history.map((item, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (history.length - index));
+
+      return {
+        time: {
+          year: date.getFullYear(),
+          month: date.getMonth() + 1,
+          day: date.getDate(),
+        } as any,
+        open: item.open,
+        high: item.high,
+        low: item.low,
+        close: item.close,
+      };
+    })
+  );
 }, [history]);
   function buyCoin() {
     if (!tradeAmount || balance < tradeAmount) {
@@ -897,6 +898,8 @@ function resetAccount() {
   setAveragePrices(emptyPositions);
 setTrades([]);
 setMarginUsed(0);
+setFuturesPositions([]);
+setFuturesHistory([]);
 setMessage("Practice account reset.");
 
  if (user) {
@@ -921,9 +924,30 @@ setMessage("Practice account reset.");
       (total, [symbol, qty]) => total + qty * prices[symbol as AssetSymbol],
       0
     );
+const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
+  const current = prices[position.coin as AssetSymbol];
 
-  const totalPnl = portfolioValue - startingBalance;
-  const totalPnlPercent = (totalPnl / startingBalance) * 100;
+  const pnl =
+    position.side === "LONG"
+      ? (current - position.entryPrice) * position.quantity
+      : (position.entryPrice - current) * position.quantity;
+
+  return total + pnl;
+}, 0);
+
+const accountEquity =
+  marketMode === "FUTURES"
+    ? balance + marginUsed + futuresUnrealizedPnl
+    : portfolioValue;
+const accountValue =
+  marketMode === "FUTURES"
+    ? accountEquity
+    : portfolioValue;
+
+const totalPnl = accountValue - startingBalance;
+
+const totalPnlPercent =
+  (totalPnl / startingBalance) * 100;
 
   function pnlColor(value: number) {
     return value >= 0 ? "text-green-400" : "text-red-400";
@@ -1084,7 +1108,31 @@ onChange={(e) => setSearchTerm(e.target.value)}
    
 
             <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 h-[760px] flex flex-col overflow-hidden">
-          <div className="flex justify-start gap-2 mb-4">
+
+
+<div className="mb-6 border-b border-zinc-800 pb-4">
+  <div className="flex items-end gap-4">
+    <h2 className="text-3xl font-black text-white">
+      {selectedCoin}/USD
+    </h2>
+
+    <p className="text-3xl font-black text-white">
+      ${(currentPrice ?? 0).toLocaleString()}
+    </p>
+  </div>
+
+  <div className="mt-2 flex items-center gap-4">
+    <p className="text-sm text-zinc-500">
+      {marketMode === "SPOT" ? "Spot Market" : "Futures Market"} · {selectedTimeframe}
+    </p>
+
+    <p className="text-sm text-zinc-500">
+      {now ? now.toLocaleTimeString() : "--:--:--"}
+    </p>
+  </div>
+</div>
+
+          <div className="flex justify-start gap-2 mb-1">
   {["1M", "5M", "15M", "1H", "4H", "1D", "1W", "1MO"].map(
     (timeframe) => (
      <button
@@ -1107,31 +1155,10 @@ onChange={(e) => setSearchTerm(e.target.value)}
   )}
 </div>
 
-<div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
-  <div>
-<h2 className="text-xl font-black tracking-wide text-white">
-  {selectedCoin}/USD · {marketMode === "SPOT" ? "Spot" : "Futures"} · {selectedTimeframe}
-</h2>
-
-    <p className="text-xs text-zinc-600 mt-1 tracking-wide">
-      Real-time simulated market data
-    </p>
-  </div>
-
-  <div className="text-right">
-  <p className="text-base font-bold tracking-wide text-zinc-400 mb-1">
-    {now ? now.toLocaleTimeString() : "--:--:--"}
-  </p>
-
-  <p className="text-2xl font-black text-white tracking-wide leading-none">
-    ${(currentPrice ?? 0).toLocaleString()}
-  </p>
-</div>
-</div>
 <div className="flex-1 rounded-xl overflow-hidden">
   <div
     ref={chartRef}
-    className="h-[590px] w-full"
+    className="h-[520px] w-full"
   />
 
   <div className="flex items-center justify-between border-t border-zinc-800 bg-[#0f172a] px-4 py-2 text-xs font-bold text-zinc-500">
@@ -1161,32 +1188,61 @@ onChange={(e) => setSearchTerm(e.target.value)}
       <span className="font-bold text-white">${balance.toFixed(2)}</span>
     </div>
 
-    <div className="flex items-center justify-between">
-      <span className="text-zinc-500">Portfolio Value</span>
-      <span className="font-bold text-cyan-400">${portfolioValue.toFixed(2)}</span>
-    </div>
+<div className="flex items-center justify-between">
+  <span className="text-zinc-500">
+    {marketMode === "FUTURES" ? "Account Equity" : "Portfolio Value"}
+  </span>
 
-    <div className="flex items-center justify-between">
-      <span className="text-zinc-500">Margin Used</span>
-      <span className="font-bold text-orange-400">${marginUsed.toFixed(2)}</span>
-    </div>
+  <span className="font-bold text-cyan-400">
+    ${accountEquity.toFixed(2)}
+  </span>
+</div>
 
-    <div className="flex items-center justify-between">
-      <span className="text-zinc-500">Available</span>
-      <span className="font-bold text-green-400">${balance.toFixed(2)}</span>
-    </div>
+{marketMode === "FUTURES" && (
+  <div className="flex items-center justify-between">
+    <span className="text-zinc-500">Margin Used</span>
+    <span className="font-bold text-orange-400">${marginUsed.toFixed(2)}</span>
+  </div>
+)}
+
+{marketMode === "FUTURES" && (
+  <div className="flex items-center justify-between">
+    <span className="text-zinc-500">Open P/L</span>
+
+    <span
+      className={`font-bold ${
+        futuresUnrealizedPnl >= 0 ? "text-green-400" : "text-red-400"
+      }`}
+    >
+      ${futuresUnrealizedPnl.toFixed(2)}
+    </span>
+  </div>
+)}
+
+
+
+<div className="flex items-center justify-between">
+  <span className="text-zinc-500">Total Return</span>
+
+  <span
+    className={`font-bold ${
+      totalPnlPercent >= 0
+        ? "text-green-400"
+        : "text-red-400"
+    }`}
+  >
+    {totalPnlPercent.toFixed(2)}%
+  </span>
+</div>
+
   </div>
 </div>
 
   <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-5 h-fit">
   <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">
-    Order Entry
-  </h2>
 
-  <span className="text-xs font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">
-    PAPER
-  </span>
+
+
 </div>
 
   <div className="flex justify-center">
@@ -1285,7 +1341,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
     />
   </div>
 )}
-  <div className="mt-4 flex flex-wrap justify-center gap-2">
+  <div className="mt-4 grid grid-cols-4 gap-2">
     {[100, 500, 1000].map((amount) => (
       <button
         key={amount}
@@ -1387,12 +1443,12 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 
   <div className="mt-6 flex justify-center">
-    <button
-      onClick={resetAccount}
-      className="bg-zinc-800 text-zinc-300 px-6 py-3 rounded-xl font-bold border border-zinc-700 transition-all hover:border-red-500 hover:text-red-400"
-    >
-      Reset Practice Account
-    </button>
+<button
+  onClick={() => setShowResetModal(true)}
+  className="bg-zinc-800 text-zinc-300 px-6 py-3 rounded-xl font-bold border border-zinc-700 transition-all hover:border-red-500 hover:text-red-400"
+>
+  Reset Practice Account
+</button>
   </div>
 
   {message && (
@@ -1434,18 +1490,18 @@ onChange={(e) => setSearchTerm(e.target.value)}
   ? "Futures History"
   : "Spot History"}
         </button>
-<button
-  onClick={() => setActiveBottomTab("ORDERS")}
-  className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
-    activeBottomTab === "ORDERS"
-      ? "bg-cyan-500 text-black"
-      : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
-  }`}
->
-  {marketMode === "FUTURES"
-  ? "Futures Orders"
-  : "Spot Orders"}
-</button>
+{marketMode === "FUTURES" && (
+  <button
+    onClick={() => setActiveBottomTab("ORDERS")}
+    className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
+      activeBottomTab === "ORDERS"
+        ? "bg-cyan-500 text-black"
+        : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
+    }`}
+  >
+    Futures Orders
+  </button>
+)}
       </div>
 
       
@@ -1929,7 +1985,47 @@ onChange={(e) => setSearchTerm(e.target.value)}
 )}
   </div>
 </div>
+
+{showResetModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+    <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0f172a] p-8 shadow-[0_20px_80px_rgba(0,0,0,0.6)]">
+      <h3 className="text-2xl font-black text-red-400">
+        Reset Practice Account
+      </h3>
+
+      <p className="mt-4 text-zinc-300 leading-7">
+        This will permanently delete your balance, open positions,
+        trade history, futures history, and trading statistics.
+      </p>
+
+      <p className="mt-3 font-bold text-red-400">
+        This action cannot be undone.
+      </p>
+
+      <div className="mt-8 grid grid-cols-2 gap-3">
+        <button
+          onClick={() => setShowResetModal(false)}
+          className="rounded-xl border border-zinc-700 py-3 font-bold text-zinc-300 transition-all hover:border-cyan-500 hover:text-cyan-400"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => {
+            resetAccount();
+            setShowResetModal(false);
+          }}
+          className="rounded-xl bg-red-500 py-3 font-black text-white transition-all hover:bg-red-400"
+        >
+          Yes, Reset
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       </main>
+
     </>
   );
 }
