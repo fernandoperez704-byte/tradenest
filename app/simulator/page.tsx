@@ -7,6 +7,7 @@ import {
   createChart,
   ColorType,
   CandlestickSeries,
+  HistogramSeries,
 } from "lightweight-charts";
 import { db } from "../firebase";
 import {
@@ -29,6 +30,7 @@ type PricePoint = {
   high: number;
   low: number;
   close: number;
+  volume: number;
 };
 
 type AssetSymbol =
@@ -181,6 +183,10 @@ const emptyPositions: Record<AssetSymbol, number> = {
 
 export default function SimulatorPage() {
 const { user } = useUser();
+
+useEffect(() => {
+  window.scrollTo(0, 0);
+}, []);
   const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
@@ -218,6 +224,7 @@ const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a ca
       high,
       low,
       close,
+      volume: Math.floor(Math.random() * 5000 + 1000),
     });
 
     lastPrice = close;
@@ -299,6 +306,15 @@ const [pendingLimitOrder, setPendingLimitOrder] = useState<{
   mode: "SPOT" | "FUTURES";
   leverage?: number;
 } | null>(null);
+const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
+  coin: AssetSymbol;
+  amount: number;
+  limitPrice: number;
+  side: "LONG" | "SHORT";
+  mode: "FUTURES";
+  leverage?: number;
+} | null>(null);
+
   const [trades, setTrades] = useState<Trade[]>([]);
   const [now, setNow] = useState<Date | null>(null);
 
@@ -342,6 +358,7 @@ const liquidationPrice =
       high,
       low,
       close,
+      volume: Math.floor(Math.random() * 5000 + 1000),
     });
 
     lastPrice = close;
@@ -352,7 +369,9 @@ const liquidationPrice =
   const chartRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<any>(null);
 const candleSeriesRef = useRef<any>(null);
+const volumeSeriesRef = useRef<any>(null);
 const liquidationLinesRef = useRef<any[]>([]);
+const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
 function updatePrices() {
   setPrices((prev) => {
@@ -405,6 +424,7 @@ setHistory((old) => {
       high,
       low,
       close,
+      volume: Math.floor(Math.random() * 5000 + 1000),
     },
   ];
 });
@@ -524,46 +544,50 @@ useEffect(() => {
     }
   }
 
-  if (pendingLimitOrder.mode === "FUTURES") {
-    if (
-      pendingLimitOrder.side === "LONG" &&
-      current <= pendingLimitOrder.limitPrice
-    ) {
-      const savedOrder = pendingLimitOrder;
 
-      setSelectedCoin(savedOrder.coin);
-      setTradeAmount(savedOrder.amount);
-      setLeverage(savedOrder.leverage || 1);
-      setLimitPrice("");
-      setPendingLimitOrder(null);
-
-      setTimeout(() => {
-        openFuturesPosition("LONG");
-        setMessage(`Limit LONG filled for ${savedOrder.coin}`);
-      }, 0);
-    }
-
-    if (
-      pendingLimitOrder.side === "SHORT" &&
-      current >= pendingLimitOrder.limitPrice
-    ) {
-      const savedOrder = pendingLimitOrder;
-
-      setSelectedCoin(savedOrder.coin);
-      setTradeAmount(savedOrder.amount);
-      setLeverage(savedOrder.leverage || 1);
-      setLimitPrice("");
-      setPendingLimitOrder(null);
-
-      setTimeout(() => {
-        openFuturesPosition("SHORT");
-        setMessage(`Limit SHORT filled for ${savedOrder.coin}`);
-      }, 0);
-    }
-  }
 }, [prices]);
 
+useEffect(() => {
+  if (!pendingFuturesLimitOrder) return;
 
+  const current = prices[pendingFuturesLimitOrder.coin];
+
+  if (
+    pendingFuturesLimitOrder.side === "LONG" &&
+    current <= pendingFuturesLimitOrder.limitPrice
+  ) {
+    const savedOrder = pendingFuturesLimitOrder;
+
+    setSelectedCoin(savedOrder.coin);
+    setTradeAmount(savedOrder.amount);
+    setLeverage(savedOrder.leverage || 1);
+    setLimitPrice("");
+    setPendingFuturesLimitOrder(null);
+
+    setTimeout(() => {
+      openFuturesPosition("LONG", savedOrder.leverage || 1);
+      setMessage(`Limit LONG filled for ${savedOrder.coin}`);
+    }, 0);
+  }
+
+  if (
+    pendingFuturesLimitOrder.side === "SHORT" &&
+    current >= pendingFuturesLimitOrder.limitPrice
+  ) {
+    const savedOrder = pendingFuturesLimitOrder;
+
+    setSelectedCoin(savedOrder.coin);
+    setTradeAmount(savedOrder.amount);
+    setLeverage(savedOrder.leverage || 1);
+    setLimitPrice("");
+    setPendingFuturesLimitOrder(null);
+
+    setTimeout(() => {
+      openFuturesPosition("SHORT", savedOrder.leverage || 1);
+      setMessage(`Limit SHORT filled for ${savedOrder.coin}`);
+    }, 0);
+  }
+}, [prices]);
 
 useEffect(() => {
   if (positions[selectedCoin] <= 0) return;
@@ -694,8 +718,32 @@ timeScale: {
       wickDownColor: "#dc2626",
     });
 
+    candleSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.05,
+        bottom: 0.28,
+      },
+    });
+
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      priceFormat: {
+        type: "volume",
+      },
+      priceScaleId: "",
+    });
+
+    volumeSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.78,
+        bottom: 0,
+      },
+    });
+
+
+
     chartInstanceRef.current = chart;
     candleSeriesRef.current = candleSeries;
+    volumeSeriesRef.current = volumeSeries;
 
     const handleResize = () => {
       if (!chartRef.current || !chartInstanceRef.current) return;
@@ -728,23 +776,45 @@ timeScale: {
     });
   }
 
-  candleSeriesRef.current?.setData(
-    history.map((item, index) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (history.length - index));
+  const chartData = history.map((item, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (history.length - index));
 
-      return {
-        time: {
-          year: date.getFullYear(),
-          month: date.getMonth() + 1,
-          day: date.getDate(),
-        } as any,
-        open: item.open,
-        high: item.high,
-        low: item.low,
-        close: item.close,
-      };
-    })
+    const time = {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+    } as any;
+
+    return {
+      time,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close,
+      volume: item.volume,
+    };
+  });
+
+  candleSeriesRef.current?.setData(
+    chartData.map((item) => ({
+      time: item.time,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close,
+    }))
+  );
+
+  volumeSeriesRef.current?.setData(
+    chartData.map((item) => ({
+      time: item.time,
+      value: item.volume,
+      color:
+        item.close >= item.open
+          ? "rgba(34,197,94,0.55)"
+          : "rgba(239,68,68,0.55)",
+    }))
   );
 
 liquidationLinesRef.current.forEach((line) => {
@@ -753,30 +823,79 @@ liquidationLinesRef.current.forEach((line) => {
 
 liquidationLinesRef.current = [];
 
-if (marketMode === "FUTURES") {
-  futuresPositions
-    .filter((position) => position.coin === selectedCoin)
-    .forEach((position) => {
-      const line = candleSeriesRef.current?.createPriceLine({
-        price: position.liquidationPrice,
-        color: "#ef4444",
-        lineWidth: 2,
-        lineStyle: 2,
-        axisLabelVisible: true,
-        title: "LIQ",
-      });
 
-      if (line) {
-        liquidationLinesRef.current.push(line);
-      }
+
+if (marketMode === "FUTURES") {
+  const activePosition = futuresPositions.find(
+    (position) => position.coin === selectedCoin
+  );
+
+  if (activePosition) {
+
+
+    const line = candleSeriesRef.current?.createPriceLine({
+      price: activePosition.liquidationPrice,
+      color: "#ef4444",
+      lineWidth: 2,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: "LIQ",
     });
+
+    if (line) {
+      liquidationLinesRef.current.push(line);
+    }
+  }
 }
+
+entryLinesRef.current.forEach((line) => {
+  candleSeriesRef.current?.removePriceLine(line);
+});
+
+entryLinesRef.current = [];
 
 riskLinesRef.current.forEach((line) => {
   candleSeriesRef.current?.removePriceLine(line);
 });
 
 riskLinesRef.current = [];
+
+const activeEntryPosition =
+  marketMode === "FUTURES"
+    ? futuresPositions.find(
+        (position) => position.coin === selectedCoin
+      )
+    : null;
+
+if (marketMode === "FUTURES" && activeEntryPosition) {
+  const entryLine = candleSeriesRef.current?.createPriceLine({
+    price: activeEntryPosition.entryPrice,
+color: "#64748b",
+lineWidth: 2,
+    lineStyle: 2,
+    axisLabelVisible: true,
+    title: "ENTRY",
+  });
+
+  if (entryLine) {
+    riskLinesRef.current.push(entryLine);
+  }
+}
+
+if (marketMode === "SPOT" && positions[selectedCoin] > 0) {
+  const entryLine = candleSeriesRef.current?.createPriceLine({
+    price: averagePrices[selectedCoin],
+color: "#64748b",
+lineWidth: 2,
+    lineStyle: 2,
+    axisLabelVisible: true,
+    title: "ENTRY",
+  });
+
+  if (entryLine) {
+    riskLinesRef.current.push(entryLine);
+  }
+}
 
 if (takeProfit !== "") {
   const tpLine = candleSeriesRef.current?.createPriceLine({
@@ -808,7 +927,16 @@ if (stopLoss !== "") {
   }
 }
 
-}, [history, futuresPositions, marketMode, selectedCoin, takeProfit, stopLoss]);
+}, [
+  history,
+  futuresPositions,
+  positions,
+  averagePrices,
+  marketMode,
+  selectedCoin,
+  takeProfit,
+  stopLoss,
+]);
   function buyCoin() {
     if (!tradeAmount || balance < tradeAmount) {
       setMessage("Invalid trade amount.");
@@ -909,7 +1037,7 @@ if (user) {
 }
   }
 
-  function openFuturesPosition(side: "LONG" | "SHORT") {
+  function openFuturesPosition(side: "LONG" | "SHORT", orderLeverage = leverage) {
   if (!tradeAmount || balance < Number(tradeAmount)) {
     setMessage("Invalid margin amount.");
     return;
@@ -917,14 +1045,14 @@ if (user) {
 
   const margin = Number(tradeAmount);
   if (orderType === "LIMIT" && limitPrice !== "") {
-  setPendingLimitOrder({
-    coin: selectedCoin,
-    amount: margin,
-    limitPrice: Number(limitPrice),
-    side,
-    mode: "FUTURES",
-    leverage,
-  });
+setPendingFuturesLimitOrder({
+  coin: selectedCoin,
+  amount: margin,
+  limitPrice: Number(limitPrice),
+  side,
+  mode: "FUTURES",
+  leverage: orderLeverage,
+});
 
   setMessage(
     `Limit ${side} placed for ${selectedCoin} at $${Number(limitPrice).toFixed(2)}`
@@ -1058,6 +1186,7 @@ if (user) {
     coin: selectedCoin,
     amount: value,
     price: currentPrice,
+    pnl: spotPnl,
     created: new Date(),
   });
 }
@@ -1069,11 +1198,21 @@ function resetAccount() {
   setBalance(startingBalance);
   setPositions(emptyPositions);
   setAveragePrices(emptyPositions);
-setTrades([]);
-setMarginUsed(0);
-setFuturesPositions([]);
-setFuturesHistory([]);
-setMessage("Practice account reset.");
+  setTrades([]);
+  setMarginUsed(0);
+  setFuturesPositions([]);
+  setFuturesHistory([]);
+
+  setTradeAmount("");
+  setTakeProfit("");
+  setStopLoss("");
+  setLimitPrice("");
+  setPendingLimitOrder(null);
+  setPendingFuturesLimitOrder(null);
+  setOrderType("MARKET");
+  setLeverage(1);
+
+  setMessage("Practice account reset.");
 
  if (user) {
   deleteDoc(doc(db, "portfolios", user.id));
@@ -1126,6 +1265,11 @@ const totalPnlPercent =
     return value >= 0 ? "text-green-400" : "text-red-400";
   }
 
+const activePendingOrder =
+  marketMode === "FUTURES"
+    ? pendingFuturesLimitOrder
+    : pendingLimitOrder;
+
 const watchlist = [
   { symbol: "BTC" as AssetSymbol, name: "Bitcoin", price: prices.BTC },
   { symbol: "ETH" as AssetSymbol, name: "Ethereum", price: prices.ETH },
@@ -1153,34 +1297,36 @@ const watchlist = [
     <>
       <Navbar />
 
-      <main className="page-shell selection:bg-cyan-500/30">
+      <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
-<div className="mt-2 grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_320px] gap-6 xl:gap-8 w-full page-container">
-          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] overflow-y-scroll scrollbar-hide">
+<div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
+          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden">
             <div className="flex gap-2 mb-4 justify-start">
               <button
-                onClick={() => {
-                 setMarketMode("SPOT");
-                 setSelectedCoin("BTC");
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+onClick={() => {
+  setMarketMode("SPOT");
+  setSelectedCoin("BTC");
+  setActiveBottomTab("POSITIONS");
+}}
+                className={`flex-1 rounded-xl px-3 py-3 text-sm font-black transition-all ${
                   marketMode === "SPOT"
-                    ? "bg-cyan-500 text-black"
-                    : "bg-zinc-800"
+? "bg-cyan-500 text-black"
+: "bg-[#18181b] text-zinc-300 border border-zinc-800 hover:border-cyan-500 hover:text-cyan-400"
                 }`}
 >
   Crypto Spot
 </button>
 
               <button
-                onClick={() => {
-                  setMarketMode("FUTURES");
-                  setSelectedCoin("BTC");
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+onClick={() => {
+  setMarketMode("FUTURES");
+  setSelectedCoin("BTC");
+  setActiveBottomTab("POSITIONS");
+}}
+                className={`flex-1 rounded-xl px-3 py-3 text-sm font-black transition-all ${
                   marketMode === "FUTURES"
-                    ? "bg-cyan-500 text-black"
-                    : "bg-zinc-800"
+? "bg-cyan-500 text-black"
+: "bg-[#18181b] text-zinc-300 border border-zinc-800 hover:border-cyan-500 hover:text-cyan-400"
                 }`}
 >
   Crypto Futures
@@ -1188,7 +1334,7 @@ const watchlist = [
             </div>
 
             <div className="flex items-center justify-between mb-4">
-  <h2 className="text-2xl font-bold text-white">
+  <h2 className="text-xl font-black text-white">
     Watchlist
   </h2>
 
@@ -1201,10 +1347,10 @@ const watchlist = [
   placeholder="Search assets..."
   value={searchTerm}
 onChange={(e) => setSearchTerm(e.target.value)}
-  className="mb-4 w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500"
+  className="mb-3 w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500"
 />
 
-            <div className="space-y-2.5 mt-2">
+            <div className="space-y-2.5 mt-2 flex-1 overflow-y-scroll scrollbar-hide pr-1">
               {watchlist
   .filter(
     (coin) =>
@@ -1228,21 +1374,21 @@ onChange={(e) => setSearchTerm(e.target.value)}
     )
   );
 }}
-                  className={`w-full rounded-lg border border-zinc-800 bg-[#131722] p-2.5 text-left transition-all duration-200 hover:scale-[1.01] hover:bg-zinc-900 ${
+                  className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
                     selectedCoin === coin.symbol
-                      ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-                      : "border-zinc-800 bg-[#131722] hover:bg-zinc-900"
+? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+: "border-zinc-800 bg-[#0f172a] hover:bg-[#111827]"
                   }`}
                 >
 <div className="flex items-start justify-between">
   <div>
-    <p className="text-base font-extrabold tracking-wide text-white">
+    <p className="text-sm font-black tracking-wide text-white">
   {coin.symbol}
 </p>
-    <p className="text-sm opacity-70">{coin.name}</p>
+    <p className="text-xs text-zinc-500">{coin.name}</p>
   </div>
 
-  <p className="text-sm font-bold text-zinc-300">
+  <p className="text-xs font-bold text-zinc-300">
   ${(coin.price ?? 0).toLocaleString()}
 </p>
 </div>
@@ -1280,7 +1426,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
   
    
 
-            <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 h-[760px] flex flex-col overflow-hidden">
+            <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-5 h-[760px] flex flex-col overflow-hidden">
 
 
 <div className="mb-6 border-b border-zinc-800 pb-4">
@@ -1360,14 +1506,14 @@ onChange={(e) => setSearchTerm(e.target.value)}
 </div>
 </div>
 
-            <div className="space-y-6 xl:col-span-1">
+            <div className="space-y-2 xl:col-span-1">
 
-              <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-5">
-  <h2 className="text-xl font-black text-white mb-4">
+              <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4">
+  <h2 className="text-lg font-black text-white mb-3">
     Account Summary
   </h2>
 
-  <div className="space-y-3 text-sm">
+  <div className="space-y-2 text-sm">
     <div className="flex items-center justify-between">
       <span className="text-zinc-500">Cash Balance</span>
       <span className="font-bold text-white">${balance.toFixed(2)}</span>
@@ -1423,7 +1569,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 </div>
 
-  <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-5 h-fit">
+  <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-fit">
   
 <div className="grid grid-cols-3 gap-3">
 
@@ -1436,7 +1582,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
         const value = e.target.value;
         setTradeAmount(value === "" ? "" : Number(value));
       }}
-      className="bg-[#0f172a] border border-zinc-700 text-white px-4 py-3 rounded-xl w-full text-center text-xl focus:outline-none focus:border-green-500"
+      className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-2.5 rounded-xl w-full text-center text-lg focus:outline-none focus:border-green-500"
     />
   </div>
 
@@ -1444,7 +1590,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
     <div className="relative">
       <button
         onClick={() => setShowLeverageMenu(!showLeverageMenu)}
-        className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-3 text-center font-bold text-cyan-400 hover:border-cyan-500"
+        className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center font-bold text-cyan-400 hover:border-cyan-500"
       >
         {leverage}x ▼
       </button>
@@ -1531,7 +1677,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
         const value = e.target.value;
         setLimitPrice(value === "" ? "" : Number(value));
       }}
-      className="bg-[#0f172a] border border-zinc-700 text-white px-4 py-3 rounded-xl w-full text-center text-lg focus:outline-none focus:border-cyan-500"
+      className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-2.5 rounded-xl w-full text-center text-base focus:outline-none focus:border-cyan-500"
     />
   </div>
 )}
@@ -1553,7 +1699,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
       MAX
     </button>
   </div>
-<div className="mt-3 rounded-xl border border-zinc-700 bg-[#0f172a] p-3">
+<div className="mt-3 rounded-xl border border-zinc-700 bg-[#0f172a] p-2.5">
   <div className="flex items-center justify-between text-sm">
     <span className="text-zinc-500">Trade Amount</span>
 
@@ -1617,7 +1763,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
     buyCoin();
   }
 }}
-      className="rounded-xl bg-green-500 px-6 py-2.5 text-base font-black text-black transition-all hover:scale-[1.02] hover:bg-green-400"
+      className="rounded-xl bg-green-500 px-5 py-2 text-sm font-black text-black transition-all hover:scale-[1.02] hover:bg-green-400"
     >
       {marketMode === "FUTURES" ? "LONG" : "BUY"}
     </button>
@@ -1630,7 +1776,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
     sellCoin();
   }
 }}
-      className="rounded-xl bg-red-500 px-6 py-2.5 text-base font-black text-white transition-all hover:scale-[1.02] hover:bg-red-400"
+      className="rounded-xl bg-red-500 px-5 py-2 text-sm font-black text-white transition-all hover:scale-[1.02] hover:bg-red-400"
     >
       {marketMode === "FUTURES" ? "SHORT" : "SELL"}
     </button>
@@ -1639,22 +1785,22 @@ onChange={(e) => setSearchTerm(e.target.value)}
   <div className="mt-4 flex justify-center">
 <button
   onClick={() => setShowResetModal(true)}
-  className="bg-zinc-800 text-zinc-300 px-6 py-3 rounded-xl font-bold border border-zinc-700 transition-all hover:border-red-500 hover:text-red-400"
+  className="bg-zinc-800 text-zinc-300 px-5 py-2 rounded-xl text-sm font-bold border border-zinc-700 transition-all hover:border-red-500 hover:text-red-400"
 >
   Reset Practice Account
 </button>
   </div>
 
   {message && (
-    <p className="text-center mt-6 text-xl font-bold">
+    <p className="mt-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-center text-xs font-bold text-cyan-400">
       {message}
     </p>
   )}
 </div> 
       </div>
       </div>
-    <div className="mt-8 page-container">
-  <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-3">
+    <div className="mt-2 page-container">
+  <div className="max-w-[calc(100%-296px)] bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px]">
 
     <div className="flex items-center justify-between mb-8 border-b border-zinc-800 pb-4">
       <div className="flex gap-3">
@@ -1684,18 +1830,16 @@ onChange={(e) => setSearchTerm(e.target.value)}
   ? "Futures History"
   : "Spot History"}
         </button>
-{marketMode === "FUTURES" && (
-  <button
-    onClick={() => setActiveBottomTab("ORDERS")}
-    className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
-      activeBottomTab === "ORDERS"
-        ? "bg-cyan-500 text-black"
-        : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
-    }`}
-  >
-    Futures Orders
-  </button>
-)}
+<button
+  onClick={() => setActiveBottomTab("ORDERS")}
+  className={`px-6 py-3 rounded-xl font-bold transition-all ${
+    activeBottomTab === "ORDERS"
+      ? "bg-cyan-500 text-black"
+      : "bg-[#18181b] text-zinc-400 border border-white/10"
+  }`}
+>
+  {marketMode === "FUTURES" ? "Futures Orders" : "Spot Orders"}
+</button>
       </div>
 
       
@@ -1707,11 +1851,11 @@ onChange={(e) => setSearchTerm(e.target.value)}
   futuresPositions.map((position, index) => (
     <div
       key={index}
-      className="bg-[#0f172a] border border-cyan-500/30 rounded-2xl p-6 mb-4"
+      className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 mb-3"
     >
-  <div className="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
+  <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-9 gap-3 items-center">
   <div>
-    <p className="text-cyan-400 text-2xl font-bold">
+    <p className="text-cyan-400 text-lg font-bold">
       {position.coin}
     </p>
 
@@ -1723,42 +1867,79 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">Entry</p>
-    <p className="text-xl font-bold text-white">
+    <p className="text-gray-400 text-xs">Entry</p>
+    <p className="text-sm font-bold text-white">
       ${position.entryPrice.toFixed(2)}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">Current</p>
-    <p className="text-xl font-bold text-white">
+    <p className="text-gray-400 text-xs">Current</p>
+    <p className="text-sm font-bold text-white">
       ${prices[position.coin as AssetSymbol].toFixed(2)}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">Position Size</p>
-    <p className="text-xl font-bold text-white">
+    <p className="text-gray-400 text-xs">Position Size</p>
+    <p className="text-sm font-bold text-white">
       ${(position.margin * position.leverage).toFixed(2)}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">Leverage</p>
-    <p className="text-xl font-bold text-white">
+    <p className="text-gray-400 text-xs">Leverage</p>
+    <p className="text-sm font-bold text-white">
       {position.leverage}x
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">Liquidation</p>
-    <p className="text-xl font-bold text-red-400">
+    <p className="text-gray-400 text-xs">Liquidation</p>
+    <p className="text-sm font-bold text-red-400">
       ${position.liquidationPrice.toFixed(2)}
     </p>
   </div>
 
   <div>
-  <p className="text-gray-400 text-sm">Unrealized P/L</p>
+    <p className="text-gray-400 text-xs font-bold uppercase">Risk</p>
+
+    {(() => {
+      const tpDistance =
+        takeProfit !== ""
+          ? Math.abs(Number(takeProfit) - prices[position.coin as AssetSymbol])
+          : 0;
+
+      const slDistance =
+        stopLoss !== ""
+          ? Math.abs(prices[position.coin as AssetSymbol] - Number(stopLoss))
+          : 0;
+
+      const riskReward =
+        takeProfit !== "" && stopLoss !== "" && slDistance > 0
+          ? tpDistance / slDistance
+          : 0;
+
+      return (
+        <>
+          <p className="text-sm font-bold text-green-400">
+            TP: {takeProfit !== "" ? `$${tpDistance.toFixed(2)} away` : "Not set"}
+          </p>
+
+          <p className="mt-1 text-sm font-bold text-red-400">
+            SL: {stopLoss !== "" ? `$${slDistance.toFixed(2)} away` : "Not set"}
+          </p>
+
+          <p className="mt-1 text-sm font-bold text-cyan-400">
+            R/R: {riskReward > 0 ? riskReward.toFixed(2) : "N/A"}
+          </p>
+        </>
+      );
+    })()}
+  </div>
+
+  <div>
+  <p className="text-gray-400 text-xs font-bold uppercase">Open P/L</p>
 
 {(() => {
   const current = prices[position.coin as AssetSymbol];
@@ -1768,12 +1949,12 @@ onChange={(e) => setSearchTerm(e.target.value)}
       ? (current - position.entryPrice) * position.quantity
       : (position.entryPrice - current) * position.quantity;
 
-  return (
-    <p
-      className={`text-2xl font-bold ${
-        pnl >= 0 ? "text-green-400" : "text-red-400"
-      }`}
-    >
+return (
+  <p
+    className={`text-base font-bold ${
+      pnl >= 0 ? "text-green-400" : "text-red-400"
+    }`}
+  >
       ${pnl.toFixed(2)}
     </p>
   );
@@ -1815,7 +1996,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
       `${position.side} ${position.coin} closed. P/L: $${pnl.toFixed(2)}`
     );
   }}
-  className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-400"
+  className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
 >
   Close
 </button>
@@ -1823,9 +2004,23 @@ onChange={(e) => setSearchTerm(e.target.value)}
 </div>
     </div>
 ))}
-        {Object.entries(positions)
-          .filter(([_, qty]) => Number(qty) > 0)
-          .map(([coin, qty]) => {
+
+{marketMode === "FUTURES" && futuresPositions.length === 0 && (
+  <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+    <p className="text-2xl font-bold text-zinc-300">
+      No Futures Positions
+    </p>
+
+    <p className="text-zinc-500 mt-2">
+      Your open futures trades will appear here.
+    </p>
+  </div>
+)}
+
+      {marketMode === "SPOT" &&
+  Object.entries(positions)
+    .filter(([_, qty]) => Number(qty) > 0)
+    .map(([coin, qty]) => {
             const currentPrice =
               prices[coin as keyof typeof prices];
 
@@ -1839,68 +2034,68 @@ onChange={(e) => setSearchTerm(e.target.value)}
               marketValue - Number(qty) * avgPrice;
 
             return (
-              <div
-                key={coin}
-                className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
-              >
-   <div className="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
+<div
+  key={coin}
+  className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
+>
+   <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
   <div>
-    <p className="text-cyan-400 text-2xl font-bold">
+    <p className="text-cyan-400 text-lg font-bold">
       {coin}
     </p>
 
-    <p className="text-gray-400 text-sm mt-1">
+    <p className="text-gray-400 text-xs mt-1">
       Position
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">
+    <p className="text-gray-400 text-xs">
       Quantity
     </p>
 
-    <p className="text-xl font-bold text-white">
+    <p className="text-sm font-bold text-white">
       {Number(qty).toFixed(6)}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">
+    <p className="text-gray-400 text-xs">
       Market Price
     </p>
 
-    <p className="text-xl font-bold text-white">
+    <p className="text-sm font-bold text-white">
       ${currentPrice.toLocaleString()}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">
+    <p className="text-gray-400 text-xs">
       Market Value
     </p>
 
-    <p className="text-xl font-bold text-white">
+    <p className="text-sm font-bold text-white">
       ${marketValue.toFixed(2)}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">
+    <p className="text-gray-400 text-xs">
       Avg Cost
     </p>
 
-    <p className="text-xl font-bold text-white">
+    <p className="text-sm font-bold text-white">
       ${avgPrice.toFixed(2)}
     </p>
   </div>
 
   <div>
-    <p className="text-gray-400 text-sm">
+    <p className="text-gray-400 text-xs">
       Unrealized P/L
     </p>
 
     <p
-      className={`text-2xl font-bold ${
+      className={`text-base font-bold ${
         pnl >= 0 ? "text-green-400" : "text-red-400"
       }`}
     >
@@ -1908,7 +2103,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
     </p>
   </div>
   <div>
-  <p className="text-gray-400 text-sm">
+  <p className="text-gray-400 text-xs">
     TP / SL
   </p>
 
@@ -1925,6 +2120,8 @@ onChange={(e) => setSearchTerm(e.target.value)}
     <button
       onClick={() => {
         const sellValue = Number(qty) * currentPrice;
+        const closePnl =
+  sellValue - Number(qty) * averagePrices[coin as AssetSymbol];
 
         setBalance((prev) => prev + sellValue);
 
@@ -1938,30 +2135,32 @@ onChange={(e) => setSearchTerm(e.target.value)}
           [coin]: 0,
         }));
 
-        setTrades((prev) => [
-          {
-            type: "SELL",
-            coin: coin as AssetSymbol,
-            amount: sellValue,
-            price: currentPrice,
-            time: new Date().toLocaleTimeString(),
-          },
-          ...prev,
-        ]);
+setTrades((prev) => [
+  {
+    type: "SELL",
+    coin: coin as AssetSymbol,
+    amount: sellValue,
+    price: currentPrice,
+    pnl: closePnl,
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
 
-        if (user) {
-          addDoc(collection(db, "trades"), {
-            userId: user.id,
-            userName: user.firstName || "Trader",
-            type: "SELL",
-            coin: coin,
-            amount: sellValue,
-            price: currentPrice,
-            created: new Date(),
-          });
-        }
+if (user) {
+  addDoc(collection(db, "trades"), {
+    userId: user.id,
+    userName: user.firstName || "Trader",
+    type: "SELL",
+    coin: coin,
+    amount: sellValue,
+    price: currentPrice,
+    pnl: closePnl,
+    created: new Date(),
+  });
+}
       }}
-      className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-400"
+      className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
     >
       Close
     </button>
@@ -2005,55 +2204,86 @@ onChange={(e) => setSearchTerm(e.target.value)}
     </div>
   ) : (
     futuresHistory.map((trade, index) => (
-      <div
-        key={index}
-        className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
+<div
+  key={index}
+  className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
+>
+  <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
+    <div>
+      <p
+        className={`text-base font-black ${
+          trade.side === "LONG" ? "text-green-400" : "text-red-400"
+        }`}
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <p
-              className={`text-xl font-black ${
-                trade.side === "LONG"
-                  ? "text-green-400"
-                  : "text-red-400"
-              }`}
-            >
-              {trade.side}
-            </p>
+        {trade.side}
+      </p>
 
-            <p className="text-zinc-500 mt-1">
-              {trade.coin}
-            </p>
-          </div>
+      <p className="text-xs text-zinc-500">
+        {trade.coin}
+      </p>
+    </div>
 
-          <div className="text-right">
-            <p className="text-white font-bold text-lg">
-              Margin: ${trade.margin}
-            </p>
+    <div>
+      <p className="text-zinc-500 text-xs">Margin</p>
+      <p className="text-sm font-bold text-white">
+        ${trade.margin}
+      </p>
+    </div>
 
-{trade.pnl !== undefined && (
-  <p
-    className={`text-lg font-black ${
-      trade.pnl >= 0 ? "text-green-400" : "text-red-400"
-    }`}
-  >
-    P/L: ${trade.pnl.toFixed(2)}
-  </p>
-)}
+    <div>
+      <p className="text-zinc-500 text-xs">Entry</p>
+      <p className="text-sm font-bold text-white">
+        ${trade.entryPrice.toFixed(2)}
+      </p>
+    </div>
 
-<p className="text-zinc-500 text-sm mt-1">
-  Entry: ${trade.entryPrice.toFixed(2)} · {trade.leverage}x
-</p>
+    <div>
+      <p className="text-zinc-500 text-xs">Leverage</p>
+      <p className="text-sm font-bold text-white">
+        {trade.leverage}x
+      </p>
+    </div>
 
-<p className="text-red-400 text-sm mt-1">
-  Liq: ${trade.liquidationPrice.toFixed(2)}
-</p>
-            <p className="text-zinc-600 text-xs mt-1">
-              {trade.time}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div>
+      <p className="text-zinc-500 text-xs">Liquidation</p>
+      <p className="text-sm font-bold text-red-400">
+        ${trade.liquidationPrice.toFixed(2)}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-zinc-500 text-xs">P/L</p>
+
+      {trade.pnl !== undefined ? (
+        <p
+          className={`text-sm font-bold ${
+            trade.pnl >= 0 ? "text-green-400" : "text-red-400"
+          }`}
+        >
+          ${trade.pnl.toFixed(2)}
+        </p>
+      ) : (
+        <p className="text-sm font-bold text-zinc-500">
+          Opened
+        </p>
+      )}
+    </div>
+
+    <div>
+      <p className="text-zinc-500 text-xs">Status</p>
+      <p className="text-sm font-bold text-cyan-400">
+        {trade.status || "OPENED"}
+      </p>
+    </div>
+
+    <div className="text-right">
+      <p className="text-zinc-500 text-xs">Time</p>
+      <p className="text-sm font-bold text-white">
+        {trade.time}
+      </p>
+    </div>
+  </div>
+</div>
     ))
   )
 ) : (
@@ -2069,53 +2299,107 @@ onChange={(e) => setSearchTerm(e.target.value)}
     </div>
   ) : (
     trades.map((trade, index) => (
-      <div
-        key={index}
-        className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p
-              className={`text-xl font-black ${
-                trade.type === "BUY"
-                  ? "text-green-400"
-                  : "text-red-400"
-              }`}
-            >
-              {trade.type}
-            </p>
+ <div
+  key={index}
+  className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
+>
+<div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
 
-            <p className="text-zinc-500 mt-1">
-              {trade.coin}
-            </p>
-          </div>
+  <div>
+    <p
+      className={`text-base font-black ${
+        trade.type === "BUY"
+          ? "text-green-400"
+          : "text-red-400"
+      }`}
+    >
+      {trade.type}
+    </p>
 
-          <div className="text-right">
-            <p className="text-white font-bold text-lg">
-              ${trade.amount.toFixed(2)}
-            </p>
+    <p className="text-xs text-zinc-500">
+      {trade.coin}
+    </p>
+  </div>
 
-<p className="text-zinc-500 text-sm mt-1">
-  ${trade.price.toFixed(2)}
-</p>
+  <div>
+    <p className="text-zinc-500 text-xs">Amount</p>
 
-{(trade as any).pnl !== undefined && (
+    <p className="text-sm font-bold text-white">
+      ${trade.amount.toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Price</p>
+
+    <p className="text-sm font-bold text-white">
+      ${trade.price.toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Value</p>
+
+    <p className="text-sm font-bold text-cyan-400">
+      ${trade.amount.toFixed(2)}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">P/L</p>
+
+{trade.type === "BUY" ? (
+  <p className="text-sm font-bold text-zinc-500">
+    Open
+  </p>
+) : (trade as any).pnl !== undefined ? (
   <p
-    className={`text-sm font-black mt-1 ${
+    className={`text-sm font-bold ${
       (trade as any).pnl >= 0
         ? "text-green-400"
         : "text-red-400"
     }`}
   >
-    P/L: ${(trade as any).pnl.toFixed(2)}
+    ${(trade as any).pnl.toFixed(2)}
+  </p>
+) : (
+  <p className="text-sm font-bold text-zinc-500">
+    N/A
   </p>
 )}
+  </div>
 
-            <p className="text-zinc-600 text-xs mt-1">
-              {trade.time}
-            </p>
-          </div>
-        </div>
+  <div>
+    <p className="text-zinc-500 text-xs">Status</p>
+
+<p
+  className={`text-sm font-bold ${
+    trade.type === "BUY"
+      ? "text-green-400"
+      : "text-red-400"
+  }`}
+>
+  {trade.type === "BUY" ? "OPEN" : "CLOSE"}
+</p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Market</p>
+
+    <p className="text-sm font-bold text-white">
+      Spot
+    </p>
+  </div>
+
+  <div className="text-right">
+    <p className="text-zinc-500 text-xs">Time</p>
+
+    <p className="text-sm font-bold text-white">
+      {trade.time}
+    </p>
+  </div>
+
+</div>
       </div>
     ))
   )
@@ -2126,51 +2410,97 @@ onChange={(e) => setSearchTerm(e.target.value)}
 {activeBottomTab === "ORDERS" && (
   <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
 
-    {!pendingLimitOrder ? (
+    {!activePendingOrder ? (
       <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
         <p className="text-2xl font-bold text-zinc-300">
           No Open Orders
         </p>
 
         <p className="text-zinc-500 mt-2">
-          Pending limit orders will appear here.
+          Pending {marketMode === "FUTURES" ? "futures" : "spot"} limit orders will appear here.
         </p>
       </div>
     ) : (
-      <div className="bg-[#0f172a] border border-cyan-500/30 rounded-2xl p-6">
-        <div className="flex items-center justify-between">
+      <div className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3">
 
-          <div>
-            <p className="text-xl font-black text-cyan-400">
-              LIMIT {pendingLimitOrder.side}
-            </p>
+<div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
 
-            <p className="mt-1 text-zinc-500">
-              {pendingLimitOrder.coin}
-            </p>
-          </div>
+  <div>
+    <p className="text-base font-black text-cyan-400">
+      LIMIT
+    </p>
 
-          <div className="text-right">
-            <p className="text-lg font-bold text-white">
-              ${pendingLimitOrder.limitPrice.toLocaleString()}
-            </p>
+    <p className="text-xs text-zinc-500">
+      {activePendingOrder.coin}
+    </p>
+  </div>
 
-            <p className="mt-1 text-zinc-500 text-sm">
-              ${pendingLimitOrder.amount}
-            </p>
-            <button
+  <div>
+    <p className="text-zinc-500 text-xs">Side</p>
+
+    <p className="text-sm font-bold text-white">
+      {activePendingOrder.side}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Limit Price</p>
+
+    <p className="text-sm font-bold text-cyan-400">
+      ${activePendingOrder.limitPrice.toLocaleString()}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Amount</p>
+
+    <p className="text-sm font-bold text-white">
+      ${activePendingOrder.amount}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Market</p>
+
+    <p className="text-sm font-bold text-white">
+      {activePendingOrder.mode}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Status</p>
+
+    <p className="text-sm font-bold text-orange-400">
+      Pending
+    </p>
+  </div>
+
+  <div>
+    <p className="text-zinc-500 text-xs">Waiting For</p>
+
+    <p className="text-sm font-bold text-white">
+      Fill
+    </p>
+  </div>
+
+  <div className="flex justify-end">
+<button
   onClick={() => {
-    setPendingLimitOrder(null);
+    if (marketMode === "FUTURES") {
+      setPendingFuturesLimitOrder(null);
+    } else {
+      setPendingLimitOrder(null);
+    }
+
     setMessage("Limit order canceled.");
   }}
-  className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 transition-all hover:bg-red-500/20"
->
-  Cancel
-</button>
-          </div>
+      className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 transition-all hover:bg-red-500/20"
+    >
+      Cancel
+    </button>
+  </div>
 
-        </div>
-
+</div>
      
       </div>
     )}
