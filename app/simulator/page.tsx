@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   createChart,
   ColorType,
+  CrosshairMode,
   CandlestickSeries,
   HistogramSeries,
 } from "lightweight-charts";
@@ -34,49 +35,11 @@ type PricePoint = {
 };
 
 type AssetSymbol =
-  // CRYPTO
   | "BTC"
   | "ETH"
   | "SOL"
   | "XRP"
-  | "DOGE"
-  | "ADA"
-  | "AVAX"
-  | "LINK"
-  | "MATIC"
-  | "DOT"
-  | "SHIB"
-  | "LTC"
-  | "BCH"
-  | "UNI"
-  | "ATOM"
-  | "ETC"
-  | "XLM"
-  | "FIL"
-  | "APT"
-  | "OP"
-
-  // STOCKS
-  | "AAPL"
-  | "TSLA"
-  | "NVDA"
-  | "AMZN"
-  | "META"
-  | "MSFT"
-  | "AMD"
-  | "NFLX"
-  | "COIN"
-  | "GOOGL"
-  | "PLTR"
-  | "SMCI"
-  | "ARM"
-  | "SNOW"
-  | "SHOP"
-  | "RBLX"
-  | "DIS"
-  | "JPM"
-  | "BA"
-  | "NIO";
+  | "DOGE";
 
 type Trade = {
   type: string;
@@ -92,94 +55,20 @@ const cryptoPrices = {
   SOL: 180,
   XRP: 2.4,
   DOGE: 0.17,
-  ADA: 0.72,
-  AVAX: 42,
-  LINK: 18,
-  MATIC: 1.12,
-  DOT: 8.5,
-  SHIB: 0.000025,
-  LTC: 92,
-  BCH: 510,
-  UNI: 11,
-  ATOM: 9.4,
-  ETC: 31,
-  XLM: 0.14,
-  FIL: 6.8,
-  APT: 12.5,
-  OP: 3.1,
 };
 
-const stockPrices = {
-  AAPL: 210,
-  TSLA: 340,
-  NVDA: 1180,
-  AMZN: 185,
-  META: 540,
-  MSFT: 425,
-  AMD: 172,
-  NFLX: 640,
-  COIN: 265,
-  GOOGL: 175,
-  PLTR: 28,
-  SMCI: 890,
-  ARM: 142,
-  SNOW: 160,
-  SHOP: 78,
-  RBLX: 41,
-  DIS: 112,
-  JPM: 198,
-  BA: 185,
-  NIO: 5.7,
-};
+
 
 const startingBalance = 10000;
 
-
 const emptyPositions: Record<AssetSymbol, number> = {
-  // CRYPTO
   BTC: 0,
   ETH: 0,
   SOL: 0,
   XRP: 0,
   DOGE: 0,
-  ADA: 0,
-  AVAX: 0,
-  LINK: 0,
-  MATIC: 0,
-  DOT: 0,
-  SHIB: 0,
-  LTC: 0,
-  BCH: 0,
-  UNI: 0,
-  ATOM: 0,
-  ETC: 0,
-  XLM: 0,
-  FIL: 0,
-  APT: 0,
-  OP: 0,
-
-  // STOCKS
-  AAPL: 0,
-  TSLA: 0,
-  NVDA: 0,
-  AMZN: 0,
-  META: 0,
-  MSFT: 0,
-  AMD: 0,
-  NFLX: 0,
-  COIN: 0,
-  GOOGL: 0,
-  PLTR: 0,
-  SMCI: 0,
-  ARM: 0,
-  SNOW: 0,
-  SHOP: 0,
-  RBLX: 0,
-  DIS: 0,
-  JPM: 0,
-  BA: 0,
-  NIO: 0,
 };
+
 
 export default function SimulatorPage() {
 const { user } = useUser();
@@ -188,50 +77,17 @@ useEffect(() => {
   window.scrollTo(0, 0);
 }, []);
   const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
+  const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
   const [activeBottomTab, setActiveBottomTab] = useState<"POSITIONS" | "HISTORY" | "ORDERS">("POSITIONS");
 const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a candle");
   const [searchTerm, setSearchTerm] = useState("");
-  const [prices, setPrices] = useState({
-    ...cryptoPrices,
-    ...stockPrices,
-  });
-
-  const [history, setHistory] = useState<PricePoint[]>(() => {
-  const initialHistory: PricePoint[] = [];
-
-  let lastPrice = cryptoPrices.BTC;
-
-  for (let i = 0; i < 300; i++) {
-    const open = lastPrice;
-
-    const close =
-      open + (Math.random() * 2000 - 1000);
-
-    const high =
-      Math.max(open, close) +
-      Math.random() * 500;
-
-    const low =
-      Math.min(open, close) -
-      Math.random() * 500;
-
-    initialHistory.push({
-      time: `${i}`,
-      price: close,
-      open,
-      high,
-      low,
-      close,
-      volume: Math.floor(Math.random() * 5000 + 1000),
-    });
-
-    lastPrice = close;
-  }
-
-  return initialHistory;
+const [prices, setPrices] = useState<Record<AssetSymbol, number>>({
+  ...cryptoPrices,
 });
+
+  const [history, setHistory] = useState<PricePoint[]>([]);
   const [positions, setPositions] =
     useState<Record<AssetSymbol, number>>(emptyPositions);
   const [averagePrices, setAveragePrices] =
@@ -327,45 +183,7 @@ const liquidationPrice =
       ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
       : currentPrice * (1 + 1 / leverage - maintenanceBuffer)
     : 0;
-  function buildHistory(symbol: AssetSymbol, timeframe: string) {
-  const candles: PricePoint[] = [];
-  let lastPrice = prices[symbol] ?? 100;
 
-  const volatilityMap = {
-    "1M": 0.004,
-    "5M": 0.008,
-    "15M": 0.012,
-    "1H": 0.02,
-    "4H": 0.035,
-    "1D": 0.055,
-    "1W": 0.09,
-    "1MO": 0.14,
-  };
-
-  const volatility =
-    volatilityMap[timeframe as keyof typeof volatilityMap] ?? 0.01;
-
-  for (let i = 0; i < 200; i++) {
-    const open = lastPrice;
-    const close = open + open * (Math.random() * volatility * 2 - volatility);
-    const high = Math.max(open, close) + open * volatility * 0.4;
-    const low = Math.min(open, close) - open * volatility * 0.4;
-
-    candles.push({
-      time: `${i}`,
-      price: close,
-      open,
-      high,
-      low,
-      close,
-      volume: Math.floor(Math.random() * 5000 + 1000),
-    });
-
-    lastPrice = close;
-  }
-
-  return candles;
-}
   const chartRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<any>(null);
 const candleSeriesRef = useRef<any>(null);
@@ -373,123 +191,176 @@ const volumeSeriesRef = useRef<any>(null);
 const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
-function updatePrices() {
-  setPrices((prev) => {
-    const updated = Object.fromEntries(
-      Object.entries(prev).map(([symbol, price]) => {
-        const volatilityMap = {
-  "1M": 0.008,
-  "5M": 0.012,
-  "15M": 0.018,
-  "1H": 0.025,
-  "4H": 0.04,
-  "1D": 0.06,
-  "1W": 0.09,
-  "1MO": 0.14,
-};
 
-const volatility =
-  volatilityMap[
-    selectedTimeframe as keyof typeof volatilityMap
-  ];
+function getTimeframeMs(timeframe: string) {
+  const map: Record<string, number> = {
+    "1M": 60 * 1000,
+    "5M": 5 * 60 * 1000,
+    "15M": 15 * 60 * 1000,
+    "1H": 60 * 60 * 1000,
+    "4H": 4 * 60 * 60 * 1000,
+    "1D": 24 * 60 * 60 * 1000,
+  };
 
-const move =
-  price *
-  (Math.random() * volatility * 2 - volatility);
+  return map[timeframe] || 60 * 1000;
+}
 
-        return [
-          symbol,
-          Math.max(0.000001, price + move),
-        ];
-      })
-    ) as Record<AssetSymbol, number>;
+function getCurrentCandleStart(timeframe: string) {
+  const timeframeMs = getTimeframeMs(timeframe);
+  const now = Date.now();
 
-setHistory((old) => {
-  const previousClose =
-    old.length > 0
-      ? old[old.length - 1].close
-      : updated[selectedCoin] ?? 0;
+  return Math.floor(now / timeframeMs) * timeframeMs;
+}
 
-  const close = updated[selectedCoin] ?? 0;
-  const open = previousClose;
-  const high = Math.max(open, close) * 1.003;
-  const low = Math.min(open, close) * 0.997;
+async function updatePrices() {
+  try {
+    const response = await fetch("/api/prices");
+    const data = await response.json();
 
-  return [
-    ...old.slice(-300),
-    {
-      time: new Date().toLocaleTimeString(),
-      price: close,
-      open,
-      high,
-      low,
-      close,
-      volume: Math.floor(Math.random() * 5000 + 1000),
-    },
-  ];
-});
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid price data");
+    }
 
-setFuturesPositions((prev) => {
-  const liquidatedPositions = prev.filter((position) => {
-    const current = updated[position.coin as AssetSymbol];
+    const realPrices = data.reduce(
+      (
+        acc: Partial<Record<AssetSymbol, number>>,
+        item: any
+      ) => {
+        const symbol = item.symbol.replace(
+          "USDT",
+          ""
+        ) as AssetSymbol;
 
-    return position.side === "LONG"
-      ? current <= position.liquidationPrice
-      : current >= position.liquidationPrice;
-  });
+        acc[symbol] = Number(item.price);
 
-  if (liquidatedPositions.length > 0) {
-    setMessage("A futures position was liquidated.");
-
-    setMarginUsed((prevMargin) =>
-      Math.max(
-        0,
-        prevMargin -
-          liquidatedPositions.reduce(
-            (total, position) => total + position.margin,
-            0
-          )
-      )
+        return acc;
+      },
+      {}
     );
 
-    setFuturesHistory((prevHistory) => [
-      ...liquidatedPositions.map((position) => ({
-        ...position,
-        exitPrice: updated[position.coin as AssetSymbol],
-        pnl: -position.margin,
-        status: "LIQUIDATED",
-        time: new Date().toLocaleTimeString(),
-      })),
-      ...prevHistory,
-    ]);
+    setPrices((prev) => {
+      const updated = {
+        ...prev,
+        ...realPrices,
+      } as Record<AssetSymbol, number>;
+
+setHistory((old) => {
+  if (old.length === 0) return old;
+
+  const livePrice = updated[selectedCoin];
+  if (!livePrice) return old;
+
+const currentCandleStart = getCurrentCandleStart(selectedTimeframe);
+const lastCandle = old[old.length - 1];
+const lastCandleTime = Number(lastCandle.time);
+
+if (currentCandleStart > lastCandleTime) {
+    const newCandle = {
+      time: String(currentCandleStart),
+      price: livePrice,
+      open: lastCandle.close,
+      high: livePrice,
+      low: livePrice,
+      close: livePrice,
+      volume: Math.floor(Math.random() * 5000 + 1000),
+    };
+
+    return [
+      ...old.slice(-299),
+      newCandle,
+    ];
   }
 
-  return prev.filter((position) => {
-    const current = updated[position.coin as AssetSymbol];
+  const updatedLastCandle = {
+    ...lastCandle,
+    close: livePrice,
+    price: livePrice,
+    high: Math.max(lastCandle.high, livePrice),
+    low: Math.min(lastCandle.low, livePrice),
+  };
 
-    return position.side === "LONG"
-      ? current > position.liquidationPrice
-      : current < position.liquidationPrice;
-  });
+  return [
+    ...old.slice(0, -1),
+    updatedLastCandle,
+  ];
 });
 
-    return updated;
-  });
+      setFuturesPositions((prevPositions) => {
+        const liquidatedPositions =
+          prevPositions.filter((position) => {
+            const current =
+              updated[position.coin as AssetSymbol];
+
+            return position.side === "LONG"
+              ? current <= position.liquidationPrice
+              : current >= position.liquidationPrice;
+          });
+
+        if (liquidatedPositions.length > 0) {
+          setMessage(
+            "A futures position was liquidated."
+          );
+
+          setMarginUsed((prevMargin) =>
+            Math.max(
+              0,
+              prevMargin -
+                liquidatedPositions.reduce(
+                  (total, position) =>
+                    total + position.margin,
+                  0
+                )
+            )
+          );
+
+          setFuturesHistory((prevHistory) => [
+            ...liquidatedPositions.map(
+              (position) => ({
+                ...position,
+                exitPrice:
+                  updated[
+                    position.coin as AssetSymbol
+                  ],
+                pnl: -position.margin,
+                status: "LIQUIDATED",
+                time: new Date().toLocaleTimeString(),
+              })
+            ),
+            ...prevHistory,
+          ]);
+        }
+
+        return prevPositions.filter((position) => {
+          const current =
+            updated[position.coin as AssetSymbol];
+
+          return position.side === "LONG"
+            ? current > position.liquidationPrice
+            : current < position.liquidationPrice;
+        });
+      });
+
+      return updated;
+    });
+  } catch (error) {
+    console.error(
+      "Price update failed:",
+      error
+    );
+  }
 }
 
   useEffect(() => {
     setNow(new Date());
     updatePrices();
 
-    const timeframeSpeed = {
+const timeframeSpeed = {
   "1M": 1000,
-  "5M": 1500,
-  "15M": 2000,
-  "1H": 3000,
-  "4H": 4000,
-  "1D": 5000,
-  "1W": 6000,
-  "1MO": 7000,
+  "5M": 1000,
+  "15M": 1000,
+  "1H": 1000,
+  "4H": 1000,
+  "1D": 1000,
 };
 
 const priceInterval = setInterval(
@@ -667,6 +538,29 @@ useEffect(() => {
 }, [prices]);
 
 useEffect(() => {
+  async function loadCandles() {
+    try {
+      const response = await fetch(
+        `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}`
+      );
+
+      const data = await response.json();
+
+if (!Array.isArray(data)) {
+  console.log("Candles API returned:", data);
+  return;
+}
+
+      setHistory(data);
+    } catch (error) {
+      console.error("Failed to load candles:", error);
+    }
+  }
+
+  loadCandles();
+}, [selectedCoin, selectedTimeframe]);
+
+useEffect(() => {
   if (!chartRef.current || history.length === 0) return;
 
   if (!chartInstanceRef.current) {
@@ -683,6 +577,11 @@ useEffect(() => {
         vertLines: { color: "#1f2937" },
         horzLines: { color: "#1f2937" },
       },
+crosshair: {
+  mode: CrosshairMode.Normal,
+},
+
+
       handleScroll: {
         mouseWheel: true,
         pressedMouseMove: true,
@@ -705,8 +604,8 @@ timeScale: {
   fixLeftEdge: true,
   fixRightEdge: true,
   rightOffset: 0,
-  barSpacing: 7,
-  minBarSpacing: 4,
+  barSpacing: 3,
+  minBarSpacing: 1,
 },
     });
 
@@ -725,19 +624,20 @@ timeScale: {
       },
     });
 
-    const volumeSeries = chart.addSeries(HistogramSeries, {
-      priceFormat: {
-        type: "volume",
-      },
-      priceScaleId: "",
-    });
+const volumeSeries = chart.addSeries(HistogramSeries, {
+  priceFormat: {
+    type: "volume",
+  },
+  priceScaleId: "volume",
+});
 
-    volumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.78,
-        bottom: 0,
-      },
-    });
+chart.priceScale("volume").applyOptions({
+  scaleMargins: {
+    top: 0.78,
+    bottom: 0,
+  },
+  visible: false,
+});
 
 
 
@@ -776,24 +676,17 @@ timeScale: {
     });
   }
 
-  const chartData = history.map((item, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (history.length - index));
-
-    const time = {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-    } as any;
-
-    return {
-      time,
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      close: item.close,
-      volume: item.volume,
-    };
+const chartData = history
+  .map((item) => ({
+    time: Math.floor(Number(item.time) / 1000) as any,
+    open: item.open,
+    high: item.high,
+    low: item.low,
+    close: item.close,
+    volume: item.volume,
+  }))
+  .filter((item, index, array) => {
+    return index === 0 || item.time > array[index - 1].time;
   });
 
   candleSeriesRef.current?.setData(
@@ -805,6 +698,15 @@ timeScale: {
       close: item.close,
     }))
   );
+
+if (chartData.length > 80 && !chartInstanceRef.current.__didSetInitialRange) {
+  chartInstanceRef.current.timeScale().setVisibleLogicalRange({
+    from: chartData.length - 160,
+    to: chartData.length + 5,
+  });
+
+  chartInstanceRef.current.__didSetInitialRange = true;
+}
 
   volumeSeriesRef.current?.setData(
     chartData.map((item) => ({
@@ -1276,21 +1178,6 @@ const watchlist = [
   { symbol: "SOL" as AssetSymbol, name: "Solana", price: prices.SOL },
   { symbol: "XRP" as AssetSymbol, name: "XRP", price: prices.XRP },
   { symbol: "DOGE" as AssetSymbol, name: "Dogecoin", price: prices.DOGE },
-  { symbol: "ADA" as AssetSymbol, name: "Cardano", price: prices.ADA },
-  { symbol: "AVAX" as AssetSymbol, name: "Avalanche", price: prices.AVAX },
-  { symbol: "LINK" as AssetSymbol, name: "Chainlink", price: prices.LINK },
-  { symbol: "MATIC" as AssetSymbol, name: "Polygon", price: prices.MATIC },
-  { symbol: "DOT" as AssetSymbol, name: "Polkadot", price: prices.DOT },
-  { symbol: "SHIB" as AssetSymbol, name: "Shiba Inu", price: prices.SHIB },
-  { symbol: "LTC" as AssetSymbol, name: "Litecoin", price: prices.LTC },
-  { symbol: "BCH" as AssetSymbol, name: "Bitcoin Cash", price: prices.BCH },
-  { symbol: "UNI" as AssetSymbol, name: "Uniswap", price: prices.UNI },
-  { symbol: "ATOM" as AssetSymbol, name: "Cosmos", price: prices.ATOM },
-  { symbol: "ETC" as AssetSymbol, name: "Ethereum Classic", price: prices.ETC },
-  { symbol: "XLM" as AssetSymbol, name: "Stellar", price: prices.XLM },
-  { symbol: "FIL" as AssetSymbol, name: "Filecoin", price: prices.FIL },
-  { symbol: "APT" as AssetSymbol, name: "Aptos", price: prices.APT },
-  { symbol: "OP" as AssetSymbol, name: "Optimism", price: prices.OP },
 ];
 
   return (
@@ -1301,46 +1188,69 @@ const watchlist = [
 
 <div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
           <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden">
-            <div className="flex gap-2 mb-4 justify-start">
-              <button
-onClick={() => {
-  setMarketMode("SPOT");
-  setSelectedCoin("BTC");
-  setActiveBottomTab("POSITIONS");
-}}
-                className={`flex-1 rounded-xl px-3 py-3 text-sm font-black transition-all ${
-                  marketMode === "SPOT"
-? "bg-cyan-500 text-black"
-: "bg-[#18181b] text-zinc-300 border border-zinc-800 hover:border-cyan-500 hover:text-cyan-400"
-                }`}
->
-  Crypto Spot
-</button>
+<div className="relative mb-4">
+  <button
+    onClick={() => setShowMarketMenu(!showMarketMenu)}
+    className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
+  >
+    <span>
+      {marketMode === "SPOT" ? "Crypto Spot" : "Crypto Futures"}
+    </span>
 
-              <button
-onClick={() => {
-  setMarketMode("FUTURES");
-  setSelectedCoin("BTC");
-  setActiveBottomTab("POSITIONS");
-}}
-                className={`flex-1 rounded-xl px-3 py-3 text-sm font-black transition-all ${
-                  marketMode === "FUTURES"
-? "bg-cyan-500 text-black"
-: "bg-[#18181b] text-zinc-300 border border-zinc-800 hover:border-cyan-500 hover:text-cyan-400"
-                }`}
->
-  Crypto Futures
-</button>
-            </div>
+    <span className="text-cyan-400">▼</span>
+  </button>
 
-            <div className="flex items-center justify-between mb-4">
-  <h2 className="text-xl font-black text-white">
+  {showMarketMenu && (
+    <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-zinc-700 bg-[#0f172a] shadow-xl">
+      <button
+        onClick={() => {
+          setMarketMode("SPOT");
+          
+          setSelectedCoin("BTC");
+          setActiveBottomTab("POSITIONS");
+          setShowMarketMenu(false);
+        }}
+        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+      >
+        Crypto Spot
+      </button>
+
+      <button
+        onClick={() => {
+          setMarketMode("FUTURES");
+          
+          setSelectedCoin("BTC");
+          setActiveBottomTab("POSITIONS");
+          setShowMarketMenu(false);
+        }}
+        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+      >
+        Crypto Futures
+      </button>
+
+      <div className="border-t border-zinc-800" />
+
+      <button
+        disabled
+        className="block w-full cursor-not-allowed px-4 py-3 text-left text-sm font-bold text-zinc-600"
+      >
+        Stocks Coming Soon
+      </button>
+
+      <button
+        disabled
+        className="block w-full cursor-not-allowed px-4 py-3 text-left text-sm font-bold text-zinc-600"
+      >
+        Options Coming Soon
+      </button>
+    </div>
+  )}
+</div>
+
+            <div className="mb-3">
+  <h2 className="text-lg font-black text-white">
     Watchlist
   </h2>
-
-  <span className="text-xs font-bold text-cyan-400 bg-cyan-400/10 px-3 py-1 rounded-full">
-    LIVE
-  </span>
 </div>
 <input
   type="text"
@@ -1366,13 +1276,6 @@ onChange={(e) => setSearchTerm(e.target.value)}
                   key={coin.symbol}
                   onClick={() => {
   setSelectedCoin(coin.symbol);
-
-  setHistory(
-    buildHistory(
-      coin.symbol,
-      selectedTimeframe
-    )
-  );
 }}
                   className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
                     selectedCoin === coin.symbol
@@ -1421,13 +1324,27 @@ onChange={(e) => setSearchTerm(e.target.value)}
 </div>
                 </button>
               ))}
+
+<div className="w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827]">
+  <div className="flex h-[78px] items-center">
+    <div>
+<p className="text-lg font-black tracking-wide text-white">
+  More Coins
+</p>
+
+      <p className="mt-1 text-sm text-zinc-500">
+        Coming Soon
+      </p>
+    </div>
+
+
+  </div>
+</div>
             </div>
           </div>
   
-   
 
             <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-5 h-[760px] flex flex-col overflow-hidden">
-
 
 <div className="mb-6 border-b border-zinc-800 pb-4">
   <div className="flex items-end gap-4">
@@ -1452,15 +1369,12 @@ onChange={(e) => setSearchTerm(e.target.value)}
 </div>
 
           <div className="flex justify-start gap-2 mb-1">
-  {["1M", "5M", "15M", "1H", "4H", "1D", "1W", "1MO"].map(
+  {["1M", "5M", "15M", "1H", "4H", "1D"].map(
     (timeframe) => (
      <button
   key={timeframe}
   onClick={() => {
   setSelectedTimeframe(timeframe);
-  setHistory(
-    buildHistory(selectedCoin, timeframe)
-  );
 }}
   className={`rounded-md border px-3 py-1.5 text-xs font-bold transition-all ${
     selectedTimeframe === timeframe
@@ -1686,7 +1600,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
       <button
         key={amount}
         onClick={() => setTradeAmount(amount)}
-        className="rounded-lg border border-zinc-700 bg-black px-4 py-2 text-sm font-bold text-zinc-300 transition-all hover:border-green-500 hover:text-green-400"
+        className="flex h-10 items-center justify-center rounded-lg border border-zinc-700 bg-black text-sm font-bold text-zinc-300 transition-all hover:border-green-500 hover:text-green-400"
       >
         ${amount}
       </button>
@@ -1694,7 +1608,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
     <button
       onClick={() => setTradeAmount(Number(balance.toFixed(0)))}
-      className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-600"
+      className="flex h-10 items-center justify-center rounded-lg bg-orange-500 text-sm font-bold text-white hover:bg-orange-600"
     >
       MAX
     </button>
