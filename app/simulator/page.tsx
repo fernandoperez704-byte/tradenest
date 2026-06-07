@@ -47,16 +47,8 @@ type Trade = {
   price: number;
   amount: number;
   time: string;
+  pnl?: number;
 };
-
-const cryptoPrices = {
-  BTC: 103000,
-  ETH: 2500,
-  SOL: 180,
-  XRP: 2.4,
-  DOGE: 0.17,
-};
-
 
 
 const startingBalance = 10000;
@@ -83,18 +75,19 @@ useEffect(() => {
   const [activeBottomTab, setActiveBottomTab] = useState<"POSITIONS" | "HISTORY" | "ORDERS">("POSITIONS");
 const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a candle");
   const [searchTerm, setSearchTerm] = useState("");
-const [prices, setPrices] = useState<Record<AssetSymbol, number>>({
-  ...cryptoPrices,
-});
+const [prices, setPrices] = useState<
+  Partial<Record<AssetSymbol, number>>
+>({});
 
   const [history, setHistory] = useState<PricePoint[]>([]);
+  const [candlesReadyFor, setCandlesReadyFor] = useState("");
   const [positions, setPositions] =
     useState<Record<AssetSymbol, number>>(emptyPositions);
   const [averagePrices, setAveragePrices] =
     useState<Record<AssetSymbol, number>>(emptyPositions);
 
   const [balance, setBalance] = useState(startingBalance);
-  useEffect(() => {
+useEffect(() => {
   async function loadPortfolio() {
     if (!user) return;
 
@@ -108,13 +101,14 @@ const [prices, setPrices] = useState<Record<AssetSymbol, number>>({
       if (data.balance) {
         setBalance(data.balance);
       }
-      if (data.positions) {
-  setPositions(data.positions);
-}
 
-if (data.averagePrices) {
-  setAveragePrices(data.averagePrices);
-}
+      if (data.positions) {
+        setPositions(data.positions);
+      }
+
+      if (data.averagePrices) {
+        setAveragePrices(data.averagePrices);
+      }
     }
   }
 
@@ -152,6 +146,9 @@ const [showLeverageMenu, setShowLeverageMenu] = useState(false);
 const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
 const [marginUsed, setMarginUsed] = useState(0);
 const [futuresPositions, setFuturesPositions] = useState<any[]>([]);
+useEffect(() => {
+  console.log("FUTURES POSITIONS:", futuresPositions);
+}, [futuresPositions]);
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
@@ -173,12 +170,95 @@ const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
 
   const [trades, setTrades] = useState<Trade[]>([]);
   const [now, setNow] = useState<Date | null>(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
+  const [simulatorReady, setSimulatorReady] = useState(false);
+useEffect(() => {
+  const saved = localStorage.getItem("tradenestx-simulator-session");
 
+  if (!saved) {
+  setSessionLoaded(true);
+  setSimulatorReady(true);
+  return;
+}
+
+  const data = JSON.parse(saved);
+
+  if (data.balance !== undefined) setBalance(data.balance);
+  if (data.positions) setPositions(data.positions);
+  if (data.averagePrices) setAveragePrices(data.averagePrices);
+  if (data.trades) setTrades(data.trades);
+  if (data.marginUsed !== undefined) setMarginUsed(data.marginUsed);
+  if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
+  if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
+  if (data.pendingLimitOrder) setPendingLimitOrder(data.pendingLimitOrder);
+  if (data.pendingFuturesLimitOrder) setPendingFuturesLimitOrder(data.pendingFuturesLimitOrder);
+  if (data.tradeAmount !== undefined) setTradeAmount(data.tradeAmount);
+  if (data.takeProfit !== undefined) setTakeProfit(data.takeProfit);
+  if (data.stopLoss !== undefined) setStopLoss(data.stopLoss);
+  if (data.limitPrice !== undefined) setLimitPrice(data.limitPrice);
+  if (data.orderType) setOrderType(data.orderType);
+  if (data.leverage) setLeverage(data.leverage);
+  if (data.marketMode) setMarketMode(data.marketMode);
+  
+  
+  if (data.activeBottomTab) setActiveBottomTab(data.activeBottomTab);
+  setSessionLoaded(true);
+setSimulatorReady(true);
+}, []);
+
+useEffect(() => {
+  if (!sessionLoaded) return;
+
+  localStorage.setItem(
+    "tradenestx-simulator-session",
+    JSON.stringify({
+      balance,
+      positions,
+      averagePrices,
+      trades,
+      marginUsed,
+      futuresPositions,
+      futuresHistory,
+      pendingLimitOrder,
+      pendingFuturesLimitOrder,
+      tradeAmount,
+      takeProfit,
+      stopLoss,
+      limitPrice,
+      orderType,
+      leverage,
+      marketMode,
+      
+      
+      activeBottomTab,
+    })
+  );
+}, [
+  balance,
+  positions,
+  averagePrices,
+  trades,
+  marginUsed,
+  futuresPositions,
+  futuresHistory,
+  pendingLimitOrder,
+  pendingFuturesLimitOrder,
+  tradeAmount,
+  takeProfit,
+  stopLoss,
+  limitPrice,
+  orderType,
+  leverage,
+  marketMode,
+  
+  activeBottomTab,
+  sessionLoaded,
+]);
   const currentPrice = prices[selectedCoin];
   const maintenanceBuffer = 0.005;
 
 const liquidationPrice =
-  marketMode === "FUTURES" && leverage > 1
+  currentPrice && marketMode === "FUTURES" && leverage > 1
     ? positionType === "LONG"
       ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
       : currentPrice * (1 + 1 / leverage - maintenanceBuffer)
@@ -244,56 +324,18 @@ async function updatePrices() {
         ...realPrices,
       } as Record<AssetSymbol, number>;
 
-setHistory((old) => {
-  if (old.length === 0) return old;
 
-  const livePrice = updated[selectedCoin];
-  if (!livePrice) return old;
-
-const currentCandleStart = getCurrentCandleStart(selectedTimeframe);
-const lastCandle = old[old.length - 1];
-const lastCandleTime = Number(lastCandle.time);
-
-if (currentCandleStart > lastCandleTime) {
-    const newCandle = {
-      time: String(currentCandleStart),
-      price: livePrice,
-      open: lastCandle.close,
-      high: livePrice,
-      low: livePrice,
-      close: livePrice,
-      volume: Math.floor(Math.random() * 5000 + 1000),
-    };
-
-    return [
-      ...old.slice(-299),
-      newCandle,
-    ];
-  }
-
-  const updatedLastCandle = {
-    ...lastCandle,
-    close: livePrice,
-    price: livePrice,
-    high: Math.max(lastCandle.high, livePrice),
-    low: Math.min(lastCandle.low, livePrice),
-  };
-
-  return [
-    ...old.slice(0, -1),
-    updatedLastCandle,
-  ];
-});
 
       setFuturesPositions((prevPositions) => {
         const liquidatedPositions =
           prevPositions.filter((position) => {
-            const current =
-              updated[position.coin as AssetSymbol];
+const current = updated[position.coin as AssetSymbol];
 
-            return position.side === "LONG"
-              ? current <= position.liquidationPrice
-              : current >= position.liquidationPrice;
+if (!current) return false;
+
+return position.side === "LONG"
+  ? current <= position.liquidationPrice
+  : current >= position.liquidationPrice;
           });
 
         if (liquidatedPositions.length > 0) {
@@ -331,12 +373,13 @@ if (currentCandleStart > lastCandleTime) {
         }
 
         return prevPositions.filter((position) => {
-          const current =
-            updated[position.coin as AssetSymbol];
+const current = updated[position.coin as AssetSymbol];
 
-          return position.side === "LONG"
-            ? current > position.liquidationPrice
-            : current < position.liquidationPrice;
+if (!current) return true;
+
+return position.side === "LONG"
+  ? current > position.liquidationPrice
+  : current < position.liquidationPrice;
         });
       });
 
@@ -373,13 +416,13 @@ const priceInterval = setInterval(
       clearInterval(priceInterval);
       clearInterval(clockInterval);
     };
-  }, [selectedCoin, selectedTimeframe]);
+  }, [selectedCoin, selectedTimeframe, candlesReadyFor]);
 
 useEffect(() => {
   if (!pendingLimitOrder) return;
 
   const current = prices[pendingLimitOrder.coin];
-
+if (!current) return;
   if (pendingLimitOrder.mode === "SPOT") {
     if (
       pendingLimitOrder.side === "BUY" &&
@@ -422,7 +465,7 @@ useEffect(() => {
   if (!pendingFuturesLimitOrder) return;
 
   const current = prices[pendingFuturesLimitOrder.coin];
-
+if (!current) return;
   if (
     pendingFuturesLimitOrder.side === "LONG" &&
     current <= pendingFuturesLimitOrder.limitPrice
@@ -464,7 +507,7 @@ useEffect(() => {
   if (positions[selectedCoin] <= 0) return;
 
   const current = prices[selectedCoin];
-
+if (!current) return;
   if (
     takeProfit !== "" &&
     current >= Number(takeProfit)
@@ -498,7 +541,7 @@ useEffect(() => {
     if (position.coin !== selectedCoin) return;
 
     const current = prices[position.coin as AssetSymbol];
-
+if (!current) return;
     const takeProfitHit =
       takeProfit !== "" &&
       (position.side === "LONG"
@@ -538,26 +581,60 @@ useEffect(() => {
 }, [prices]);
 
 useEffect(() => {
+  if (!simulatorReady) return;
+
+  let cancelled = false;
+
   async function loadCandles() {
+    const candleKey = `${selectedCoin}-${selectedTimeframe}`;
+
     try {
+      setCandlesReadyFor("");
+      setHistory([]);
+
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.__didSetInitialRange = false;
+      }
+
       const response = await fetch(
         `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}`
       );
 
       const data = await response.json();
 
-if (!Array.isArray(data)) {
-  console.log("Candles API returned:", data);
-  return;
-}
+      if (cancelled) return;
+
+      if (!Array.isArray(data)) {
+        console.log("Candles API returned:", data);
+        return;
+      }
 
       setHistory(data);
+      setCandlesReadyFor(candleKey);
     } catch (error) {
-      console.error("Failed to load candles:", error);
+      if (!cancelled) {
+        console.error("Failed to load candles:", error);
+      }
     }
   }
 
   loadCandles();
+
+  return () => {
+    cancelled = true;
+  };
+}, [selectedCoin, selectedTimeframe, simulatorReady]);
+
+useEffect(() => {
+  if (chartInstanceRef.current) {
+    chartInstanceRef.current.remove();
+    chartInstanceRef.current = null;
+    candleSeriesRef.current = null;
+    volumeSeriesRef.current = null;
+    liquidationLinesRef.current = [];
+    entryLinesRef.current = [];
+    riskLinesRef.current = [];
+  }
 }, [selectedCoin, selectedTimeframe]);
 
 useEffect(() => {
@@ -839,11 +916,17 @@ if (stopLoss !== "") {
   takeProfit,
   stopLoss,
 ]);
-  function buyCoin() {
-    if (!tradeAmount || balance < tradeAmount) {
-      setMessage("Invalid trade amount.");
-      return;
-    }
+function buyCoin() {
+
+  if (!currentPrice) {
+    setMessage("Loading real market price...");
+    return;
+  }
+
+  if (!tradeAmount || balance < tradeAmount) {
+    setMessage("Invalid trade amount.");
+    return;
+  }
 
     const effectiveTradeSize =
   marketMode === "FUTURES"
@@ -940,6 +1023,12 @@ if (user) {
   }
 
   function openFuturesPosition(side: "LONG" | "SHORT", orderLeverage = leverage) {
+
+  if (!currentPrice) {
+    setMessage("Loading real market price...");
+    return;
+  }
+
   if (!tradeAmount || balance < Number(tradeAmount)) {
     setMessage("Invalid margin amount.");
     return;
@@ -962,16 +1051,16 @@ setPendingFuturesLimitOrder({
 
   return;
 }
-  const positionSize = margin * leverage;
-  const quantity = positionSize / currentPrice;
+const positionSize = margin * orderLeverage;
+const quantity = positionSize / currentPrice;
 
- const maintenanceBuffer = 0.005;
+const maintenanceBuffer = 0.005;
 
 const liquidation =
-  leverage > 1
+  orderLeverage > 1
     ? side === "LONG"
-      ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
-      : currentPrice * (1 + 1 / leverage - maintenanceBuffer)
+      ? currentPrice * (1 - 1 / orderLeverage + maintenanceBuffer)
+      : currentPrice * (1 + 1 / orderLeverage - maintenanceBuffer)
     : 0;
 
   setBalance((prev) => prev - margin);
@@ -982,7 +1071,7 @@ const liquidation =
       coin: selectedCoin,
       side,
       margin,
-      leverage,
+      leverage: orderLeverage,
       quantity,
       entryPrice: currentPrice,
       liquidationPrice: liquidation,
@@ -996,7 +1085,7 @@ setFuturesHistory((prev) => [
     coin: selectedCoin,
     side,
     margin,
-    leverage,
+    leverage: orderLeverage,
     entryPrice: currentPrice,
     liquidationPrice: liquidation,
     time: new Date().toLocaleTimeString(),
@@ -1004,10 +1093,14 @@ setFuturesHistory((prev) => [
   ...prev,
 ]);
 
-  setMessage(`${side} ${selectedCoin} opened with ${leverage}x leverage`);
+  setMessage(`${side} ${selectedCoin} opened with ${orderLeverage}x leverage`);
 }
 
   function sellCoin() {
+    if (!currentPrice) {
+  setMessage("Loading real market price...");
+  return;
+}
     if (
   orderType === "LIMIT" &&
   limitPrice !== ""
@@ -1115,7 +1208,7 @@ function resetAccount() {
   setLeverage(1);
 
   setMessage("Practice account reset.");
-
+localStorage.removeItem("tradenestx-simulator-session");
  if (user) {
   deleteDoc(doc(db, "portfolios", user.id));
 
@@ -1132,14 +1225,20 @@ function resetAccount() {
 }
 }
 
-  const portfolioValue =
-    balance +
-    Object.entries(positions).reduce(
-      (total, [symbol, qty]) => total + qty * prices[symbol as AssetSymbol],
-      0
-    );
+const portfolioValue =
+  balance +
+  Object.entries(positions).reduce((total, [symbol, qty]) => {
+    const price = prices[symbol as AssetSymbol];
+
+    if (!price) return total;
+
+    return total + Number(qty) * price;
+  }, 0);
+
 const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
   const current = prices[position.coin as AssetSymbol];
+
+  if (!current) return total;
 
   const pnl =
     position.side === "LONG"
@@ -1292,36 +1391,13 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 
   <p className="text-xs font-bold text-zinc-300">
-  ${(coin.price ?? 0).toLocaleString()}
+  {coin.price
+  ? `$${coin.price.toLocaleString()}`
+  : "Loading..."}
 </p>
 </div>
 
-<div className="mt-2 overflow-hidden">
-  <svg
-  viewBox="0 0 100 40"
-  width="100"
-  height="30"
->
- <polyline
-  points={`0,30 15,22 30,26 45,14 60,18 75,8 100,12`}
-  fill="none"
-  stroke="#22c55e"
-  strokeWidth="3"
-  strokeLinecap="round"
->
-  <animate
-    attributeName="points"
-    dur="2s"
-    repeatCount="indefinite"
-    values="
-      0,30 15,22 30,26 45,14 60,18 75,8 100,12;
-      0,25 15,28 30,18 45,22 60,10 75,16 100,8;
-      0,30 15,22 30,26 45,14 60,18 75,8 100,12
-    "
-  />
-</polyline>
-  </svg>
-</div>
+
                 </button>
               ))}
 
@@ -1353,7 +1429,9 @@ onChange={(e) => setSearchTerm(e.target.value)}
     </h2>
 
     <p className="text-3xl font-black text-white">
-      ${(currentPrice ?? 0).toLocaleString()}
+      {currentPrice
+  ? `$${currentPrice.toLocaleString()}`
+  : "Loading..."}
     </p>
   </div>
 
@@ -1672,7 +1750,8 @@ onChange={(e) => setSearchTerm(e.target.value)}
     <button
   onClick={() => {
   if (marketMode === "FUTURES") {
-    openFuturesPosition("LONG");
+    setPositionType("LONG");
+openFuturesPosition("LONG");
   } else {
     buyCoin();
   }
@@ -1685,7 +1764,8 @@ onChange={(e) => setSearchTerm(e.target.value)}
     <button
       onClick={() => {
   if (marketMode === "FUTURES") {
-    openFuturesPosition("SHORT");
+    setPositionType("SHORT");
+openFuturesPosition("SHORT");
   } else {
     sellCoin();
   }
@@ -1790,7 +1870,9 @@ onChange={(e) => setSearchTerm(e.target.value)}
   <div>
     <p className="text-gray-400 text-xs">Current</p>
     <p className="text-sm font-bold text-white">
-      ${prices[position.coin as AssetSymbol].toFixed(2)}
+      {prices[position.coin as AssetSymbol]
+  ? `$${prices[position.coin as AssetSymbol]!.toFixed(2)}`
+  : "Loading..."}
     </p>
   </div>
 
@@ -1816,105 +1898,128 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 
   <div>
-    <p className="text-gray-400 text-xs font-bold uppercase">Risk</p>
-
-    {(() => {
-      const tpDistance =
-        takeProfit !== ""
-          ? Math.abs(Number(takeProfit) - prices[position.coin as AssetSymbol])
-          : 0;
-
-      const slDistance =
-        stopLoss !== ""
-          ? Math.abs(prices[position.coin as AssetSymbol] - Number(stopLoss))
-          : 0;
-
-      const riskReward =
-        takeProfit !== "" && stopLoss !== "" && slDistance > 0
-          ? tpDistance / slDistance
-          : 0;
-
-      return (
-        <>
-          <p className="text-sm font-bold text-green-400">
-            TP: {takeProfit !== "" ? `$${tpDistance.toFixed(2)} away` : "Not set"}
-          </p>
-
-          <p className="mt-1 text-sm font-bold text-red-400">
-            SL: {stopLoss !== "" ? `$${slDistance.toFixed(2)} away` : "Not set"}
-          </p>
-
-          <p className="mt-1 text-sm font-bold text-cyan-400">
-            R/R: {riskReward > 0 ? riskReward.toFixed(2) : "N/A"}
-          </p>
-        </>
-      );
-    })()}
-  </div>
-
-  <div>
-  <p className="text-gray-400 text-xs font-bold uppercase">Open P/L</p>
+<p className="text-gray-400 text-xs font-bold uppercase">Risk</p>
 
 {(() => {
   const current = prices[position.coin as AssetSymbol];
 
-  const pnl =
-    position.side === "LONG"
-      ? (current - position.entryPrice) * position.quantity
-      : (position.entryPrice - current) * position.quantity;
+  if (!current) {
+    return (
+      <p className="text-sm font-bold text-zinc-500">
+        Loading price...
+      </p>
+    );
+  }
 
-return (
-  <p
-    className={`text-base font-bold ${
-      pnl >= 0 ? "text-green-400" : "text-red-400"
-    }`}
-  >
-      ${pnl.toFixed(2)}
-    </p>
+  const tpDistance =
+    takeProfit !== ""
+      ? Math.abs(Number(takeProfit) - current)
+      : 0;
+
+  const slDistance =
+    stopLoss !== ""
+      ? Math.abs(current - Number(stopLoss))
+      : 0;
+
+  const riskReward =
+    takeProfit !== "" && stopLoss !== "" && slDistance > 0
+      ? tpDistance / slDistance
+      : 0;
+
+  return (
+    <>
+      <p className="text-sm font-bold text-green-400">
+        TP: {takeProfit !== "" ? `$${tpDistance.toFixed(2)} away` : "Not set"}
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-red-400">
+        SL: {stopLoss !== "" ? `$${slDistance.toFixed(2)} away` : "Not set"}
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-cyan-400">
+        R/R: {riskReward > 0 ? riskReward.toFixed(2) : "N/A"}
+      </p>
+    </>
   );
 })()}
-  </div>
+</div>
 
-  <div className="flex justify-end">
- <button
-  onClick={() => {
+<div>
+  <p className="text-gray-400 text-xs font-bold uppercase">Open P/L</p>
+
+  {(() => {
     const current = prices[position.coin as AssetSymbol];
+
+    if (!current) {
+      return (
+        <p className="text-sm font-bold text-zinc-500">
+          Loading...
+        </p>
+      );
+    }
 
     const pnl =
       position.side === "LONG"
         ? (current - position.entryPrice) * position.quantity
         : (position.entryPrice - current) * position.quantity;
 
-    setBalance((prev) => prev + position.margin + pnl);
-
-    setMarginUsed((prev) =>
-      Math.max(0, prev - position.margin)
+    return (
+      <p
+        className={`text-base font-bold ${
+          pnl >= 0 ? "text-green-400" : "text-red-400"
+        }`}
+      >
+        ${pnl.toFixed(2)}
+      </p>
     );
+  })()}
+</div>
 
-    setFuturesPositions((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
+<div className="flex justify-end">
+  <button
+    onClick={() => {
+      const current = prices[position.coin as AssetSymbol];
 
-    setFuturesHistory((prev) => [
-      {
-        ...position,
-        exitPrice: current,
-        pnl,
-        status: "CLOSED",
-        time: new Date().toLocaleTimeString(),
-      },
-      ...prev,
-    ]);
+      if (!current) {
+        setMessage("Loading real market price...");
+        return;
+      }
 
-    setMessage(
-      `${position.side} ${position.coin} closed. P/L: $${pnl.toFixed(2)}`
-    );
-  }}
-  className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
->
-  Close
-</button>
-  </div>
+      const pnl =
+        position.side === "LONG"
+          ? (current - position.entryPrice) * position.quantity
+          : (position.entryPrice - current) * position.quantity;
+
+      setBalance((prev) => prev + position.margin + pnl);
+
+      setMarginUsed((prev) =>
+        Math.max(0, prev - position.margin)
+      );
+
+      setFuturesPositions((prev) =>
+        prev.filter((_, i) => i !== index)
+      );
+
+      setFuturesHistory((prev) => [
+        {
+          ...position,
+          exitPrice: current,
+          pnl,
+          status: "CLOSED",
+          time: new Date().toLocaleTimeString(),
+        },
+        ...prev,
+      ]);
+
+      setMessage(
+        `${position.side} ${position.coin} closed. P/L: $${pnl.toFixed(2)}`
+      );
+    }}
+    className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
+  >
+    Close
+  </button>
+</div>
 </div>
     </div>
 ))}
@@ -1937,6 +2042,7 @@ return (
     .map(([coin, qty]) => {
             const currentPrice =
               prices[coin as keyof typeof prices];
+              if (!currentPrice) return null;
 
             const avgPrice =
               averagePrices[coin as keyof typeof averagePrices];

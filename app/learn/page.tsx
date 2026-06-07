@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-
-
+import GabyCoach from "../components/GabyCoach";
+import GabyIntro from "../components/GabyIntro";
 export default function LearnPage() {
   const [activeLesson, setActiveLesson] = useState("roadmap");
   const [selectedAsset, setSelectedAsset] = useState("stocks");
@@ -224,7 +224,7 @@ const checkpointQuestions = [
 ];
 
 const lessons = [
-  { id: "roadmap", label: "Beginner Introduction" },
+  { id: "roadmap", label: "Meet Gaby" },
 
   { id: "buying", label: "What Are You Buying?" },
 
@@ -254,9 +254,7 @@ const lessons = [
 
   { id: "quiz", label: "Trader Checkpoint" },
 
-  { id: "practice", label: "TradeNestX Simulator Guide" },
 
-  { id: "account", label: "Going Live" },
 ];
 const activeLessonIndex = lessons.findIndex(
   (lesson) => lesson.id === activeLesson
@@ -1090,303 +1088,12 @@ window.scrollTo({
   className="min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide"
 >
           
-      
-{activeLesson === "roadmap" && (
-<>
-<div className="mb-8 overflow-hidden rounded-[40px] border border-cyan-500/10 bg-[#0f172a] shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-<Image
-  src="/learn/intro/tradenestx-education-intro.webp"
-  alt="TradeNestX Education Intro"
-  width={1200}
-  height={800}
-  className="block w-full object-contain"
-/>
-</div>
-
-
-
-<div className="mt-8">
-
-  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-    <button
-      onClick={() => {
-  setSelectedPainPoint("charts");
-  setPainPointDelay(20000);
-}}
-      className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
-        selectedPainPoint === "charts"
-          ? "border-cyan-400 bg-cyan-500/10"
-          : "border-white/10 bg-[#18181b] text-white hover:border-cyan-400/40 hover:bg-cyan-500/10 hover:text-cyan-300"
-      }`}
-    >
-      <p className="text-white font-black text-[20px]">
-        Learn Trading
-      </p>
-    </button>
-
-    <button
-      onClick={() => {
-  setSelectedPainPoint("fear");
-  setPainPointDelay(20000);
-}}
-      className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
-        selectedPainPoint === "fear"
-          ? "border-red-400 bg-red-500/10"
-          : "border-white/10 bg-[#18181b] text-white hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300"
-      }`}
-    >
-      <p className="text-white font-black text-[20px]">
-        Build Confidence
-      </p>
-    </button>
-
-    <button
-      onClick={() => {
-  setSelectedPainPoint("info");
-  setPainPointDelay(20000);
-}}
-      className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
-        selectedPainPoint === "info"
-          ? "border-orange-400 bg-orange-500/10"
-          : "border-white/10 bg-[#18181b] text-white hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-300"
-      }`}
-    >
-      <p className="text-white font-black text-[20px]">
-        Practice Risk-Free
-      </p>
-    </button>
-
-    <button
-      onClick={() => {
-  setSelectedPainPoint("roadmap");
-  setPainPointDelay(20000);
-}}
-      className={`rounded-[22px] border px-6 py-5 text-left transition-all duration-300 hover:-translate-y-[2px] shadow-[0_0_18px_rgba(34,211,238,0.05)] hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
-        selectedPainPoint === "roadmap"
-          ? "border-emerald-400 bg-emerald-500/10"
-          : "border-white/10 bg-[#18181b] text-white hover:border-emerald-400/40 hover:bg-emerald-500/10 hover:text-emerald-300"
-      }`}
-    >
-      <p className="text-white font-black text-[20px]">
-        Follow A Roadmap
-      </p>
-    </button>
-
-  </div>
-
-  <div className="mt-8 rounded-[40px] border border-white/5 bg-[#0d111a]/95 backdrop-blur-xl p-8 lg:p-10">
-
-    <div className="grid lg:grid-cols-[380px_1fr] gap-8 items-start">
-
-      <div>
-
-        {selectedPainPoint === "charts" && (
-          <>
-            <h3 className="text-4xl font-black text-white leading-tight">
-  Learn Trading Step By Step
-</h3>
-
-            <p className="mt-5 text-zinc-400 text-lg leading-8">
-              TradeNestX breaks trading into simple lessons designed for complete beginners. Learn one concept at a time and build a strong foundation.
-            </p>
-
-            <div className="mt-8 space-y-5">
-
-              <div className="flex gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 font-black">
-                  1
-                </div>
-
-                <div>
-                  <p className="text-white font-bold">
-                    Understand charts
-                  </p>
-
-                  <p className="text-zinc-500 mt-1">
-                    Learn what price movement is really telling you.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 font-black">
-                  2
-                </div>
-
-                <div>
-                  <p className="text-white font-bold">
-                    Learn market structure
-                  </p>
-
-                  <p className="text-zinc-500 mt-1">
-                    Understand trends, support, and resistance.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 font-black">
-                  3
-                </div>
-
-                <div>
-                  <p className="text-white font-bold">
-                    Build a strong foundation
-                  </p>
-
-                  <p className="text-zinc-500 mt-1">
-                    Master the basics before moving to advanced concepts.
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </>
-        )}
-{selectedPainPoint === "fear" && (
-  <>
-    <h3 className="text-4xl font-black text-white leading-tight">
-      Build Confidence Before You Trade
-    </h3>
-
-    <p className="mt-5 text-zinc-400 text-lg leading-8">
-      Confidence comes from education, preparation, and practice — not from guessing or rushing into trades.
-    </p>
-
-    <div className="mt-8 space-y-5">
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10 text-red-400 font-black">1</div>
-        <div>
-          <p className="text-white font-bold">Learn risk control</p>
-          <p className="text-zinc-500 mt-1">Understand how to protect your capital before entering trades.</p>
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10 text-red-400 font-black">2</div>
-        <div>
-          <p className="text-white font-bold">Manage emotions</p>
-          <p className="text-zinc-500 mt-1">Build discipline so emotions do not control every decision.</p>
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10 text-red-400 font-black">3</div>
-        <div>
-          <p className="text-white font-bold">Follow a plan</p>
-          <p className="text-zinc-500 mt-1">Use clear rules for entries, exits, and risk.</p>
-        </div>
-      </div>
-    </div>
-  </>
+      {activeLesson === "roadmap" && (
+  <GabyIntro
+    onStartLesson={() => setActiveLesson("buying")}
+  />
 )}
 
-{selectedPainPoint === "info" && (
-  <>
-    <h3 className="text-4xl font-black text-white leading-tight">
-      Practice Without Risking Real Money
-    </h3>
-
-    <p className="mt-5 text-zinc-400 text-lg leading-8">
-      Apply what you learn inside the TradeNestX simulator and gain experience in a safe environment before risking real money.
-    </p>
-
-    <div className="mt-8 space-y-5">
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-400 font-black">1</div>
-        <div>
-          <p className="text-white font-bold">Paper trading</p>
-          <p className="text-zinc-500 mt-1">Practice buying and selling without financial risk.</p>
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-400 font-black">2</div>
-        <div>
-          <p className="text-white font-bold">Learn from mistakes</p>
-          <p className="text-zinc-500 mt-1">Every trade becomes a learning opportunity.</p>
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-400 font-black">3</div>
-        <div>
-          <p className="text-white font-bold">Build experience safely</p>
-          <p className="text-zinc-500 mt-1">Develop confidence before entering live markets.</p>
-        </div>
-      </div>
-    </div>
-  </>
-)}
-
-{selectedPainPoint === "roadmap" && (
-  <>
-    <h3 className="text-4xl font-black text-white leading-tight">
-      Follow A Proven Learning Path
-    </h3>
-
-    <p className="mt-5 text-zinc-400 text-lg leading-8">
-      TradeNestX guides you from complete beginner to confident simulator trader through a structured step-by-step learning journey.
-    </p>
-
-    <div className="mt-8 space-y-5">
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-black">1</div>
-        <div>
-          <p className="text-white font-bold">Learn</p>
-          <p className="text-zinc-500 mt-1">Master the fundamentals through beginner-friendly lessons.</p>
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-black">2</div>
-        <div>
-          <p className="text-white font-bold">Practice</p>
-          <p className="text-zinc-500 mt-1">Apply what you learn inside the TradeNestX simulator.</p>
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-black">3</div>
-        <div>
-          <p className="text-white font-bold">Graduate</p>
-          <p className="text-zinc-500 mt-1">Complete the academy and continue building real trading skills.</p>
-        </div>
-      </div>
-    </div>
-  </>
-)}
-      </div>
-
-      <div className="overflow-hidden rounded-[28px] border border-white/5 bg-[#0f172a]">
-
-<Image
-  src={
-    selectedPainPoint === "charts"
-      ? "/learn/journey/learn-trading.webp"
-      : selectedPainPoint === "fear"
-      ? "/learn/journey/build-confidence.webp"
-      : selectedPainPoint === "info"
-      ? "/learn/journey/practice-risk-free.webp"
-      : "/learn/journey/follow-roadmap.webp"
-  }
-  alt="TradeNestX Learning Journey"
-  width={1200}
-  height={800}
-  className="h-full w-full object-cover"
-/>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-</>
-)}
 {activeLesson === "buying" && (
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
@@ -1489,79 +1196,20 @@ window.scrollTo({
 </div>
 
     </div>
-
- <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-  <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-<div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-/>
-</div>
-
-    <div>
-      <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-        {isGabyTyping ? (
-  <div className="flex items-center gap-3 pl-4">
-    <div className="flex gap-1">
-      <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-      <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-      <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-    </div>
-
-    <p className="text-cyan-300 font-bold">
-      Gaby is typing...
-    </p>
-  </div>
-) : (
-  <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-    {gabyAnswer}
-  </p>
-)}
-      </div>
-<div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-  {[
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
     "What is a stock?",
     "Why do prices move?",
     "What is crypto?",
     "What should beginners focus on?",
-  ].map((question) => (
-    <button
-      key={question}
-      onClick={() => {
-  askGaby(question);
-  setGabyQuestion("");
-}}
-      className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-    >
-      {question}
-    </button>
-  ))}
-</div>
+  ]}
+/>
 
-      <div className="mt-4 flex gap-3">
-        <input
-          value={gabyQuestion}
-          onChange={(e) => setGabyQuestion(e.target.value)}
-          placeholder="Ask Gaby anything about this lesson..."
-          className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-        />
-
-        <button
-  onClick={() => askGaby(gabyQuestion)}
-  disabled={isGabyTyping}
-  className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
->
-  {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-</button>
-      </div>
-    </div>
-
-  </div>
-</div>
     </div>
   
 )}
@@ -1700,84 +1348,19 @@ window.scrollTo({
 
     </div>
 
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "Why do prices move?",
+    "What is volatility?",
+    "What is supply and demand?",
+    "Why do markets panic?",
+  ]}
 />
-        </div>
-
-        <div>
-
-         <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-  {isGabyTyping ? (
-    <div className="flex items-center gap-3 pl-4">
-      <div className="flex gap-1">
-        <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-        <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-        <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-      </div>
-
-      <p className="text-cyan-300 font-bold">
-        Gaby is typing...
-      </p>
-    </div>
-  ) : (
-    <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-      {gabyAnswer}
-    </p>
-  )}
-</div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-            {[
-              "Why do prices move?",
-              "What is volatility?",
-              "What is supply and demand?",
-              "Why do markets panic?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-
-          </div>
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
 
   </div>
 )}
@@ -1908,89 +1491,22 @@ window.scrollTo({
 
     </div>
 
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-  <Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is a market order?",
+    "What is a limit order?",
+    "Which order is safer?",
+    "Why do traders use limit orders?",
+  ]}
 />
-        </div>
-
-        <div>
-
-         <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-  {isGabyTyping ? (
-    <div className="flex items-center gap-3 pl-4">
-      <div className="flex gap-1">
-        <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-        <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-        <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-      </div>
-
-      <p className="text-cyan-300 font-bold">
-        Gaby is typing...
-      </p>
-    </div>
-  ) : (
-    <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-      {gabyAnswer}
-    </p>
-  )}
-</div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-            {[
-              "What is a market order?",
-              "What is a limit order?",
-              "Which order is safer?",
-              "Why do traders use limit orders?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-
-          </div>
-          <div className="mt-4 flex gap-3">
-            <input
-            value={gabyQuestion}
-              
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
 
   </div>
 )}
-
 
 {activeLesson === "risk" && (
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
@@ -2044,26 +1560,26 @@ window.scrollTo({
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
-<Image
-  src={
-    riskLessonSlide === -1
-      ? "/learn/risk/protecting-your-capital.webp"
-      : [
-          "/learn/risk/small-risk-vs-big-risk.webp",
-          "/learn/risk/stop-loss-protection.webp",
-          "/learn/risk/revenge-trading.webp",
-          "/learn/risk/risk-to-reward.webp",
-          "/learn/risk/overtrading-warning.webp",
-          "/learn/risk/protecting-capital-pyramid.webp",
-          "/learn/risk/one-bad-trade.webp",
-          "/learn/risk/demo-first.webp",
-        ][riskLessonSlide]
-  }
-  alt="Protecting Your Capital"
-  width={1200}
-  height={800}
-  className="block w-full h-[625px] object-fill bg-white"
-/>
+        <Image
+          src={
+            riskLessonSlide === -1
+              ? "/learn/risk/protecting-your-capital.webp"
+              : [
+                  "/learn/risk/small-risk-vs-big-risk.webp",
+                  "/learn/risk/stop-loss-protection.webp",
+                  "/learn/risk/revenge-trading.webp",
+                  "/learn/risk/risk-to-reward.webp",
+                  "/learn/risk/overtrading-warning.webp",
+                  "/learn/risk/protecting-capital-pyramid.webp",
+                  "/learn/risk/one-bad-trade.webp",
+                  "/learn/risk/demo-first.webp",
+                ][riskLessonSlide]
+          }
+          alt="Protecting Your Capital"
+          width={1200}
+          height={800}
+          className="block w-full h-[625px] object-fill bg-white"
+        />
 
         <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
           <button
@@ -2101,83 +1617,20 @@ window.scrollTo({
       </div>
     </div>
 
-
-<div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-  <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-    <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
-/>
-    </div>
-
-    <div>
-      <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-        {isGabyTyping ? (
-          <div className="flex items-center gap-3 pl-4">
-            <div className="flex gap-1">
-              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-            </div>
-
-            <p className="text-cyan-300 font-bold">
-              Gaby is typing...
-            </p>
-          </div>
-        ) : (
-          <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-            {gabyAnswer}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          "What is risk management?",
-          "Why do traders use stop losses?",
-          "What is revenge trading?",
-          "Why is protecting capital important?",
-        ].map((question) => (
-          <button
-            key={question}
-            onClick={() => {
-              askGaby(question);
-              setGabyQuestion("");
-            }}
-            className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-          >
-            {question}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 flex gap-3">
-        <input
-          value={gabyQuestion}
-          onChange={(e) => setGabyQuestion(e.target.value)}
-          placeholder="Ask Gaby anything about this lesson..."
-          className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-        />
-
-        <button
-          onClick={() => askGaby(gabyQuestion)}
-          disabled={isGabyTyping}
-          className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-        </button>
-      </div>
-    </div>
-
+    <GabyCoach
+      gabyQuestion={gabyQuestion}
+      setGabyQuestion={setGabyQuestion}
+      gabyAnswer={gabyAnswer}
+      isGabyTyping={isGabyTyping}
+      askGaby={askGaby}
+      questions={[
+        "What is risk management?",
+        "Why do traders use stop losses?",
+        "What is revenge trading?",
+        "Why is protecting capital important?",
+      ]}
+    />
   </div>
-</div>
-
-</div>
 )}
 
 {activeLesson === "timeframes" && (
@@ -2304,79 +1757,20 @@ window.scrollTo({
         </div>
       </div>
     </div>
-
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is a timeframe?",
+    "Why do timeframes matter?",
+    "Which timeframe is best for beginners?",
+    "Why do lower timeframes feel stressful?",
+  ]}
 />
-        </div>
 
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-
-                <p className="text-cyan-300 font-bold">
-                  Gaby is typing...
-                </p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              "What is a timeframe?",
-              "Why do timeframes matter?",
-              "Which timeframe is best for beginners?",
-              "Why do lower timeframes feel stressful?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 )}
 {activeLesson === "candlesticks" && (
@@ -2501,78 +1895,19 @@ window.scrollTo({
 
       </div>
     </div>
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is a candlestick?",
+    "What is a bullish candle?",
+    "What is a bearish candle?",
+    "What does a long wick mean?",
+  ]}
 />
-        </div>
-
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-
-                <p className="text-cyan-300 font-bold">
-                  Gaby is typing...
-                </p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
- "What is a candlestick?",
-  "What is a bullish candle?",
-  "What is a bearish candle?",
-  "What does a long wick mean?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 )}
 
@@ -2682,81 +2017,19 @@ window.scrollTo({
         </div>
       </div>
     </div>
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-  <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-    <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is volume?",
+    "Why does volume matter?",
+    "What is high volume?",
+    "What is low volume?",
+  ]}
 />
-    </div>
-
-    <div>
-
-      <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-        {isGabyTyping ? (
-          <div className="flex items-center gap-3 pl-4">
-            <div className="flex gap-1">
-              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-              <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-            </div>
-
-            <p className="text-cyan-300 font-bold">
-              Gaby is typing...
-            </p>
-          </div>
-        ) : (
-          <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-            {gabyAnswer}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          "What is volume?",
-          "Why does volume matter?",
-          "What is high volume?",
-          "What is low volume?",
-        ].map((question) => (
-          <button
-            key={question}
-            onClick={() => {
-              askGaby(question);
-              setGabyQuestion("");
-            }}
-            className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-          >
-            {question}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 flex gap-3">
-        <input
-          value={gabyQuestion}
-          onChange={(e) => setGabyQuestion(e.target.value)}
-          placeholder="Ask Gaby anything about this lesson..."
-          className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-        />
-
-        <button
-          onClick={() => askGaby(gabyQuestion)}
-          disabled={isGabyTyping}
-          className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>
   </div>
 )}
 
@@ -2866,81 +2139,20 @@ window.scrollTo({
         </div>
       </div>
     </div>
-
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is support?",
+    "What is resistance?",
+    "Why do support and resistance matter?",
+    "What is a breakout?",
+  ]}
 />
-        </div>
-
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-
-                <p className="text-cyan-300 font-bold">
-                  Gaby is typing...
-                </p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              "What is support?",
-              "What is resistance?",
-              "Why do support and resistance matter?",
-              "What is a breakout?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
+ 
   </div>
 )}
 
@@ -3050,81 +2262,20 @@ window.scrollTo({
         </div>
       </div>
     </div>
-
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is supply?",
+    "What is demand?",
+    "What is a demand zone?",
+    "What is a supply zone?",
+  ]}
 />
-        </div>
 
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-
-                <p className="text-cyan-300 font-bold">
-                  Gaby is typing...
-                </p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              "What is supply?",
-              "What is demand?",
-              "What is a demand zone?",
-              "What is a supply zone?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
   </div>
 )}
 
@@ -3235,80 +2386,19 @@ window.scrollTo({
       </div>
     </div>
 
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is a chart pattern?",
+    "What is a double top?",
+    "What is a double bottom?",
+    "What is a head and shoulders pattern?",
+  ]}
 />
-        </div>
-
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-
-                <p className="text-cyan-300 font-bold">
-                  Gaby is typing...
-                </p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              "What is a chart pattern?",
-              "What is a double top?",
-              "What is a double bottom?",
-              "What is a head and shoulders pattern?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
   </div>
 )}
 
@@ -3412,77 +2502,19 @@ window.scrollTo({
       </div>
     </div>
 
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is a trade plan?",
+    "Why do traders use trade plans?",
+    "What is risk reward?",
+    "Why is a checklist important?",
+  ]}
 />
-        </div>
-
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-                <p className="text-cyan-300 font-bold">Gaby is typing...</p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              "What is a trade plan?",
-              "Why do traders use trade plans?",
-              "What is risk reward?",
-              "Why is a checklist important?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
   </div>
 )}
 
@@ -3586,78 +2618,20 @@ window.scrollTo({
       </div>
     </div>
 
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is trading psychology?",
+    "What is fear in trading?",
+    "What is greed in trading?",
+    "What is FOMO trading?",
+    "Why is patience important?",
+  ]}
 />
-        </div>
-
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-                <p className="text-cyan-300 font-bold">Gaby is typing...</p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-3">
-            {[
-              "What is trading psychology?",
-              "What is fear in trading?",
-              "What is greed in trading?",
-              "What is FOMO trading?",
-              "Why is patience important?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
   </div>
 )}
 
@@ -3761,79 +2735,21 @@ window.scrollTo({
       </div>
     </div>
 
-    <div className="mt-8 rounded-[34px] border border-cyan-400/40 bg-gradient-to-r from-[#07111f] via-[#0b1120] to-[#050816] p-5 shadow-[0_0_45px_rgba(34,211,238,0.18)] transition-all duration-500 hover:border-cyan-300 hover:shadow-[0_0_65px_rgba(34,211,238,0.28)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-4 items-center">
-
-        <div className="flex items-center justify-center pl-2">
-<Image
-  src="/gaby.png"
-  alt="Gaby AI"
-  width={210}
-  height={210}
-  className="h-[210px] w-[210px] object-contain drop-shadow-[0_0_45px_rgba(34,211,238,0.35)]"
+<GabyCoach
+  gabyQuestion={gabyQuestion}
+  setGabyQuestion={setGabyQuestion}
+  gabyAnswer={gabyAnswer}
+  isGabyTyping={isGabyTyping}
+  askGaby={askGaby}
+  questions={[
+    "What is a bid?",
+    "What is an ask?",
+    "What is a spread?",
+    "What is volatility?",
+    "What is liquidity?",
+    "What is market cap?",
+  ]}
 />
-        </div>
-
-        <div>
-          <div className="rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-5">
-            {isGabyTyping ? (
-              <div className="flex items-center gap-3 pl-4">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]"></span>
-                </div>
-                <p className="text-cyan-300 font-bold">Gaby is typing...</p>
-              </div>
-            ) : (
-              <p className="border-l-4 border-cyan-400 pl-4 text-zinc-100 leading-8">
-                {gabyAnswer}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              "What is a bid?",
-              "What is an ask?",
-              "What is a spread?",
-              "What is volatility?",
-              "What is liquidity?",
-              "What is market cap?",
-            ].map((question) => (
-              <button
-                key={question}
-                onClick={() => {
-                  askGaby(question);
-                  setGabyQuestion("");
-                }}
-                className="rounded-xl border border-cyan-400/20 bg-[#0b1120] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-[2px] hover:border-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
-
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
   </div>
 )}
 
@@ -4036,16 +2952,16 @@ setQuizAnswers({});
               Congratulations! You completed the TradeNestX Beginner Academy.
             </p>
 
-            <p className="mt-3 text-zinc-400 leading-8 max-w-3xl">
-              You now understand the foundation of trading. Before entering the simulator, complete the TradeNestX Simulator Guide to learn every tool, panel, and feature available on the platform.
-            </p>
+<p className="mt-3 text-zinc-400 leading-8 max-w-3xl">
+  You now understand the foundation of trading. Your next step is to practice inside the TradeNestX simulator using real market data in a risk-free environment.
+</p>
 
-<button
-  onClick={() => setActiveLesson("simulator-guide")}
+<Link
+  href="/simulator"
   className="mt-6 inline-flex rounded-2xl bg-cyan-400 px-8 py-4 font-black text-black transition-all duration-300 hover:scale-[1.02]"
 >
-  Go To Simulator Guide
-</button>
+  Start Practicing In The Simulator
+</Link>
           </>
         ) : (
           <>
@@ -4064,280 +2980,11 @@ setQuizAnswers({});
   </div>
 )}
 
-
-{activeLesson === "practice" && (
-<div className="mt-14 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-[28px] border border-cyan-500/20 p-10 text-center">
-  <h2 className="text-5xl font-black text-cyan-300">
-    TradeNestX Simulator Guide
-  </h2>
-
-  <p className="mt-6 text-xl text-zinc-300 leading-9 max-w-4xl mx-auto">
-    Now that you understand the basics of trading, candlestick patterns, risk management, trends, and technical analysis, the next step is practicing in the simulator.
-  </p>
-
-  <p className="mt-6 text-lg text-zinc-400 leading-8 max-w-4xl mx-auto">
-    TradeNestX allows beginners to practice trading strategies, manage risk, and learn market behavior without using real money.
-  </p>
-
-  <div className="mt-10">
-    <Link
-      href="/simulator"
-      className="inline-flex items-center justify-center rounded-2xl bg-cyan-500 px-10 py-5 text-xl font-black text-black transition-all duration-300 ease-out hover:-translate-y-[4px] hover:-translate-y-[4px] hover:-translate-y-[4px] hover:scale-[1.02] hover:bg-cyan-400"
-    >
-      Start Practicing On The Simulator
-    </Link>
-  </div>
-</div>
-)}
-{activeLesson === "account" && (
-<div className="mt-14 bg-[#131722] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.35)] p-8 border border-white/5">
-
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-    Going Live
-  </h2>
-
-  <p className="text-zinc-500 text-lg mt-4 leading-8 max-w-4xl">
-    Trading with real money feels very different from paper trading. Beginners should transition slowly and focus on consistency instead of fast profits.
-  </p>
-
-  <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-    {[
-      {
-        id: "small",
-        title: "Start Small",
-        color: "text-green-400",
-        text: "Use small position sizes while learning.",
-      },
-      {
-        id: "emotion",
-        title: "Real Emotions",
-        color: "text-red-400",
-        text: "Real money creates fear and greed.",
-      },
-      {
-        id: "expectations",
-        title: "Realistic Expectations",
-        color: "text-cyan-400",
-        text: "Consistency matters more than fast profits.",
-      },
-      {
-        id: "discipline",
-        title: "Discipline",
-        color: "text-orange-400",
-        text: "Avoid revenge trading and overtrading.",
-      },
-    ].map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setSelectedLiveTopic(item.id)}
-        className={`text-left rounded-[28px] border bg-[#18181b] p-7 transition-all duration-300 hover:-translate-y-[4px] ${
-          selectedLiveTopic === item.id
-            ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(34,211,238,0.12)]"
-            : "border-white/5 hover:border-cyan-400/30"
-        }`}
-      >
-        <h3 className={`text-2xl font-black ${item.color}`}>
-          {item.title}
-        </h3>
-
-        <p className="mt-4 text-zinc-300 leading-7">
-          {item.text}
-        </p>
-      </button>
-    ))}
-
-  </div>
-
-  <div className="mt-10 rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-[#111827] to-[#0f172a] p-8">
-
-    {selectedLiveTopic === "small" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Start With Small Risk
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            New traders should begin with very small position sizes while adjusting to real market emotions and execution.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Protect your capital first</p>
-            <p>• Focus on consistency</p>
-            <p>• Build confidence slowly</p>
-            <p>• Avoid oversized trades</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-green-500/20 bg-[#050816] p-6">
-
-          <div className="grid grid-cols-3 gap-4 h-56">
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center justify-center text-green-400 text-2xl font-black">
-              1%
-            </div>
-
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 flex items-center justify-center text-orange-400 text-2xl font-black">
-              2%
-            </div>
-
-            <div className="rounded-2xl bg-red-500/10 border border-red-400/20 flex items-center justify-center text-red-400 text-2xl font-black">
-              10%
-            </div>
-
-          </div>
-
-          <p className="mt-4 text-center text-zinc-400 font-bold">
-            Smaller risk improves survival
-          </p>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedLiveTopic === "emotion" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Real Money Changes Emotions
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Fear and greed become much stronger when real money is involved. Emotional control is critical.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Fear causes hesitation</p>
-            <p>• Greed increases risk</p>
-            <p>• Emotional trading creates mistakes</p>
-            <p>• Discipline matters more than excitement</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-red-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4 h-56">
-
-            <div className="rounded-2xl bg-red-500/10 border border-red-400/20 flex items-center justify-center text-red-400 text-2xl font-black">
-              FEAR
-            </div>
-
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 flex items-center justify-center text-orange-400 text-2xl font-black">
-              GREED
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedLiveTopic === "expectations" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Keep Realistic Expectations
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Trading is a skill that takes time to develop. Beginners should focus on improving decision making instead of chasing fast profits.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Consistency matters most</p>
-            <p>• Avoid unrealistic profit goals</p>
-            <p>• Small progress compounds</p>
-            <p>• Long-term survival is the goal</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6 flex items-center justify-center h-56">
-
-          <div className="text-center">
-            <p className="text-cyan-400 text-5xl font-black">
-              +1%
-            </p>
-
-            <p className="mt-4 text-zinc-400 font-bold">
-              Small consistent growth
-            </p>
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-    {selectedLiveTopic === "discipline" && (
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
-
-        <div>
-
-          <h3 className="text-3xl font-black text-white">
-            Discipline Protects Traders
-          </h3>
-
-          <p className="mt-4 text-zinc-300 text-[17px] leading-8">
-            Overtrading, revenge trading, and emotional decisions often destroy beginner accounts.
-          </p>
-
-          <div className="mt-6 space-y-3 text-zinc-400">
-            <p>• Follow your trade plan</p>
-            <p>• Avoid emotional revenge trades</p>
-            <p>• Patience improves execution</p>
-            <p>• Discipline builds consistency</p>
-          </div>
-
-        </div>
-
-        <div className="rounded-[28px] border border-orange-500/20 bg-[#050816] p-6">
-
-          <div className="grid gap-4 h-56">
-
-            <div className="rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center justify-center text-green-400 text-2xl font-black">
-              PLAN
-            </div>
-
-            <div className="rounded-2xl bg-orange-500/10 border border-orange-400/20 flex items-center justify-center text-orange-400 text-2xl font-black">
-              PATIENCE
-            </div>
-
-            <div className="rounded-2xl bg-red-500/10 border border-red-400/20 flex items-center justify-center text-red-400 text-2xl font-black">
-              REVENGE
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-
-  </div>
-
-</div>
-)}
-
 </section>
-
-
 
 </div>
 </div>
 </main>
-
 
 
     </>
