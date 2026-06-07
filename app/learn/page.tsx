@@ -2,11 +2,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { useUser } from "@clerk/nextjs";
 import Navbar from "../components/Navbar";
 import GabyCoach from "../components/GabyCoach";
 import GabyIntro from "../components/GabyIntro";
 export default function LearnPage() {
+  const { user } = useUser();
+
   const [activeLesson, setActiveLesson] = useState("roadmap");
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [lessonCompletionDates, setLessonCompletionDates] = useState<{
+  [key: string]: string;
+}>({});
+  const [progressLoaded, setProgressLoaded] = useState(false);
+  const [nextLessonUnlockTime, setNextLessonUnlockTime] = useState<number | null>(null);
   const [selectedAsset, setSelectedAsset] = useState("stocks");
   const [selectedJourney, setSelectedJourney] = useState("crypto");
   const [selectedSupportType, setSelectedSupportType] = useState("support");
@@ -65,6 +76,127 @@ useEffect(() => {
   setIsGabyTyping(false);
   setLastQuestion("");
 }, []);
+useEffect(() => {
+  async function loadProgress() {
+    if (!user) {
+  const savedProgress = localStorage.getItem(
+    "tradenestxLearnProgress"
+  );
+
+  if (savedProgress) {
+    setCompletedLessons(JSON.parse(savedProgress));
+  }
+
+  const savedDates = localStorage.getItem(
+    "tradenestxLessonDates"
+  );
+
+  if (savedDates) {
+    setLessonCompletionDates(JSON.parse(savedDates));
+  }
+
+  setProgressLoaded(true);
+  return;
+}
+
+    try {
+      const progressRef = doc(
+        db,
+        "lessonProgress",
+        user.id
+      );
+
+      const progressSnap = await getDoc(progressRef);
+
+if (progressSnap.exists()) {
+  const data = progressSnap.data();
+
+  setCompletedLessons(
+    data.completedLessons || []
+  );
+
+  setLessonCompletionDates(
+    data.lessonCompletionDates || {}
+  );
+
+  if (data.currentLesson) {
+    setActiveLesson(data.currentLesson);
+  }
+} else {
+        const savedProgress = localStorage.getItem(
+          "tradenestxLearnProgress"
+        );
+
+        if (savedProgress) {
+          setCompletedLessons(
+            JSON.parse(savedProgress)
+          );
+        }
+
+        const savedDates = localStorage.getItem(
+          "tradenestxLessonDates"
+        );
+
+        if (savedDates) {
+          setLessonCompletionDates(
+            JSON.parse(savedDates)
+          );
+        }
+      }
+
+      setProgressLoaded(true);
+    } catch (error) {
+      console.error(error);
+      setProgressLoaded(true);
+    }
+  }
+
+  loadProgress();
+}, [user]);
+
+useEffect(() => {
+  if (!progressLoaded || !user) return;
+
+async function saveProgress() {
+  if (!user) return;
+
+  localStorage.setItem(
+      "tradenestxLearnProgress",
+      JSON.stringify(completedLessons)
+    );
+
+    localStorage.setItem(
+      "tradenestxLessonDates",
+      JSON.stringify(lessonCompletionDates)
+    );
+
+    await setDoc(
+      doc(db, "lessonProgress", user.id),
+{
+  userId: user.id,
+  userEmail: user.primaryEmailAddress?.emailAddress || "",
+  userName: user.firstName || user.username || "TradeNestX Student",
+  completedLessons,
+  lessonCompletionDates,
+  currentLesson: activeLesson,
+lastCompletedLesson:
+  completedLessons[completedLessons.length - 1] || "",
+discordUserId: "",
+discordLinked: false,
+updatedAt: new Date().toISOString(),
+},
+{ merge: true }
+    );
+  }
+
+  saveProgress();
+}, [
+  completedLessons,
+  lessonCompletionDates,
+  activeLesson,
+  progressLoaded,
+  user,
+]);
 
 useEffect(() => {
   const savedCooldown = localStorage.getItem(
@@ -259,8 +391,71 @@ const lessons = [
 const activeLessonIndex = lessons.findIndex(
   (lesson) => lesson.id === activeLesson
 );
+const academyLessons = lessons.filter(
+  (lesson) => lesson.id !== "roadmap"
+);
 
+const progressPercent = Math.round(
+  (completedLessons.length / academyLessons.length) * 100
+);
+function completeLesson() {
+  const today = new Date().toDateString();
 
+  if (!completedLessons.includes(activeLesson)) {
+    setCompletedLessons((prev) => [
+      ...new Set([...prev, activeLesson]),
+    ]);
+
+    setLessonCompletionDates((prev) => ({
+      ...prev,
+      [activeLesson]: today,
+    }));
+
+    return;
+  }
+
+  const nextLesson = lessons[activeLessonIndex + 1];
+
+  if (!nextLesson) return;
+
+  const nextLessonIndex = lessons.findIndex(
+    (lesson) => lesson.id === nextLesson.id
+  );
+
+  const isDayOneLesson = nextLessonIndex <= 2;
+
+  if (isDayOneLesson) {
+    setActiveLesson(nextLesson.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("lesson-content")?.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+    return;
+  }
+
+  const lastCompletedLessonId =
+    completedLessons[completedLessons.length - 1];
+
+  const lastCompletedDate =
+    lastCompletedLessonId
+      ? lessonCompletionDates[lastCompletedLessonId]
+      : null;
+
+  const completedToday = lastCompletedDate === today;
+
+  if (completedToday) {
+    return;
+  }
+
+  setActiveLesson(nextLesson.id);
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("lesson-content")?.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+}
 async function askGaby(customQuestion?: string) {
 const question = (customQuestion || gabyQuestion).toLowerCase().trim();
 
@@ -1027,15 +1222,79 @@ setGabyQuestion("");
         <div className="mx-auto w-full max-w-[1650px] px-4">
   <div className="mt-6 grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)] gap-4">
          <aside className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 xl:sticky xl:top-24 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide">
-  <p className="text-sm font-black tracking-wide text-zinc-500 mb-4">
+<div className="mb-4 flex items-center justify-between gap-3">
+  <p className="text-sm font-black tracking-wide text-zinc-500">
     LESSONS
   </p>
 
+  {activeLesson !== "roadmap" && (
+<p className="shrink-0 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-sm font-black text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+  {completedLessons.length}/{academyLessons.length}
+</p>
+  )}
+</div>
+<button
+  onClick={async () => {
+    localStorage.removeItem("tradenestxLearnProgress");
+    localStorage.removeItem("tradenestxLessonDates");
+
+    setCompletedLessons([]);
+    setLessonCompletionDates({});
+
+    if (user) {
+      await setDoc(
+        doc(db, "lessonProgress", user.id),
+{
+  completedLessons: [],
+  lessonCompletionDates: {},
+  currentLesson: "roadmap",
+  lastCompletedLesson: "",
+discordUserId: "",
+discordLinked: false,
+updatedAt: new Date().toISOString(),
+},
+{ merge: true }
+      );
+    }
+  }}
+  className="mb-4 w-full rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs font-black text-red-300 transition-all duration-300 hover:bg-red-500/20"
+>
+  Reset Progress
+</button>
+
   <div className="space-y-2">
-    {lessons.map((lesson) => (
-      <button
-        key={lesson.id}
+{lessons.map((lesson, index) => {
+  const isCompleted = completedLessons.includes(lesson.id);
+
+const today = new Date().toDateString();
+
+const lastCompletedLessonId =
+  completedLessons[completedLessons.length - 1];
+
+const lastCompletedDate =
+  lastCompletedLessonId
+    ? lessonCompletionDates[lastCompletedLessonId]
+    : null;
+
+const completedToday = lastCompletedDate === today;
+
+const isDayOneLesson = index <= 2;
+
+const isNextLesson =
+  index === completedLessons.length + 1;
+
+const isUnlocked =
+  lesson.id === "roadmap" ||
+  isDayOneLesson ||
+  isCompleted ||
+  (isNextLesson && !completedToday);
+
+  return (
+    <button
+      key={lesson.id}
 onClick={() => {
+  if (!isUnlocked) return;
+
   setActiveLesson(lesson.id);
   setGabyQuestion("");
   setIsGabyTyping(false);
@@ -1066,20 +1325,29 @@ window.scrollTo({
        className={`group relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left text-sm font-black tracking-wide transition-all duration-300 ${
   activeLesson === lesson.id
     ? "border-cyan-400 bg-cyan-400 text-black shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-    : "border-white/5 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/30 hover:bg-[#131c2b] hover:text-cyan-300"
+    : isUnlocked
+  ? "border-white/5 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/30 hover:bg-[#131c2b] hover:text-cyan-300"
+  : "cursor-not-allowed border-white/5 bg-[#0b0f1a] text-zinc-600 opacity-60"
 }`}
       >
-        <div className="flex items-center">
-
-  <span>
+<div className="flex items-center justify-between gap-2">
+  <span className="leading-5">
     {lesson.label}
   </span>
 
-
-
+{isCompleted ? (
+  <span className="shrink-0 text-emerald-400 font-black">
+    ✓
+  </span>
+) : !isUnlocked ? (
+<span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-zinc-500">
+  Tomorrow
+</span>
+) : null}
 </div>
       </button>
-    ))}
+  );
+})}
   </div>
 </aside>
 
@@ -1087,10 +1355,24 @@ window.scrollTo({
   id="lesson-content"
   className="min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide"
 >
-          
+  
       {activeLesson === "roadmap" && (
   <GabyIntro
-    onStartLesson={() => setActiveLesson("buying")}
+    onStartLesson={() => {
+      setActiveLesson("buying");
+
+      setTimeout(() => {
+        document.getElementById("lesson-content")?.scrollTo({
+          top: 0,
+          behavior: "auto",
+        });
+
+        window.scrollTo({
+          top: 0,
+          behavior: "auto",
+        });
+      }, 0);
+    }}
   />
 )}
 
@@ -1209,7 +1491,22 @@ window.scrollTo({
     "What should beginners focus on?",
   ]}
 />
-
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
     </div>
   
 )}
@@ -1361,7 +1658,22 @@ window.scrollTo({
     "Why do markets panic?",
   ]}
 />
-
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
   </div>
 )}
 
@@ -1504,7 +1816,22 @@ window.scrollTo({
     "Why do traders use limit orders?",
   ]}
 />
-
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
   </div>
 )}
 
@@ -1630,6 +1957,22 @@ window.scrollTo({
         "Why is protecting capital important?",
       ]}
     />
+    <div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
   </div>
 )}
 
@@ -1770,7 +2113,22 @@ window.scrollTo({
     "Why do lower timeframes feel stressful?",
   ]}
 />
-
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
   </div>
 )}
 {activeLesson === "candlesticks" && (
@@ -1908,6 +2266,23 @@ window.scrollTo({
     "What does a long wick mean?",
   ]}
 />
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
+
   </div>
 )}
 
@@ -2030,6 +2405,23 @@ window.scrollTo({
     "What is low volume?",
   ]}
 />
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
+
   </div>
 )}
 
@@ -2152,7 +2544,22 @@ window.scrollTo({
     "What is a breakout?",
   ]}
 />
- 
+ <div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
   </div>
 )}
 
@@ -2275,7 +2682,22 @@ window.scrollTo({
     "What is a supply zone?",
   ]}
 />
-
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
   </div>
 )}
 
@@ -2399,6 +2821,23 @@ window.scrollTo({
     "What is a head and shoulders pattern?",
   ]}
 />
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
+
   </div>
 )}
 
@@ -2515,6 +2954,23 @@ window.scrollTo({
     "Why is a checklist important?",
   ]}
 />
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
+
   </div>
 )}
 
@@ -2632,6 +3088,23 @@ window.scrollTo({
     "Why is patience important?",
   ]}
 />
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
+
   </div>
 )}
 
@@ -2750,6 +3223,23 @@ window.scrollTo({
     "What is market cap?",
   ]}
 />
+<div className="mt-6 flex justify-end">
+  <button
+onClick={completeLesson}
+    className={`group rounded-xl border px-6 py-3 font-black transition-all duration-300 hover:-translate-y-1 ${
+      completedLessons.includes(activeLesson)
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-500/20"
+        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
+    }`}
+  >
+{completedLessons.includes(activeLesson)
+  ? activeLessonIndex < 2
+    ? "✓ Lesson Complete • Next Lesson →"
+    : "✓ Lesson Complete • Practice In Simulator"
+  : "✓ Mark Lesson Complete"}
+  </button>
+</div>
+
   </div>
 )}
 
@@ -2946,24 +3436,49 @@ setQuizAnswers({});
   </div>
 )}
 
-        {quizScore >= 8 ? (
-          <>
-            <p className="mt-5 text-2xl font-black text-emerald-300">
-              Congratulations! You completed the TradeNestX Beginner Academy.
-            </p>
+{quizScore >= 8 ? (
+  <>
+    <p className="mt-5 text-3xl font-black text-emerald-300">
+      🎓 TradeNestX Beginner Academy Complete
+    </p>
 
-<p className="mt-3 text-zinc-400 leading-8 max-w-3xl">
-  You now understand the foundation of trading. Your next step is to practice inside the TradeNestX simulator using real market data in a risk-free environment.
-</p>
+    <p className="mt-4 text-zinc-400 leading-8 max-w-3xl">
+      Congratulations. You've completed the TradeNestX Beginner Academy and built a foundation in market basics, chart reading, risk management, trading psychology, and simulator practice.
+    </p>
 
-<Link
-  href="/simulator"
-  className="mt-6 inline-flex rounded-2xl bg-cyan-400 px-8 py-4 font-black text-black transition-all duration-300 hover:scale-[1.02]"
->
-  Start Practicing In The Simulator
-</Link>
-          </>
-        ) : (
+    <div className="mt-6 rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-6">
+      <p className="font-black text-emerald-300">
+        ✓ Beginner Academy Complete
+      </p>
+
+      <p className="mt-2 text-zinc-300">
+        You are now ready to continue building experience inside the TradeNestX Simulator.
+      </p>
+    </div>
+
+    <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-6">
+      <h3 className="text-xl font-black text-cyan-300">
+        🚀 Advanced Academy Coming Soon
+      </h3>
+
+      <ul className="mt-4 space-y-2 text-zinc-300">
+        <li>• Market Structure</li>
+        <li>• Trend Analysis</li>
+        <li>• Breakouts & Pullbacks</li>
+        <li>• Advanced Risk Management</li>
+        <li>• Trade Reviews</li>
+        <li>• Professional Trading Workflows</li>
+      </ul>
+    </div>
+
+    <Link
+      href="/simulator"
+      className="mt-6 inline-flex rounded-2xl bg-cyan-400 px-8 py-4 font-black text-black transition-all duration-300 hover:scale-[1.02]"
+    >
+      Continue To Simulator →
+    </Link>
+  </>
+) : (
           <>
             <p className="mt-5 text-2xl font-black text-orange-300">
               Keep practicing. Review the beginner lessons and try again.
