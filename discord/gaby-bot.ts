@@ -32,6 +32,119 @@ const client = new Client({
   ],
 });
 
+function getLessonReinforcement(lessonId: string, lessonTitle: string) {
+  const messages: Record<string, string> = {
+    buying:
+      `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nToday’s focus:\n• Know what you are buying\n• Understand why price moves\n• Never enter without a reason\n\nSimulator challenge: Open the simulator and watch how price moves before placing any trade. 🚀
+
+Need help? Reply with \`!gaby what does buying an asset mean?\``,
+
+    market:
+      `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nToday’s focus:\n• Buyers push price up\n• Sellers push price down\n• Supply and demand control movement\n\nSimulator challenge: Open the simulator and identify whether buyers or sellers look stronger. 📊`,
+
+    orders:
+      `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nToday’s focus:\n• Market orders focus on speed\n• Limit orders focus on price control\n• Beginners should understand both before trading\n\nSimulator challenge: Practice one market order and one limit order in the simulator. 🧠`,
+  };
+
+  return (
+    messages[lessonId] ||
+    `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nReview today’s lesson, ask Gaby questions in Discord, and practice safely in the simulator. Tomorrow, your next lesson unlocks. 🚀`
+  );
+}
+
+function getLessonFollowUp1(
+  lessonId: string,
+  lessonTitle: string
+) {
+const messages: Record<string, string> = {
+  buying:
+    `📚 Follow-up for **${lessonTitle}**
+
+Remember: buying an asset means you need to understand what it represents. Stocks represent company ownership. Crypto represents a digital asset. Never trade something you do not understand.
+
+Ask me about this with \`!gaby what is a stock?\``,
+
+  market:
+    `📚 Follow-up for **${lessonTitle}**
+
+Markets move because buyers and sellers are constantly competing. If buyers are stronger, price can rise. If sellers are stronger, price can fall.
+
+Ask me about this with \`!gaby why do prices move?\``,
+};
+
+return (
+  messages[lessonId] ||
+  `📚 Follow-up for **${lessonTitle}**
+
+Review the main idea from today’s lesson before moving forward.
+
+Ask me about this with \`!gaby your question\`.`
+);
+}
+
+function getLessonFollowUp2(
+  lessonId: string,
+  lessonTitle: string
+) {
+  const messages: Record<string, string> = {
+    buying:
+      `🧠 Second reminder for **${lessonTitle}**
+
+Before entering any trade, ask:
+• What am I buying?
+• Why is price moving?
+• What is my risk?
+
+Ask me about this with \`!gaby what am i buying?\``,
+
+    market:
+      `🧠 Second reminder for **${lessonTitle}**
+
+Supply and demand control movement. More demand can push price up. More supply can push price down.
+
+Ask me about this with \`!gaby what is supply and demand?\``,
+  };
+
+  return (
+    messages[lessonId] ||
+    `🧠 Second reminder for **${lessonTitle}**
+
+Take a few minutes to review the lesson and connect it to what you see on the chart.
+
+Ask me about this with \`!gaby your question\`.`
+  );
+}
+
+function getLessonChallenge(
+  lessonId: string,
+  lessonTitle: string
+) {
+  const messages: Record<string, string> = {
+    buying:
+      `🚀 Simulator challenge for **${lessonTitle}**
+
+Open the TradeNestX simulator. Pick one crypto asset and explain what you are buying before placing any simulated trade.
+
+Need help? Ask me with \`!gaby what does this asset represent?\``,
+
+    market:
+      `🚀 Simulator challenge for **${lessonTitle}**
+
+Open the TradeNestX simulator. Watch price movement and decide whether buyers or sellers look stronger before placing a simulated trade.
+
+Need help? Ask me with \`!gaby how do buyers move price?\``,
+  };
+
+  return (
+    messages[lessonId] ||
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Open the TradeNestX simulator and practice today’s concept safely before tomorrow’s lesson.
+
+Need help? Ask me with \`!gaby your question\`.`
+  );
+}
+
 client.once("ready", () => {
   console.log(`Gaby is online.`);
 
@@ -50,14 +163,23 @@ client.once("ready", () => {
       try {
         const user = await client.users.fetch(data.discordUserId);
 
-        await user.send(
-          `🎉 Great job completing **${data.lessonTitle}** on TradeNestX!\n\nGaby tip: Review today’s lesson, ask questions in Discord, and practice the concept safely in the simulator. Tomorrow, your next lesson unlocks. 🚀`
-        );
+const reinforcementMessage = getLessonReinforcement(
+  data.lessonId,
+  data.lessonTitle
+);
 
-        await docSnap.ref.update({
-          status: "sent",
-          sentAt: new Date().toISOString(),
-        });
+await user.send(reinforcementMessage);
+
+await docSnap.ref.update({
+  status: "sent",
+  sentAt: new Date().toISOString(),
+  followUp1Status: "pending",
+  followUp2Status: "pending",
+  challengeStatus: "pending",
+followUp1SendAt: Date.now() + 2 * 60 * 60 * 1000,
+followUp2SendAt: Date.now() + 4 * 60 * 60 * 1000,
+challengeSendAt: Date.now() + 6 * 60 * 60 * 1000,
+});
       } catch (error) {
         console.error(error);
 
@@ -69,7 +191,73 @@ client.once("ready", () => {
       }
     });
   }, 60 * 1000);
+
+  setInterval(async () => {
+    const now = Date.now();
+
+    const snapshot = await db
+      .collection("discordLessonQueue")
+      .where("status", "==", "sent")
+      .limit(10)
+      .get();
+
+    snapshot.forEach(async (docSnap) => {
+      const data = docSnap.data();
+
+      if (!data.discordLinked || !data.discordUserId) return;
+
+      try {
+        const user = await client.users.fetch(data.discordUserId);
+
+        if (
+          data.followUp1Status === "pending" &&
+          data.followUp1SendAt <= now
+        ) {
+          await user.send(
+            getLessonFollowUp1(data.lessonId, data.lessonTitle)
+          );
+
+          await docSnap.ref.update({
+            followUp1Status: "sent",
+            followUp1SentAt: new Date().toISOString(),
+          });
+        }
+
+        if (
+          data.followUp2Status === "pending" &&
+          data.followUp2SendAt <= now
+        ) {
+          await user.send(
+            getLessonFollowUp2(data.lessonId, data.lessonTitle)
+          );
+
+          await docSnap.ref.update({
+            followUp2Status: "sent",
+            followUp2SentAt: new Date().toISOString(),
+          });
+        }
+
+        if (
+          data.challengeStatus === "pending" &&
+          data.challengeSendAt <= now
+        ) {
+          await user.send(
+            getLessonChallenge(data.lessonId, data.lessonTitle)
+          );
+
+          await docSnap.ref.update({
+            challengeStatus: "sent",
+            challengeSentAt: new Date().toISOString(),
+            status: "completed",
+          });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  }, 60 * 1000);
 });
+
 client.on("guildMemberAdd", async (member) => {
   const channel = member.guild.channels.cache.find(
     (c) => c.name === "welcome"

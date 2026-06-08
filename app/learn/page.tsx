@@ -181,8 +181,7 @@ async function saveProgress() {
   currentLesson: activeLesson,
 lastCompletedLesson:
   completedLessons[completedLessons.length - 1] || "",
-discordUserId: "",
-discordLinked: false,
+
 updatedAt: new Date().toISOString(),
 },
 { merge: true }
@@ -406,24 +405,32 @@ async function queueDiscordLessonMessage(lessonId: string) {
 
   if (!lesson) return;
 
-  await setDoc(
-    doc(
-      db,
-      "discordLessonQueue",
-      `${user.id}_${lessonId}_${Date.now()}`
-    ),
-    {
-      userId: user.id,
-      userEmail: user.primaryEmailAddress?.emailAddress || "",
-      userName: user.firstName || user.username || "TradeNestX Student",
-      lessonId,
-      lessonTitle: lesson.label,
-      discordUserId: "",
-      discordLinked: false,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    }
-  );
+const progressSnap = await getDoc(
+  doc(db, "lessonProgress", user.id)
+);
+
+const progressData = progressSnap.exists()
+  ? progressSnap.data()
+  : null;
+
+await setDoc(
+  doc(
+    db,
+    "discordLessonQueue",
+    `${user.id}_${lessonId}_${Date.now()}`
+  ),
+  {
+    userId: user.id,
+    userEmail: user.primaryEmailAddress?.emailAddress || "",
+    userName: user.firstName || user.username || "TradeNestX Student",
+    lessonId,
+    lessonTitle: lesson.label,
+    discordUserId: progressData?.discordUserId || "",
+    discordLinked: progressData?.discordLinked || false,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  }
+);
 }
 
 function completeLesson() {
@@ -1279,8 +1286,7 @@ setGabyQuestion("");
   lessonCompletionDates: {},
   currentLesson: "roadmap",
   lastCompletedLesson: "",
-discordUserId: "",
-discordLinked: false,
+
 updatedAt: new Date().toISOString(),
 },
 { merge: true }
