@@ -7,10 +7,22 @@ import {
 } from "discord.js";
 
 import OpenAI from "openai";
-
+import admin from "firebase-admin";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
+}
+
+const db = admin.firestore();
 
 const client = new Client({
   intents: [
@@ -22,6 +34,41 @@ const client = new Client({
 
 client.once("ready", () => {
   console.log(`Gaby is online.`);
+
+  setInterval(async () => {
+    const snapshot = await db
+      .collection("discordLessonQueue")
+      .where("status", "==", "pending")
+      .limit(5)
+      .get();
+
+    snapshot.forEach(async (docSnap) => {
+      const data = docSnap.data();
+
+      if (!data.discordLinked || !data.discordUserId) return;
+
+      try {
+        const user = await client.users.fetch(data.discordUserId);
+
+        await user.send(
+          `🎉 Great job completing **${data.lessonTitle}** on TradeNestX!\n\nGaby tip: Review today’s lesson, ask questions in Discord, and practice the concept safely in the simulator. Tomorrow, your next lesson unlocks. 🚀`
+        );
+
+        await docSnap.ref.update({
+          status: "sent",
+          sentAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error(error);
+
+        await docSnap.ref.update({
+          status: "failed",
+          error: String(error),
+          failedAt: new Date().toISOString(),
+        });
+      }
+    });
+  }, 60 * 1000);
 });
 client.on("guildMemberAdd", async (member) => {
   const channel = member.guild.channels.cache.find(
@@ -50,6 +97,45 @@ if (!question) {
 
   return;
 }
+
+if (question.startsWith("link ")) {
+  const email = question.replace("link ", "").trim();
+
+  if (!email.includes("@")) {
+    message.reply(
+      "Please use this format: `!gaby link your@email.com`"
+    );
+    return;
+  }
+
+  const snapshot = await db
+    .collection("lessonProgress")
+    .where("userEmail", "==", email)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) {
+    message.reply(
+      "I couldn't find that TradeNestX account yet. Complete one lesson first, then try linking again."
+    );
+    return;
+  }
+
+  const userDoc = snapshot.docs[0];
+
+  await userDoc.ref.update({
+    discordUserId: message.author.id,
+    discordLinked: true,
+    discordLinkedAt: new Date().toISOString(),
+  });
+
+  message.reply(
+    "✅ Your Discord is now linked to your TradeNestX learning progress. Gaby can now send lesson reinforcement messages."
+  );
+
+  return;
+}
+
 await message.channel.sendTyping();
 if (question.includes("help")) {
   message.reply(

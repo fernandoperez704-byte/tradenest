@@ -398,6 +398,34 @@ const academyLessons = lessons.filter(
 const progressPercent = Math.round(
   (completedLessons.length / academyLessons.length) * 100
 );
+
+async function queueDiscordLessonMessage(lessonId: string) {
+  if (!user) return;
+
+  const lesson = lessons.find((item) => item.id === lessonId);
+
+  if (!lesson) return;
+
+  await setDoc(
+    doc(
+      db,
+      "discordLessonQueue",
+      `${user.id}_${lessonId}_${Date.now()}`
+    ),
+    {
+      userId: user.id,
+      userEmail: user.primaryEmailAddress?.emailAddress || "",
+      userName: user.firstName || user.username || "TradeNestX Student",
+      lessonId,
+      lessonTitle: lesson.label,
+      discordUserId: "",
+      discordLinked: false,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    }
+  );
+}
+
 function completeLesson() {
   const today = new Date().toDateString();
 
@@ -406,12 +434,14 @@ function completeLesson() {
       ...new Set([...prev, activeLesson]),
     ]);
 
-    setLessonCompletionDates((prev) => ({
-      ...prev,
-      [activeLesson]: today,
-    }));
+setLessonCompletionDates((prev) => ({
+  ...prev,
+  [activeLesson]: today,
+}));
 
-    return;
+queueDiscordLessonMessage(activeLesson);
+
+return;
   }
 
   const nextLesson = lessons[activeLessonIndex + 1];
