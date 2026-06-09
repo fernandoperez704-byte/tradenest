@@ -4,6 +4,7 @@ dotenv.config({ path: ".env.local" });
 import {
   Client,
   GatewayIntentBits,
+  Partials,
 } from "discord.js";
 
 import OpenAI from "openai";
@@ -28,8 +29,10 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.DirectMessages,
     GatewayIntentBits.MessageContent,
   ],
+  partials: [Partials.Channel],
 });
 
 function getTomorrowAt(hour: number) {
@@ -92,7 +95,189 @@ Need help? Reply with \`!gaby what does buying an asset mean?\``,
 
     orders:
       `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nToday’s focus:\n• Market orders focus on speed\n• Limit orders focus on price control\n• Beginners should understand both before trading\n\nSimulator challenge: Practice one market order and one limit order in the simulator. 🧠`,
-  };
+ 
+risk:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Protect capital first
+• Never risk money you cannot afford to lose
+• Small losses are part of trading
+• One trade should never damage your account
+
+Simulator challenge: Open the simulator and practice placing trades with controlled risk instead of focusing on profits.
+
+Need help? Reply with \`!gaby what is risk management?\``,
+
+candlesticks:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Candlesticks tell a story
+• Every candle shows open, high, low, and close
+• Buyers and sellers leave clues on the chart
+• Patterns become easier to spot with practice
+
+Simulator challenge: Open the simulator and identify bullish and bearish candles before placing any trade.
+
+Need help? Reply with \`!gaby what is a candlestick?\``,
+
+timeframes:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Different timeframes tell different stories
+• Lower timeframes move faster
+• Higher timeframes usually show stronger trends
+• Good traders learn to look at the bigger picture
+
+Simulator challenge: Open the simulator and compare the chart on multiple timeframes before making a decision.
+
+Need help? Reply with \`!gaby what timeframe should beginners use?\``,
+
+volume:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Volume shows participation
+• Strong moves often have strong volume
+• Weak volume can signal weak conviction
+• Volume helps confirm price movement
+
+Simulator challenge: Open the simulator and compare price movement with volume before placing a trade.
+
+Need help? Reply with \`!gaby why is volume important?\``,
+
+support:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Support is an area where buyers may step in
+• Price often reacts around support levels
+• Support is not guaranteed to hold
+• Traders use support to help manage risk
+
+Simulator challenge: Open the simulator and identify one support level before placing a trade.
+
+Need help? Reply with \`!gaby what is support?\``,
+
+supplydemand:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Supply and demand drive all markets
+• Demand can push prices higher
+• Supply can push prices lower
+• Traders look for areas where imbalance exists
+
+Simulator challenge: Open the simulator and find an area where buyers or sellers seem strongest.
+
+Need help? Reply with \`!gaby what is supply and demand?\``,
+
+patterns:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Patterns help traders organize information
+• No pattern guarantees an outcome
+• Confirmation matters more than prediction
+• Risk management always comes first
+
+Simulator challenge: Open the simulator and identify one chart pattern before entering a trade.
+
+Need help? Reply with \`!gaby what is a chart pattern?\``,
+
+setups:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Every trade should have a plan
+• Know your entry before entering
+• Know your stop loss before entering
+• Know your target before entering
+
+Simulator challenge: Open the simulator and create a complete trade plan before placing a trade.
+
+Need help? Reply with \`!gaby what is a trade plan?\``,
+
+psychology:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Emotions influence trading decisions
+• Fear and greed can create mistakes
+• Discipline is more important than excitement
+• Consistency beats impulsive decisions
+
+Simulator challenge: Open the simulator and focus on following your plan instead of chasing profits.
+
+Need help? Reply with \`!gaby what is trading psychology?\``,
+
+vocabulary:
+  `🎉 Great job completing **${lessonTitle}** on TradeNestX!
+
+Today’s focus:
+
+• Traders use specific terminology
+• Understanding the language builds confidence
+• Communication improves learning
+• Knowledge reduces confusion
+
+Simulator challenge: Open the simulator and identify at least three trading terms you learned this week.
+
+Need help? Reply with \`!gaby explain trading terms\``,
+
+quiz:
+  `🎓 Congratulations!
+
+You completed the TradeNestX Beginner Academy.
+
+You now understand:
+
+• Market basics
+• Risk management
+• Candlesticks
+• Volume
+• Support & Resistance
+• Trading Psychology
+
+━━━━━━━━━━━━━━
+
+🚀 Coming Soon
+
+TradeNestX Advanced Academy
+
+Future topics:
+
+• Leverage & Futures
+• Advanced Risk Management
+• Market Structure
+• Liquidity Concepts
+• Breakouts & Retests
+• Advanced Trade Planning
+• Professional Psychology
+
+━━━━━━━━━━━━━━
+
+Until then:
+
+• Practice in the simulator
+• Build consistency
+• Protect your capital
+• Develop discipline
+
+Need help? Ask me with \`!gaby your question\``,
+
+    };
 
 return `
 ${messages[lessonId] || `🎉 Great job completing **${lessonTitle}** on TradeNestX!`}
@@ -129,6 +314,93 @@ Ask me about this with \`!gaby what is a stock?\``,
 Markets move because buyers and sellers are constantly competing. If buyers are stronger, price can rise. If sellers are stronger, price can fall.
 
 Ask me about this with \`!gaby why do prices move?\``,
+
+  orders:
+    `📚 Follow-up for **${lessonTitle}**
+
+Market orders prioritize speed. Limit orders prioritize price control. Understanding when to use each can help traders execute more effectively.
+
+Ask me about this with \`!gaby what is a limit order?\``,
+
+  risk:
+    `📚 Follow-up for **${lessonTitle}**
+
+Most traders fail because they focus on profits before protecting capital. Good risk management helps you stay in the game long enough to learn.
+
+Ask me about this with \`!gaby why is risk management important?\``,
+
+  candlesticks:
+    `📚 Follow-up for **${lessonTitle}**
+
+Candlesticks reveal the battle between buyers and sellers. The shape of a candle can provide clues about momentum and market sentiment.
+
+Ask me about this with \`!gaby what does a candlestick show?\``,
+
+  timeframes:
+    `📚 Follow-up for **${lessonTitle}**
+
+A trade can look bullish on one timeframe and bearish on another. Always understand the timeframe you are trading.
+
+Ask me about this with \`!gaby what timeframe should beginners use?\``,
+
+volume:
+  `📚 Follow-up for **${lessonTitle}**
+
+Volume helps traders measure participation. Strong volume can confirm a move, while weak volume can suggest a lack of conviction.
+
+Ask me about this with \`!gaby why is volume important?\``,
+
+support:
+  `📚 Follow-up for **${lessonTitle}**
+
+Support is an area where buyers may become active. Traders watch support levels because price often reacts around them.
+
+Ask me about this with \`!gaby what is support?\``,
+
+supplydemand:
+  `📚 Follow-up for **${lessonTitle}**
+
+Markets move because of supply and demand. When demand outweighs supply, prices can rise. When supply outweighs demand, prices can fall.
+
+Ask me about this with \`!gaby what is supply and demand?\``,
+
+patterns:
+  `📚 Follow-up for **${lessonTitle}**
+
+Chart patterns help traders organize information, but no pattern guarantees success. Confirmation and risk management are always important.
+
+Ask me about this with \`!gaby what is a chart pattern?\``,
+
+setups:
+  `📚 Follow-up for **${lessonTitle}**
+
+A good trade starts with a good plan. Before entering, know your entry, stop loss, target, and risk.
+
+Ask me about this with \`!gaby what is a trade plan?\``,
+
+psychology:
+  `📚 Follow-up for **${lessonTitle}**
+
+Fear and greed affect every trader. Learning to control emotions is one of the most valuable trading skills.
+
+Ask me about this with \`!gaby what is trading psychology?\``,
+
+vocabulary:
+  `📚 Follow-up for **${lessonTitle}**
+
+Learning trading terminology helps you understand charts, lessons, and market discussions with more confidence.
+
+Ask me about this with \`!gaby explain trading terms?\``,
+
+quiz:
+  `📚 Academy Graduate Reminder
+
+Finishing the Beginner Academy is an achievement, but knowledge grows through practice.
+
+Open the simulator, review your lessons, and continue building experience.
+
+Ask me about this with \`!gaby what should i practice next?\``,
+
 };
 
 return (
@@ -145,9 +417,10 @@ function getLessonFollowUp2(
   lessonId: string,
   lessonTitle: string
 ) {
-  const messages: Record<string, string> = {
-    buying:
-      `🧠 Second reminder for **${lessonTitle}**
+
+const messages: Record<string, string> = {
+  buying:
+    `🧠 Second reminder for **${lessonTitle}**
 
 Before entering any trade, ask:
 • What am I buying?
@@ -156,13 +429,99 @@ Before entering any trade, ask:
 
 Ask me about this with \`!gaby what am i buying?\``,
 
-    market:
-      `🧠 Second reminder for **${lessonTitle}**
+  market:
+    `🧠 Second reminder for **${lessonTitle}**
 
 Supply and demand control movement. More demand can push price up. More supply can push price down.
 
 Ask me about this with \`!gaby what is supply and demand?\``,
-  };
+
+  orders:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Execution matters. Understanding the difference between market and limit orders can help traders stay disciplined.
+
+Ask me about this with \`!gaby when should i use a limit order?\``,
+
+  risk:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Every successful trader thinks about risk before reward. Protecting capital allows you to survive long enough to improve.
+
+Ask me about this with \`!gaby how much should i risk?\``,
+
+  candlesticks:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Candles tell the story of buyer and seller behavior. Focus on understanding the story, not memorizing patterns.
+
+Ask me about this with \`!gaby how do candlesticks work?\``,
+
+  timeframes:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Higher timeframes often provide more reliable information. Lower timeframes move faster and contain more noise.
+
+Ask me about this with \`!gaby why do timeframes matter?\``,
+
+  volume:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Volume helps confirm price movement. Strong volume often supports stronger conviction behind a move.
+
+Ask me about this with \`!gaby how does volume work?\``,
+
+  support:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Support levels are areas of interest, not guarantees. Always wait for confirmation and manage risk.
+
+Ask me about this with \`!gaby how does support work?\``,
+
+  supplydemand:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Supply and demand influence every market. Traders look for areas where one side appears stronger than the other.
+
+Ask me about this with \`!gaby how does supply and demand work?\``,
+
+  patterns:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Patterns help organize information, but they do not predict the future. Focus on probabilities and discipline.
+
+Ask me about this with \`!gaby what chart pattern should i learn first?\``,
+
+  setups:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Good traders follow a plan. Knowing your entry, stop loss, and target before entering can improve consistency.
+
+Ask me about this with \`!gaby how do i build a trade plan?\``,
+
+  psychology:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Emotions can influence every decision. Patience and discipline often matter more than finding the perfect setup.
+
+Ask me about this with \`!gaby how do traders control emotions?\``,
+
+  vocabulary:
+    `🧠 Second reminder for **${lessonTitle}**
+
+Learning trading terminology makes it easier to understand lessons, charts, and market discussions.
+
+Ask me about this with \`!gaby explain trading terms?\``,
+
+  quiz:
+    `🧠 Academy Graduate Reminder
+
+Consistent practice is what turns knowledge into skill.
+
+Keep reviewing lessons, asking questions, and practicing in the simulator.
+
+Ask me about this with \`!gaby what should i focus on next?\``,
+};
 
   return (
     messages[lessonId] ||
@@ -178,21 +537,113 @@ function getLessonChallenge(
   lessonId: string,
   lessonTitle: string
 ) {
-  const messages: Record<string, string> = {
-    buying:
-      `🚀 Simulator challenge for **${lessonTitle}**
+const messages: Record<string, string> = {
+  buying:
+    `🚀 Simulator challenge for **${lessonTitle}**
 
 Open the TradeNestX simulator. Pick one crypto asset and explain what you are buying before placing any simulated trade.
 
 Need help? Ask me with \`!gaby what does this asset represent?\``,
 
-    market:
-      `🚀 Simulator challenge for **${lessonTitle}**
+  market:
+    `🚀 Simulator challenge for **${lessonTitle}**
 
 Open the TradeNestX simulator. Watch price movement and decide whether buyers or sellers look stronger before placing a simulated trade.
 
 Need help? Ask me with \`!gaby how do buyers move price?\``,
-  };
+
+  orders:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Place one market order and one limit order in the simulator. Compare the difference between speed and price control.
+
+Need help? Ask me with \`!gaby what is a limit order?\``,
+
+  risk:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Create a trade idea and decide exactly how much you are willing to risk before entering.
+
+Need help? Ask me with \`!gaby how do traders manage risk?\``,
+
+  candlesticks:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Find three bullish candles and three bearish candles on the simulator chart. Explain what buyers and sellers were doing.
+
+Need help? Ask me with \`!gaby what does a candlestick show?\``,
+
+  timeframes:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Compare the same asset on multiple timeframes and identify which timeframe gives the clearest trend.
+
+Need help? Ask me with \`!gaby what timeframe should beginners use?\``,
+
+  volume:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Find a strong price move and compare it with volume. Decide whether volume confirms the move.
+
+Need help? Ask me with \`!gaby why is volume important?\``,
+
+  support:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Identify one support level on the chart and observe how price reacts around it.
+
+Need help? Ask me with \`!gaby what is support?\``,
+
+  supplydemand:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Find an area where buyers or sellers appear strongest and explain why.
+
+Need help? Ask me with \`!gaby what is supply and demand?\``,
+
+  patterns:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Find one chart pattern on the simulator and describe what it may be signaling.
+
+Need help? Ask me with \`!gaby what is a chart pattern?\``,
+
+  setups:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Build a complete trade plan including entry, stop loss, target, and risk before entering any trade.
+
+Need help? Ask me with \`!gaby help me build a trade plan\``,
+
+  psychology:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Place a simulated trade and focus on following your plan without changing it emotionally.
+
+Need help? Ask me with \`!gaby how do traders control emotions?\``,
+
+  vocabulary:
+    `🚀 Simulator challenge for **${lessonTitle}**
+
+Identify five trading terms from the academy and explain them in your own words.
+
+Need help? Ask me with \`!gaby explain trading terms\``,
+
+  quiz:
+    `🎓 Graduate Challenge
+
+Complete three simulated trades this week.
+
+For each trade record:
+
+• Why you entered
+• Where your stop loss was
+• What you learned
+
+This is where knowledge becomes experience.
+
+Need help? Ask me with \`!gaby review my trade\``,
+};
 
   return (
     messages[lessonId] ||
