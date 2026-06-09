@@ -32,7 +32,55 @@ const client = new Client({
   ],
 });
 
-function getLessonReinforcement(lessonId: string, lessonTitle: string) {
+function getTomorrowAt(hour: number) {
+  const date = new Date();
+
+  date.setDate(date.getDate() + 1);
+  date.setHours(hour, 0, 0, 0);
+
+  return date.getTime();
+}
+
+function getLessonReinforcement(
+  lessonId: string,
+  lessonTitle: string,
+  userId: string
+) {
+
+const lessonOrder = [
+  { id: "buying", title: "What Are You Buying?" },
+  { id: "market", title: "How The Market Works" },
+  { id: "orders", title: "Market vs Limit Orders" },
+  { id: "risk", title: "Protecting Your Capital" },
+  { id: "candlesticks", title: "Candlestick Basics" },
+  { id: "timeframes", title: "Trading Timeframes" },
+  { id: "volume", title: "Volume Basics" },
+  { id: "support", title: "Support & Resistance" },
+  { id: "supplydemand", title: "Supply & Demand" },
+  { id: "patterns", title: "Chart Patterns" },
+  { id: "setups", title: "Building A Trade Plan" },
+  { id: "psychology", title: "Trading Psychology" },
+  { id: "vocabulary", title: "Essential Trading Terms" },
+  { id: "quiz", title: "Trader Checkpoint" },
+];
+
+const currentLessonIndex = lessonOrder.findIndex(
+  (lesson) => lesson.id === lessonId
+);
+
+const currentLessonNumber = currentLessonIndex + 1;
+
+const totalLessons = lessonOrder.length;
+
+const progressPercent = Math.round(
+  (currentLessonNumber / totalLessons) * 100
+);
+
+const nextLessonName =
+  currentLessonIndex + 1 < totalLessons
+    ? lessonOrder[currentLessonIndex + 1].title
+    : "Beginner Academy Complete";
+
   const messages: Record<string, string> = {
     buying:
       `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nToday’s focus:\n• Know what you are buying\n• Understand why price moves\n• Never enter without a reason\n\nSimulator challenge: Open the simulator and watch how price moves before placing any trade. 🚀
@@ -46,10 +94,21 @@ Need help? Reply with \`!gaby what does buying an asset mean?\``,
       `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nToday’s focus:\n• Market orders focus on speed\n• Limit orders focus on price control\n• Beginners should understand both before trading\n\nSimulator challenge: Practice one market order and one limit order in the simulator. 🧠`,
   };
 
-  return (
-    messages[lessonId] ||
-    `🎉 Great job completing **${lessonTitle}** on TradeNestX!\n\nReview today’s lesson, ask Gaby questions in Discord, and practice safely in the simulator. Tomorrow, your next lesson unlocks. 🚀`
-  );
+return `
+${messages[lessonId] || `🎉 Great job completing **${lessonTitle}** on TradeNestX!`}
+
+━━━━━━━━━━━━━━
+
+📚 Lesson ${currentLessonNumber} of ${totalLessons}
+
+📈 Progress: ${progressPercent}%
+
+➡️ Next: ${nextLessonName}
+
+━━━━━━━━━━━━━━
+
+Need help? Ask me with \`!gaby your question\`
+`;
 }
 
 function getLessonFollowUp1(
@@ -165,7 +224,8 @@ client.once("ready", () => {
 
 const reinforcementMessage = getLessonReinforcement(
   data.lessonId,
-  data.lessonTitle
+  data.lessonTitle,
+  data.userId
 );
 
 await user.send(reinforcementMessage);
@@ -176,9 +236,9 @@ await docSnap.ref.update({
   followUp1Status: "pending",
   followUp2Status: "pending",
   challengeStatus: "pending",
-followUp1SendAt: Date.now() + 2 * 60 * 60 * 1000,
-followUp2SendAt: Date.now() + 4 * 60 * 60 * 1000,
-challengeSendAt: Date.now() + 6 * 60 * 60 * 1000,
+followUp1SendAt: getTomorrowAt(9),
+followUp2SendAt: getTomorrowAt(13),
+challengeSendAt: getTomorrowAt(17),
 });
       } catch (error) {
         console.error(error);

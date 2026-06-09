@@ -2,7 +2,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { useUser } from "@clerk/nextjs";
 import Navbar from "../components/Navbar";
@@ -412,6 +421,27 @@ const progressSnap = await getDoc(
 const progressData = progressSnap.exists()
   ? progressSnap.data()
   : null;
+
+const oldQueues = await getDocs(
+  query(
+    collection(db, "discordLessonQueue"),
+    where("userId", "==", user.id)
+  )
+);
+
+for (const queueDoc of oldQueues.docs) {
+  const queueData = queueDoc.data();
+
+  if (
+    queueData.status === "sent" ||
+    queueData.status === "pending"
+  ) {
+    await updateDoc(queueDoc.ref, {
+      status: "superseded",
+      supersededAt: new Date().toISOString(),
+    });
+  }
+}
 
 await setDoc(
   doc(
