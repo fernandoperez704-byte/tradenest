@@ -27,7 +27,7 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
 
 <div className="mt-4 rounded-3xl border border-cyan-400/20 bg-[#0f172a]/80 p-5 text-center">
   <p className="text-cyan-300 font-black">
-    Your educational trading coach available throughout the academy and simulator.
+    Gaby guides every lesson, reinforces concepts in Discord, and helps you learn inside the simulator.
   </p>
 </div>
           </div>
@@ -59,29 +59,26 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
 
 <div className="mt-3 rounded-3xl border border-cyan-400/20 bg-[#0f172a]/80 p-7">
   <h3 className="text-2xl font-black text-white">
-    How To Get The Most From TradeNest
-    <span className="text-cyan-400">X</span>
+    How TradeNest<span className="text-cyan-400">X</span> Works
   </h3>
 
   <p className="mt-4 text-zinc-300 text-lg leading-8">
-    Trading is difficult because beginners often try to learn everything at
-    once. They jump between YouTube videos, social media posts, and random
-    trading advice without a clear path.
+    TradeNestX is designed to guide you step by step. You do not need to rush,
+    guess, or jump between random trading advice.
   </p>
 
   <p className="mt-4 text-zinc-300 text-lg leading-8">
-    TradeNestX was designed to give you a structured learning experience.
-    Follow these four steps:
+    Follow this process to get the best results:
   </p>
 
   <div className="mt-6 space-y-5">
 
     <div>
       <p className="font-black text-cyan-300">
-        1. Complete The Lessons
+        1. Complete Today's Lesson
       </p>
       <p className="text-zinc-400">
-        Build a strong foundation by learning one concept at a time.
+        Learn one concept at a time and build a strong foundation.
       </p>
     </div>
 
@@ -90,32 +87,43 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
         2. Practice In The Simulator
       </p>
       <p className="text-zinc-400">
-        Apply what you learn in a risk-free environment using real market data.
+        Apply what you learn in a risk-free environment before using real money.
       </p>
     </div>
 
     <div>
       <p className="font-black text-cyan-300">
-        3. Learn With Gaby
+        3. Ask Gaby Questions
       </p>
       <p className="text-zinc-400">
-        Ask questions, review concepts, and get guidance throughout your learning journey.
+        Gaby is available throughout the academy, simulator, and Discord to help explain concepts and answer questions.
       </p>
     </div>
 
     <div>
       <p className="font-black text-cyan-300">
-        4. Join The Discord Community
+        4. Continue Learning In Discord
+      </p>
+<p className="text-zinc-400">
+  Discord is where you receive lesson reinforcement, educational reminders,
+  simulator challenges, community support, platform updates, and direct access
+  to Gaby. Members who actively use Discord get the most value from TradeNestX.
+</p>
+    </div>
+
+    <div>
+      <p className="font-black text-cyan-300">
+        5. Follow The Learning Path
       </p>
       <p className="text-zinc-400">
-        Receive daily educational tips, stay motivated, and continue learning with other traders.
+        Lessons unlock one at a time. Even if you leave for weeks, only your next lesson becomes available. This keeps your learning focused and structured.
       </p>
     </div>
 
   </div>
 
   <p className="mt-6 text-cyan-300 font-black text-lg">
-    Learn. Practice. Improve. Repeat.
+    Learn. Practice. Ask. Improve.
   </p>
 </div>
 </div>
@@ -137,13 +145,14 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
   <div className="flex items-center justify-between gap-4">
     
     <div>
-      <p className="text-emerald-300 font-black text-lg">
-        Ready to begin?
-      </p>
+<h3 className="text-lg font-black text-emerald-300">
+  Ready To Start Your Journey?
+</h3>
 
-      <p className="mt-1 text-zinc-300">
-        Lesson 1 takes only a few minutes and teaches what you're actually buying when you trade.
-      </p>
+<p className="mt-2 text-sm text-zinc-300">
+  Complete Lesson 1, join the Discord community, and begin building real trading
+  skills one step at a time with Gaby guiding the way.
+</p>
     </div>
 
     <button
