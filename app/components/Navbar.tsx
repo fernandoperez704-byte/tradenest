@@ -119,74 +119,30 @@ const [showCommunity, setShowCommunity] = useState(false);
       className="fixed inset-0 z-40 bg-black/50 backdrop-blur-md"
     />
 
-    <div className="fixed right-5 top-5 z-50 w-[420px] rounded-[32px] border border-cyan-500/20 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
-      
-      <div className="relative rounded-t-[32px] border-b border-cyan-500/10 p-6">
-        <div className="pr-14">
-          <h2 className="text-2xl font-black text-white">
-            TradeNestX Community
-          </h2>
+    <div className="fixed right-5 top-5 z-50 w-[360px] rounded-[28px] border border-cyan-500/20 bg-[#050816]/95 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+      <button
+        onClick={() => setShowCommunity(false)}
+        className="absolute right-5 top-5 rounded-lg border border-zinc-700 px-3 py-1 text-zinc-400 transition hover:border-cyan-400 hover:text-white"
+      >
+        ✕
+      </button>
 
-          <p className="mt-1 text-sm text-zinc-400">
-            Learn, trade, and grow with the community.
-          </p>
-        </div>
+      <h2 className="pr-10 text-2xl font-black text-white">
+        Join TradeNestX Discord
+      </h2>
 
-        <button
-          onClick={() => setShowCommunity(false)}
-          className="absolute right-6 top-6 rounded-lg border border-zinc-700 px-3 py-1 text-zinc-400 transition hover:border-cyan-400 hover:text-white"
-        >
-          ✕
-        </button>
-      </div>
+      <p className="mt-3 text-sm leading-6 text-zinc-400">
+        Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
+      </p>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="rounded-[28px] border border-cyan-500/10 bg-gradient-to-b from-[#0b1120] to-[#0a1020] p-6 pb-5 shadow-[0_10px_40px_rgba(0,0,0,0.35)]">
-          
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/10 text-3xl">
-              🚀
-            </div>
-
-            <div>
-              <h3 className="text-xl font-black text-white">
-                Join The Community
-              </h3>
-
-              <p className="mt-1 text-sm text-zinc-400">
-                Connect with traders, ask questions, and learn with Gaby AI.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-2">
-            <div className="rounded-2xl border border-zinc-800 bg-[#111827] px-4 py-3 text-sm text-zinc-300">
-              📚 Beginner trading education
-            </div>
-
-            <div className="rounded-2xl border border-zinc-800 bg-[#111827] px-4 py-3 text-sm text-zinc-300">
-              🤖 Gaby AI coaching
-            </div>
-
-            <div className="rounded-2xl border border-zinc-800 bg-[#111827] px-4 py-3 text-sm text-zinc-300">
-              📈 Market discussions
-            </div>
-
-            <div className="rounded-2xl border border-zinc-800 bg-[#111827] px-4 py-3 text-sm text-zinc-300">
-              🧠 Trading psychology support
-            </div>
-          </div>
-
-          <a
-            href="https://discord.gg/QReDrKSEKS"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-lg font-black text-black transition-all duration-200 hover:bg-cyan-400"
-          >
-            Open Discord Community
-          </a>
-        </div>
-      </div>
+      <a
+        href="https://discord.gg/QReDrKSEKS"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition-all duration-200 hover:bg-cyan-400"
+      >
+        Open Discord
+      </a>
     </div>
   </>
 )}
