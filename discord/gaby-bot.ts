@@ -25,6 +25,10 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+const MARKET_HEADLINE_CHANNEL_ID = "1507825415753039922";
+const COINDESK_RSS_URL = "https://www.coindesk.com/arc/outboundfeeds/rss/";
+
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -655,8 +659,146 @@ Need help? Ask me with \`!gaby your question\`.`
   );
 }
 
-client.once("ready", () => {
+async function fetchMarketHeadline() {
+  const response = await fetch(COINDESK_RSS_URL);
+  const xml = await response.text();
+
+  const titleMatch = xml.match(
+    /<item>[\s\S]*?<title><!\[CDATA\[(.*?)\]\]><\/title>/
+  );
+
+  if (!titleMatch) return null;
+
+  return titleMatch[1];
+}
+
+function getRelatedLesson(headline: string) {
+  const text = headline.toLowerCase();
+
+  if (
+    text.includes("etf") ||
+    text.includes("inflow") ||
+    text.includes("demand")
+  ) {
+    return "Supply & Demand";
+  }
+
+  if (text.includes("volume")) {
+    return "Volume Basics";
+  }
+
+  if (
+    text.includes("volatility") ||
+    text.includes("fed") ||
+    text.includes("rates")
+  ) {
+    return "Trading Psychology";
+  }
+
+  if (
+    text.includes("support") ||
+    text.includes("resistance")
+  ) {
+    return "Support & Resistance";
+  }
+
+  return "How The Market Works";
+}
+
+async function createEducationalExplanation(headline: string) {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    messages: [
+      {
+        role: "system",
+        content: `
+You are Gaby, the TradeNestX educational trading coach.
+
+Explain this real market headline for beginners.
+
+Rules:
+- Educational only
+- Do not say buy
+- Do not say sell
+- Do not predict price
+- Do not give signals
+- Do not give entry or exit levels
+- Keep it 2 short sentences
+`,
+      },
+      {
+        role: "user",
+        content: headline,
+      },
+    ],
+  });
+
+  return (
+    completion.choices[0].message.content ||
+    "This headline matters because market news can affect sentiment, volume, and volatility. Beginners should focus on understanding the concept, not predicting the next move."
+  );
+}
+
+async function sendDailyMarketHeadline() {
+  const today = new Date().toDateString();
+
+  const headlineRef = db
+    .collection("dailyMarketHeadlines")
+    .doc(today);
+
+  const headlineSnap = await headlineRef.get();
+
+  if (headlineSnap.exists) return;
+
+  const headline = await fetchMarketHeadline();
+
+  if (!headline) return;
+
+  const lesson = getRelatedLesson(headline);
+  const explanation = await createEducationalExplanation(headline);
+
+  const channel = await client.channels.fetch(
+    MARKET_HEADLINE_CHANNEL_ID
+  );
+
+  if (!channel?.isTextBased()) return;
+
+  await channel.send(`
+📰 **Gaby's Market Headline**
+
+${headline}
+
+🎓 **Why it matters:**
+${explanation}
+
+📚 **Related Lesson:**
+${lesson}
+
+Educational purposes only. TradeNestX does not provide financial advice, investment recommendations, or trading signals.
+`);
+
+  await headlineRef.set({
+    headline,
+    lesson,
+    sentAt: new Date().toISOString(),
+  });
+}
+
+client.once("ready", async () => {
   console.log(`Gaby is online.`);
+
+
+
+setInterval(async () => {
+  const now = new Date();
+
+  const isNineAM = now.getHours() === 9;
+  const isFirstMinute = now.getMinutes() === 0;
+
+  if (isNineAM && isFirstMinute) {
+    await sendDailyMarketHeadline();
+  }
+}, 60 * 1000);
 
   setInterval(async () => {
     const snapshot = await db

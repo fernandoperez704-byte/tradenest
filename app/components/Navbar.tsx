@@ -178,7 +178,7 @@ const [showCommunity, setShowCommunity] = useState(false);
           </div>
 
           <a
-            href="https://discord.gg/UzPPbPwP3H"
+            href="https://discord.gg/QReDrKSEKS"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-lg font-black text-black transition-all duration-200 hover:bg-cyan-400"
