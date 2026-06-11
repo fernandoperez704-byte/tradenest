@@ -757,13 +757,13 @@ async function sendDailyMarketHeadline() {
   const lesson = getRelatedLesson(headline);
   const explanation = await createEducationalExplanation(headline);
 
-  const channel = await client.channels.fetch(
-    MARKET_HEADLINE_CHANNEL_ID
-  );
+const channel = await client.channels.fetch(
+  MARKET_HEADLINE_CHANNEL_ID
+);
 
-  if (!channel?.isTextBased()) return;
+if (!channel || !channel.isTextBased() || !("send" in channel)) return;
 
-  await channel.send(`
+await channel.send(`
 📰 **Gaby's Market Headline**
 
 ${headline}
