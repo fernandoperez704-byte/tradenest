@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "../components/Navbar";
+import GabySimulatorCoach from "../components/GabySimulatorCoach";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -69,6 +70,9 @@ useEffect(() => {
   window.scrollTo(0, 0);
 }, []);
   const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
+  const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
+  const [showGabyHint, setShowGabyHint] = useState(true);
+  const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
@@ -87,6 +91,28 @@ const [prices, setPrices] = useState<
     useState<Record<AssetSymbol, number>>(emptyPositions);
 
   const [balance, setBalance] = useState(startingBalance);
+
+useEffect(() => {
+  function startTour() {
+    setShowSimulatorGaby(false);
+    setTourStep(1);
+  }
+
+  window.addEventListener("startSimulatorTour", startTour);
+
+  return () => {
+    window.removeEventListener("startSimulatorTour", startTour);
+  };
+}, []);
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setShowGabyHint(false);
+  }, 8000);
+
+  return () => clearTimeout(timer);
+}, []);
+
 useEffect(() => {
   async function loadPortfolio() {
     if (!user) return;
@@ -1286,7 +1312,13 @@ const watchlist = [
       <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
 <div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
-          <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden">
+          <div
+  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden ${
+    tourStep === 1
+      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
+      : ""
+  }`}
+>
 <div className="relative mb-4">
   <button
     onClick={() => setShowMarketMenu(!showMarketMenu)}
@@ -1404,23 +1436,47 @@ onChange={(e) => setSearchTerm(e.target.value)}
 <div className="w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827]">
   <div className="flex h-[78px] items-center">
     <div>
-<p className="text-lg font-black tracking-wide text-white">
-  More Coins
-</p>
+      <p className="text-lg font-black tracking-wide text-white">
+        More Coins
+      </p>
 
       <p className="mt-1 text-sm text-zinc-500">
         Coming Soon
       </p>
     </div>
-
-
   </div>
+</div>
+
+<div className="relative">
+{showGabyHint && (
+  <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-bounce">
+    <div className="relative rounded-xl border border-amber-400 bg-amber-400 px-4 py-3 text-sm font-black text-black shadow-[0_0_25px_rgba(251,191,36,0.35)]">
+      Need help?
+
+      <div className="absolute left-1/2 top-full -translate-x-1/2">
+        <div className="h-0 w-0 border-l-[10px] border-r-[10px] border-t-[12px] border-l-transparent border-r-transparent border-t-amber-400" />
+      </div>
+    </div>
+  </div>
+)}
+
+  <button
+    onClick={() => setShowSimulatorGaby(true)}
+    className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-4 text-base font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.18)] transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:shadow-[0_0_35px_rgba(34,211,238,0.28)]"
+  >
+    Ask Gaby
+  </button>
 </div>
             </div>
           </div>
-  
 
-            <div className="bg-[#0f172a] border border-zinc-700 rounded-2xl p-5 h-[760px] flex flex-col overflow-hidden">
+            <div
+  className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-5 h-[760px] flex flex-col overflow-hidden ${
+    tourStep === 2
+      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
+      : ""
+  }`}
+>
 
 <div className="mb-6 border-b border-zinc-800 pb-4">
   <div className="flex items-end gap-4">
@@ -1500,7 +1556,14 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
             <div className="space-y-2 xl:col-span-1">
 
-              <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4">
+          
+              <div
+  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 ${
+    tourStep === 5
+      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
+      : ""
+  }`}
+>
   <h2 className="text-lg font-black text-white mb-3">
     Account Summary
   </h2>
@@ -1561,7 +1624,13 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 </div>
 
-  <div className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-fit">
+  <div
+  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-fit ${
+    tourStep === 3
+      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
+      : ""
+  }`}
+>
   
 <div className="grid grid-cols-3 gap-3">
 
@@ -1794,7 +1863,13 @@ openFuturesPosition("SHORT");
       </div>
       </div>
     <div className="mt-2 page-container">
-  <div className="max-w-[calc(100%-296px)] bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px]">
+  <div
+  className={`max-w-[calc(100%-296px)] bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px] ${
+    tourStep === 4
+      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
+      : ""
+  }`}
+>
 
     <div className="flex items-center justify-between mb-8 border-b border-zinc-800 pb-4">
       <div className="flex gap-3">
@@ -2566,6 +2641,99 @@ if (user) {
       </div>
     </div>
   </div>
+)}
+
+{showSimulatorGaby && (
+  <>
+<div
+  onClick={() => setShowSimulatorGaby(false)}
+  className="fixed inset-0 z-40 bg-black/10"
+ />
+
+    <div className="fixed bottom-[72px] left-[270px] z-50 w-[500px]">
+      <button
+        onClick={() => setShowSimulatorGaby(false)}
+        className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"
+      >
+        ✕ Close
+      </button>
+
+      <GabySimulatorCoach
+        mode={marketMode}
+        selectedCoin={selectedCoin}
+        trades={trades}
+        futuresHistory={futuresHistory}
+        positions={positions}
+        futuresPositions={futuresPositions}
+        balance={balance}
+        marginUsed={marginUsed}
+      />
+    </div>
+  </>
+)}
+
+{tourStep !== null && (
+  <>
+    <div className="fixed inset-0 z-40 bg-black/10" />
+
+    <div className="fixed left-[270px] top-[150px] z-50 w-[360px] rounded-2xl border border-cyan-500/30 bg-[#0f172a] p-5 shadow-[0_20px_70px_rgba(0,0,0,0.6)]">
+      <p className="text-sm font-black text-cyan-400">
+        Simulator Tour
+      </p>
+
+<h3 className="mt-2 text-xl font-black text-white">
+  {tourStep === 1
+  ? "Watchlist"
+  : tourStep === 2
+  ? "Chart"
+  : tourStep === 3
+  ? "Order Entry"
+  : tourStep === 4
+  ? "Positions & History"
+  : "Account Summary"}
+</h3>
+
+<p className="mt-3 text-sm leading-6 text-zinc-300">
+{tourStep === 1
+  ? "This is where you choose the crypto asset you want to practice with. Selecting a coin updates the chart, price, and order panel."
+  : tourStep === 2
+  ? "This is the chart. It uses real-time crypto market data, so you can study price movement, volume, trends, support, resistance, and practice reading market structure."
+  : tourStep === 3
+  ? "This is where you place practice trades. Set your amount, order type, take profit, stop loss, and use futures tools like leverage carefully."
+  : tourStep === 4
+  ? "This panel shows your open positions, trade history, and pending orders. Use it to review what happened after each practice trade."
+  : "This shows your cash balance, portfolio value or futures equity, margin used, open profit or loss, and total return."}
+</p>
+
+      <div className="mt-5 flex justify-between">
+        <button
+          onClick={() => setTourStep(null)}
+          className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-bold text-zinc-400 hover:text-white"
+        >
+          Close
+        </button>
+
+<button
+  onClick={() => {
+if (tourStep === 1) {
+  setTourStep(2);
+} else if (tourStep === 2) {
+  setTourStep(3);
+} else if (tourStep === 3) {
+  setTourStep(4);
+} else if (tourStep === 4) {
+  setTourStep(5);
+} else {
+  setTourStep(null);
+}
+}}
+          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-black hover:bg-cyan-400"
+        >
+          {tourStep === 5 ? "Done" : "Next"}
+        </button>
+      </div>
+    </div>
+  </>
 )}
 
       </main>
