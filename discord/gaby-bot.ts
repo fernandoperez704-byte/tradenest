@@ -39,20 +39,24 @@ function getConversationKey(message: any) {
   return message.author.id;
 }
 
-function getMemory(message: any) {
-  return conversationMemory.get(getConversationKey(message)) || [];
+function getMemory(message: any): GabyMessage[] {
+  return (
+    conversationMemory.get(getConversationKey(message)) ||
+    ([] as GabyMessage[])
+  );
 }
 
 function saveMemory(message: any, userQuestion: string, gabyResponse: string) {
   const key = getConversationKey(message);
 
-  const previous = conversationMemory.get(key) || [];
+  const previous: GabyMessage[] =
+  conversationMemory.get(key) || [];
 
-  const updated: GabyMessage[] = [
-    ...previous,
-    { role: "user", content: userQuestion },
-    { role: "assistant", content: gabyResponse },
-  ].slice(-6);
+const updated = [
+  ...previous,
+  { role: "user" as const, content: userQuestion },
+  { role: "assistant" as const, content: gabyResponse },
+].slice(-6) as GabyMessage[];
 
   conversationMemory.set(key, updated);
 }
@@ -1311,7 +1315,7 @@ Keep answers:
 - educational
 `,
     },
-    ...getMemory(message),
+    ...(getMemory(message) as GabyMessage[]),
     {
       role: "user",
       content: question,
