@@ -34,16 +34,25 @@ type GabyMessage = {
 };
 
 const conversationMemory = new Map<string, GabyMessage[]>();
+const conversationLastActive = new Map<string, number>();
+const MEMORY_EXPIRE_MS = 60 * 60 * 1000;
+
 
 function getConversationKey(message: any) {
   return message.author.id;
 }
 
 function getMemory(message: any): GabyMessage[] {
-  return (
-    conversationMemory.get(getConversationKey(message)) ||
-    ([] as GabyMessage[])
-  );
+  const key = getConversationKey(message);
+  const lastActive = conversationLastActive.get(key);
+
+  if (lastActive && Date.now() - lastActive > MEMORY_EXPIRE_MS) {
+    conversationMemory.delete(key);
+    conversationLastActive.delete(key);
+    return [];
+  }
+
+  return conversationMemory.get(key) || ([] as GabyMessage[]);
 }
 
 function saveMemory(message: any, userQuestion: string, gabyResponse: string) {
@@ -59,6 +68,7 @@ const updated = [
 ].slice(-6) as GabyMessage[];
 
   conversationMemory.set(key, updated);
+  conversationLastActive.set(key, Date.now());
 }
 
 const client = new Client({
@@ -819,7 +829,16 @@ Educational purposes only. TradeNestX does not provide financial advice, investm
 client.once("ready", async () => {
   console.log(`Gaby is online.`);
 
+setInterval(() => {
+  const now = Date.now();
 
+  conversationLastActive.forEach((lastActive, key) => {
+    if (now - lastActive > MEMORY_EXPIRE_MS) {
+      conversationMemory.delete(key);
+      conversationLastActive.delete(key);
+    }
+  });
+}, 10 * 60 * 1000);
 
 setInterval(async () => {
   const now = new Date();
@@ -861,9 +880,9 @@ await docSnap.ref.update({
   followUp1Status: "pending",
   followUp2Status: "pending",
   challengeStatus: "pending",
-followUp1SendAt: getTomorrowAt(9),
-followUp2SendAt: getTomorrowAt(13),
-challengeSendAt: getTomorrowAt(17),
+followUp1SendAt: Date.now() + 2 * 60 * 1000,
+followUp2SendAt: Date.now() + 4 * 60 * 1000,
+challengeSendAt: Date.now() + 6 * 60 * 1000,
 });
       } catch (error) {
         console.error(error);
@@ -1244,23 +1263,35 @@ Core behavior:
 - Do not end every answer by recommending TradeNestX.
 - Keep answers beginner-friendly and conversational.
 
-TradeNestX currently teaches:
-- What Are You Buying?
-- How The Market Works
-- Market vs Limit Orders
-- Protecting Your Capital
-- Candlestick Basics
-- Trading Timeframes
-- Volume Basics
-- Support & Resistance
-- Supply & Demand
-- Chart Patterns
-- Building A Trade Plan
-- Trading Psychology
-- Essential Trading Terms
-- Simulator practice with crypto spot and futures
+TradeNestX Beginner Academy currently teaches these lessons in order:
+1. What Are You Buying? — assets, stocks, crypto, why price moves
+2. How The Market Works — buyers, sellers, supply, demand, volatility
+3. Market vs Limit Orders — order types, execution, price control
+4. Protecting Your Capital — risk management, losses, stop losses, discipline
+5. Candlestick Basics — open, high, low, close, bullish and bearish candles
+6. Trading Timeframes — lower vs higher timeframes, noise, patience
+7. Volume Basics — participation, strong volume, weak volume
+8. Support & Resistance — key levels, reactions, breakouts
+9. Supply & Demand — buying pressure, selling pressure, imbalance zones
+10. Chart Patterns — double tops, double bottoms, triangles, head and shoulders
+11. Building A Trade Plan — entry, stop loss, target, checklist, risk reward
+12. Trading Psychology — fear, greed, FOMO, patience, discipline
+13. Essential Trading Terms — spread, liquidity, market cap, trend, breakout, pullback
+14. Trader Checkpoint — beginner review quiz
 
-TradeNestX does not teach yet, but may cover later:
+TradeNestX Simulator currently supports:
+- Crypto spot trading
+- Crypto futures trading
+- Longs and shorts
+- Leverage
+- Liquidation
+- Market orders
+- Limit orders
+- Open positions
+- Trade history
+- Paper trading only
+
+TradeNestX does not teach yet, but may cover in future advanced lessons:
 - RSI
 - Moving averages
 - MACD
@@ -1269,8 +1300,9 @@ TradeNestX does not teach yet, but may cover later:
 - Fibonacci
 - advanced indicators
 - advanced market structure
-- advanced liquidity concepts
-- advanced futures strategies
+- liquidity concepts
+- breakouts and retests
+- advanced futures strategy
 - options strategies
 
 If the user asks what a concept is:
@@ -1282,6 +1314,18 @@ If the user asks whether TradeNestX teaches a topic:
 - Answer honestly.
 - Explain whether it is currently taught.
 - If not, explain where it fits in the learning path.
+
+Lesson recommendation behavior:
+- Only recommend a TradeNestX lesson when it naturally helps the user.
+- If the user asks what to study next, recommend one specific lesson.
+- If the user is confused about risk, recommend Protecting Your Capital.
+- If the user is confused about entries, recommend Market vs Limit Orders or Building A Trade Plan.
+- If the user is confused about price movement, recommend How The Market Works.
+- If the user is confused about volume, recommend Volume Basics.
+- If the user is confused about support, resistance, or breakouts, recommend Support & Resistance.
+- If the user is confused about supply/demand zones, recommend Supply & Demand.
+- If the user is emotional, impatient, or chasing trades, recommend Trading Psychology.
+- Keep recommendations short and natural.
 
 You NEVER:
 - give buy or sell recommendations
