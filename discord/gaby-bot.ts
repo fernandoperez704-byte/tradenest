@@ -880,9 +880,9 @@ await docSnap.ref.update({
   followUp1Status: "pending",
   followUp2Status: "pending",
   challengeStatus: "pending",
-followUp1SendAt: Date.now() + 2 * 60 * 1000,
-followUp2SendAt: Date.now() + 4 * 60 * 1000,
-challengeSendAt: Date.now() + 6 * 60 * 1000,
+followUp1SendAt: Date.now() + 3 * 60 * 60 * 1000,
+followUp2SendAt: Date.now() + 6 * 60 * 60 * 1000,
+challengeSendAt: Date.now() + 9 * 60 * 60 * 1000,
 });
       } catch (error) {
         console.error(error);
