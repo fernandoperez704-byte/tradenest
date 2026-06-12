@@ -28,6 +28,34 @@ const db = admin.firestore();
 const MARKET_HEADLINE_CHANNEL_ID = "1507825415753039922";
 const COINDESK_RSS_URL = "https://www.coindesk.com/arc/outboundfeeds/rss/";
 
+type GabyMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+const conversationMemory = new Map<string, GabyMessage[]>();
+
+function getConversationKey(message: any) {
+  return message.author.id;
+}
+
+function getMemory(message: any) {
+  return conversationMemory.get(getConversationKey(message)) || [];
+}
+
+function saveMemory(message: any, userQuestion: string, gabyResponse: string) {
+  const key = getConversationKey(message);
+
+  const previous = conversationMemory.get(key) || [];
+
+  const updated: GabyMessage[] = [
+    ...previous,
+    { role: "user", content: userQuestion },
+    { role: "assistant", content: gabyResponse },
+  ].slice(-6);
+
+  conversationMemory.set(key, updated);
+}
 
 const client = new Client({
   intents: [
@@ -1283,6 +1311,7 @@ Keep answers:
 - educational
 `,
     },
+    ...getMemory(message),
     {
       role: "user",
       content: question,
@@ -1291,9 +1320,11 @@ Keep answers:
 });
 
 const response =
-  completion.choices[0].message.content;
+  completion.choices[0].message.content || "No response.";
 
-message.reply(response || "No response.");
+saveMemory(message, question, response);
+
+message.reply(response);
 }
   }
 });
