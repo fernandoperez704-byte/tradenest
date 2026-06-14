@@ -8,9 +8,21 @@ import {
   createChart,
   ColorType,
   CrosshairMode,
-  CandlestickSeries,
-  HistogramSeries,
+CandlestickSeries,
+HistogramSeries,
+LineSeries,
 } from "lightweight-charts";
+
+import {
+  getMarketIntelligence,
+  getMultiTimeframeAnalysis,
+  getMovingAverageAnalysis,
+  calculateSMA,
+  getStructureAnalysis,
+  getPriceLocation,
+  getEntryQuality,
+} from "@/lib/gabyMarketIntelligence";
+
 import { db } from "../firebase";
 import {
   collection,
@@ -49,10 +61,21 @@ type Trade = {
   amount: number;
   time: string;
   pnl?: number;
+  entryFee?: number;
+  exitFee?: number;
+  totalFees?: number;
+  grossPnl?: number;
+
+  entryQuality?: string | null;
+  marketDirection?: string;
+  marketStructure?: string;
+  nearestSupport?: any;
+  nearestResistance?: any;
 };
 
 
 const startingBalance = 10000;
+const feeRate = 0.006;
 
 const emptyPositions: Record<AssetSymbol, number> = {
   BTC: 0,
@@ -85,6 +108,25 @@ const [prices, setPrices] = useState<
 
   const [history, setHistory] = useState<PricePoint[]>([]);
   const [candlesReadyFor, setCandlesReadyFor] = useState("");
+const [timeframeStructures, setTimeframeStructures] = useState({});
+const marketIntelligence =
+  history.length > 20
+    ? getMarketIntelligence(history)
+    : null;
+
+const multiTimeframeAnalysis =
+  getMultiTimeframeAnalysis(timeframeStructures);
+
+const movingAverageAnalysis =
+  history.length >= 99
+    ? getMovingAverageAnalysis(history)
+    : null;
+
+const structureAnalysis =
+  history.length > 20
+    ? getStructureAnalysis(history)
+    : null;
+
   const [positions, setPositions] =
     useState<Record<AssetSymbol, number>>(emptyPositions);
   const [averagePrices, setAveragePrices] =
@@ -281,6 +323,26 @@ useEffect(() => {
   sessionLoaded,
 ]);
   const currentPrice = prices[selectedCoin];
+
+const priceLocation =
+  marketIntelligence && currentPrice
+    ? getPriceLocation(
+        currentPrice,
+        marketIntelligence.nearestSupport,
+        marketIntelligence.nearestResistance
+      )
+    : null;
+
+const currentEntryQuality =
+  marketIntelligence && movingAverageAnalysis && currentPrice
+    ? getEntryQuality(
+        currentPrice,
+        marketIntelligence.nearestSupport,
+        marketIntelligence.nearestResistance,
+        movingAverageAnalysis.direction
+      )
+    : null;
+
   const maintenanceBuffer = 0.005;
 
 const liquidationPrice =
@@ -294,6 +356,11 @@ const liquidationPrice =
   const chartInstanceRef = useRef<any>(null);
 const candleSeriesRef = useRef<any>(null);
 const volumeSeriesRef = useRef<any>(null);
+
+const ma7SeriesRef = useRef<any>(null);
+const ma25SeriesRef = useRef<any>(null);
+const ma99SeriesRef = useRef<any>(null);
+
 const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
@@ -343,6 +410,27 @@ async function updatePrices() {
       },
       {}
     );
+
+const livePrice = realPrices[selectedCoin];
+
+if (livePrice) {
+  setHistory((prevHistory) => {
+    if (prevHistory.length === 0) return prevHistory;
+
+    const updatedHistory = [...prevHistory];
+    const lastCandle = updatedHistory[updatedHistory.length - 1];
+
+    updatedHistory[updatedHistory.length - 1] = {
+      ...lastCandle,
+      close: livePrice,
+      high: Math.max(lastCandle.high, livePrice),
+      low: Math.min(lastCandle.low, livePrice),
+      price: livePrice,
+    };
+
+    return updatedHistory;
+  });
+}
 
     setPrices((prev) => {
       const updated = {
@@ -582,23 +670,49 @@ if (!current) return;
 
     if (!takeProfitHit && !stopLossHit) return;
 
-    const pnl =
-      position.side === "LONG"
-        ? (current - position.entryPrice) * position.quantity
-        : (position.entryPrice - current) * position.quantity;
+const pnl =
+  position.side === "LONG"
+    ? (current - position.entryPrice) * position.quantity
+    : (position.entryPrice - current) * position.quantity;
 
-    setBalance((prev) => prev + position.margin + pnl);
+const exitFee =
+  (position.positionSize || position.margin * position.leverage) * feeRate;
+
+const netPnl =
+  pnl - (position.entryFee || 0) - exitFee;
+
+setBalance((prev) => prev + position.margin + netPnl);
 
     setMarginUsed((prev) =>
       Math.max(0, prev - position.margin)
     );
 
-    setFuturesPositions((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
+setFuturesPositions((prev) =>
+  prev.filter((_, i) => i !== index)
+);
 
-    setTakeProfit("");
-    setStopLoss("");
+setFuturesHistory((prev) => [
+  {
+    ...position,
+    exitPrice: current,
+    pnl: netPnl,
+grossPnl: pnl,
+entryFee: position.entryFee || 0,
+exitFee,
+totalFees: (position.entryFee || 0) + exitFee,
+    status: takeProfitHit ? "TAKE PROFIT" : "STOP LOSS",
+    positionSize: position.positionSize || position.margin * position.leverage,
+    balanceAtEntry: position.balanceAtEntry || startingBalance,
+    stopLoss: position.stopLoss,
+    takeProfit: position.takeProfit,
+    closedReason: takeProfitHit ? "TP" : "SL",
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
+
+setTakeProfit("");
+setStopLoss("");
 
     setMessage(
       `${takeProfitHit ? "Take Profit" : "Stop Loss"} hit on ${position.coin}`
@@ -635,8 +749,16 @@ useEffect(() => {
         return;
       }
 
-      setHistory(data);
-      setCandlesReadyFor(candleKey);
+setHistory(data);
+
+const intelligence = getMarketIntelligence(data);
+
+setTimeframeStructures((prev) => ({
+  ...prev,
+  [selectedTimeframe]: intelligence.structure,
+}));
+
+setCandlesReadyFor(candleKey);
     } catch (error) {
       if (!cancelled) {
         console.error("Failed to load candles:", error);
@@ -655,8 +777,12 @@ useEffect(() => {
   if (chartInstanceRef.current) {
     chartInstanceRef.current.remove();
     chartInstanceRef.current = null;
-    candleSeriesRef.current = null;
-    volumeSeriesRef.current = null;
+candleSeriesRef.current = null;
+volumeSeriesRef.current = null;
+ma7SeriesRef.current = null;
+ma25SeriesRef.current = null;
+ma99SeriesRef.current = null;
+
     liquidationLinesRef.current = [];
     entryLinesRef.current = [];
     riskLinesRef.current = [];
@@ -742,11 +868,33 @@ chart.priceScale("volume").applyOptions({
   visible: false,
 });
 
+const ma7Series = chart.addSeries(LineSeries, {
+  color: "#facc15",
+  lineWidth: 1,
+  priceLineVisible: false,
+  lastValueVisible: false,
+});
 
+const ma25Series = chart.addSeries(LineSeries, {
+  color: "#38bdf8",
+  lineWidth: 1,
+  priceLineVisible: false,
+  lastValueVisible: false,
+});
 
-    chartInstanceRef.current = chart;
-    candleSeriesRef.current = candleSeries;
-    volumeSeriesRef.current = volumeSeries;
+const ma99Series = chart.addSeries(LineSeries, {
+  color: "#a78bfa",
+  lineWidth: 1,
+  priceLineVisible: false,
+  lastValueVisible: false,
+});
+
+chartInstanceRef.current = chart;
+candleSeriesRef.current = candleSeries;
+volumeSeriesRef.current = volumeSeries;
+ma7SeriesRef.current = ma7Series;
+ma25SeriesRef.current = ma25Series;
+ma99SeriesRef.current = ma99Series;
 
     const handleResize = () => {
       if (!chartRef.current || !chartInstanceRef.current) return;
@@ -821,6 +969,28 @@ if (chartData.length > 80 && !chartInstanceRef.current.__didSetInitialRange) {
           : "rgba(239,68,68,0.55)",
     }))
   );
+
+function buildMAData(period: number) {
+  return chartData
+    .map((item, index, array) => {
+      if (index < period - 1) return null;
+
+      const slice = array.slice(index - period + 1, index + 1);
+
+      const average =
+        slice.reduce((sum, candle) => sum + candle.close, 0) / period;
+
+      return {
+        time: item.time,
+        value: average,
+      };
+    })
+    .filter(Boolean) as { time: any; value: number }[];
+}
+
+ma7SeriesRef.current?.setData(buildMAData(7));
+ma25SeriesRef.current?.setData(buildMAData(25));
+ma99SeriesRef.current?.setData(buildMAData(99));
 
 liquidationLinesRef.current.forEach((line) => {
   candleSeriesRef.current?.removePriceLine(line);
@@ -949,7 +1119,9 @@ function buyCoin() {
     return;
   }
 
-  if (!tradeAmount || balance < tradeAmount) {
+const spotEntryFee = Number(tradeAmount) * feeRate;
+
+  if (!tradeAmount || balance < Number(tradeAmount) + spotEntryFee) {
     setMessage("Invalid trade amount.");
     return;
   }
@@ -961,6 +1133,7 @@ function buyCoin() {
 
 const quantity =
   effectiveTradeSize / currentPrice;
+  
     if (
   orderType === "LIMIT" &&
   limitPrice !== "" &&
@@ -990,7 +1163,7 @@ const quantity =
         ? (oldQty * oldAvg + quantity * currentPrice) / newQty
         : currentPrice;
 
-    setBalance((prev) => prev - Number(tradeAmount));
+    setBalance((prev) => prev - Number(tradeAmount) - spotEntryFee);
 
 if (marketMode === "FUTURES") {
   setMarginUsed((prev) => prev + Number(tradeAmount));
@@ -1020,26 +1193,33 @@ if (user) {
       [selectedCoin]: newAvg,
     }));
 
-    setTrades((prev) => [
-      {
-        type: "BUY",
-        coin: selectedCoin,
-        amount: tradeAmount,
-        price: currentPrice,
-        time: new Date().toLocaleTimeString(),
-      },
-      ...prev,
-    ]);
+setTrades((prev) => [
+  {
+    type: "BUY",
+    coin: selectedCoin,
+    amount: tradeAmount,
+    price: currentPrice,
+
+    entryFee: spotEntryFee,
+
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
+
 if (user) {
-  addDoc(collection(db, "trades"), {
-    userId: user.id,
-    userName: user.firstName || "Trader",
+addDoc(collection(db, "trades"), {
+  userId: user.id,
+  userName: user.firstName || "Trader",
   type: "BUY",
   coin: selectedCoin,
   amount: tradeAmount,
   price: currentPrice,
+
+  entryFee: spotEntryFee,
+
   created: new Date(),
-    });
+});
 }
 
     setMessage(`Bought $${tradeAmount} of ${selectedCoin}`);
@@ -1061,6 +1241,12 @@ if (user) {
   }
 
   const margin = Number(tradeAmount);
+const positionSize = margin * orderLeverage;
+const entryFee = positionSize * feeRate;
+if (balance < margin + entryFee) {
+  setMessage("Not enough balance for margin plus entry fee.");
+  return;
+}
   if (orderType === "LIMIT" && limitPrice !== "") {
 setPendingFuturesLimitOrder({
   coin: selectedCoin,
@@ -1077,7 +1263,7 @@ setPendingFuturesLimitOrder({
 
   return;
 }
-const positionSize = margin * orderLeverage;
+
 const quantity = positionSize / currentPrice;
 
 const maintenanceBuffer = 0.005;
@@ -1089,22 +1275,40 @@ const liquidation =
       : currentPrice * (1 + 1 / orderLeverage - maintenanceBuffer)
     : 0;
 
-  setBalance((prev) => prev - margin);
+  setBalance((prev) => prev - margin - entryFee);
   setMarginUsed((prev) => prev + margin);
 
-  setFuturesPositions((prev) => [
-    {
-      coin: selectedCoin,
-      side,
-      margin,
-      leverage: orderLeverage,
-      quantity,
-      entryPrice: currentPrice,
-      liquidationPrice: liquidation,
-      time: new Date().toLocaleTimeString(),
-    },
-    ...prev,
-  ]);
+setFuturesPositions((prev) => [
+  {
+    coin: selectedCoin,
+    side,
+    margin,
+    leverage: orderLeverage,
+entryFee,
+    positionSize,
+
+    quantity,
+
+    entryPrice: currentPrice,
+
+    liquidationPrice: liquidation,
+
+    balanceAtEntry: balance,
+
+    stopLoss:
+      stopLoss !== ""
+        ? Number(stopLoss)
+        : null,
+
+    takeProfit:
+      takeProfit !== ""
+        ? Number(takeProfit)
+        : null,
+
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
 
 setFuturesHistory((prev) => [
   {
@@ -1112,8 +1316,31 @@ setFuturesHistory((prev) => [
     side,
     margin,
     leverage: orderLeverage,
+
+    positionSize,
+
+    quantity,
+
     entryPrice: currentPrice,
+
     liquidationPrice: liquidation,
+
+    balanceAtEntry: balance,
+
+    stopLoss:
+      stopLoss !== ""
+        ? Number(stopLoss)
+        : null,
+
+    takeProfit:
+      takeProfit !== ""
+        ? Number(takeProfit)
+        : null,
+
+    pnl: null,
+
+    status: "OPEN",
+
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
@@ -1153,8 +1380,9 @@ setFuturesHistory((prev) => [
     }
 
     const value = ownedAmount * currentPrice;
-
-    setBalance((prev) => prev + value);
+const spotExitFee = value * feeRate;
+const netValue = value - spotExitFee;
+    setBalance((prev) => prev + netValue);
 
 if (marketMode === "FUTURES") {
   setMarginUsed((prev) => Math.max(0, prev - Number(tradeAmount || 0)));
@@ -1162,7 +1390,7 @@ if (marketMode === "FUTURES") {
 if (user) {
  setDoc(doc(db, "portfolios", user.id), {
   userName: user.firstName || "Trader",
-  balance: balance + value,
+  balance: balance + netValue,
   positions: {
     ...positions,
     [selectedCoin]: 0,
@@ -1184,8 +1412,18 @@ if (user) {
       [selectedCoin]: 0,
     }));
 
-  const spotPnl =
+  const grossSpotPnl =
   value - ownedAmount * averagePrices[selectedCoin];
+
+const spotEntryFeePaid =
+  trades.find(
+    (trade) =>
+      trade.type === "BUY" &&
+      trade.coin === selectedCoin
+  )?.entryFee || 0;
+
+const spotPnl =
+  grossSpotPnl - spotEntryFeePaid - spotExitFee;
 
 setTrades((prev) => [
   {
@@ -1193,7 +1431,14 @@ setTrades((prev) => [
     coin: selectedCoin,
     amount: value,
     price: currentPrice,
+
     pnl: spotPnl,
+
+    grossPnl: grossSpotPnl,
+entryFee: spotEntryFeePaid,
+exitFee: spotExitFee,
+totalFees: spotEntryFeePaid + spotExitFee,
+
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
@@ -1811,7 +2056,11 @@ onChange={(e) => setSearchTerm(e.target.value)}
     <span className="text-zinc-500">Estimated Fee</span>
 
     <span className="font-bold text-zinc-300">
-      ${(((Number(tradeAmount) || 0) * (marketMode === "FUTURES" ? leverage : 1)) * 0.001).toFixed(2)}
+      ${(
+  ((Number(tradeAmount) || 0) *
+    (marketMode === "FUTURES" ? leverage : 1) *
+    feeRate)
+).toFixed(2)}
     </span>
   </div>
 </div>
@@ -2060,12 +2309,18 @@ openFuturesPosition("SHORT");
         return;
       }
 
-      const pnl =
-        position.side === "LONG"
-          ? (current - position.entryPrice) * position.quantity
-          : (position.entryPrice - current) * position.quantity;
+const pnl =
+  position.side === "LONG"
+    ? (current - position.entryPrice) * position.quantity
+    : (position.entryPrice - current) * position.quantity;
 
-      setBalance((prev) => prev + position.margin + pnl);
+const exitFee =
+  (position.positionSize || position.margin * position.leverage) * feeRate;
+
+const netPnl =
+  pnl - (position.entryFee || 0) - exitFee;
+
+setBalance((prev) => prev + position.margin + netPnl);
 
       setMarginUsed((prev) =>
         Math.max(0, prev - position.margin)
@@ -2075,19 +2330,27 @@ openFuturesPosition("SHORT");
         prev.filter((_, i) => i !== index)
       );
 
-      setFuturesHistory((prev) => [
-        {
-          ...position,
-          exitPrice: current,
-          pnl,
-          status: "CLOSED",
-          time: new Date().toLocaleTimeString(),
-        },
-        ...prev,
-      ]);
-
+setFuturesHistory((prev) => [
+  {
+    ...position,
+    exitPrice: current,
+    pnl: netPnl,
+grossPnl: pnl,
+entryFee: position.entryFee || 0,
+exitFee,
+totalFees: (position.entryFee || 0) + exitFee,
+    status: "CLOSED",
+    positionSize: position.positionSize || position.margin * position.leverage,
+    balanceAtEntry: position.balanceAtEntry || startingBalance,
+    stopLoss: position.stopLoss,
+    takeProfit: position.takeProfit,
+    closedReason: "MANUAL",
+    time: new Date().toLocaleTimeString(),
+  },
+  ...prev,
+]);
       setMessage(
-        `${position.side} ${position.coin} closed. P/L: $${pnl.toFixed(2)}`
+        `${position.side} ${position.coin} closed. P/L after fees: $${netPnl.toFixed(2)}`
       );
     }}
     className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
@@ -2214,11 +2477,26 @@ openFuturesPosition("SHORT");
   <div className="flex justify-end">
     <button
       onClick={() => {
-        const sellValue = Number(qty) * currentPrice;
-        const closePnl =
+const sellValue = Number(qty) * currentPrice;
+
+const spotExitFee = sellValue * feeRate;
+
+const netSellValue = sellValue - spotExitFee;
+
+const grossSpotPnl =
   sellValue - Number(qty) * averagePrices[coin as AssetSymbol];
 
-        setBalance((prev) => prev + sellValue);
+const spotEntryFeePaid =
+  trades.find(
+    (trade) =>
+      trade.type === "BUY" &&
+      trade.coin === (coin as AssetSymbol)
+  )?.entryFee || 0;
+
+const closePnl =
+  grossSpotPnl - spotEntryFeePaid - spotExitFee;
+
+setBalance((prev) => prev + netSellValue);
 
         setPositions((prev) => ({
           ...prev,
@@ -2230,29 +2508,77 @@ openFuturesPosition("SHORT");
           [coin]: 0,
         }));
 
+if (user) {
+  setDoc(doc(db, "portfolios", user.id), {
+    userName: user.firstName || "Trader",
+    balance: balance + netSellValue,
+    positions: {
+      ...positions,
+      [coin]: 0,
+    },
+    averagePrices: {
+      ...averagePrices,
+      [coin]: 0,
+    },
+    updated: new Date(),
+  });
+}
+
 setTrades((prev) => [
   {
     type: "SELL",
     coin: coin as AssetSymbol,
     amount: sellValue,
     price: currentPrice,
+
     pnl: closePnl,
+
+    grossPnl: grossSpotPnl,
+    entryFee: spotEntryFeePaid,
+    exitFee: spotExitFee,
+    totalFees: spotEntryFeePaid + spotExitFee,
+
+    stopLoss:
+      stopLoss !== ""
+        ? Number(stopLoss)
+        : null,
+
+    takeProfit:
+      takeProfit !== ""
+        ? Number(takeProfit)
+        : null,
+
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
 ]);
-
 if (user) {
-  addDoc(collection(db, "trades"), {
-    userId: user.id,
-    userName: user.firstName || "Trader",
-    type: "SELL",
-    coin: coin,
-    amount: sellValue,
-    price: currentPrice,
-    pnl: closePnl,
-    created: new Date(),
-  });
+addDoc(collection(db, "trades"), {
+  userId: user.id,
+  userName: user.firstName || "Trader",
+  type: "SELL",
+  coin: coin,
+  amount: sellValue,
+  price: currentPrice,
+
+  pnl: closePnl,
+grossPnl: grossSpotPnl,
+entryFee: spotEntryFeePaid,
+exitFee: spotExitFee,
+totalFees: spotEntryFeePaid + spotExitFee,
+
+stopLoss:
+  stopLoss !== ""
+    ? Number(stopLoss)
+    : null,
+
+takeProfit:
+  takeProfit !== ""
+    ? Number(takeProfit)
+    : null,
+
+  created: new Date(),
+});
 }
       }}
       className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
@@ -2346,23 +2672,33 @@ if (user) {
       </p>
     </div>
 
-    <div>
-      <p className="text-zinc-500 text-xs">P/L</p>
+<div>
+  <p className="text-zinc-500 text-xs">P/L</p>
 
-      {trade.pnl !== undefined ? (
-        <p
-          className={`text-sm font-bold ${
-            trade.pnl >= 0 ? "text-green-400" : "text-red-400"
-          }`}
-        >
-          ${trade.pnl.toFixed(2)}
-        </p>
-      ) : (
-        <p className="text-sm font-bold text-zinc-500">
-          Opened
-        </p>
-      )}
-    </div>
+  {trade.pnl !== undefined && trade.pnl !== null ? (
+    <>
+      <p
+        className={`text-sm font-bold ${
+          trade.pnl >= 0 ? "text-green-400" : "text-red-400"
+        }`}
+      >
+        ${Number(trade.pnl).toFixed(2)}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        Gross: ${Number(trade.grossPnl || 0).toFixed(2)}
+      </p>
+
+      <p className="text-xs text-zinc-500">
+        Fees: ${Number(trade.totalFees || 0).toFixed(2)}
+      </p>
+    </>
+  ) : (
+    <p className="text-sm font-bold text-zinc-500">
+      Open
+    </p>
+  )}
+</div>
 
     <div>
       <p className="text-zinc-500 text-xs">Status</p>
@@ -2440,29 +2776,40 @@ if (user) {
     </p>
   </div>
 
-  <div>
-    <p className="text-zinc-500 text-xs">P/L</p>
+<div>
+  <p className="text-zinc-500 text-xs">P/L</p>
 
-{trade.type === "BUY" ? (
-  <p className="text-sm font-bold text-zinc-500">
-    Open
-  </p>
-) : (trade as any).pnl !== undefined ? (
-  <p
-    className={`text-sm font-bold ${
-      (trade as any).pnl >= 0
-        ? "text-green-400"
-        : "text-red-400"
-    }`}
-  >
-    ${(trade as any).pnl.toFixed(2)}
-  </p>
-) : (
-  <p className="text-sm font-bold text-zinc-500">
-    N/A
-  </p>
-)}
-  </div>
+  {trade.type === "BUY" ? (
+    <p className="text-sm font-bold text-zinc-500">
+      Open
+    </p>
+  ) : (trade as any).pnl !== undefined &&
+    (trade as any).pnl !== null ? (
+    <>
+      <p
+        className={`text-sm font-bold ${
+          (trade as any).pnl >= 0
+            ? "text-green-400"
+            : "text-red-400"
+        }`}
+      >
+        ${Number((trade as any).pnl).toFixed(2)}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        Gross: ${Number((trade as any).grossPnl || 0).toFixed(2)}
+      </p>
+
+      <p className="text-xs text-zinc-500">
+        Fees: ${Number((trade as any).totalFees || 0).toFixed(2)}
+      </p>
+    </>
+  ) : (
+    <p className="text-sm font-bold text-zinc-500">
+      N/A
+    </p>
+  )}
+</div>
 
   <div>
     <p className="text-zinc-500 text-xs">Status</p>
@@ -2667,6 +3014,9 @@ if (user) {
         futuresPositions={futuresPositions}
         balance={balance}
         marginUsed={marginUsed}
+          marketIntelligence={marketIntelligence}
+  movingAverageAnalysis={movingAverageAnalysis}
+  currentEntryQuality={currentEntryQuality}
       />
     </div>
   </>
