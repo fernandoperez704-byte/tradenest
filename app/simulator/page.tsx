@@ -132,6 +132,18 @@ const structureAnalysis =
   const [averagePrices, setAveragePrices] =
     useState<Record<AssetSymbol, number>>(emptyPositions);
 
+    const [spotRiskSettings, setSpotRiskSettings] = useState<
+  Partial<
+    Record<
+      AssetSymbol,
+      {
+        takeProfit: number | null;
+        stopLoss: number | null;
+      }
+    >
+  >
+>({});
+
   const [balance, setBalance] = useState(startingBalance);
 
 useEffect(() => {
@@ -412,8 +424,9 @@ async function updatePrices() {
     );
 
 const livePrice = realPrices[selectedCoin];
+const activeCandleKey = `${selectedCoin}-${selectedTimeframe}`;
 
-if (livePrice) {
+if (livePrice && candlesReadyFor === activeCandleKey) {
   setHistory((prevHistory) => {
     if (prevHistory.length === 0) return prevHistory;
 
@@ -531,6 +544,31 @@ const priceInterval = setInterval(
       clearInterval(clockInterval);
     };
   }, [selectedCoin, selectedTimeframe, candlesReadyFor]);
+
+useEffect(() => {
+  const livePrice = prices[selectedCoin];
+  const activeCandleKey = `${selectedCoin}-${selectedTimeframe}`;
+
+  if (!livePrice) return;
+  if (candlesReadyFor !== activeCandleKey) return;
+
+  setHistory((prevHistory) => {
+    if (prevHistory.length === 0) return prevHistory;
+
+    const updatedHistory = [...prevHistory];
+    const lastCandle = updatedHistory[updatedHistory.length - 1];
+
+    updatedHistory[updatedHistory.length - 1] = {
+      ...lastCandle,
+      close: livePrice,
+      high: Math.max(lastCandle.high, livePrice),
+      low: Math.min(lastCandle.low, livePrice),
+      price: livePrice,
+    };
+
+    return updatedHistory;
+  });
+}, [prices, selectedCoin, selectedTimeframe, candlesReadyFor]);
 
 useEffect(() => {
   if (!pendingLimitOrder) return;
@@ -656,17 +694,17 @@ useEffect(() => {
 
     const current = prices[position.coin as AssetSymbol];
 if (!current) return;
-    const takeProfitHit =
-      takeProfit !== "" &&
-      (position.side === "LONG"
-        ? current >= Number(takeProfit)
-        : current <= Number(takeProfit));
+const takeProfitHit =
+  position.takeProfit != null &&
+  (position.side === "LONG"
+    ? current >= position.takeProfit
+    : current <= position.takeProfit);
 
-    const stopLossHit =
-      stopLoss !== "" &&
-      (position.side === "LONG"
-        ? current <= Number(stopLoss)
-        : current >= Number(stopLoss));
+const stopLossHit =
+  position.stopLoss != null &&
+  (position.side === "LONG"
+    ? current <= position.stopLoss
+    : current >= position.stopLoss);
 
     if (!takeProfitHit && !stopLossHit) return;
 
@@ -736,18 +774,25 @@ useEffect(() => {
         chartInstanceRef.current.__didSetInitialRange = false;
       }
 
-      const response = await fetch(
-        `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}`
-      );
+await updatePrices();
 
-      const data = await response.json();
+const response = await fetch(
+  `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}&t=${Date.now()}`,
+  {
+    cache: "no-store",
+  }
+);
 
-      if (cancelled) return;
+const data = await response.json();
 
-      if (!Array.isArray(data)) {
-        console.log("Candles API returned:", data);
-        return;
-      }
+
+
+if (cancelled) return;
+
+if (!Array.isArray(data)) {
+  console.log("Candles API returned:", data);
+  return;
+}
 
 setHistory(data);
 
@@ -1192,6 +1237,16 @@ if (user) {
       ...prev,
       [selectedCoin]: newAvg,
     }));
+
+setSpotRiskSettings((prev) => ({
+  ...prev,
+  [selectedCoin]: {
+    takeProfit:
+      takeProfit !== "" ? Number(takeProfit) : null,
+    stopLoss:
+      stopLoss !== "" ? Number(stopLoss) : null,
+  },
+}));
 
 setTrades((prev) => [
   {
@@ -2465,13 +2520,21 @@ totalFees: (position.entryFee || 0) + exitFee,
     TP / SL
   </p>
 
-  <p className="text-sm font-bold text-green-400">
-    TP: {takeProfit !== "" ? `$${Number(takeProfit).toFixed(2)}` : "Not set"}
-  </p>
+{(() => {
+  const risk = spotRiskSettings[coin as AssetSymbol];
 
-  <p className="text-sm font-bold text-red-400 mt-1">
-    SL: {stopLoss !== "" ? `$${Number(stopLoss).toFixed(2)}` : "Not set"}
-  </p>
+  return (
+    <>
+      <p className="text-sm font-bold text-green-400">
+        TP: {risk?.takeProfit != null ? `$${risk.takeProfit.toFixed(2)}` : "Not set"}
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-red-400">
+        SL: {risk?.stopLoss != null ? `$${risk.stopLoss.toFixed(2)}` : "Not set"}
+      </p>
+    </>
+  );
+})()}
 </div>
 
   <div className="flex justify-end">

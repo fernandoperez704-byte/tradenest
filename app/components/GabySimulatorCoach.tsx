@@ -108,241 +108,131 @@ function reviewTrade() {
     return;
   }
 
-  const pnl = Number(
-    latestTrade.pnl ??
-      latestTrade.profit ??
-      latestTrade.realizedPnL ??
-      0
-  );
+  const marketDirection =
+    movingAverageAnalysis?.direction || "TRANSITION";
 
-  const grossPnl = Number(latestTrade.grossPnl ?? pnl);
-  const totalFees = Number(latestTrade.totalFees ?? 0);
+  const directionLabel =
+    marketDirection === "BULLISH"
+      ? "Bullish"
+      : marketDirection === "BEARISH"
+      ? "Bearish"
+      : "Transition";
 
-  const grossPnlText = `$${grossPnl.toFixed(2)}`;
-  const feesText = `$${totalFees.toFixed(2)}`;
+  const coin = latestTrade.coin || selectedCoin;
 
-  const hasStopLoss =
-    latestTrade.stopLoss !== undefined &&
-    latestTrade.stopLoss !== null &&
-    latestTrade.stopLoss !== "";
+  const tradeDirection =
+    mode === "FUTURES"
+      ? latestTrade.side || "UNKNOWN"
+      : "LONG";
 
-  const hasTakeProfit =
-    latestTrade.takeProfit !== undefined &&
-    latestTrade.takeProfit !== null &&
-    latestTrade.takeProfit !== "";
+  const alignedWithDirection =
+    marketDirection === "BULLISH"
+      ? tradeDirection === "LONG"
+      : marketDirection === "BEARISH"
+      ? tradeDirection === "SHORT"
+      : false;
 
-  const balanceAtEntry = Number(
+  const tradeDirectionText =
+    marketDirection === "TRANSITION"
+      ? `You opened a ${tradeDirection} position while market direction was unclear.`
+      : alignedWithDirection
+      ? `You opened a ${tradeDirection} position, so this trade was aligned with the market direction.`
+      : `You opened a ${tradeDirection} position, so this trade was against the market direction.`;
+
+  const accountSize = Number(
     latestTrade.balanceAtEntry ??
       latestTrade.balanceAtClose ??
       balance ??
       10000
   );
 
-  const feeDrivenLoss =
-    pnl < 0 &&
-    grossPnl >= 0 &&
-    totalFees > 0;
-
-const outcomeText =
-  pnl > 0
-    ? "Trade Result: Profit"
-    : pnl < 0
-    ? "Trade Result: Loss"
-    : "Trade Result: Break Even";
-
-  let reviewText = "";
-
-const marketDirection =
-  movingAverageAnalysis?.direction || "TRANSITION";
-
-const marketStructure =
-  marketIntelligence?.structure || "RANGING";
-
-const supportText =
-  marketIntelligence?.nearestSupport
-    ? `$${marketIntelligence.nearestSupport.low.toFixed(2)} - $${marketIntelligence.nearestSupport.high.toFixed(2)}`
-    : "No clear nearby support";
-
-const resistanceText =
-  marketIntelligence?.nearestResistance
-    ? `$${marketIntelligence.nearestResistance.low.toFixed(2)} - $${marketIntelligence.nearestResistance.high.toFixed(2)}`
-    : "No clear nearby resistance";
-
-const entryQualityText =
-  currentEntryQuality || "NEUTRAL";
-
-
-  if (mode === "SPOT") {
-    const spotTradeValue = Number(
-      latestTrade.amount ??
-        latestTrade.value ??
-        0
-    );
-
-    const spotPositionPercent =
-      balanceAtEntry > 0
-        ? (spotTradeValue / balanceAtEntry) * 100
-        : 0;
-
-if (spotPositionPercent > 50) {
-  reviewText = `
-The main issue was position size.
-
-You committed about ${spotPositionPercent.toFixed(
-    1
-  )}% of your account to a single trade.
-
-That amount of exposure creates unnecessary account risk, regardless of whether the trade made money or lost money.
-
-I would reduce position size before making any other adjustment.
-`;
-
-} else if (!hasStopLoss && spotPositionPercent > 10) {
-  reviewText = `
-The main issue was the lack of a stop loss.
-
-Without a predefined risk level, it becomes difficult to control losses when the market moves against the position.
-
-I would identify the stop loss before entering the trade and build position size around that risk.
-`;
-
-} else if (!hasTakeProfit && spotPositionPercent > 10) {
-  reviewText = `
-The main issue was the lack of a profit target.
-
-Having a target creates structure and helps avoid emotional decision making during the trade.
-
-I would define both the risk level and profit target before entering.
-`;
-
-} else if (feeDrivenLoss) {
-  reviewText = `
-The risk management appears controlled.
-
-Position size was reasonable and there are no major risk concerns.
-
-The main thing I would review is whether the expected move was large enough to justify the trading costs and fees.
-`;
-
-} else {
-  reviewText = `
-The setup appears reasonably controlled.
-
-Position size was appropriate and there are no major risk management concerns visible from this trade.
-
-I would continue focusing on consistency and disciplined execution.
-`;
-}
-  }
+  let riskLabel = "Controlled";
+  let riskText = "";
+  let gabyReview = "";
 
   if (mode === "FUTURES") {
-    const marginAmount = Number(
-      latestTrade.margin ??
-        latestTrade.amount ??
-        0
+    const marginUsedAmount = Number(
+      latestTrade.margin ?? latestTrade.amount ?? 0
     );
 
-    const leverageUsed = Number(
-      latestTrade.leverage ??
-        1
-    );
+    const leverageUsed = Number(latestTrade.leverage ?? 1);
 
-    const positionExposure = Number(
-      latestTrade.positionSize ??
-        marginAmount * leverageUsed
+    const positionSize = Number(
+      latestTrade.positionSize ?? marginUsedAmount * leverageUsed
     );
-
-    const marginPercent =
-      balanceAtEntry > 0
-        ? (marginAmount / balanceAtEntry) * 100
-        : 0;
 
     const exposurePercent =
-      balanceAtEntry > 0
-        ? (positionExposure / balanceAtEntry) * 100
-        : 0;
+      accountSize > 0 ? (positionSize / accountSize) * 100 : 0;
 
-if (latestTrade.status === "LIQUIDATED") {
-  reviewText = `
-The main issue was the liquidation.
+    riskLabel =
+      exposurePercent > 75 || leverageUsed > 20
+        ? "High"
+        : exposurePercent > 25
+        ? "Moderate"
+        : "Controlled";
 
-The combination of margin size, leverage, and exposure created more risk than the account could safely handle.
+    riskText = `Margin Used: $${marginUsedAmount.toFixed(2)}
+Leverage: ${leverageUsed}x
+Position Size: $${positionSize.toFixed(2)}
+Account Size: $${accountSize.toFixed(2)}
+Exposure: ${exposurePercent.toFixed(1)}% of account`;
 
-I would reduce both leverage and margin size before increasing position size again.
-`;
+    if (!alignedWithDirection && marketDirection !== "TRANSITION") {
+      gabyReview = `The trade was against the market direction while using leverage.`;
+    } else if (riskLabel === "High") {
+      gabyReview = `The main concern was leverage.
 
-} else if (leverageUsed > 20) {
-  reviewText = `
-The main issue was leverage.
-
-You used ${leverageUsed}x leverage, which significantly increased account risk and reduced the amount of room the trade had to develop.
-
-I would reduce leverage before making any other adjustment to the trade plan.
-`;
-
-} else if (marginPercent > 25) {
-  reviewText = `
-The main issue was margin size.
-
-You committed about ${marginPercent.toFixed(
-        1
-      )}% of the account as margin on a single trade.
-
-I would reduce margin size so no single position has too much influence on the account.
-`;
-
-} else if (exposurePercent > 100) {
-  reviewText = `
-The main issue was overall exposure.
-
-After leverage was applied, the position controlled about ${exposurePercent.toFixed(
-        1
-      )}% of the account.
-
-I would reduce exposure so the position has more room to develop without excessive account risk.
-`;
-
-} else if (!hasStopLoss) {
-  reviewText = `
-The main issue was the lack of a stop loss.
-
-Without a predefined risk level, losses can become larger than intended, especially when leverage is involved.
-
-I would identify the stop loss before entering the trade and build position size around that risk.
-`;
-
-} else if (feeDrivenLoss) {
-  reviewText = `
-The risk management appears controlled.
-
-Margin size, leverage, and exposure do not show major warning signs.
-
-The main thing I would review is whether the expected move was large enough to justify the trading costs and fees.
-`;
-
-} else {
-  reviewText = `
-The setup appears reasonably controlled.
-
-Margin size, leverage, exposure, and risk management do not show any major concerns.
-
-I would continue focusing on consistency and disciplined execution.
-`;
-}
+${leverageUsed}x leverage created more risk than necessary for this setup.`;
+    } else {
+      gabyReview = `This was a disciplined trade.`;
+    }
   }
 
-  setAnswer(
-  `${outcomeText}
+  if (mode === "SPOT") {
+    const tradeValue = Number(
+      latestTrade.amount ?? latestTrade.value ?? 0
+    );
 
-${reviewText}`.trim()
-);
+    const exposurePercent =
+      accountSize > 0 ? (tradeValue / accountSize) * 100 : 0;
+
+    riskLabel =
+      exposurePercent > 50
+        ? "High"
+        : exposurePercent > 25
+        ? "Moderate"
+        : "Controlled";
+
+    riskText = `Position Size: $${tradeValue.toFixed(2)}
+Account Size: $${accountSize.toFixed(2)}
+Exposure: ${exposurePercent.toFixed(1)}% of account`;
+
+    if (!alignedWithDirection && marketDirection !== "TRANSITION") {
+      gabyReview = `The trade was against the market direction.`;
+    } else if (riskLabel === "High") {
+      gabyReview = `The main concern was risk exposure.
+
+Too much of the account was committed to a single trade.`;
+    } else {
+      gabyReview = `This was a disciplined trade.`;
+    }
+  }
+
+  const reviewText = `${tradeDirectionText}
+
+Risk Exposure: ${riskLabel}
+${riskText}
+
+Gaby Review:
+${gabyReview}`;
+
+  setAnswer(reviewText.trim());
 }
-
   return (
     <div className="rounded-3xl border border-cyan-400/20 bg-[#0f172a]/90 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
 
 
-      <div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-7 text-zinc-200">
+      <div className="whitespace-pre-line rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-6 text-zinc-200">
         {loading ? "Gaby is reviewing..." : answer}
       </div>
 
