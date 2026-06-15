@@ -659,31 +659,28 @@ useEffect(() => {
   if (positions[selectedCoin] <= 0) return;
 
   const current = prices[selectedCoin];
-if (!current) return;
+  const risk = spotRiskSettings[selectedCoin];
+
+  if (!current || !risk) return;
+
   if (
-    takeProfit !== "" &&
-    current >= Number(takeProfit)
+    risk.takeProfit != null &&
+    current >= risk.takeProfit
   ) {
     sellCoin();
 
     setMessage(`Take Profit hit on ${selectedCoin}`);
-
-    setTakeProfit("");
-    setStopLoss("");
   }
 
   if (
-    stopLoss !== "" &&
-    current <= Number(stopLoss)
+    risk.stopLoss != null &&
+    current <= risk.stopLoss
   ) {
     sellCoin();
 
     setMessage(`Stop Loss hit on ${selectedCoin}`);
-
-    setTakeProfit("");
-    setStopLoss("");
   }
-}, [prices]);
+}, [prices, selectedCoin, positions, spotRiskSettings]);
 
 useEffect(() => {
   if (marketMode !== "FUTURES") return;
@@ -1117,9 +1114,31 @@ lineWidth: 2,
   }
 }
 
-if (takeProfit !== "") {
+const selectedSpotRisk =
+  marketMode === "SPOT"
+    ? spotRiskSettings[selectedCoin]
+    : null;
+
+const selectedFuturesPosition =
+  marketMode === "FUTURES"
+    ? futuresPositions.find(
+        (position) => position.coin === selectedCoin
+      )
+    : null;
+
+const activeTakeProfit =
+  marketMode === "SPOT"
+    ? selectedSpotRisk?.takeProfit
+    : selectedFuturesPosition?.takeProfit;
+
+const activeStopLoss =
+  marketMode === "SPOT"
+    ? selectedSpotRisk?.stopLoss
+    : selectedFuturesPosition?.stopLoss;
+
+if (activeTakeProfit != null) {
   const tpLine = candleSeriesRef.current?.createPriceLine({
-    price: Number(takeProfit),
+    price: activeTakeProfit,
     color: "#22c55e",
     lineWidth: 2,
     lineStyle: 2,
@@ -1132,9 +1151,9 @@ if (takeProfit !== "") {
   }
 }
 
-if (stopLoss !== "") {
+if (activeStopLoss != null) {
   const slLine = candleSeriesRef.current?.createPriceLine({
-    price: Number(stopLoss),
+    price: activeStopLoss,
     color: "#ef4444",
     lineWidth: 2,
     lineStyle: 2,
@@ -1152,6 +1171,7 @@ if (stopLoss !== "") {
   futuresPositions,
   positions,
   averagePrices,
+  spotRiskSettings,
   marketMode,
   selectedCoin,
   takeProfit,
@@ -1457,15 +1477,23 @@ if (user) {
   updated: new Date(),
 });
 }
-    setPositions((prev) => ({
-      ...prev,
-      [selectedCoin]: 0,
-    }));
+setPositions((prev) => ({
+  ...prev,
+  [selectedCoin]: 0,
+}));
 
-    setAveragePrices((prev) => ({
-      ...prev,
-      [selectedCoin]: 0,
-    }));
+setAveragePrices((prev) => ({
+  ...prev,
+  [selectedCoin]: 0,
+}));
+
+setSpotRiskSettings((prev) => ({
+  ...prev,
+  [selectedCoin]: {
+    takeProfit: null,
+    stopLoss: null,
+  },
+}));
 
   const grossSpotPnl =
   value - ownedAmount * averagePrices[selectedCoin];
@@ -1519,6 +1547,7 @@ function resetAccount() {
   setBalance(startingBalance);
   setPositions(emptyPositions);
   setAveragePrices(emptyPositions);
+  setSpotRiskSettings({});
   setTrades([]);
   setMarginUsed(0);
   setFuturesPositions([]);
@@ -2290,29 +2319,31 @@ openFuturesPosition("SHORT");
     );
   }
 
-  const tpDistance =
-    takeProfit !== ""
-      ? Math.abs(Number(takeProfit) - current)
-      : 0;
+const tpDistance =
+  position.takeProfit != null
+    ? Math.abs(position.takeProfit - current)
+    : 0;
 
-  const slDistance =
-    stopLoss !== ""
-      ? Math.abs(current - Number(stopLoss))
-      : 0;
+const slDistance =
+  position.stopLoss != null
+    ? Math.abs(current - position.stopLoss)
+    : 0;
 
-  const riskReward =
-    takeProfit !== "" && stopLoss !== "" && slDistance > 0
-      ? tpDistance / slDistance
-      : 0;
+const riskReward =
+  position.takeProfit != null &&
+  position.stopLoss != null &&
+  slDistance > 0
+    ? tpDistance / slDistance
+    : 0;
 
   return (
     <>
       <p className="text-sm font-bold text-green-400">
-        TP: {takeProfit !== "" ? `$${tpDistance.toFixed(2)} away` : "Not set"}
+        TP: {position.takeProfit != null ? `$${tpDistance.toFixed(2)} away` : "Not set"}
       </p>
 
       <p className="mt-1 text-sm font-bold text-red-400">
-        SL: {stopLoss !== "" ? `$${slDistance.toFixed(2)} away` : "Not set"}
+        SL: {position.stopLoss != null ? `$${slDistance.toFixed(2)} away` : "Not set"}
       </p>
 
       <p className="mt-1 text-sm font-bold text-cyan-400">
