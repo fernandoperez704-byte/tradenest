@@ -1115,26 +1115,41 @@ lineWidth: 2,
 }
 
 const selectedSpotRisk =
-  marketMode === "SPOT"
-    ? spotRiskSettings[selectedCoin]
-    : null;
+  spotRiskSettings[selectedCoin];
 
 const selectedFuturesPosition =
-  marketMode === "FUTURES"
-    ? futuresPositions.find(
-        (position) => position.coin === selectedCoin
-      )
-    : null;
+  futuresPositions.find(
+    (position) => position.coin === selectedCoin
+  );
+
+const hasOpenSpotPosition =
+  positions[selectedCoin] > 0;
 
 const activeTakeProfit =
   marketMode === "SPOT"
-    ? selectedSpotRisk?.takeProfit
-    : selectedFuturesPosition?.takeProfit;
+    ? hasOpenSpotPosition
+      ? selectedSpotRisk?.takeProfit
+      : takeProfit !== ""
+      ? Number(takeProfit)
+      : null
+    : selectedFuturesPosition
+    ? selectedFuturesPosition.takeProfit
+    : takeProfit !== ""
+    ? Number(takeProfit)
+    : null;
 
 const activeStopLoss =
   marketMode === "SPOT"
-    ? selectedSpotRisk?.stopLoss
-    : selectedFuturesPosition?.stopLoss;
+    ? hasOpenSpotPosition
+      ? selectedSpotRisk?.stopLoss
+      : stopLoss !== ""
+      ? Number(stopLoss)
+      : null
+    : selectedFuturesPosition
+    ? selectedFuturesPosition.stopLoss
+    : stopLoss !== ""
+    ? Number(stopLoss)
+    : null;
 
 if (activeTakeProfit != null) {
   const tpLine = candleSeriesRef.current?.createPriceLine({
