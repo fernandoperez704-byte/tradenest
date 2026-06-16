@@ -43,58 +43,83 @@ export default function GabySimulatorCoach({
   const [loading, setLoading] = useState(false);
   
 const [lastReviewData, setLastReviewData] = useState<any>(null);
-  async function askGaby(customQuestion?: string) {
-    const finalQuestion = customQuestion || question;
+async function askGaby(customQuestion?: string) {
+  let finalQuestion = customQuestion || question;
 
-    if (!finalQuestion.trim()) return;
+  if (!finalQuestion.trim()) return;
 
-    setLoading(true);
+  const originalQuestion = finalQuestion.trim().toLowerCase();
 
-    try {
-      const res = await fetch("/api/gaby-simulator", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-body: JSON.stringify({
-  question: finalQuestion,
-  lastReviewData,
-simulatorContext: {
-  mode,
-  selectedCoin,
-  balance,
-  marginUsed,
+  const reviewFollowUpWords = [
+    "yes",
+    "yeah",
+    "yep",
+    "more",
+    "details",
+    "why",
+    "review",
+    "this trade",
+  ];
 
-  selectedTimeframe,
-  currentPrice,
-  priceLocation,
+  const isReviewFollowUp =
+    lastReviewData &&
+    reviewFollowUpWords.some((word) =>
+      originalQuestion.includes(word)
+    );
 
-  marketDirection: movingAverageAnalysis?.direction,
-  ma7: movingAverageAnalysis?.ma7,
-  ma25: movingAverageAnalysis?.ma25,
-  ma99: movingAverageAnalysis?.ma99,
-
-  nearestSupport: marketIntelligence?.nearestSupport,
-  nearestResistance: marketIntelligence?.nearestResistance,
-
-  trades: trades.slice(-5),
-  futuresHistory: futuresHistory.slice(-5),
-  positions,
-  futuresPositions,
-},
-        }),
-      });
-
-      const data = await res.json();
-
-      setAnswer(data.answer || "Gaby could not respond right now.");
-      setQuestion("");
-    } catch (error) {
-      setAnswer("Gaby is having trouble reviewing the simulator right now.");
-    } finally {
-      setLoading(false);
-    }
+  if (
+    isReviewFollowUp &&
+    ["yes", "yeah", "yep", "more", "details"].includes(
+      originalQuestion
+    )
+  ) {
+    finalQuestion =
+      "Give more analysis about this review using the current chart facts.";
   }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch("/api/gaby-simulator", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        question: finalQuestion,
+        lastReviewData: isReviewFollowUp ? lastReviewData : null,
+        simulatorContext: {
+          mode,
+          selectedCoin,
+          balance,
+          marginUsed,
+          selectedTimeframe,
+          currentPrice,
+          priceLocation,
+          marketDirection: movingAverageAnalysis?.direction,
+          ma7: movingAverageAnalysis?.ma7,
+          ma25: movingAverageAnalysis?.ma25,
+          ma99: movingAverageAnalysis?.ma99,
+          nearestSupport: marketIntelligence?.nearestSupport,
+          nearestResistance: marketIntelligence?.nearestResistance,
+          trades: trades.slice(-5),
+          futuresHistory: futuresHistory.slice(-5),
+          positions,
+          futuresPositions,
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    setAnswer(data.answer || "Gaby could not respond right now.");
+    setQuestion("");
+  } catch (error) {
+    setAnswer("Gaby is having trouble reviewing the simulator right now.");
+  } finally {
+    setLoading(false);
+  }
+}
 
 function reviewTrade() {
   const closedTrades =
@@ -129,17 +154,33 @@ function reviewTrade() {
     return;
   }
 
-  const marketDirection =
-    movingAverageAnalysis?.direction || "TRANSITION";
+const marketDirection =
+  movingAverageAnalysis?.direction || "TRANSITION";
 
-  const directionLabel =
-    marketDirection === "BULLISH"
-      ? "Bullish"
-      : marketDirection === "BEARISH"
-      ? "Bearish"
-      : "Transition";
+const coin = latestTrade.coin || selectedCoin;
 
-  const coin = latestTrade.coin || selectedCoin;
+const directionLabel =
+  marketDirection === "BULLISH"
+    ? "Bullish"
+    : marketDirection === "BEARISH"
+    ? "Bearish"
+    : "Transition";
+
+const timeframeText = selectedTimeframe || "1M";
+
+let analystSentence = "";
+
+if (marketDirection === "BULLISH") {
+  analystSentence = `${coin} was bullish on the ${timeframeText} timeframe because MA 7 was above MA 25 and MA 25 was above MA 99.`;
+}
+
+if (marketDirection === "BEARISH") {
+  analystSentence = `${coin} was bearish on the ${timeframeText} timeframe because MA 7 was below MA 25 and MA 25 was below MA 99.`;
+}
+
+if (marketDirection === "TRANSITION") {
+  analystSentence = `Market direction was unclear on the ${timeframeText} timeframe because MA 7, MA 25, and MA 99 were not fully aligned.`;
+}
 
   const tradeDirection =
     mode === "FUTURES"
@@ -239,16 +280,17 @@ Too much of the account was committed to a single trade.`;
     }
   }
 
-  const reviewText = `${tradeDirectionText}
-
+  const reviewText = `
+Market Direction: ${directionLabel}
+Timeframe: ${timeframeText}
+Trade Direction: ${tradeDirection}
 Risk Exposure: ${riskLabel}
 ${riskText}
-
-Gaby Review:
-${gabyReview}
+Gaby Analysis:
+${analystSentence}
 
 Want more details?
-Ask me about this review.`;
+`;
 
 setLastReviewData({
   marketDirection,
