@@ -3124,19 +3124,22 @@ takeProfit:
         ✕ Close
       </button>
 
-      <GabySimulatorCoach
-        mode={marketMode}
-        selectedCoin={selectedCoin}
-        trades={trades}
-        futuresHistory={futuresHistory}
-        positions={positions}
-        futuresPositions={futuresPositions}
-        balance={balance}
-        marginUsed={marginUsed}
-          marketIntelligence={marketIntelligence}
+<GabySimulatorCoach
+  mode={marketMode}
+  selectedCoin={selectedCoin}
+  trades={trades}
+  futuresHistory={futuresHistory}
+  positions={positions}
+  futuresPositions={futuresPositions}
+  balance={balance}
+  marginUsed={marginUsed}
+  marketIntelligence={marketIntelligence}
   movingAverageAnalysis={movingAverageAnalysis}
   currentEntryQuality={currentEntryQuality}
-      />
+  selectedTimeframe={selectedTimeframe}
+  currentPrice={currentPrice}
+  priceLocation={priceLocation}
+/>
     </div>
   </>
 )}

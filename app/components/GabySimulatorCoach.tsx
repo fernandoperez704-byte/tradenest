@@ -15,6 +15,9 @@ type GabySimulatorCoachProps = {
   marketIntelligence?: any;
   movingAverageAnalysis?: any;
   currentEntryQuality?: string | null;
+  selectedTimeframe?: string;
+  currentPrice?: number;
+  priceLocation?: string | null;
 };
 
 export default function GabySimulatorCoach({
@@ -29,13 +32,17 @@ export default function GabySimulatorCoach({
   marketIntelligence,
   movingAverageAnalysis,
   currentEntryQuality,
+  selectedTimeframe,
+  currentPrice,
+  priceLocation,
 }: GabySimulatorCoachProps) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState(
     "Hi, I’m Gaby. I can help explain the simulator, spot trading, futures, leverage, liquidation, and review your practice trades."
   );
   const [loading, setLoading] = useState(false);
-
+  
+const [lastReviewData, setLastReviewData] = useState<any>(null);
   async function askGaby(customQuestion?: string) {
     const finalQuestion = customQuestion || question;
 
@@ -49,18 +56,32 @@ export default function GabySimulatorCoach({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          question: finalQuestion,
-          simulatorContext: {
-            mode,
-            selectedCoin,
-            balance,
-            marginUsed,
-            trades: trades.slice(-5),
-            futuresHistory: futuresHistory.slice(-5),
-            positions,
-            futuresPositions,
-          },
+body: JSON.stringify({
+  question: finalQuestion,
+  lastReviewData,
+simulatorContext: {
+  mode,
+  selectedCoin,
+  balance,
+  marginUsed,
+
+  selectedTimeframe,
+  currentPrice,
+  priceLocation,
+
+  marketDirection: movingAverageAnalysis?.direction,
+  ma7: movingAverageAnalysis?.ma7,
+  ma25: movingAverageAnalysis?.ma25,
+  ma99: movingAverageAnalysis?.ma99,
+
+  nearestSupport: marketIntelligence?.nearestSupport,
+  nearestResistance: marketIntelligence?.nearestResistance,
+
+  trades: trades.slice(-5),
+  futuresHistory: futuresHistory.slice(-5),
+  positions,
+  futuresPositions,
+},
         }),
       });
 
@@ -224,7 +245,21 @@ Risk Exposure: ${riskLabel}
 ${riskText}
 
 Gaby Review:
-${gabyReview}`;
+${gabyReview}
+
+Want more details?
+Ask me about this review.`;
+
+setLastReviewData({
+  marketDirection,
+  tradeDirection,
+  alignedWithDirection,
+  riskExposure: riskLabel,
+  riskText,
+  gabyReview,
+  mode,
+  coin,
+});
 
   setAnswer(reviewText.trim());
 }

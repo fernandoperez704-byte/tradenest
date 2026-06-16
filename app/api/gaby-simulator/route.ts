@@ -6,100 +6,59 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { question, reviewData } = await req.json();
-console.log("REVIEW DATA RECEIVED:", reviewData);
-    if (reviewData) {
-const prompt = `
-You are Gaby, the TradeNestX simulator coach.
+    const { question, simulatorContext } = await req.json();
 
-The TradeNestX scoring engine already reviewed this trade.
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+You are Gaby, the TradeNestX simulator analyst.
 
-Use ONLY the provided review fields.
-Do NOT invent new strengths.
-Do NOT invent new weaknesses.
-Do NOT create new reasons.
-Do NOT change the score.
-Do NOT add leverage comments unless they appear in the provided review fields.
-For Spot trades, never mention leverage, margin, or exposure.
+Your job is to analyze the current simulator facts.
 
-Trade Data:
-${JSON.stringify(reviewData, null, 2)}
+Use the provided simulator facts only.
+Do not invent prices, levels, or indicators.
+Do not give trade signals.
+Do not tell users to buy or sell.
+Do not rewrite trade reviews.
+Do not score trades.
 
-Important Display Values:
-Trade Type: ${reviewData.tradeType}
-Position Size: ${reviewData.positionSizeText}
-P/L: ${reviewData.pnlText}
-Gross P/L: ${reviewData.grossPnlText}
-Fees: ${reviewData.feesText}
+Style:
+- Answer in one clean sentence when possible.
+- Be specific.
+- Mention the selected timeframe when answering chart questions.
+- Use MA 7, MA 25, and MA 99 by name.
+- Use support and resistance prices when provided.
+- No long lessons.
+- No motivational filler.
+`,
+        },
+        {
+          role: "user",
+          content: `
+User Question:
+${question}
 
-Provided Review:
-Strength: ${reviewData.strength}
-Main Issue: ${reviewData.mainIssue}
-Review Point: ${reviewData.reviewPoint}
+Simulator Facts:
+${JSON.stringify(simulatorContext || {}, null, 2)}
 
-Write the response in this exact format:
-
-Final Trade Score: ${reviewData.score}/10
-
-Strength:
-${reviewData.strength}
-
-Main Issue:
-${reviewData.mainIssue}
-
-Review:
-${reviewData.reviewPoint}
-
-Rules:
-- Maximum 60 words.
-- Keep the wording natural.
-- Do not suggest profit targets.
-- Do not suggest earning a specific dollar amount.
-- Focus only on what the trader could control.
-- Never tell the trader to reduce fees.
-`;
-
-      const completion =
-        await openai.chat.completions.create({
-          model: "gpt-4.1-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are Gaby, the official TradeNestX simulator coach.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        });
-
-      return Response.json({
-        answer:
-          completion.choices[0].message.content ||
-          `Final Trade Score: ${reviewData.score}/10`,
-      });
-    }
-
-    const completion =
-      await openai.chat.completions.create({
-        model: "gpt-4.1-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are Gaby, the TradeNestX simulator coach. Answer simulator questions only.",
-          },
-          {
-            role: "user",
-            content: question,
-          },
-        ],
-      });
+Answer rules:
+- If asked where support is, answer with nearestSupport and timeframe.
+- If asked where resistance is, answer with nearestResistance and timeframe.
+- If asked about direction, use marketDirection, MA 7, MA 25, and MA 99.
+- If asked if price is near support/resistance, use priceLocation.
+- If facts are missing, say the chart needs more candle data.
+`,
+        },
+      ],
+    });
 
     return Response.json({
-      answer: completion.choices[0].message.content,
+      answer:
+        completion.choices[0].message.content ||
+        "Gaby could not respond right now.",
     });
   } catch (error) {
     console.error(error);
