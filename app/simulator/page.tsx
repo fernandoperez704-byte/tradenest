@@ -465,10 +465,13 @@ return position.side === "LONG"
   : current >= position.liquidationPrice;
           });
 
-        if (liquidatedPositions.length > 0) {
-          setMessage(
-            "A futures position was liquidated."
-          );
+if (liquidatedPositions.length > 0) {
+  setMessage(
+    "A futures position was liquidated."
+  );
+
+  setTakeProfit("");
+  setStopLoss("");
 
           setMarginUsed((prevMargin) =>
             Math.max(
@@ -1510,6 +1513,9 @@ setSpotRiskSettings((prev) => ({
   },
 }));
 
+setTakeProfit("");
+setStopLoss("");
+
   const grossSpotPnl =
   value - ownedAmount * averagePrices[selectedCoin];
 
@@ -2450,6 +2456,10 @@ totalFees: (position.entryFee || 0) + exitFee,
   },
   ...prev,
 ]);
+
+setTakeProfit("");
+setStopLoss("");
+
       setMessage(
         `${position.side} ${position.coin} closed. P/L after fees: $${netPnl.toFixed(2)}`
       );
