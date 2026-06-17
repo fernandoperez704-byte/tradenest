@@ -44,12 +44,27 @@ export default function GabySimulatorCoach({
   
 const [lastReviewData, setLastReviewData] = useState<any>(null);
 const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
 async function askGaby(customQuestion?: string) {
   let finalQuestion = customQuestion || question;
 
   if (!finalQuestion.trim()) return;
 
   const originalQuestion = finalQuestion.trim().toLowerCase();
+
+  if (originalQuestion.includes("support")) {
+  setLastReferencedLevel({
+    type: "SUPPORT",
+    index: 0,
+  });
+}
+
+if (originalQuestion.includes("resistance")) {
+  setLastReferencedLevel({
+    type: "RESISTANCE",
+    index: 0,
+  });
+}
 
   const reviewFollowUpWords = [
     "yes",
@@ -88,8 +103,9 @@ async function askGaby(customQuestion?: string) {
       },
       body: JSON.stringify({
         question: finalQuestion,
+        lastReferencedLevel,
         lastReviewData: isReviewFollowUp ? lastReviewData : null,
-        conversationHistory: conversationHistory.slice(-4),
+        conversationHistory: conversationHistory.slice(-8),
         simulatorContext: {
           mode,
           selectedCoin,
@@ -121,7 +137,7 @@ const gabyAnswer = data.answer || "Gaby could not respond right now.";
 setAnswer(gabyAnswer);
 
 setConversationHistory((prev) => [
-  ...prev.slice(-3),
+  ...prev.slice(-7),
   {
     user: finalQuestion,
     gaby: gabyAnswer,

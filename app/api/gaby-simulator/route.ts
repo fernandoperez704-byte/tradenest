@@ -11,6 +11,7 @@ export async function POST(req: Request) {
   simulatorContext,
   lastReviewData,
   conversationHistory,
+  lastReferencedLevel,
 } = await req.json();
 
     const completion = await openai.chat.completions.create({
@@ -85,6 +86,9 @@ ${lastReviewData ? JSON.stringify(lastReviewData, null, 2) : "NONE"}
 Recent Conversation:
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
 
+Last Referenced Level:
+${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
+
 Answer rules:
 - If asked where support is, answer with nearestSupport and timeframe.
 - If asked where resistance is, answer with nearestResistance and timeframe.
@@ -113,6 +117,9 @@ Answer rules:
 - If user asks for the next support after nearest support, use supportLevels[1].
 - If user asks for the next resistance after nearest resistance, use resistanceLevels[1].
 - Answer in one sentence.
+- If user asks "next one", "after that one", or "and after that", use Last Referenced Level.
+- If Last Referenced Level type is SUPPORT and index is 0, answer using supportLevels[1].
+- If Last Referenced Level type is RESISTANCE and index is 0, answer using resistanceLevels[1].
 `,
         },
       ],

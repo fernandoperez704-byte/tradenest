@@ -433,6 +433,23 @@ if (livePrice && candlesReadyFor === activeCandleKey) {
     const updatedHistory = [...prevHistory];
     const lastCandle = updatedHistory[updatedHistory.length - 1];
 
+    const currentCandleStart = getCurrentCandleStart(selectedTimeframe);
+    const lastCandleTime = Number(lastCandle.time);
+
+    if (currentCandleStart > lastCandleTime) {
+      updatedHistory.push({
+        time: String(currentCandleStart),
+        price: livePrice,
+        open: livePrice,
+        high: livePrice,
+        low: livePrice,
+        close: livePrice,
+        volume: 0,
+      });
+
+      return updatedHistory;
+    }
+
     updatedHistory[updatedHistory.length - 1] = {
       ...lastCandle,
       close: livePrice,
