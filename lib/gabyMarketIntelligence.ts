@@ -40,6 +40,8 @@ export type MarketIntelligence = {
   structure: MarketStructure;
   nearestSupport: PriceZone | null;
   nearestResistance: PriceZone | null;
+  supportLevels: PriceZone[];
+  resistanceLevels: PriceZone[];
 };
 
 export type TimeframeStructureMap = {
@@ -209,11 +211,13 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
   const recentCandles = candles.slice(-120);
 
   if (recentCandles.length < 20) {
-    return {
-      structure: "RANGING",
-      nearestSupport: null,
-      nearestResistance: null,
-    };
+return {
+  structure: "RANGING",
+  nearestSupport: null,
+  nearestResistance: null,
+  supportLevels: [],
+  resistanceLevels: [],
+};
   }
 
   const currentPrice = recentCandles[recentCandles.length - 1].close;
@@ -221,21 +225,24 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
   const supportZones = groupZones(getSwingLows(recentCandles));
   const resistanceZones = groupZones(getSwingHighs(recentCandles));
 
-  const nearestSupport =
-    supportZones
-      .filter((zone) => zone.high < currentPrice)
-      .sort((a, b) => b.high - a.high)[0] ?? null;
+const supportLevels = supportZones
+  .filter((zone) => zone.high < currentPrice)
+  .sort((a, b) => b.high - a.high);
 
-  const nearestResistance =
-    resistanceZones
-      .filter((zone) => zone.low > currentPrice)
-      .sort((a, b) => a.low - b.low)[0] ?? null;
+const resistanceLevels = resistanceZones
+  .filter((zone) => zone.low > currentPrice)
+  .sort((a, b) => a.low - b.low);
 
-  return {
-    structure: getMarketStructure(recentCandles),
-    nearestSupport,
-    nearestResistance,
-  };
+const nearestSupport = supportLevels[0] ?? null;
+const nearestResistance = resistanceLevels[0] ?? null;
+
+return {
+  structure: getMarketStructure(recentCandles),
+  nearestSupport,
+  nearestResistance,
+  supportLevels,
+  resistanceLevels,
+};
 }
 
 export function getMultiTimeframeAnalysis(

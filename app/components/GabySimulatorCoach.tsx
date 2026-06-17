@@ -43,6 +43,7 @@ export default function GabySimulatorCoach({
   const [loading, setLoading] = useState(false);
   
 const [lastReviewData, setLastReviewData] = useState<any>(null);
+const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 async function askGaby(customQuestion?: string) {
   let finalQuestion = customQuestion || question;
 
@@ -88,6 +89,7 @@ async function askGaby(customQuestion?: string) {
       body: JSON.stringify({
         question: finalQuestion,
         lastReviewData: isReviewFollowUp ? lastReviewData : null,
+        conversationHistory: conversationHistory.slice(-4),
         simulatorContext: {
           mode,
           selectedCoin,
@@ -102,6 +104,8 @@ async function askGaby(customQuestion?: string) {
           ma99: movingAverageAnalysis?.ma99,
           nearestSupport: marketIntelligence?.nearestSupport,
           nearestResistance: marketIntelligence?.nearestResistance,
+          supportLevels: marketIntelligence?.supportLevels,
+          resistanceLevels: marketIntelligence?.resistanceLevels,
           trades: trades.slice(-5),
           futuresHistory: futuresHistory.slice(-5),
           positions,
@@ -112,8 +116,19 @@ async function askGaby(customQuestion?: string) {
 
     const data = await res.json();
 
-    setAnswer(data.answer || "Gaby could not respond right now.");
-    setQuestion("");
+const gabyAnswer = data.answer || "Gaby could not respond right now.";
+
+setAnswer(gabyAnswer);
+
+setConversationHistory((prev) => [
+  ...prev.slice(-3),
+  {
+    user: finalQuestion,
+    gaby: gabyAnswer,
+  },
+]);
+
+setQuestion("");
   } catch (error) {
     setAnswer("Gaby is having trouble reviewing the simulator right now.");
   } finally {
@@ -122,20 +137,22 @@ async function askGaby(customQuestion?: string) {
 }
 
 function reviewTrade() {
-  const closedTrades =
-    mode === "FUTURES"
-      ? futuresHistory.filter(
-          (trade) =>
-            trade.status !== "OPEN" &&
-            trade.pnl !== null &&
-            trade.pnl !== undefined
-        )
-      : trades.filter(
-          (trade) =>
-            trade.type === "SELL" &&
-            trade.pnl !== null &&
-            trade.pnl !== undefined
-        );
+const closedTrades =
+  mode === "FUTURES"
+    ? futuresHistory.filter(
+        (trade) =>
+          trade.coin === selectedCoin &&
+          trade.status !== "OPEN" &&
+          trade.pnl !== null &&
+          trade.pnl !== undefined
+      )
+    : trades.filter(
+        (trade) =>
+          trade.coin === selectedCoin &&
+          trade.type === "SELL" &&
+          trade.pnl !== null &&
+          trade.pnl !== undefined
+      );
 
   const latestTrade = [...closedTrades].sort((a, b) => {
     const timeA = new Date(
@@ -150,7 +167,7 @@ function reviewTrade() {
   })[0];
 
   if (!latestTrade) {
-    setAnswer("Place a practice trade first and I'll review it.");
+    setAnswer(`Place a completed ${selectedCoin} practice trade first and I'll review it.`);
     return;
   }
 
