@@ -212,6 +212,30 @@ if (marketDirection === "TRANSITION") {
   let riskText = "";
   let gabyReview = "";
 
+const entryPrice = Number(
+  latestTrade.entryPrice ?? latestTrade.price ?? 0
+);
+
+const supportPrice = Number(
+  marketIntelligence?.nearestSupport ?? 0
+);
+
+const resistancePrice = Number(
+  marketIntelligence?.nearestResistance ?? 0
+);
+
+let tradeLocation = "UNKNOWN";
+
+if (entryPrice && supportPrice && resistancePrice) {
+  const supportDistance = Math.abs(entryPrice - supportPrice);
+  const resistanceDistance = Math.abs(entryPrice - resistancePrice);
+
+  tradeLocation =
+    supportDistance < resistanceDistance
+      ? "NEAR_SUPPORT"
+      : "NEAR_RESISTANCE";
+}
+
   if (mode === "FUTURES") {
     const marginUsedAmount = Number(
       latestTrade.margin ?? latestTrade.amount ?? 0
@@ -301,6 +325,12 @@ setLastReviewData({
   gabyReview,
   mode,
   coin,
+entryPrice,
+supportPrice,
+resistancePrice,
+tradeLocation,
+timeframe: timeframeText,
+
 });
 
   setAnswer(reviewText.trim());

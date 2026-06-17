@@ -6,7 +6,7 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { question, simulatorContext } = await req.json();
+    const { question, simulatorContext, lastReviewData } = await req.json();
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -44,12 +44,21 @@ ${question}
 Simulator Facts:
 ${JSON.stringify(simulatorContext || {}, null, 2)}
 
+Latest Reviewed Trade Facts:
+${lastReviewData ? JSON.stringify(lastReviewData, null, 2) : "NONE"}
+
 Answer rules:
 - If asked where support is, answer with nearestSupport and timeframe.
 - If asked where resistance is, answer with nearestResistance and timeframe.
 - If asked about direction, use marketDirection, MA 7, MA 25, and MA 99.
 - If asked if price is near support/resistance, use priceLocation.
+- If asked about trade location, entry, or weak entry, use entryPrice, supportPrice, resistancePrice, tradeLocation, and timeframe.
+- If tradeLocation is NEAR_SUPPORT, say the entry was closer to support.
+- If tradeLocation is NEAR_RESISTANCE, say the entry was closer to resistance.
+- Keep trade-location answers to one clean analyst sentence.
 - If facts are missing, say the chart needs more candle data.
+- If asked about trade location, entry, weak entry, reviewed trade, or why the entry was weak, only answer using Latest Reviewed Trade Facts.
+- If Latest Reviewed Trade Facts is NONE, say exactly: "Review a closed trade first so I can analyze the entry location."
 `,
         },
       ],
