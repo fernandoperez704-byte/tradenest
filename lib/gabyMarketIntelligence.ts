@@ -36,12 +36,18 @@ export type PriceZone = {
   strength: number;
 };
 
+export type PatternAnalysis = {
+  pattern: string;
+  summary: string;
+};
+
 export type MarketIntelligence = {
   structure: MarketStructure;
   nearestSupport: PriceZone | null;
   nearestResistance: PriceZone | null;
   supportLevels: PriceZone[];
   resistanceLevels: PriceZone[];
+  patternAnalysis: PatternAnalysis | null;
 };
 
 export type TimeframeStructureMap = {
@@ -208,6 +214,38 @@ function getDominantStructure(
 }
 
 export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
+  function getPatternAnalysis(candles: Candle[]): PatternAnalysis | null {
+  const highs = getSwingHighs(candles);
+  const lows = getSwingLows(candles);
+
+  if (highs.length < 2 || lows.length < 2) {
+    return null;
+  }
+
+  const lastHigh = highs[highs.length - 1];
+  const previousHigh = highs[highs.length - 2];
+
+  const lastLow = lows[lows.length - 1];
+  const previousLow = lows[lows.length - 2];
+
+  if (lastLow > previousLow) {
+    return {
+      pattern: "HIGHER_LOW",
+      summary:
+        "Price is forming a higher low, which may indicate bearish momentum is weakening.",
+    };
+  }
+
+  if (lastHigh < previousHigh) {
+    return {
+      pattern: "LOWER_HIGH",
+      summary:
+        "Price is forming a lower high, which may indicate buyers are losing strength.",
+    };
+  }
+
+  return null;
+}
   const recentCandles = candles;
 
   if (recentCandles.length < 20) {
@@ -217,6 +255,7 @@ return {
   nearestResistance: null,
   supportLevels: [],
   resistanceLevels: [],
+  patternAnalysis: null,
 };
   }
 
@@ -242,6 +281,7 @@ return {
   nearestResistance,
   supportLevels,
   resistanceLevels,
+  patternAnalysis: getPatternAnalysis(recentCandles),
 };
 }
 

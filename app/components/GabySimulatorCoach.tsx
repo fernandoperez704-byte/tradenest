@@ -45,12 +45,38 @@ export default function GabySimulatorCoach({
 const [lastReviewData, setLastReviewData] = useState<any>(null);
 const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
+const [lastTopic, setLastTopic] = useState<string | null>(null);
 async function askGaby(customQuestion?: string) {
   let finalQuestion = customQuestion || question;
 
   if (!finalQuestion.trim()) return;
 
   const originalQuestion = finalQuestion.trim().toLowerCase();
+
+if (originalQuestion.includes("support")) {
+  setLastTopic("SUPPORT");
+}
+
+if (originalQuestion.includes("resistance")) {
+  setLastTopic("RESISTANCE");
+}
+
+if (
+  originalQuestion.includes("direction") ||
+  originalQuestion.includes("bullish") ||
+  originalQuestion.includes("bearish") ||
+  originalQuestion.includes("transition")
+) {
+  setLastTopic("DIRECTION");
+}
+
+if (
+  originalQuestion.includes("review") ||
+  originalQuestion.includes("trade") ||
+  originalQuestion.includes("entry")
+) {
+  setLastTopic("REVIEW");
+}
 
   if (originalQuestion.includes("support")) {
   setLastReferencedLevel({
@@ -107,6 +133,7 @@ if (originalQuestion.includes("resistance")) {
         lastReviewData: isReviewFollowUp ? lastReviewData : null,
         conversationHistory: conversationHistory.slice(-8),
         simulatorContext: {
+          lastTopic,
           mode,
           selectedCoin,
           balance,
@@ -123,6 +150,7 @@ if (originalQuestion.includes("resistance")) {
           nearestResistance: marketIntelligence?.nearestResistance,
           supportLevels: marketIntelligence?.supportLevels,
           resistanceLevels: marketIntelligence?.resistanceLevels,
+          patternAnalysis: marketIntelligence?.patternAnalysis,
           trades: trades.slice(-5),
           futuresHistory: futuresHistory.slice(-5),
           positions,
