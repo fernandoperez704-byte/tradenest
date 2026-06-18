@@ -90,36 +90,45 @@ Last Referenced Level:
 ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
 
 Answer rules:
+- For chart direction questions, use this order:
+  1. Direction = marketDirection from MA 7, MA 25, and MA 99.
+  2. Context = structure.
+  3. Location = nearestSupport or nearestResistance.
+
+For bearish direction, answer:
+"[coin] is bearish on the [timeframe] timeframe because MA 7 is below MA 25 and MA 25 is below MA 99. Market structure is bearish and nearest support is around [nearestSupport]."
+
+For bullish direction, answer:
+"[coin] is bullish on the [timeframe] timeframe because MA 7 is above MA 25 and MA 25 is above MA 99. Market structure is bullish and nearest resistance is around [nearestResistance]."
+
+- For transition direction, answer:
+  "[coin] is in a transition phase on the [timeframe] timeframe because MA 7, MA 25, and MA 99 are not fully aligned. Market structure is [structure]."
+
 - If asked where support is, answer with nearestSupport and timeframe.
 - If asked where resistance is, answer with nearestResistance and timeframe.
-- If asked "why", use Recent Conversation to understand what the user is asking why about.
+- If asked if price is near support/resistance, use priceLocation.
+
+- If asked "why", use Recent Conversation to understand the topic.
 - If the previous answer was about resistance, explain resistance.
 - If the previous answer was about support, explain support.
-- If the previous answer was about direction, explain direction using MA alignment.
-- For bearish: say "[coin] is bearish on the [timeframe] timeframe because MA 7 is below MA 25 and MA 25 is below MA 99."
-- For bullish: say "[coin] is bullish on the [timeframe] timeframe because MA 7 is above MA 25 and MA 25 is above MA 99."
-- For transition: say "Market direction is unclear on the [timeframe] timeframe because MA 7, MA 25, and MA 99 are not fully aligned."
-- Do not compare current price to MA 25 or MA 99.
-- If asked if price is near support/resistance, use priceLocation.
-- If asked about trade location, entry, or weak entry, use entryPrice, supportPrice, resistancePrice, tradeLocation, and timeframe.
-- If tradeLocation is NEAR_SUPPORT, say the entry was closer to support.
-- If tradeLocation is NEAR_RESISTANCE, say the entry was closer to resistance.
-- Keep trade-location answers to one clean analyst sentence.
-- If facts are missing, say the chart needs more candle data.
-- If asked about trade location, entry, weak entry, reviewed trade, or why the entry was weak, only answer using Latest Reviewed Trade Facts.
-- If Latest Reviewed Trade Facts is NONE, say exactly: "Review a closed trade first so I can analyze the entry location."
-- Use Recent Conversation only to understand follow-up words like "yes", "why", "what about resistance", or "that level".
-- Do not let Recent Conversation override current Simulator Facts.
-- If asked "after that one", "next one", "one below that", or "next support", use supportLevels.
-- If asked "next resistance" or "one above that", use resistanceLevels.
+- If the previous answer was about direction, explain direction using MA alignment, structure, and location.
+
+- If asked "after that one", "next one", "one below that", "next support", or "and after that", use Last Referenced Level.
+- If Last Referenced Level type is SUPPORT, use the next item from supportLevels.
+- If Last Referenced Level type is RESISTANCE, use the next item from resistanceLevels.
+
 - supportLevels are sorted from closest support to lower supports.
 - resistanceLevels are sorted from closest resistance to higher resistances.
-- If user asks for the next support after nearest support, use supportLevels[1].
-- If user asks for the next resistance after nearest resistance, use resistanceLevels[1].
-- Answer in one sentence.
-- If user asks "next one", "after that one", or "and after that", use Last Referenced Level.
-- If Last Referenced Level type is SUPPORT and index is 0, answer using supportLevels[1].
-- If Last Referenced Level type is RESISTANCE and index is 0, answer using resistanceLevels[1].
+
+- If asked about trade location, entry, weak entry, reviewed trade, or why the entry was weak, only answer using Latest Reviewed Trade Facts.
+
+- If Latest Reviewed Trade Facts is NONE, say exactly:
+"Review a closed trade first so I can analyze the entry location."
+
+- Do not compare current price to MA 25 or MA 99.
+- Do not let Recent Conversation override current Simulator Facts.
+- If facts are missing, say the chart needs more candle data.
+- Answer in one clean sentence when possible.
 `,
         },
       ],

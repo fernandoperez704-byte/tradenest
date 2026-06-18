@@ -208,7 +208,7 @@ function getDominantStructure(
 }
 
 export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
-  const recentCandles = candles.slice(-120);
+  const recentCandles = candles;
 
   if (recentCandles.length < 20) {
 return {

@@ -115,6 +115,7 @@ if (originalQuestion.includes("resistance")) {
           currentPrice,
           priceLocation,
           marketDirection: movingAverageAnalysis?.direction,
+          structure: marketIntelligence?.structure,
           ma7: movingAverageAnalysis?.ma7,
           ma25: movingAverageAnalysis?.ma25,
           ma99: movingAverageAnalysis?.ma99,
@@ -190,6 +191,17 @@ const closedTrades =
 const marketDirection =
   movingAverageAnalysis?.direction || "TRANSITION";
 
+ const structure =
+  marketIntelligence?.structure || "RANGING";
+
+console.log("STRUCTURE =", structure);
+
+const nearestSupport =
+  marketIntelligence?.nearestSupport?.low ?? null;
+
+const nearestResistance =
+  marketIntelligence?.nearestResistance?.high ?? null; 
+
 const coin = latestTrade.coin || selectedCoin;
 
 const directionLabel =
@@ -204,15 +216,68 @@ const timeframeText = selectedTimeframe || "1M";
 let analystSentence = "";
 
 if (marketDirection === "BULLISH") {
-  analystSentence = `${coin} was bullish on the ${timeframeText} timeframe because MA 7 was above MA 25 and MA 25 was above MA 99.`;
+  analystSentence =
+    `${coin} is bullish on the ${timeframeText} timeframe because MA 7 is above MA 25 and MA 25 is above MA 99.`;
+
+  if (
+    structure === "BULLISH" ||
+    structure === "HIGHER_HIGHS"
+  ) {
+    analystSentence +=
+      ` Market structure is also making higher highs.`;
+  }
+
+  if (nearestResistance) {
+    analystSentence +=
+      ` The nearest resistance is around ${Number(nearestResistance).toFixed(0)}.`;
+  }
 }
 
 if (marketDirection === "BEARISH") {
-  analystSentence = `${coin} was bearish on the ${timeframeText} timeframe because MA 7 was below MA 25 and MA 25 was below MA 99.`;
+  analystSentence =
+    `${coin} is bearish on the ${timeframeText} timeframe because MA 7 is below MA 25 and MA 25 is below MA 99.`;
+
+  if (
+    structure === "BEARISH" ||
+    structure === "LOWER_LOWS"
+  ) {
+    analystSentence +=
+      ` Market structure is also bearish.`;
+  }
+
+  if (nearestSupport) {
+    analystSentence +=
+      ` The nearest support is around ${Number(nearestSupport).toFixed(0)}.`;
+  }
 }
 
 if (marketDirection === "TRANSITION") {
-  analystSentence = `Market direction was unclear on the ${timeframeText} timeframe because MA 7, MA 25, and MA 99 were not fully aligned.`;
+  if (
+    structure === "BULLISH" ||
+    structure === "HIGHER_HIGHS"
+  ) {
+    analystSentence =
+      `${coin} is in a transition phase on the ${timeframeText} timeframe. Price structure is bullish, but MA 7, MA 25, and MA 99 are not fully aligned yet.`;
+
+    if (nearestResistance) {
+      analystSentence +=
+        ` The nearest resistance is around ${Number(nearestResistance).toFixed(0)}.`;
+    }
+  } else if (
+    structure === "BEARISH" ||
+    structure === "LOWER_LOWS"
+  ) {
+    analystSentence =
+      `${coin} is in a transition phase on the ${timeframeText} timeframe. Price structure is bearish, but MA 7, MA 25, and MA 99 are not fully aligned yet.`;
+
+    if (nearestSupport) {
+      analystSentence +=
+        ` The nearest support is around ${Number(nearestSupport).toFixed(0)}.`;
+    }
+  } else {
+    analystSentence =
+      `Market direction is unclear on the ${timeframeText} timeframe because MA 7, MA 25, and MA 99 are not fully aligned.`;
+  }
 }
 
   const tradeDirection =
@@ -362,6 +427,9 @@ entryPrice,
 supportPrice,
 resistancePrice,
 tradeLocation,
+structure,
+nearestSupport,
+nearestResistance,
 timeframe: timeframeText,
 
 });
