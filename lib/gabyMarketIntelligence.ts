@@ -54,6 +54,28 @@ export type MomentumAnalysis = {
   summary: string;
 };
 
+export type VolumeAnalysis = {
+  volume:
+    | "VOLUME_SPIKE"
+    | "RISING_VOLUME"
+    | "FALLING_VOLUME"
+    | "LOW_VOLUME";
+
+  summary: string;
+};
+
+export type RSIAnalysis = {
+  rsi:
+    | "RSI_OVERBOUGHT"
+    | "RSI_OVERSOLD"
+    | "RSI_BULLISH"
+    | "RSI_BEARISH"
+    | "RSI_NEUTRAL";
+
+  value: number;
+  summary: string;
+};
+
 export type MarketIntelligence = {
   structure: MarketStructure;
   nearestSupport: PriceZone | null;
@@ -62,6 +84,8 @@ export type MarketIntelligence = {
   resistanceLevels: PriceZone[];
   patternAnalysis: PatternAnalysis | null;
   momentumAnalysis: MomentumAnalysis | null;
+  volumeAnalysis: VolumeAnalysis | null;
+rsiAnalysis: RSIAnalysis | null;
 };
 
 export type TimeframeStructureMap = {
@@ -264,6 +288,136 @@ function getMomentumAnalysis(candles: Candle[]): MomentumAnalysis | null {
     momentum: "WEAK_MOMENTUM",
     summary:
       "Momentum is weak because recent closes are mixed.",
+  };
+}
+
+function getVolumeAnalysis(candles: Candle[]): VolumeAnalysis | null {
+  if (candles.length < 30) return null;
+
+  const recentCandles = candles.slice(-10);
+  const previousCandles = candles.slice(-30, -10);
+
+  const recentVolume =
+    recentCandles.reduce((sum, candle) => sum + (candle.volume ?? 0), 0) /
+    recentCandles.length;
+
+  const previousVolume =
+    previousCandles.reduce((sum, candle) => sum + (candle.volume ?? 0), 0) /
+    previousCandles.length;
+
+  const latestVolume =
+    candles[candles.length - 1].volume ?? 0;
+
+  if (previousVolume === 0) return null;
+
+  if (latestVolume > previousVolume * 2) {
+    return {
+      volume: "VOLUME_SPIKE",
+      summary:
+        "Volume is spiking compared to recent candles, which may indicate stronger market participation.",
+    };
+  }
+
+  if (recentVolume > previousVolume * 1.2) {
+    return {
+      volume: "RISING_VOLUME",
+      summary:
+        "Volume is rising, which may indicate stronger participation behind the recent move.",
+    };
+  }
+
+  if (recentVolume < previousVolume * 0.8) {
+    return {
+      volume: "FALLING_VOLUME",
+      summary:
+        "Volume is falling, which may indicate weaker participation behind the recent move.",
+    };
+  }
+
+  return {
+    volume: "LOW_VOLUME",
+    summary:
+      "Volume is normal to low, which may indicate limited participation right now.",
+  };
+}
+
+function calculateRSI(candles: Candle[], period = 14): number {
+  if (candles.length <= period) return 50;
+
+  const recentCandles = candles.slice(-period - 1);
+
+  let gains = 0;
+  let losses = 0;
+
+  for (let i = 1; i < recentCandles.length; i++) {
+    const change =
+      recentCandles[i].close - recentCandles[i - 1].close;
+
+    if (change > 0) {
+      gains += change;
+    } else if (change < 0) {
+      losses += Math.abs(change);
+    }
+  }
+
+  const averageGain = gains / period;
+  const averageLoss = losses / period;
+
+  if (averageLoss === 0) return 100;
+  if (averageGain === 0) return 0;
+
+  const rs = averageGain / averageLoss;
+  const rsi = 100 - 100 / (1 + rs);
+
+  return Number(rsi.toFixed(2));
+}
+
+function getRSIAnalysis(candles: Candle[]): RSIAnalysis | null {
+  if (candles.length < 15) return null;
+
+  const value = calculateRSI(candles);
+
+  if (value >= 70) {
+    return {
+      rsi: "RSI_OVERBOUGHT",
+      value,
+      summary:
+        "RSI is overbought. Price may be extended, but this is not a sell signal.",
+    };
+  }
+
+  if (value <= 30) {
+    return {
+      rsi: "RSI_OVERSOLD",
+      value,
+      summary:
+        "RSI is oversold. Price may be stretched lower, but this is not a buy signal.",
+    };
+  }
+
+  if (value >= 55) {
+    return {
+      rsi: "RSI_BULLISH",
+      value,
+      summary:
+        "RSI shows bullish pressure, but direction still comes first.",
+    };
+  }
+
+  if (value <= 45) {
+    return {
+      rsi: "RSI_BEARISH",
+      value,
+      summary:
+        "RSI shows bearish pressure, but direction still comes first.",
+    };
+  }
+
+  return {
+    rsi: "RSI_NEUTRAL",
+    value,
+    summary:
+      "RSI is neutral and does not show strong pressure right now.",
   };
 }
 
@@ -535,6 +689,8 @@ return {
   resistanceLevels: [],
   patternAnalysis: null,
   momentumAnalysis: null,
+  volumeAnalysis: null,
+rsiAnalysis: null,
 };
   }
 
@@ -561,12 +717,13 @@ return {
   supportLevels,
   resistanceLevels,
   patternAnalysis: getPatternAnalysis(
-  recentCandles,
-  nearestSupport,
-  nearestResistance
-),
-
-momentumAnalysis: getMomentumAnalysis(recentCandles),
+    recentCandles,
+    nearestSupport,
+    nearestResistance
+  ),
+  momentumAnalysis: getMomentumAnalysis(recentCandles),
+  volumeAnalysis: getVolumeAnalysis(recentCandles),
+  rsiAnalysis: getRSIAnalysis(recentCandles),
 };
 }
 

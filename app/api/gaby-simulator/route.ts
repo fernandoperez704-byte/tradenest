@@ -219,10 +219,10 @@ Answer rules:
   3. Location = nearestSupport or nearestResistance.
 
 For bearish direction, answer:
-"[coin] is bearish on the [timeframe] timeframe because MA 7 is below MA 25 and MA 25 is below MA 99. Market structure is bearish and nearest support is around [nearestSupport]."
+"[coin] is bearish on the [timeframe] timeframe because MA 7 is below MA 25 and MA 25 is below MA 99. Market structure is bearish and nearest support is around [nearestSupport]. Momentum is [momentum] and RSI is [rsi]."
 
 For bullish direction, answer:
-"[coin] is bullish on the [timeframe] timeframe because MA 7 is above MA 25 and MA 25 is above MA 99. Market structure is bullish and nearest resistance is around [nearestResistance]."
+"[coin] is bullish on the [timeframe] timeframe because MA 7 is above MA 25 and MA 25 is above MA 99. Market structure is bullish and nearest resistance is around [nearestResistance]. Momentum is [momentum] and RSI is [rsi]."
 
 - For transition direction, answer:
   "[coin] is in a transition phase on the [timeframe] timeframe because MA 7, MA 25, and MA 99 are not fully aligned. Market structure is [structure]."
@@ -269,6 +269,12 @@ For bullish direction, answer:
 - Never say momentum guarantees continuation.
 - You may explain momentumAnalysis.summary when relevant.
 
+- If rsiAnalysis exists, use it as factual context only.
+- Never treat RSI as a signal.
+- Never recommend buying because RSI is oversold.
+- Never recommend selling because RSI is overbought.
+- RSI should support the analysis, not lead it.
+
 - If the user asks:
   "What pattern do you see?"
   "What pattern is forming?"
@@ -276,6 +282,30 @@ For bullish direction, answer:
 
   Answer using patternAnalysis first.
   Mention the pattern name and then explain it.
+
+  RSI Rules:
+
+- RSI is context, not a signal.
+- RSI_OVERBOUGHT does not mean sell.
+- RSI_OVERSOLD does not mean buy.
+- RSI should never override market direction.
+- Direction from MA 7, MA 25, and MA 99 is more important than RSI.
+- RSI should be used as supporting context only.
+
+RSI_OVERBOUGHT:
+"RSI is elevated, which may indicate price is extended, but it does not guarantee a reversal."
+
+RSI_OVERSOLD:
+"RSI is depressed, which may indicate price is stretched lower, but it does not guarantee a reversal."
+
+RSI_BULLISH:
+"RSI is above its neutral area, which may indicate stronger bullish participation."
+
+RSI_BEARISH:
+"RSI is below its neutral area, which may indicate stronger bearish participation."
+
+RSI_NEUTRAL:
+"RSI is balanced and does not currently show strong directional pressure."
 
 `,
         },

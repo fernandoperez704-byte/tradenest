@@ -152,6 +152,8 @@ if (originalQuestion.includes("resistance")) {
           resistanceLevels: marketIntelligence?.resistanceLevels,
           patternAnalysis: marketIntelligence?.patternAnalysis,
         momentumAnalysis: marketIntelligence?.momentumAnalysis,
+        volumeAnalysis: marketIntelligence?.volumeAnalysis,
+        rsiAnalysis: marketIntelligence?.rsiAnalysis,
           trades: trades.slice(-5),
           futuresHistory: futuresHistory.slice(-5),
           positions,
@@ -441,26 +443,27 @@ if (marketDirection === "TRANSITION") {
   tradeQuality = "Neutral";
 }
 
+const patternSummary =
+  marketIntelligence?.patternAnalysis?.summary || "";
+
+const momentumSummary =
+  marketIntelligence?.momentumAnalysis?.summary || "";
+
 let reason = "";
 
-if (!alignedWithDirection) {
-  if (marketDirection === "TRANSITION") {
+if (marketDirection === "TRANSITION") {
   reason =
-    `Market direction was unclear at the time of entry.`;
+    "Market direction was unclear at the time of entry.";
 } else if (!alignedWithDirection) {
-  reason =
-    `This ${tradeDirection} trade was opened against a ${directionLabel.toLowerCase()} market direction.`;
+  reason = momentumSummary
+    ? `This ${tradeDirection} trade was opened against a ${directionLabel.toLowerCase()} market direction while ${momentumSummary.toLowerCase()}`
+    : `This ${tradeDirection} trade was opened against a ${directionLabel.toLowerCase()} market direction.`;
 } else if (riskLabel === "High") {
-  reason =
-    `Risk exposure was too high for this setup.`;
+  reason = "Risk exposure was too high for this setup.";
 } else {
-  reason =
-    `This ${tradeDirection} trade was aligned with the market direction.`;
-}
-} else if (riskLabel === "High") {
-  reason = `Risk exposure was too high for this setup.`;
-} else {
-  reason = `This ${tradeDirection} trade was aligned with the market direction.`;
+  reason = patternSummary
+    ? `This ${tradeDirection} trade was aligned with market direction, and ${patternSummary.toLowerCase()}`
+    : `This ${tradeDirection} trade was aligned with the market direction.`;
 }
 
 const reviewText = `
