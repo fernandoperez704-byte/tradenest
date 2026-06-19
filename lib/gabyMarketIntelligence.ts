@@ -39,6 +39,19 @@ export type PriceZone = {
 export type PatternAnalysis = {
   pattern: string;
   summary: string;
+  bias:
+    | "BULLISH_CONTEXT"
+    | "BEARISH_CONTEXT"
+    | "NEUTRAL_CONTEXT";
+};
+
+export type MomentumAnalysis = {
+  momentum:
+    | "BULLISH_MOMENTUM"
+    | "BEARISH_MOMENTUM"
+    | "WEAK_MOMENTUM";
+
+  summary: string;
 };
 
 export type MarketIntelligence = {
@@ -48,6 +61,7 @@ export type MarketIntelligence = {
   supportLevels: PriceZone[];
   resistanceLevels: PriceZone[];
   patternAnalysis: PatternAnalysis | null;
+  momentumAnalysis: MomentumAnalysis | null;
 };
 
 export type TimeframeStructureMap = {
@@ -213,34 +227,298 @@ function getDominantStructure(
   return "RANGING";
 }
 
-export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
-  function getPatternAnalysis(candles: Candle[]): PatternAnalysis | null {
-  const highs = getSwingHighs(candles);
-  const lows = getSwingLows(candles);
+function getMomentumAnalysis(candles: Candle[]): MomentumAnalysis | null {
+  if (candles.length < 25) return null;
 
-  if (highs.length < 2 || lows.length < 2) {
-    return null;
-  }
+  const recentCandles = candles.slice(-10);
+  const previousCandles = candles.slice(-20, -10);
 
-  const lastHigh = highs[highs.length - 1];
-  const previousHigh = highs[highs.length - 2];
+  const recentClose = recentCandles[recentCandles.length - 1].close;
+  const previousClose = previousCandles[previousCandles.length - 1].close;
 
-  const lastLow = lows[lows.length - 1];
-  const previousLow = lows[lows.length - 2];
+  const recentAvgClose =
+    recentCandles.reduce((sum, candle) => sum + candle.close, 0) /
+    recentCandles.length;
 
-  if (lastLow > previousLow) {
+  const previousAvgClose =
+    previousCandles.reduce((sum, candle) => sum + candle.close, 0) /
+    previousCandles.length;
+
+  if (recentClose > previousClose && recentAvgClose > previousAvgClose) {
     return {
-      pattern: "HIGHER_LOW",
+      momentum: "BULLISH_MOMENTUM",
       summary:
-        "Price is forming a higher low, which may indicate bearish momentum is weakening.",
+        "Momentum is leaning bullish because recent closes are strengthening.",
     };
   }
 
-  if (lastHigh < previousHigh) {
+  if (recentClose < previousClose && recentAvgClose < previousAvgClose) {
     return {
-      pattern: "LOWER_HIGH",
+      momentum: "BEARISH_MOMENTUM",
       summary:
-        "Price is forming a lower high, which may indicate buyers are losing strength.",
+        "Momentum is leaning bearish because recent closes are weakening.",
+    };
+  }
+
+  return {
+    momentum: "WEAK_MOMENTUM",
+    summary:
+      "Momentum is weak because recent closes are mixed.",
+  };
+}
+
+export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
+function getPatternAnalysis(
+  candles: Candle[],
+  nearestSupport: PriceZone | null,
+  nearestResistance: PriceZone | null
+): PatternAnalysis | null {
+  if (candles.length < 40) return null;
+
+  const currentCandle = candles[candles.length - 1];
+  const previousCandle = candles[candles.length - 2];
+
+  const currentPrice = currentCandle.close;
+
+  const recentCandles = candles.slice(-20);
+  const previousCandles = candles.slice(-40, -20);
+
+  const recentHigh = Math.max(...recentCandles.map((c) => c.high));
+  const recentLow = Math.min(...recentCandles.map((c) => c.low));
+
+  const previousHigh = Math.max(...previousCandles.map((c) => c.high));
+  const previousLow = Math.min(...previousCandles.map((c) => c.low));
+
+  const supportMidpoint = nearestSupport
+    ? (nearestSupport.low + nearestSupport.high) / 2
+    : null;
+
+  const resistanceMidpoint = nearestResistance
+    ? (nearestResistance.low + nearestResistance.high) / 2
+    : null;
+
+  const nearSupport =
+    supportMidpoint !== null &&
+    Math.abs(currentPrice - supportMidpoint) / supportMidpoint <= 0.003;
+
+  const nearResistance =
+    resistanceMidpoint !== null &&
+    Math.abs(currentPrice - resistanceMidpoint) / resistanceMidpoint <= 0.003;
+
+  if (
+    nearestSupport &&
+    previousCandle.low <= nearestSupport.high &&
+    currentCandle.close > nearestSupport.high &&
+    currentCandle.close > currentCandle.open
+  ) {
+    return {
+      pattern: "SUPPORT_HOLDING",
+      bias: "BULLISH_CONTEXT",
+      summary:
+        "Price is holding support, which may indicate buyers are defending that area.",
+    };
+  }
+
+  if (
+    nearestResistance &&
+    previousCandle.high >= nearestResistance.low &&
+    currentCandle.close < nearestResistance.low &&
+    currentCandle.close < currentCandle.open
+  ) {
+    return {
+      pattern: "RESISTANCE_HOLDING",
+      bias: "BEARISH_CONTEXT",
+      summary:
+        "Price is rejecting resistance, which may indicate sellers are defending that area.",
+    };
+  }
+
+  if (
+    nearestSupport &&
+    currentCandle.close < nearestSupport.low
+  ) {
+    return {
+      pattern: "SUPPORT_BREAKING",
+      bias: "BEARISH_CONTEXT",
+      summary:
+        "Price is breaking below support, which may suggest bearish pressure is increasing.",
+    };
+  }
+
+  if (
+    nearestResistance &&
+    currentCandle.close > nearestResistance.high
+  ) {
+    return {
+      pattern: "RESISTANCE_BREAKING",
+      bias: "BULLISH_CONTEXT",
+      summary:
+        "Price is breaking above resistance, which may suggest bullish pressure is increasing.",
+    };
+  }
+
+  if (
+    nearestSupport &&
+    currentPrice > nearestSupport.high &&
+    nearSupport &&
+    currentCandle.close > currentCandle.open
+  ) {
+    return {
+      pattern: "BULLISH_BREAKOUT_RETEST",
+      bias: "BULLISH_CONTEXT",
+      summary:
+        "Price broke above resistance and is retesting that area as support, which may suggest improving bullish structure.",
+    };
+  }
+
+  if (
+    nearestResistance &&
+    currentPrice < nearestResistance.low &&
+    nearResistance &&
+    currentCandle.close < currentCandle.open
+  ) {
+    return {
+      pattern: "BEARISH_BREAKOUT_RETEST",
+      bias: "BEARISH_CONTEXT",
+      summary:
+        "Price broke below support and is retesting that area as resistance, which may suggest improving bearish structure.",
+    };
+  }
+
+const lowTolerance =
+  previousLow > 0
+    ? Math.abs(recentLow - previousLow) / previousLow
+    : 1;
+
+const firstThird = candles.slice(-60, -40);
+const middleThird = candles.slice(-40, -20);
+const lastThird = candles.slice(-20);
+
+const firstAvgClose =
+  firstThird.reduce((sum, c) => sum + c.close, 0) / firstThird.length;
+
+const middleAvgClose =
+  middleThird.reduce((sum, c) => sum + c.close, 0) / middleThird.length;
+
+const lastAvgClose =
+  lastThird.reduce((sum, c) => sum + c.close, 0) / lastThird.length;
+
+if (
+  firstThird.length &&
+  middleThird.length &&
+  lastThird.length &&
+  middleAvgClose < firstAvgClose &&
+  lastAvgClose > middleAvgClose &&
+  currentPrice > middleAvgClose
+) {
+  return {
+    pattern: "ROUNDED_BOTTOM",
+    bias: "BULLISH_CONTEXT",
+    summary:
+      "Price is forming a rounded bottom, which may indicate selling pressure is weakening.",
+  };
+}
+
+if (
+  firstThird.length &&
+  middleThird.length &&
+  lastThird.length &&
+  middleAvgClose > firstAvgClose &&
+  lastAvgClose < middleAvgClose &&
+  currentPrice < middleAvgClose
+) {
+  return {
+    pattern: "ROUNDED_TOP",
+    bias: "BEARISH_CONTEXT",
+    summary:
+      "Price is forming a rounded top, which may indicate buying pressure is weakening.",
+  };
+}
+
+const recentHighTolerance =
+  previousHigh > 0
+    ? Math.abs(recentHigh - previousHigh) / previousHigh
+    : 1;
+
+const recentLowRising =
+  recentLow > previousLow;
+
+const recentHighFalling =
+  recentHigh < previousHigh;
+
+const recentLowTolerance =
+  previousLow > 0
+    ? Math.abs(recentLow - previousLow) / previousLow
+    : 1;
+
+if (
+  recentHighTolerance <= 0.004 &&
+  recentLowRising
+) {
+  return {
+    pattern: "ASCENDING_TRIANGLE",
+    bias: "BULLISH_CONTEXT",
+    summary:
+      "Price is forming equal highs with rising lows, which may suggest buyers are applying pressure near resistance.",
+  };
+}
+
+if (
+  recentLowTolerance <= 0.004 &&
+  recentHighFalling
+) {
+  return {
+    pattern: "DESCENDING_TRIANGLE",
+    bias: "BEARISH_CONTEXT",
+    summary:
+      "Price is forming equal lows with falling highs, which may suggest sellers are applying pressure near support.",
+  };
+}
+
+const highTolerance =
+  previousHigh > 0
+    ? Math.abs(recentHigh - previousHigh) / previousHigh
+    : 1;
+
+if (
+  lowTolerance <= 0.004 &&
+  currentPrice > recentLow
+) {
+  return {
+    pattern: "DOUBLE_BOTTOM_ATTEMPT",
+    bias: "BULLISH_CONTEXT",
+    summary:
+      "Price is revisiting a previous support area, which may suggest a double bottom attempt.",
+  };
+}
+
+if (
+  highTolerance <= 0.004 &&
+  currentPrice < recentHigh
+) {
+  return {
+    pattern: "DOUBLE_TOP_ATTEMPT",
+    bias: "BEARISH_CONTEXT",
+    summary:
+      "Price is revisiting a previous resistance area, which may suggest a double top attempt.",
+  };
+}
+
+  if (recentHigh > previousHigh && recentLow > previousLow) {
+    return {
+      pattern: "HIGHER_HIGH_HIGHER_LOW",
+      bias: "BULLISH_CONTEXT",
+      summary:
+        "Price is forming higher highs and higher lows, which may suggest improving bullish structure.",
+    };
+  }
+
+  if (recentHigh < previousHigh && recentLow < previousLow) {
+    return {
+      pattern: "LOWER_HIGH_LOWER_LOW",
+      bias: "BEARISH_CONTEXT",
+      summary:
+        "Price is forming lower highs and lower lows, which may suggest bearish structure is strengthening.",
     };
   }
 
@@ -256,6 +534,7 @@ return {
   supportLevels: [],
   resistanceLevels: [],
   patternAnalysis: null,
+  momentumAnalysis: null,
 };
   }
 
@@ -281,7 +560,13 @@ return {
   nearestResistance,
   supportLevels,
   resistanceLevels,
-  patternAnalysis: getPatternAnalysis(recentCandles),
+  patternAnalysis: getPatternAnalysis(
+  recentCandles,
+  nearestSupport,
+  nearestResistance
+),
+
+momentumAnalysis: getMomentumAnalysis(recentCandles),
 };
 }
 
