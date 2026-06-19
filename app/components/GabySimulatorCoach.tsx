@@ -154,6 +154,7 @@ if (originalQuestion.includes("resistance")) {
         momentumAnalysis: marketIntelligence?.momentumAnalysis,
         volumeAnalysis: marketIntelligence?.volumeAnalysis,
         rsiAnalysis: marketIntelligence?.rsiAnalysis,
+        marketConviction: marketIntelligence?.marketConviction,
           trades: trades.slice(-5),
           futuresHistory: futuresHistory.slice(-5),
           positions,

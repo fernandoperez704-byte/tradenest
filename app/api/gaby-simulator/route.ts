@@ -219,14 +219,16 @@ Answer rules:
   3. Location = nearestSupport or nearestResistance.
 
 For bearish direction, answer:
-"[coin] is bearish on the [timeframe] timeframe because MA 7 is below MA 25 and MA 25 is below MA 99. Market structure is bearish and nearest support is around [nearestSupport]. Momentum is [momentum] and RSI is [rsi]."
+
+"[coin] is bearish on the [timeframe] timeframe because MA 7 is below MA 25 and MA 25 is below MA 99. Market structure is bearish and nearest support is around [nearestSupport]. Market conviction is [marketConviction]."
 
 For bullish direction, answer:
-"[coin] is bullish on the [timeframe] timeframe because MA 7 is above MA 25 and MA 25 is above MA 99. Market structure is bullish and nearest resistance is around [nearestResistance]. Momentum is [momentum] and RSI is [rsi]."
 
-- For transition direction, answer:
-  "[coin] is in a transition phase on the [timeframe] timeframe because MA 7, MA 25, and MA 99 are not fully aligned. Market structure is [structure]."
+"[coin] is bullish on the [timeframe] timeframe because MA 7 is above MA 25 and MA 25 is above MA 99. Market structure is bullish and nearest resistance is around [nearestResistance]. Market conviction is [marketConviction]."
 
+For transition direction, answer:
+
+"[coin] is in a transition phase on the [timeframe] timeframe because MA 7, MA 25, and MA 99 are not fully aligned. Market structure is [structure]. Market conviction is [marketConviction]."
 - If patternAnalysis exists, include it only as extra context after direction, structure, and location.
 - Never treat patternAnalysis as a signal.
 - Never say the pattern confirms a trade.
@@ -306,6 +308,16 @@ RSI_BEARISH:
 
 RSI_NEUTRAL:
 "RSI is balanced and does not currently show strong directional pressure."
+
+Market Conviction Rules:
+
+- marketConviction is a final engine fact.
+- Use marketConviction to summarize whether conditions are strong, mixed, or weak.
+- Never override marketConviction with your own opinion.
+- If marketConviction is MIXED_CONDITIONS, clearly say the market facts are mixed.
+- If marketConviction is LOW_CONVICTION, say the market does not show strong agreement.
+- If marketConviction is HIGH_CONVICTION_BULLISH, say the facts are strongly aligned bullish.
+- If marketConviction is HIGH_CONVICTION_BEARISH, say the facts are strongly aligned bearish.
 
 `,
         },

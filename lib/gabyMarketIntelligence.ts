@@ -76,7 +76,14 @@ export type RSIAnalysis = {
   summary: string;
 };
 
+export type MarketConviction =
+  | "HIGH_CONVICTION_BULLISH"
+  | "HIGH_CONVICTION_BEARISH"
+  | "MIXED_CONDITIONS"
+  | "LOW_CONVICTION";
+
 export type MarketIntelligence = {
+  direction: "BULLISH" | "BEARISH" | "TRANSITION";
   structure: MarketStructure;
   nearestSupport: PriceZone | null;
   nearestResistance: PriceZone | null;
@@ -86,6 +93,7 @@ export type MarketIntelligence = {
   momentumAnalysis: MomentumAnalysis | null;
   volumeAnalysis: VolumeAnalysis | null;
 rsiAnalysis: RSIAnalysis | null;
+marketConviction: MarketConviction;
 };
 
 export type TimeframeStructureMap = {
@@ -421,6 +429,79 @@ function getRSIAnalysis(candles: Candle[]): RSIAnalysis | null {
   };
 }
 
+function getMarketConviction(
+  direction: "BULLISH" | "BEARISH" | "TRANSITION",
+  structure: MarketStructure,
+  momentum: MomentumAnalysis | null,
+  volume: VolumeAnalysis | null,
+  rsi: RSIAnalysis | null
+): MarketConviction {
+  let bullishScore = 0;
+  let bearishScore = 0;
+
+  if (direction === "BULLISH") bullishScore += 3;
+  if (direction === "BEARISH") bearishScore += 3;
+
+  if (
+    structure === "BULLISH" ||
+    structure === "HIGHER_HIGHS"
+  ) {
+    bullishScore += 2;
+  }
+
+  if (
+    structure === "BEARISH" ||
+    structure === "LOWER_LOWS"
+  ) {
+    bearishScore += 2;
+  }
+
+  if (momentum?.momentum === "BULLISH_MOMENTUM")
+    bullishScore += 2;
+
+  if (momentum?.momentum === "BEARISH_MOMENTUM")
+    bearishScore += 2;
+
+  if (
+    volume?.volume === "RISING_VOLUME" ||
+    volume?.volume === "VOLUME_SPIKE"
+  ) {
+    bullishScore += 1;
+    bearishScore += 1;
+  }
+
+  if (
+    rsi?.rsi === "RSI_BULLISH" ||
+    rsi?.rsi === "RSI_OVERSOLD"
+  ) {
+    bullishScore += 1;
+  }
+
+  if (
+    rsi?.rsi === "RSI_BEARISH" ||
+    rsi?.rsi === "RSI_OVERBOUGHT"
+  ) {
+    bearishScore += 1;
+  }
+
+  const difference =
+    Math.abs(bullishScore - bearishScore);
+
+  if (bullishScore >= 7 && difference >= 3) {
+    return "HIGH_CONVICTION_BULLISH";
+  }
+
+  if (bearishScore >= 7 && difference >= 3) {
+    return "HIGH_CONVICTION_BEARISH";
+  }
+
+  if (difference <= 1) {
+    return "MIXED_CONDITIONS";
+  }
+
+  return "LOW_CONVICTION";
+}
+
 export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
 function getPatternAnalysis(
   candles: Candle[],
@@ -682,6 +763,7 @@ if (
 
   if (recentCandles.length < 20) {
 return {
+  direction: "TRANSITION",
   structure: "RANGING",
   nearestSupport: null,
   nearestResistance: null,
@@ -690,11 +772,15 @@ return {
   patternAnalysis: null,
   momentumAnalysis: null,
   volumeAnalysis: null,
-rsiAnalysis: null,
+  rsiAnalysis: null,
+  marketConviction: "LOW_CONVICTION",
 };
   }
 
   const currentPrice = recentCandles[recentCandles.length - 1].close;
+
+const direction =
+  getMADirection(recentCandles).direction;
 
   const supportZones = groupZones(getSwingLows(recentCandles));
   const resistanceZones = groupZones(getSwingHighs(recentCandles));
@@ -710,8 +796,14 @@ const resistanceLevels = resistanceZones
 const nearestSupport = supportLevels[0] ?? null;
 const nearestResistance = resistanceLevels[0] ?? null;
 
+const structure = getMarketStructure(recentCandles);
+const momentumAnalysis = getMomentumAnalysis(recentCandles);
+const volumeAnalysis = getVolumeAnalysis(recentCandles);
+const rsiAnalysis = getRSIAnalysis(recentCandles);
+
 return {
-  structure: getMarketStructure(recentCandles),
+  direction,
+  structure,
   nearestSupport,
   nearestResistance,
   supportLevels,
@@ -721,9 +813,16 @@ return {
     nearestSupport,
     nearestResistance
   ),
-  momentumAnalysis: getMomentumAnalysis(recentCandles),
-  volumeAnalysis: getVolumeAnalysis(recentCandles),
-  rsiAnalysis: getRSIAnalysis(recentCandles),
+  momentumAnalysis,
+  volumeAnalysis,
+  rsiAnalysis,
+  marketConviction: getMarketConviction(
+    direction,
+    structure,
+    momentumAnalysis,
+    volumeAnalysis,
+    rsiAnalysis
+  ),
 };
 }
 
