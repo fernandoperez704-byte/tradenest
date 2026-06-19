@@ -99,6 +99,8 @@ useEffect(() => {
   const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
+  const [indicatorPanel, setIndicatorPanel] =
+  useState<"VOLUME" | "RSI">("VOLUME");
   const [activeBottomTab, setActiveBottomTab] = useState<"POSITIONS" | "HISTORY" | "ORDERS">("POSITIONS");
 const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a candle");
   const [searchTerm, setSearchTerm] = useState("");
@@ -368,6 +370,9 @@ const liquidationPrice =
   const chartInstanceRef = useRef<any>(null);
 const candleSeriesRef = useRef<any>(null);
 const volumeSeriesRef = useRef<any>(null);
+const rsiSeriesRef = useRef<any>(null);
+const indicatorPanelRef =
+  useRef<"VOLUME" | "RSI">("VOLUME");
 
 const ma7SeriesRef = useRef<any>(null);
 const ma25SeriesRef = useRef<any>(null);
@@ -376,6 +381,9 @@ const ma99SeriesRef = useRef<any>(null);
 const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
+useEffect(() => {
+  indicatorPanelRef.current = indicatorPanel;
+}, [indicatorPanel]);
 
 function getTimeframeMs(timeframe: string) {
   const map: Record<string, number> = {
@@ -841,6 +849,7 @@ useEffect(() => {
     chartInstanceRef.current = null;
 candleSeriesRef.current = null;
 volumeSeriesRef.current = null;
+rsiSeriesRef.current = null;
 ma7SeriesRef.current = null;
 ma25SeriesRef.current = null;
 ma99SeriesRef.current = null;
@@ -930,6 +939,49 @@ chart.priceScale("volume").applyOptions({
   visible: false,
 });
 
+const rsiSeries = chart.addSeries(LineSeries, {
+  color: "#f97316",
+  lineWidth: 2,
+  priceScaleId: "rsi",
+  priceLineVisible: false,
+  lastValueVisible: true,
+});
+
+chart.priceScale("rsi").applyOptions({
+  scaleMargins: {
+    top: 0.78,
+    bottom: 0,
+  },
+  visible: false,
+});
+
+rsiSeries.createPriceLine({
+  price: 70,
+  color: "#ef4444",
+  lineWidth: 1,
+  lineStyle: 2,
+  axisLabelVisible: false,
+  title: "",
+});
+
+rsiSeries.createPriceLine({
+  price: 50,
+  color: "#64748b",
+  lineWidth: 1,
+  lineStyle: 2,
+  axisLabelVisible: false,
+  title: "",
+});
+
+rsiSeries.createPriceLine({
+  price: 30,
+  color: "#22c55e",
+  lineWidth: 1,
+  lineStyle: 2,
+  axisLabelVisible: false,
+  title: "",
+});
+
 const ma7Series = chart.addSeries(LineSeries, {
   color: "#facc15",
   lineWidth: 1,
@@ -954,6 +1006,7 @@ const ma99Series = chart.addSeries(LineSeries, {
 chartInstanceRef.current = chart;
 candleSeriesRef.current = candleSeries;
 volumeSeriesRef.current = volumeSeries;
+rsiSeriesRef.current = rsiSeries;
 ma7SeriesRef.current = ma7Series;
 ma25SeriesRef.current = ma25Series;
 ma99SeriesRef.current = ma99Series;
@@ -976,6 +1029,21 @@ ma99SeriesRef.current = ma99Series;
 
       const time = param.time as any;
 
+const rsiData =
+  param.seriesData.get(rsiSeriesRef.current);
+
+if (
+  indicatorPanelRef.current === "RSI" &&
+  rsiData &&
+  "value" in rsiData
+) {
+  setSelectedCandleDate(
+    `RSI: ${Number(rsiData.value).toFixed(2)}`
+  );
+  return;
+}
+
+     
       if (typeof time === "object") {
         const date = new Date(time.year, time.month - 1, time.day);
 
@@ -1021,6 +1089,7 @@ if (chartData.length > 80 && !chartInstanceRef.current.__didSetInitialRange) {
   chartInstanceRef.current.__didSetInitialRange = true;
 }
 
+if (indicatorPanel === "VOLUME") {
   volumeSeriesRef.current?.setData(
     chartData.map((item) => ({
       time: item.time,
@@ -1031,6 +1100,15 @@ if (chartData.length > 80 && !chartInstanceRef.current.__didSetInitialRange) {
           : "rgba(239,68,68,0.55)",
     }))
   );
+
+  rsiSeriesRef.current?.setData([]);
+}
+
+if (indicatorPanel === "RSI") {
+  rsiSeriesRef.current?.setData(buildRSIData(14));
+
+  volumeSeriesRef.current?.setData([]);
+}
 
 function buildMAData(period: number) {
   return chartData
@@ -1050,6 +1128,43 @@ function buildMAData(period: number) {
     .filter(Boolean) as { time: any; value: number }[];
 }
 
+function buildRSIData(period = 14) {
+  return chartData
+    .map((item, index, array) => {
+      if (index < period) return null;
+
+      const slice = array.slice(index - period, index + 1);
+
+      let gains = 0;
+      let losses = 0;
+
+      for (let i = 1; i < slice.length; i++) {
+        const change = slice[i].close - slice[i - 1].close;
+
+        if (change > 0) gains += change;
+        if (change < 0) losses += Math.abs(change);
+      }
+
+      const averageGain = gains / period;
+      const averageLoss = losses / period;
+
+      let rsi = 50;
+
+      if (averageLoss === 0) rsi = 100;
+      else if (averageGain === 0) rsi = 0;
+      else {
+        const rs = averageGain / averageLoss;
+        rsi = 100 - 100 / (1 + rs);
+      }
+
+      return {
+        time: item.time,
+        value: Number(rsi.toFixed(2)),
+      };
+    })
+    .filter(Boolean) as { time: any; value: number }[];
+}
+
 ma7SeriesRef.current?.setData(buildMAData(7));
 ma25SeriesRef.current?.setData(buildMAData(25));
 ma99SeriesRef.current?.setData(buildMAData(99));
@@ -1059,7 +1174,6 @@ liquidationLinesRef.current.forEach((line) => {
 });
 
 liquidationLinesRef.current = [];
-
 
 
 if (marketMode === "FUTURES") {
@@ -1211,6 +1325,7 @@ if (activeStopLoss != null) {
   selectedCoin,
   takeProfit,
   stopLoss,
+  indicatorPanel,
 ]);
 function buyCoin() {
 
@@ -1869,25 +1984,52 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 </div>
 
-          <div className="flex justify-start gap-2 mb-1">
-  {["1M", "5M", "15M", "1H", "4H", "1D"].map(
-    (timeframe) => (
-     <button
-  key={timeframe}
-  onClick={() => {
-  setSelectedTimeframe(timeframe);
-}}
-  className={`rounded-md border px-3 py-1.5 text-xs font-bold transition-all ${
-    selectedTimeframe === timeframe
-      ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-      : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
-  }`}
->
-  {timeframe}
-</button>
-    )
-  )}
+<div className="mb-2 flex items-center justify-between">
+  <div className="flex gap-2">
+    {["1M", "5M", "15M", "1H", "4H", "1D"].map(
+      (timeframe) => (
+        <button
+          key={timeframe}
+          onClick={() => {
+            setSelectedTimeframe(timeframe);
+          }}
+          className={`rounded-md border px-3 py-1.5 text-xs font-bold transition-all ${
+            selectedTimeframe === timeframe
+              ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+              : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+          }`}
+        >
+          {timeframe}
+        </button>
+      )
+    )}
+  </div>
+
+  <div className="flex gap-2">
+    <button
+      onClick={() => setIndicatorPanel("VOLUME")}
+      className={`rounded-md border px-3 py-1.5 text-xs font-black ${
+        indicatorPanel === "VOLUME"
+          ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+          : "border-zinc-700 bg-[#111827] text-zinc-400"
+      }`}
+    >
+      Volume
+    </button>
+
+    <button
+      onClick={() => setIndicatorPanel("RSI")}
+      className={`rounded-md border px-3 py-1.5 text-xs font-black ${
+        indicatorPanel === "RSI"
+          ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+          : "border-zinc-700 bg-[#111827] text-zinc-400"
+      }`}
+    >
+      RSI
+    </button>
+  </div>
 </div>
+
 
 <div className="flex-1 rounded-xl overflow-hidden">
   <div
