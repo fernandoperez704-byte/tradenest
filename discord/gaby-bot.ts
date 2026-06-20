@@ -142,7 +142,7 @@ Stocks, crypto, forex, and futures all behave differently and carry different ri
 
 The more you understand the asset, the easier it becomes to understand the risk.
 
-Need help? Reply with \`!gaby what does buying an asset mean?\``,
+`,
 
 market:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -157,7 +157,7 @@ Trading takeaway:
 
 Markets are reactions to supply, demand, fear, opportunity, and risk.
 
-Need help? Reply with \`!gaby why do prices move?\``,
+`,
 
 orders:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -172,7 +172,7 @@ Trading takeaway:
 
 The way you enter a trade matters. Good execution can help reduce emotional decisions and improve trade quality.
 
-Need help? Reply with \`!gaby what is a limit order?\``,
+`,
 
 risk:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -187,7 +187,7 @@ Trading takeaway:
 
 The market will always create new opportunities. Protecting your account ensures you are still there when they arrive.
 
-Need help? Reply with \`!gaby what is risk management?\``,
+`,
 
 candlesticks:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -200,7 +200,7 @@ Trading takeaway:
 
 The goal is not to memorize candles. The goal is to understand what market participants were doing.
 
-Need help? Reply with \`!gaby what is a candlestick?\``,
+`,
 
 timeframes:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -213,7 +213,7 @@ Trading takeaway:
 
 Timeframes do not change the market. They change how you see it.
 
-Need help? Reply with \`!gaby what timeframe should beginners use?\``,
+`,
 
 volume:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -228,7 +228,7 @@ Trading takeaway:
 
 Strong price movement supported by strong volume often carries more conviction than price movement alone.
 
-Need help? Reply with \`!gaby why is volume important?\``,
+`,
 
 support:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -241,7 +241,7 @@ Trading takeaway:
 
 Support is only support until sellers become stronger than buyers.
 
-Need help? Reply with \`!gaby what is support?\``,
+`,
 
 supplydemand:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -256,7 +256,7 @@ Trading takeaway:
 
 Price is the result of buyers and sellers constantly competing for control.
 
-Need help? Reply with \`!gaby what is supply and demand?\``,
+`,
 
 patterns:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -269,7 +269,7 @@ Trading takeaway:
 
 Patterns are tools for observation, not prediction.
 
-Need help? Reply with \`!gaby what is a chart pattern?\``,
+`,
 
 setups:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -282,7 +282,7 @@ Trading takeaway:
 
 A trade without a plan is a guess. A trade with a plan is a decision.
 
-Need help? Reply with \`!gaby what is a trade plan?\``,
+`,
 
 psychology:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -295,7 +295,7 @@ Trading takeaway:
 
 Discipline is often more important than finding the perfect setup.
 
-Need help? Reply with \`!gaby what is trading psychology?\``,
+`,
 
 vocabulary:
   `🎉 Great job completing **${lessonTitle}** on TradeNestX!
@@ -308,7 +308,7 @@ Trading takeaway:
 
 The better you understand the language of trading, the easier it becomes to understand the market.
 
-Need help? Reply with \`!gaby explain trading terms\``,
+`,
 
 quiz:
   `🎓 Congratulations!
