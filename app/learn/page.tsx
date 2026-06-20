@@ -21,6 +21,7 @@ export default function LearnPage() {
   const { user } = useUser();
 
   const [activeLesson, setActiveLesson] = useState("roadmap");
+  const [mobileLearnView, setMobileLearnView] = useState<"LESSONS" | "LESSON">("LESSONS");
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [lessonCompletionDates, setLessonCompletionDates] = useState<{
   [key: string]: string;
@@ -1288,7 +1289,11 @@ setGabyQuestion("");
       <main className="page-shell">
         <div className="mx-auto w-full max-w-[1650px] px-4">
   <div className="mt-6 grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)] gap-4">
-         <aside className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 xl:sticky xl:top-24 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide">
+         <aside
+  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 xl:sticky xl:top-24 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide ${
+    mobileLearnView === "LESSONS" ? "block" : "hidden xl:block"
+  }`}
+>
 <div className="mb-4 flex items-center justify-between gap-3">
   <p className="text-sm font-black tracking-wide text-zinc-500">
     LESSONS
@@ -1362,6 +1367,10 @@ onClick={() => {
   if (!isUnlocked) return;
 
   setActiveLesson(lesson.id);
+
+  if (window.innerWidth < 1280) {
+    setMobileLearnView("LESSON");
+  }
   setGabyQuestion("");
   setIsGabyTyping(false);
   setGabyAnswer("Hi, I’m Gaby. Ask me anything about this lesson.");
@@ -1419,9 +1428,18 @@ window.scrollTo({
 
 <section
   id="lesson-content"
-  className="min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide"
+  className={`min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide ${
+    mobileLearnView === "LESSON" ? "block" : "hidden xl:block"
+  }`}
 >
   
+<button
+  onClick={() => setMobileLearnView("LESSONS")}
+  className="mb-4 block rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
+>
+  ← Back to Lessons
+</button>
+
       {activeLesson === "roadmap" && (
   <GabyIntro
     onStartLesson={() => {

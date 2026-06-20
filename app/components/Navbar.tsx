@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { isSignedIn, isLoaded } = useUser();
 const [showCommunity, setShowCommunity] = useState(false);
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-cyan-500/10 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
@@ -88,23 +89,27 @@ const [showCommunity, setShowCommunity] = useState(false);
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <SignInButton mode="modal">
-            <button className="h-11 rounded-xl bg-cyan-500 px-5 text-sm font-black text-black transition-all duration-200 hover:bg-cyan-400">
-              Sign In
-            </button>
-          </SignInButton>
-
-          <div suppressHydrationWarning className="flex items-center justify-center">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "h-11 w-11 border border-zinc-700",
-                },
-              }}
-            />
-          </div>
-        </div>
+<div className="flex min-w-[150px] items-center justify-end gap-4">
+  {!isLoaded ? (
+    <div className="h-11 w-[92px]" />
+  ) : isSignedIn ? (
+    <div suppressHydrationWarning className="flex h-11 w-11 items-center justify-center">
+      <UserButton
+        appearance={{
+          elements: {
+            avatarBox: "h-11 w-11 border border-zinc-700",
+          },
+        }}
+      />
+    </div>
+  ) : (
+    <SignInButton mode="modal">
+      <button className="h-11 rounded-xl bg-cyan-500 px-5 text-sm font-black text-black transition-all duration-200 hover:bg-cyan-400">
+        Sign In
+      </button>
+    </SignInButton>
+  )}
+</div>
       </div>
       {showCommunity && (
   <>
