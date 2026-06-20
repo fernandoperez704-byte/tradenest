@@ -359,12 +359,15 @@ const currentEntryQuality =
 
   const maintenanceBuffer = 0.005;
 
-const liquidationPrice =
+const estimatedLongLiquidation =
   currentPrice && marketMode === "FUTURES" && leverage > 1
-    ? positionType === "LONG"
-      ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
-      : currentPrice * (1 + 1 / leverage - maintenanceBuffer)
-    : 0;
+    ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
+    : null;
+
+const estimatedShortLiquidation =
+  currentPrice && marketMode === "FUTURES" && leverage > 1
+    ? currentPrice * (1 + 1 / leverage - maintenanceBuffer)
+    : null;
 
   const chartRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<any>(null);
@@ -484,6 +487,7 @@ if (livePrice && candlesReadyFor === activeCandleKey) {
 const current = updated[position.coin as AssetSymbol];
 
 if (!current) return false;
+if (!position.liquidationPrice) return false;
 
 return position.side === "LONG"
   ? current <= position.liquidationPrice
@@ -531,6 +535,7 @@ if (liquidatedPositions.length > 0) {
 const current = updated[position.coin as AssetSymbol];
 
 if (!current) return true;
+if (!position.liquidationPrice) return true;
 
 return position.side === "LONG"
   ? current > position.liquidationPrice
@@ -1181,9 +1186,10 @@ if (marketMode === "FUTURES") {
     (position) => position.coin === selectedCoin
   );
 
-  if (activePosition) {
-
-
+  if (
+    activePosition &&
+    activePosition.liquidationPrice != null
+  ) {
     const line = candleSeriesRef.current?.createPriceLine({
       price: activePosition.liquidationPrice,
       color: "#ef4444",
@@ -1498,7 +1504,7 @@ const liquidation =
     ? side === "LONG"
       ? currentPrice * (1 - 1 / orderLeverage + maintenanceBuffer)
       : currentPrice * (1 + 1 / orderLeverage - maintenanceBuffer)
-    : 0;
+    : null;
 
   setBalance((prev) => prev - margin - entryFee);
   setMarginUsed((prev) => prev + margin);
@@ -2306,13 +2312,26 @@ onChange={(e) => setSearchTerm(e.target.value)}
         </span>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span className="text-zinc-500">Est. Liquidation</span>
+<div className="mt-2 flex items-center justify-between text-sm">
+  <span className="text-zinc-500">Est. Long Liq</span>
 
-        <span className="font-bold text-red-400">
-          {leverage > 1 ? `$${liquidationPrice.toFixed(2)}` : "N/A"}
-        </span>
-      </div>
+  <span className="font-bold text-red-400">
+    {estimatedLongLiquidation != null
+      ? `$${estimatedLongLiquidation.toFixed(2)}`
+      : "N/A"}
+  </span>
+</div>
+
+<div className="mt-2 flex items-center justify-between text-sm">
+  <span className="text-zinc-500">Est. Short Liq</span>
+
+  <span className="font-bold text-red-400">
+    {estimatedShortLiquidation != null
+      ? `$${estimatedShortLiquidation.toFixed(2)}`
+      : "N/A"}
+  </span>
+</div>
+      
     </>
   )}
 
@@ -2481,7 +2500,9 @@ openFuturesPosition("SHORT");
   <div>
     <p className="text-gray-400 text-xs">Liquidation</p>
     <p className="text-sm font-bold text-red-400">
-      ${position.liquidationPrice.toFixed(2)}
+      {position.liquidationPrice
+  ? `$${position.liquidationPrice.toFixed(2)}`
+  : "N/A"}
     </p>
   </div>
 
@@ -2946,7 +2967,9 @@ takeProfit:
     <div>
       <p className="text-zinc-500 text-xs">Liquidation</p>
       <p className="text-sm font-bold text-red-400">
-        ${trade.liquidationPrice.toFixed(2)}
+        {trade.liquidationPrice != null
+  ? `$${trade.liquidationPrice.toFixed(2)}`
+  : "N/A"}
       </p>
     </div>
 

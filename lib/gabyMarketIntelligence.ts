@@ -432,6 +432,7 @@ function getRSIAnalysis(candles: Candle[]): RSIAnalysis | null {
 function getMarketConviction(
   direction: "BULLISH" | "BEARISH" | "TRANSITION",
   structure: MarketStructure,
+  pattern: PatternAnalysis | null,
   momentum: MomentumAnalysis | null,
   volume: VolumeAnalysis | null,
   rsi: RSIAnalysis | null
@@ -442,25 +443,24 @@ function getMarketConviction(
   if (direction === "BULLISH") bullishScore += 3;
   if (direction === "BEARISH") bearishScore += 3;
 
-  if (
-    structure === "BULLISH" ||
-    structure === "HIGHER_HIGHS"
-  ) {
+  if (structure === "BULLISH" || structure === "HIGHER_HIGHS") {
     bullishScore += 2;
   }
 
-  if (
-    structure === "BEARISH" ||
-    structure === "LOWER_LOWS"
-  ) {
+  if (structure === "BEARISH" || structure === "LOWER_LOWS") {
     bearishScore += 2;
   }
 
-  if (momentum?.momentum === "BULLISH_MOMENTUM")
+  if (pattern?.bias === "BULLISH_CONTEXT") {
     bullishScore += 2;
+  }
 
-  if (momentum?.momentum === "BEARISH_MOMENTUM")
+  if (pattern?.bias === "BEARISH_CONTEXT") {
     bearishScore += 2;
+  }
+
+  if (momentum?.momentum === "BULLISH_MOMENTUM") bullishScore += 2;
+  if (momentum?.momentum === "BEARISH_MOMENTUM") bearishScore += 2;
 
   if (
     volume?.volume === "RISING_VOLUME" ||
@@ -470,22 +470,15 @@ function getMarketConviction(
     bearishScore += 1;
   }
 
-  if (
-    rsi?.rsi === "RSI_BULLISH" ||
-    rsi?.rsi === "RSI_OVERSOLD"
-  ) {
+  if (rsi?.rsi === "RSI_BULLISH" || rsi?.rsi === "RSI_OVERSOLD") {
     bullishScore += 1;
   }
 
-  if (
-    rsi?.rsi === "RSI_BEARISH" ||
-    rsi?.rsi === "RSI_OVERBOUGHT"
-  ) {
+  if (rsi?.rsi === "RSI_BEARISH" || rsi?.rsi === "RSI_OVERBOUGHT") {
     bearishScore += 1;
   }
 
-  const difference =
-    Math.abs(bullishScore - bearishScore);
+  const difference = Math.abs(bullishScore - bearishScore);
 
   if (bullishScore >= 7 && difference >= 3) {
     return "HIGH_CONVICTION_BULLISH";
@@ -797,8 +790,17 @@ const nearestSupport = supportLevels[0] ?? null;
 const nearestResistance = resistanceLevels[0] ?? null;
 
 const structure = getMarketStructure(recentCandles);
+
+const patternAnalysis = getPatternAnalysis(
+  recentCandles,
+  nearestSupport,
+  nearestResistance
+);
+
 const momentumAnalysis = getMomentumAnalysis(recentCandles);
+
 const volumeAnalysis = getVolumeAnalysis(recentCandles);
+
 const rsiAnalysis = getRSIAnalysis(recentCandles);
 
 return {
@@ -808,21 +810,18 @@ return {
   nearestResistance,
   supportLevels,
   resistanceLevels,
-  patternAnalysis: getPatternAnalysis(
-    recentCandles,
-    nearestSupport,
-    nearestResistance
-  ),
+  patternAnalysis,
   momentumAnalysis,
   volumeAnalysis,
   rsiAnalysis,
-  marketConviction: getMarketConviction(
-    direction,
-    structure,
-    momentumAnalysis,
-    volumeAnalysis,
-    rsiAnalysis
-  ),
+marketConviction: getMarketConviction(
+  direction,
+  structure,
+  patternAnalysis,
+  momentumAnalysis,
+  volumeAnalysis,
+  rsiAnalysis
+),
 };
 }
 

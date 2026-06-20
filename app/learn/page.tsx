@@ -1445,53 +1445,35 @@ window.scrollTo({
 {activeLesson === "buying" && (
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          What Are You Buying?
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Every trader starts by asking the same question:
+    what am I actually buying?
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Before placing a trade, beginners need to understand what they are actually buying and why the price moves.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Before learning charts, indicators, or trading strategies, you need
+    to understand the assets that make up the financial markets.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-            <div>
-              <h3 className="font-black text-white">You are buying ownership</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                A stock represents a small piece of a company. Crypto represents a digital asset.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Stocks, crypto, forex, and futures all move for different reasons.
+    Understanding those differences will help you make better decisions
+    as you continue through TradeNestX.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-            <div>
-              <h3 className="font-black text-white">Price moves by supply and demand</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                If more buyers step in, price can rise. If more sellers take control, price can fall.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-            <div>
-              <h3 className="font-black text-white">You need a reason before entering</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Never buy just because price is moving. Know the setup, risk, and reason first.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Many beginners focus on price before understanding the asset itself.
+      The more you understand what you're buying, the easier it becomes to
+      manage risk, build confidence, and avoid costly mistakes.
+    </p>
+  </div>
+</div>
 
 <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
@@ -1583,69 +1565,36 @@ onClick={completeLesson}
 
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Now that you understand what you're buying, it's time to understand
+    why prices move.
+  </p>
 
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          How The Market Works
-        </h2>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Every market is driven by buyers and sellers competing for price.
+    When demand becomes stronger than supply, prices can rise. When
+    selling pressure takes over, prices can fall.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Learn how buyers and sellers move price, why volatility happens, and how supply and demand control the market.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Understanding this concept will help you make sense of charts,
+    trends, volatility, and market behavior throughout your trading
+    journey.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Buyers and sellers move price
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Markets rise when buyers become stronger than sellers.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Supply and demand create movement
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Price changes when buying demand or selling pressure increases.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Volatility creates opportunity and risk
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Crypto markets can move very fast during strong momentum.
-              </p>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Many beginners think markets move randomly. In reality, every price
+      movement is the result of buyers and sellers reacting to opportunity,
+      risk, and information.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 
@@ -1748,70 +1697,35 @@ onClick={completeLesson}
 
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now understand what you're buying and why prices move.
+    The next step is learning how traders actually enter and exit the market.
+  </p>
 
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Market vs Limit Orders
-        </h2>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Every trade begins with an order. The type of order you choose can
+    affect your entry price, execution speed, and overall trade quality.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Learn the difference between market and limit orders, how traders enter positions, and why order types matter.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Market and limit orders are the most common tools traders use to
+    enter positions. Learning when to use each one gives you more control
+    over your trades.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-         <div className="flex gap-5">
-  <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-    1
-  </div>
-
-  <div>
-    <h3 className="font-black text-white">
-      Market orders execute instantly
-    </h3>
-
-    <p className="mt-1 text-zinc-500 leading-7">
-      A market order buys or sells immediately at the current price.
+    <p className="mt-3 text-white leading-7">
+      Many beginners focus on finding a trade. Experienced traders also
+      focus on execution because the way you enter a trade can impact both
+      risk and results.
     </p>
   </div>
 </div>
-
-<div className="flex gap-5">
-  <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-    2
-  </div>
-
-  <div>
-    <h3 className="font-black text-white">
-      Limit orders wait for your price
-    </h3>
-
-    <p className="mt-1 text-zinc-500 leading-7">
-      A limit order only executes at the exact price you choose.
-    </p>
-  </div>
-</div>
-
-<div className="flex gap-5">
-  <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-    3
-  </div>
-
-  <div>
-    <h3 className="font-black text-white">
-      Traders use both differently
-    </h3>
-
-    <p className="mt-1 text-zinc-500 leading-7">
-      Market orders focus on speed while limit orders focus on price precision.
-    </p>
-  </div>
-</div>
-
-        </div>
-
-      </div>
-
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 
 <Image
@@ -1904,54 +1818,36 @@ onClick={completeLesson}
 {activeLesson === "risk" && (
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Protecting Your Capital
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now know what you're buying, why markets move, and how traders
+    enter positions.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Protecting your money is more important than making fast money. Good traders survive by controlling risk first.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Before focusing on profits, it's important to learn how traders
+    protect themselves from unnecessary losses. Every trade carries risk,
+    and managing that risk is what keeps traders in the game.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-            <div>
-              <h3 className="font-black text-white">Small losses are normal</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Every trader loses sometimes. Good traders keep losses small and controlled.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    In this lesson, you'll learn why protecting your capital is more
+    important than chasing quick gains and why discipline matters more
+    than any strategy.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-            <div>
-              <h3 className="font-black text-white">Protect your account first</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Risking too much on one trade can destroy weeks of progress.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-            <div>
-              <h3 className="font-black text-white">Discipline beats emotions</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Fear and revenge trading often cause bigger losses than bad strategies.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <p className="mt-3 text-white leading-7">
+      Most traders don't fail because they can't find opportunities.
+      They fail because they risk too much. Protecting your capital allows
+      you to learn, improve, and take advantage of future opportunities.
+    </p>
+  </div>
+</div>
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
         <Image
           src={
@@ -2046,67 +1942,35 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Trading Timeframes
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now know how to read individual candlesticks. The next step is
+    understanding how those candles look across different timeframes.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Trading timeframes help traders understand how fast markets move and how long trades may last.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    A 1-minute chart and a daily chart can show very different views of
+    the same market. Traders use timeframes to match their strategy,
+    risk tolerance, and trading goals.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Learning how timeframes work will help you avoid tunnel vision and
+    better understand the bigger picture behind market movements.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-            <div>
-              <h3 className="font-black text-white">
-                Lower timeframes move faster
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Smaller timeframes can feel fast, emotional, and noisy.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Higher timeframes show cleaner trends
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Bigger timeframes usually show stronger market direction.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Patience matters
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Many beginners overtrade because they focus only on fast charts.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Many beginners focus on a single chart and miss important context.
+      Understanding multiple timeframes helps traders make more informed
+      decisions and identify stronger trends.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
@@ -2201,67 +2065,34 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Candlestick Basics
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Now that you understand risk management, it's time to start reading
+    the language of the market.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Candlesticks are the foundation of chart reading. Learning them helps traders understand price movement and market behavior.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Every chart is made up of candlesticks. Each candle tells a story
+    about what buyers and sellers were doing during a specific period of time.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Learning how to read candlesticks is one of the first steps toward
+    understanding price action and making informed trading decisions.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-            <div>
-              <h3 className="font-black text-white">
-                One candle tells a story
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Every candle shows a battle between buyers and sellers.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-5">
-            <div className="h-10 w-10 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Candle size matters
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Large candles often show stronger momentum than small candles.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-5">
-            <div className="h-10 w-10 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-
-            <div>
-              <h3 className="font-black text-white">
-                Wicks show rejection
-              </h3>
-
-              <p className="mt-1 text-zinc-500 leading-7">
-                Long wicks can reveal areas where price was rejected.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Before traders can identify trends, patterns, or setups, they must
+      first understand what individual candles are communicating about
+      market behavior.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 
@@ -2356,53 +2187,35 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Volume Basics
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now understand candlesticks and timeframes. The next question is:
+    how much participation is behind a price move?
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Volume shows how much trading activity is happening. It helps beginners understand the strength behind price movement.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Volume measures how active the market is during a specific period.
+    It helps traders understand whether buyers and sellers are truly
+    supporting a move or if momentum may be weakening.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-            <div>
-              <h3 className="font-black text-white">Volume shows activity</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                High volume means more traders are participating in the move.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    By combining price action with volume, traders gain a deeper view of
+    market strength and can better evaluate potential opportunities.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-            <div>
-              <h3 className="font-black text-white">Volume confirms strength</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                A price move with strong volume can be more meaningful than a move with weak volume.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-            <div>
-              <h3 className="font-black text-white">Low volume can be weak</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Low volume may show less interest, weaker conviction, or slower market movement.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Price tells you what the market is doing. Volume helps explain how
+      much conviction is behind that move. Together they provide a clearer
+      picture than either one alone.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
   <Image
@@ -2495,53 +2308,36 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Support & Resistance
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You can now read candles, understand timeframes, and evaluate volume.
+    The next step is learning where buyers and sellers have historically
+    taken action.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Support and resistance are important price zones where buyers or sellers may react.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Support and resistance are areas where price has previously reacted.
+    These zones often become important decision points for traders looking
+    for entries, exits, and potential reversals.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-            <div>
-              <h3 className="font-black text-white">Support acts like a floor</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Support is an area where buyers may step in and push price higher.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Learning to identify these levels will help you understand market
+    structure and where risk and opportunity may exist.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-            <div>
-              <h3 className="font-black text-white">Resistance acts like a ceiling</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Resistance is an area where sellers may step in and push price lower.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-            <div>
-              <h3 className="font-black text-white">Breakouts can happen</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Price can bounce from these levels or break through them with strength.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Markets rarely move randomly. Important support and resistance levels
+      often influence trader decisions and can become key areas to watch
+      when planning a trade.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
@@ -2633,53 +2429,35 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Supply & Demand
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Support and resistance help identify important price levels. The next
+    step is understanding why those levels exist in the first place.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Supply and demand explain why price moves up, moves down, or reacts at important zones.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Supply and demand zones form when large groups of buyers or sellers
+    enter the market. These areas can influence future price movement and
+    often attract trader attention.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-            <div>
-              <h3 className="font-black text-white">Demand pushes price up</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Demand means buyers are interested and may push price higher.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Learning to recognize supply and demand can help you better understand
+    where momentum may slow, reverse, or continue.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-            <div>
-              <h3 className="font-black text-white">Supply pushes price down</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Supply means sellers are active and may push price lower.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-            <div>
-              <h3 className="font-black text-white">Zones matter more than lines</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Traders often look for areas where buyers or sellers reacted strongly before.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Price reacts because buyers and sellers make decisions. Supply and
+      demand help explain the forces behind those reactions and provide
+      additional context beyond simple price levels.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
@@ -2771,53 +2549,36 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Chart Patterns
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now understand price action, volume, support and resistance, and
+    supply and demand. The next step is learning how these pieces can
+    combine to create recognizable market patterns.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Chart patterns help traders recognize repeated price behavior and possible market direction.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Chart patterns are formations created by price movement over time.
+    Traders use them to identify potential continuation and reversal
+    opportunities within a trend.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              1
-            </div>
-            <div>
-              <h3 className="font-black text-white">Patterns show market behavior</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Patterns form when buyers and sellers repeat similar reactions on a chart.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    No pattern guarantees a result, but understanding them can help you
+    better recognize market behavior and improve trade planning.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              2
-            </div>
-            <div>
-              <h3 className="font-black text-white">They are not guarantees</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Patterns can help with direction, but traders still need confirmation and risk control.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">
-              3
-            </div>
-            <div>
-              <h3 className="font-black text-white">Context matters</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Strong patterns work best near support, resistance, supply, demand, or trend areas.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Patterns help traders organize information. Instead of viewing every
+      chart as random movement, traders can identify recurring structures
+      that may provide insight into future price behavior.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
@@ -2911,47 +2672,35 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Building A Trade Plan
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now understand how markets move, how to read charts, and how to
+    identify important levels and patterns. The next step is putting those
+    skills together into a structured trading plan.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          A trade plan helps traders make decisions before entering a trade instead of reacting emotionally.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    A trade plan gives you a clear reason for entering a trade, managing
+    risk, and deciding when to exit. It helps remove emotion and creates
+    consistency in your decision making.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">1</div>
-            <div>
-              <h3 className="font-black text-white">Know your entry</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Decide exactly where your trade idea begins before entering.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Professional traders don't rely on hope or guesswork. They follow a
+    process before risking capital, and that process begins with a plan.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">2</div>
-            <div>
-              <h3 className="font-black text-white">Control your risk</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Set your stop loss and risk amount before the trade starts.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">3</div>
-            <div>
-              <h3 className="font-black text-white">Plan your target</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Know where you may take profit before emotions take over.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      A good trade plan helps traders stay disciplined, avoid impulsive
+      decisions, and evaluate opportunities using a repeatable process.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
@@ -3044,48 +2793,35 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Trading Psychology
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You now have the tools to build a trade plan, but knowledge alone
+    doesn't guarantee success.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Trading psychology helps beginners understand how emotions affect decisions before, during, and after a trade.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Fear, greed, impatience, and overconfidence can cause traders to
+    ignore their plan and make emotional decisions. Managing emotions is
+    often harder than learning chart analysis.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">1</div>
-            <div>
-              <h3 className="font-black text-white">Emotions affect decisions</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Fear and greed can make traders exit too early, chase price, or ignore their rules.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Developing discipline and consistency will help you follow your
+    strategy through both winning and losing periods.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">2</div>
-            <div>
-              <h3 className="font-black text-white">Patience protects beginners</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Waiting for a quality setup is better than forcing random trades.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">3</div>
-            <div>
-              <h3 className="font-black text-white">Professional traders think long term</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                They focus on process, consistency, and discipline instead of one trade.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <p className="mt-3 text-white leading-7">
+      Many traders know what they should do but struggle to do it
+      consistently. Psychology often determines whether a trader follows
+      their plan or lets emotions take control.
+    </p>
+  </div>
+</div>
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image
   src={
@@ -3178,47 +2914,37 @@ onClick={completeLesson}
   <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
-      <div>
-        <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-          Essential Trading Terms
-        </h2>
+<div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    You've now learned the core foundations of trading. The final step
+    before your checkpoint is becoming familiar with the language traders
+    use every day.
+  </p>
 
-        <p className="mt-5 text-zinc-400 text-[17px] leading-8 max-w-[280px]">
-          Learn the common trading words you will see on charts, platforms, and market discussions.
-        </p>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Terms like bullish, bearish, support, resistance, leverage, and
+    volatility appear constantly in trading discussions. Understanding
+    them will help you communicate and learn more effectively.
+  </p>
 
-        <div className="mt-8 space-y-6 max-w-[290px]">
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">1</div>
-            <div>
-              <h3 className="font-black text-white">Learn common terms</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Understanding trading terms helps you read charts and follow market discussions.
-              </p>
-            </div>
-          </div>
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+    Think of this lesson as building your trading vocabulary so you can
+    confidently understand educational content, market analysis, and
+    conversations with other traders.
+  </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">2</div>
-            <div>
-              <h3 className="font-black text-white">Understand market language</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                Most trading platforms and communities use these words every day.
-              </p>
-            </div>
-          </div>
+  <div className="mt-8 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Why This Matters
+    </p>
 
-          <div className="flex gap-5">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-black">3</div>
-            <div>
-              <h3 className="font-black text-white">Build trading confidence</h3>
-              <p className="mt-1 text-zinc-500 leading-7">
-                The more terms you understand, the easier it becomes to make informed decisions.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <p className="mt-3 text-white leading-7">
+      Every profession has its own language. Learning common trading terms
+      makes it easier to understand markets, follow discussions, and
+      continue building your knowledge.
+    </p>
+  </div>
+</div>
 
       <div className="flex flex-col overflow-hidden rounded-[28px] border border-cyan-500/10 bg-black">
 <Image

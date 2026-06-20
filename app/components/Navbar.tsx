@@ -69,16 +69,16 @@ const [showCommunity, setShowCommunity] = useState(false);
               News
             </Link>
 
-            <Link
-              href="/profile"
-              className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
-                pathname === "/profile"
-                  ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
-                  : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
-              }`}
-            >
-              Profile
-            </Link>
+<Link
+  href="/support"
+  className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+    pathname === "/support"
+      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
+      : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
+  }`}
+>
+  Support
+</Link>
             <button
   onClick={() => setShowCommunity(true)}
  className="flex h-11 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
@@ -94,12 +94,6 @@ const [showCommunity, setShowCommunity] = useState(false);
               Sign In
             </button>
           </SignInButton>
-
-          <SignUpButton mode="modal">
-            <button className="h-11 rounded-xl border border-zinc-700 bg-white px-5 text-sm font-black text-black transition-all duration-200 hover:bg-zinc-200">
-              Sign Up
-            </button>
-          </SignUpButton>
 
           <div suppressHydrationWarning className="flex items-center justify-center">
             <UserButton
