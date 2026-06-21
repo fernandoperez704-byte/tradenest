@@ -1633,21 +1633,21 @@ onClick={completeLesson}
   alt="Market lesson"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-<div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+<div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
 
   <button
     onClick={() =>
       setMarketLessonSlide((prev) => (prev === -1 ? 6 : prev - 1))
     }
-    className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+    className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
   >
     ← Previous
   </button>
 
-  <div className="flex items-center gap-3">
+  <div className="flex items-center gap-1 md:gap-3">
 
     {[-1, 0, 1, 2, 3, 4, 5, 6].map((dot) => (
       <button
@@ -1667,7 +1667,7 @@ onClick={completeLesson}
     onClick={() =>
       setMarketLessonSlide((prev) => (prev === 6 ? -1 : prev + 1))
     }
-    className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+    className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
   >
     Next →
   </button>
@@ -1756,21 +1756,21 @@ onClick={completeLesson}
   alt="Orders lesson"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-<div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+<div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
 
   <button
     onClick={() =>
       setMarketSlide((prev) => (prev === 0 ? 3 : prev - 1))
     }
-    className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+    className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
   >
     ← Previous
   </button>
 
-  <div className="flex items-center gap-3">
+  <div className="flex items-center gap-1 md:gap-3">
 
     {[0, 1, 2, 3].map((dot) => (
       <button
@@ -1790,7 +1790,7 @@ onClick={completeLesson}
     onClick={() =>
       setMarketSlide((prev) => (prev === 3 ? 0 : prev + 1))
     }
-    className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+    className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
   >
     Next →
   </button>
@@ -1885,20 +1885,20 @@ onClick={completeLesson}
           alt="Protecting Your Capital"
           width={1200}
           height={800}
-          className="block w-full h-[625px] object-fill bg-white"
+          className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
         />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setRiskLessonSlide((prev) => (prev === -1 ? 7 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4, 5, 6, 7].map((dot) => (
               <button
                 key={dot}
@@ -1916,7 +1916,7 @@ onClick={completeLesson}
             onClick={() =>
               setRiskLessonSlide((prev) => (prev === 7 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2008,21 +2008,21 @@ onClick={completeLesson}
   alt="Trading Timeframes"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
 
           <button
             onClick={() =>
               setTimeframeSlide((prev) => (prev === -1 ? 6 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4, 5, 6, ].map((dot) => (
               <button
                 key={dot}
@@ -2040,7 +2040,7 @@ onClick={completeLesson}
             onClick={() =>
               setTimeframeSlide((prev) => (prev === 6 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2129,20 +2129,20 @@ onClick={completeLesson}
   alt="Candlestick Basics"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setCandlestickSlide((prev) => (prev === -1 ? 4 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4].map((dot) => (
               <button
                 key={dot}
@@ -2160,7 +2160,7 @@ onClick={completeLesson}
             onClick={() =>
               setCandlestickSlide((prev) => (prev === 4 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2251,20 +2251,20 @@ onClick={completeLesson}
   alt="Volume Basics"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setVolumeSlide((prev) => (prev === -1 ? 4 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4].map((dot) => (
               <button
                 key={dot}
@@ -2282,7 +2282,7 @@ onClick={completeLesson}
             onClick={() =>
               setVolumeSlide((prev) => (prev === 4 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2373,20 +2373,20 @@ onClick={completeLesson}
   alt="Support and Resistance"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setSupportSlide((prev) => (prev === -1 ? 4 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4].map((dot) => (
               <button
                 key={dot}
@@ -2404,7 +2404,7 @@ onClick={completeLesson}
             onClick={() =>
               setSupportSlide((prev) => (prev === 4 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2493,20 +2493,20 @@ onClick={completeLesson}
   alt="Supply and Demand"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setSupplyDemandSlide((prev) => (prev === -1 ? 4 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4].map((dot) => (
               <button
                 key={dot}
@@ -2524,7 +2524,7 @@ onClick={completeLesson}
             onClick={() =>
               setSupplyDemandSlide((prev) => (prev === 4 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2614,20 +2614,20 @@ onClick={completeLesson}
   alt="Chart Patterns"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setPatternSlide((prev) => (prev === -1 ? 4 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, 4].map((dot) => (
               <button
                 key={dot}
@@ -2645,7 +2645,7 @@ onClick={completeLesson}
             onClick={() =>
               setPatternSlide((prev) => (prev === 4 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2735,20 +2735,20 @@ onClick={completeLesson}
   alt="Building A Trade Plan"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setTradePlanSlide((prev) => (prev === -1 ? 3 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, ].map((dot) => (
               <button
                 key={dot}
@@ -2766,7 +2766,7 @@ onClick={completeLesson}
             onClick={() =>
               setTradePlanSlide((prev) => (prev === 3 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2855,20 +2855,20 @@ onClick={completeLesson}
   alt="Trading Psychology"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setPsychologySlide((prev) => (prev === -1 ? 3 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3].map((dot) => (
               <button
                 key={dot}
@@ -2886,7 +2886,7 @@ onClick={completeLesson}
             onClick={() =>
               setPsychologySlide((prev) => (prev === 3 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -2979,20 +2979,20 @@ onClick={completeLesson}
   alt="Essential Trading Terms"
   width={1200}
   height={800}
-  className="block w-full h-[625px] object-fill bg-white"
+  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
 />
 
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#050816] px-6 py-4">
+        <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
           <button
             onClick={() =>
               setTermsSlide((prev) => (prev === -1 ? 3 : prev - 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {[-1, 0, 1, 2, 3, ].map((dot) => (
               <button
                 key={dot}
@@ -3010,7 +3010,7 @@ onClick={completeLesson}
             onClick={() =>
               setTermsSlide((prev) => (prev === 3 ? -1 : prev + 1))
             }
-            className="rounded-2xl border border-white/10 bg-[#0b1120] px-5 py-3 font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
+            className="rounded-2xl border border-white/10 bg-[#0b1120] px-3 py-3 text-xs md:px-5 md:text-base font-bold text-white transition-all duration-300 hover:border-cyan-400 hover:text-cyan-300"
           >
             Next →
           </button>
@@ -3126,7 +3126,7 @@ onClick={completeLesson}
     </div>
 {quizError && (
   <div className="mt-8 rounded-2xl border border-orange-400/30 bg-orange-500/10 p-5">
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-1 md:gap-3">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20 text-orange-300 font-black">
         !
       </div>
