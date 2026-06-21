@@ -172,7 +172,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
         {!isLoaded ? (
           <div className="h-14 w-full rounded-2xl bg-zinc-800" />
         ) : isSignedIn ? (
-          <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-4 md:flex">
             <UserButton
               appearance={{
                 elements: {
