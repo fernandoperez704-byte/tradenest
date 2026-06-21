@@ -98,6 +98,7 @@ useEffect(() => {
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
+  const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
   const [indicatorPanel, setIndicatorPanel] =
   useState<"VOLUME" | "RSI">("VOLUME");
@@ -1802,6 +1803,8 @@ const watchlist = [
 <div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
           <div
   className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden ${
+    mobileView === "WATCHLIST" ? "block" : "hidden xl:flex"
+  } ${
     tourStep === 1
       ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
       : ""
@@ -1895,6 +1898,10 @@ onChange={(e) => setSearchTerm(e.target.value)}
                   key={coin.symbol}
                   onClick={() => {
   setSelectedCoin(coin.symbol);
+
+  if (window.innerWidth < 1280) {
+    setMobileView("TRADE");
+  }
 }}
                   className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
                     selectedCoin === coin.symbol
@@ -1960,11 +1967,20 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
             <div
   className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-5 h-[760px] flex flex-col overflow-hidden ${
+    mobileView === "TRADE" ? "flex" : "hidden xl:flex"
+  } ${
     tourStep === 2
       ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
       : ""
   }`}
 >
+
+<button
+  onClick={() => setMobileView("WATCHLIST")}
+  className="mb-4 block rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
+>
+  ← Back to Coins
+</button>
 
 <div className="mb-6 border-b border-zinc-800 pb-4">
   <div className="flex items-end gap-4">
@@ -2069,7 +2085,11 @@ onChange={(e) => setSearchTerm(e.target.value)}
 </div>
 </div>
 
-            <div className="space-y-2 xl:col-span-1">
+            <div
+  className={`space-y-2 xl:col-span-1 ${
+    mobileView === "TRADE" ? "block" : "hidden xl:block"
+  }`}
+>
 
           
               <div
