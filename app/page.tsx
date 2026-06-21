@@ -6,11 +6,21 @@ export default function HomePage() {
       <Navbar />
 
 <main className="bg-black">
-  <div className="relative h-[70vh] w-full md:h-screen">
+  {/* Mobile hero */}
+  <div className="block md:hidden">
     <img
       src="/learn/hero/tradenestx-hero-banner-4k.png"
       alt="TradeNestX Hero"
-      className="h-full w-full object-cover md:object-contain"
+      className="block w-full object-contain"
+    />
+  </div>
+
+  {/* Desktop hero */}
+  <div className="hidden h-screen w-full md:block">
+    <img
+      src="/learn/hero/tradenestx-hero-banner-4k.png"
+      alt="TradeNestX Hero"
+      className="h-full w-full object-contain"
     />
   </div>
 </main>
