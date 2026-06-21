@@ -1901,6 +1901,15 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
   if (window.innerWidth < 1280) {
     setMobileView("TRADE");
+
+    setTimeout(() => {
+      chartInstanceRef.current?.resize?.(
+        chartRef.current?.clientWidth || 0,
+        520
+      );
+
+      chartInstanceRef.current?.timeScale().fitContent();
+    }, 300);
   }
 }}
                   className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
@@ -1942,7 +1951,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
   </div>
 </div>
 
-<div className="relative">
+<div className="relative hidden xl:block">
 {showGabyHint && (
   <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-bounce">
     <div className="relative rounded-xl border border-amber-400 bg-amber-400 px-4 py-3 text-sm font-black text-black shadow-[0_0_25px_rgba(251,191,36,0.35)]">
@@ -1981,6 +1990,47 @@ onChange={(e) => setSearchTerm(e.target.value)}
 >
   ← Back to Coins
 </button>
+
+<div className="relative mb-4 block xl:hidden">
+  <button
+    onClick={() => setShowMarketMenu(!showMarketMenu)}
+    className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
+  >
+    <span>
+      {marketMode === "SPOT" ? "Crypto Spot" : "Crypto Futures"}
+    </span>
+
+    <span className="text-cyan-400">▼</span>
+  </button>
+
+  {showMarketMenu && (
+    <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-zinc-700 bg-[#0f172a] shadow-xl">
+      <button
+        onClick={() => {
+          setMarketMode("SPOT");
+          setSelectedCoin("BTC");
+          setActiveBottomTab("POSITIONS");
+          setShowMarketMenu(false);
+        }}
+        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+      >
+        Crypto Spot
+      </button>
+
+      <button
+        onClick={() => {
+          setMarketMode("FUTURES");
+          setSelectedCoin("BTC");
+          setActiveBottomTab("POSITIONS");
+          setShowMarketMenu(false);
+        }}
+        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+      >
+        Crypto Futures
+      </button>
+    </div>
+  )}
+</div>
 
 <div className="mb-6 border-b border-zinc-800 pb-4">
   <div className="flex items-end gap-4">
@@ -2414,7 +2464,11 @@ openFuturesPosition("SHORT");
 </div> 
       </div>
       </div>
-    <div className="mt-2 page-container">
+    <div
+  className={`mt-2 page-container ${
+    mobileView === "TRADE" ? "block" : "hidden xl:block"
+  }`}
+>
   <div
   className={`max-w-[calc(100%-296px)] bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px] ${
     tourStep === 4
