@@ -5,12 +5,12 @@ export default function HomePage() {
     <>
       <Navbar />
 
-  <main className="min-h-screen overflow-hidden bg-black">
-  <div className="relative h-[45vh] md:h-screen w-full">
+<main className="bg-black">
+  <div className="relative h-[calc(100dvh-120px)] w-full md:h-screen">
     <img
       src="/learn/hero/tradenestx-hero-banner-4k.png"
       alt="TradeNestX Hero"
-      className="h-full w-full object-contain"
+      className="h-full w-full object-cover md:object-contain"
     />
   </div>
 </main>

@@ -1908,7 +1908,7 @@ setTimeout(() => {
     520
   );
 
-  const visibleCandles = 80;
+  const visibleCandles = 50;
 
   chartInstanceRef.current?.timeScale().setVisibleLogicalRange({
     from: Math.max(history.length - visibleCandles, 0),
