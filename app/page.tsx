@@ -6,7 +6,7 @@ export default function HomePage() {
       <Navbar />
 
 <main className="bg-black">
-  <div className="relative h-[calc(100dvh-120px)] w-full md:h-screen">
+  <div className="relative h-[70vh] w-full md:h-screen">
     <img
       src="/learn/hero/tradenestx-hero-banner-4k.png"
       alt="TradeNestX Hero"
