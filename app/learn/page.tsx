@@ -1461,20 +1461,20 @@ window.scrollTo({
 )}
 
 {activeLesson === "buying" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-none md:max-w-[300px]">
     Every trader starts by asking the same question:
     what am I actually buying?
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-none md:max-w-[300px]">
     Before learning charts, indicators, or trading strategies, you need
     to understand the assets that make up the financial markets.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-none md:max-w-[300px]">
     Stocks, crypto, forex, and futures all move for different reasons.
     Understanding those differences will help you make better decisions
     as you continue through TradeNestX.
@@ -1579,7 +1579,7 @@ onClick={completeLesson}
 
 
 {activeLesson === "market" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
@@ -1711,7 +1711,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "orders" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
@@ -1834,7 +1834,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "risk" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -1957,7 +1957,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "timeframes" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2080,7 +2080,7 @@ onClick={completeLesson}
   </div>
 )}
 {activeLesson === "candlesticks" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2202,7 +2202,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "volume" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2323,7 +2323,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "support" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2444,7 +2444,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "supplydemand" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2564,7 +2564,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "patterns" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2687,7 +2687,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "setups" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2808,7 +2808,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "psychology" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -2929,7 +2929,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "vocabulary" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
@@ -3054,7 +3054,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "quiz" && (
-  <div className="rounded-[40px] border border-white/10 bg-[#0b0f1a] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
     <div>
 <h2 className="text-5xl md:text-6xl font-black tracking-tight leading-tight">
