@@ -1902,14 +1902,19 @@ onChange={(e) => setSearchTerm(e.target.value)}
   if (window.innerWidth < 1280) {
     setMobileView("TRADE");
 
-    setTimeout(() => {
-      chartInstanceRef.current?.resize?.(
-        chartRef.current?.clientWidth || 0,
-        520
-      );
+setTimeout(() => {
+  chartInstanceRef.current?.resize?.(
+    chartRef.current?.clientWidth || 0,
+    520
+  );
 
-      chartInstanceRef.current?.timeScale().fitContent();
-    }, 300);
+  const visibleCandles = 80;
+
+  chartInstanceRef.current?.timeScale().setVisibleLogicalRange({
+    from: Math.max(history.length - visibleCandles, 0),
+    to: history.length + 5,
+  });
+}, 300);
   }
 }}
                   className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
@@ -1966,7 +1971,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
   <button
     onClick={() => setShowSimulatorGaby(true)}
-    className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-4 text-base font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.18)] transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:shadow-[0_0_35px_rgba(34,211,238,0.28)]"
+    className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-5 py-6 xl:px-4 xl:py-4 text-base font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.18)] transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:shadow-[0_0_35px_rgba(34,211,238,0.28)]"
   >
     Ask Gaby
   </button>

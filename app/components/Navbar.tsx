@@ -159,7 +159,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     </nav>
 
 {mobileMenuOpen && (
-  <div className="fixed inset-0 z-[9999] bg-[#000000] text-white md:hidden">
+  <div className="fixed left-0 top-0 z-[9999] h-[100dvh] w-screen overflow-y-auto bg-black text-white md:hidden">
     
     <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
       <Link
