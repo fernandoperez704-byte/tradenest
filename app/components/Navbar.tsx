@@ -9,6 +9,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { isSignedIn, isLoaded } = useUser();
 const [showCommunity, setShowCommunity] = useState(false);
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-cyan-500/10 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
       <div className="page-container flex h-[78px] items-center justify-between">
@@ -25,7 +26,7 @@ const [showCommunity, setShowCommunity] = useState(false);
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-4 md:flex">
             <Link
               href="/learn"
               className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
@@ -89,7 +90,7 @@ const [showCommunity, setShowCommunity] = useState(false);
           </div>
         </div>
 
-<div className="flex min-w-[150px] items-center justify-end gap-4">
+<div className="hidden min-w-[150px] items-center justify-end gap-4 md:flex">
   {!isLoaded ? (
     <div className="h-11 w-[92px]" />
   ) : isSignedIn ? (
@@ -110,7 +111,92 @@ const [showCommunity, setShowCommunity] = useState(false);
     </SignInButton>
   )}
 </div>
+
+<button
+  onClick={() => setMobileMenuOpen(true)}
+  className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-[#18181b] text-3xl font-black text-white md:hidden"
+>
+  ☰
+</button>
+
       </div>
+
+{mobileMenuOpen && (
+  <div className="fixed inset-0 z-[9999] bg-black text-white md:hidden">
+    <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+      <Link
+        href="/"
+        onClick={() => setMobileMenuOpen(false)}
+        className="text-3xl font-black"
+      >
+        TradeNest<span className="text-cyan-400">X</span>
+      </Link>
+
+      <button
+        onClick={() => setMobileMenuOpen(false)}
+        className="text-4xl font-black text-white"
+      >
+        ×
+      </button>
+    </div>
+
+    <div className="flex flex-col">
+      {[
+        ["Learn", "/learn"],
+        ["Simulator", "/simulator"],
+        ["Leaderboard", "/leaderboard"],
+        ["News", "/news"],
+        ["Support", "/support"],
+      ].map(([label, href]) => (
+        <Link
+          key={href}
+          href={href}
+          onClick={() => setMobileMenuOpen(false)}
+          className="border-b border-white/10 px-6 py-6 text-3xl font-black"
+        >
+          {label}
+        </Link>
+      ))}
+
+      <button
+        onClick={() => {
+          setMobileMenuOpen(false);
+          setShowCommunity(true);
+        }}
+        className="border-b border-white/10 px-6 py-6 text-left text-3xl font-black"
+      >
+        Community
+      </button>
+
+      <div className="px-6 py-6">
+        {!isLoaded ? (
+          <div className="h-14 w-full rounded-2xl bg-zinc-800" />
+        ) : isSignedIn ? (
+          <div className="flex items-center gap-4">
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "h-14 w-14 border border-zinc-700",
+                },
+              }}
+            />
+            <span className="text-xl font-black text-zinc-300">
+              Account
+            </span>
+          </div>
+        ) : (
+          <SignInButton mode="modal">
+            <button className="w-full rounded-2xl bg-cyan-500 px-6 py-5 text-2xl font-black text-black">
+              Sign In
+            </button>
+          </SignInButton>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+
       {showCommunity && (
   <>
     <div
