@@ -506,23 +506,23 @@ timeframe: timeframeText,
         {loading ? "Gaby is reviewing..." : answer}
       </div>
 
-<div className="mt-4 flex gap-2">
-  <button
-    onClick={() => window.dispatchEvent(new Event("startSimulatorTour"))}
-    className="h-11 rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
-  >
-    Explain Panel
-  </button>
+<div className="mt-4 flex flex-col gap-2 sm:flex-row">
+<button
+  onClick={() => window.dispatchEvent(new Event("startSimulatorTour"))}
+  className="h-11 w-full sm:w-auto rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
+>
+  Explain Panel
+</button>
 
-  <button
-    onClick={reviewTrade}
-    className="h-11 rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
-  >
-    Review Trade
-  </button>
+<button
+  onClick={reviewTrade}
+  className="h-11 w-full sm:w-auto rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
+>
+  Review Trade
+</button>
 </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
@@ -533,13 +533,13 @@ timeframe: timeframeText,
           className="h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
         />
 
-        <button
-          onClick={() => askGaby()}
-          disabled={loading}
-          className="h-11 rounded-xl bg-cyan-500 px-4 text-sm font-black text-black hover:bg-cyan-400 disabled:opacity-50"
-        >
-          Ask
-        </button>
+<button
+  onClick={() => askGaby()}
+  disabled={loading}
+  className="h-11 w-full sm:w-auto rounded-xl bg-cyan-500 px-4 text-sm font-black text-black hover:bg-cyan-400 disabled:opacity-50"
+>
+  Ask
+</button>
       </div>
     </div>
   );

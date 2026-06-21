@@ -3384,7 +3384,7 @@ takeProfit:
   className="fixed inset-0 z-40 bg-black/10"
  />
 
-    <div className="fixed bottom-[72px] left-[270px] z-50 w-[500px]">
+    <div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[270px] xl:w-[500px]">
       <button
         onClick={() => setShowSimulatorGaby(false)}
         className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"
