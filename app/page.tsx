@@ -6,16 +6,16 @@ export default function HomePage() {
       <Navbar />
 
 <main className="bg-black">
-  {/* Mobile hero */}
+  {/* Mobile TradeNestX Hero */}
   <div className="block md:hidden">
     <img
-      src="/learn/hero/tradenestx-hero-banner-4k.png"
+      src="/learn/hero/mobile-tradenestx-hero.png"
       alt="TradeNestX Hero"
-      className="block w-full object-contain"
+      className="w-full"
     />
   </div>
 
-  {/* Desktop hero */}
+  {/* Desktop TradeNestX Hero */}
   <div className="hidden h-screen w-full md:block">
     <img
       src="/learn/hero/tradenestx-hero-banner-4k.png"
@@ -24,7 +24,18 @@ export default function HomePage() {
     />
   </div>
 </main>
-<section className="bg-black">
+
+{/* Mobile Gaby */}
+<div className="block md:hidden bg-black">
+  <img
+    src="/learn/ai-coach/mobile-gaby-hero.png"
+    alt="AI Coach Preview"
+    className="w-full"
+  />
+</div>
+
+{/* Desktop Gaby */}
+<section className="hidden bg-black md:block">
   <img
     src="/learn/ai-coach/ai-coach-preview.png"
     alt="AI Coach Preview"
