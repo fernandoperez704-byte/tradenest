@@ -1996,6 +1996,13 @@ setTimeout(() => {
   ← Back to Coins
 </button>
 
+<button
+  onClick={() => setShowSimulatorGaby(true)}
+  className="mb-4 flex w-full items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-4 text-lg font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.12)] xl:hidden"
+>
+  Ask Gaby
+</button>
+
 <div className="relative mb-4 block xl:hidden">
   <button
     onClick={() => setShowMarketMenu(!showMarketMenu)}

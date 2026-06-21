@@ -1633,7 +1633,7 @@ onClick={completeLesson}
   alt="Market lesson"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
 <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -1756,7 +1756,7 @@ onClick={completeLesson}
   alt="Orders lesson"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
 <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -1885,7 +1885,7 @@ onClick={completeLesson}
           alt="Protecting Your Capital"
           width={1200}
           height={800}
-          className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+          className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
         />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2008,7 +2008,7 @@ onClick={completeLesson}
   alt="Trading Timeframes"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2129,7 +2129,7 @@ onClick={completeLesson}
   alt="Candlestick Basics"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2251,7 +2251,7 @@ onClick={completeLesson}
   alt="Volume Basics"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2373,7 +2373,7 @@ onClick={completeLesson}
   alt="Support and Resistance"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2493,7 +2493,7 @@ onClick={completeLesson}
   alt="Supply and Demand"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2614,7 +2614,7 @@ onClick={completeLesson}
   alt="Chart Patterns"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2735,7 +2735,7 @@ onClick={completeLesson}
   alt="Building A Trade Plan"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2855,7 +2855,7 @@ onClick={completeLesson}
   alt="Trading Psychology"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
@@ -2979,7 +2979,7 @@ onClick={completeLesson}
   alt="Essential Trading Terms"
   width={1200}
   height={800}
-  className="block w-full h-[420px] md:h-[625px] object-contain md:object-fill bg-white"
+  className="block w-full h-auto md:h-[625px] object-contain md:object-fill bg-white"
 />
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#050816] px-2 md:px-6 py-4">
