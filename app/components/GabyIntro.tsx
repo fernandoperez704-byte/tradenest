@@ -142,31 +142,29 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
           </div>
 
 <div className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-  <div className="flex items-center justify-between gap-4">
-    
-    <div>
-<h3 className="text-lg font-black text-emerald-300">
-  Ready To Start Your Journey?
-</h3>
+  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+    <div className="w-full md:max-w-[520px]">
+      <h3 className="text-lg font-black text-emerald-300">
+        Ready To Start Your Journey?
+      </h3>
 
-<p className="mt-2 text-sm text-zinc-300">
-  Complete Lesson 1, join the Discord community, and begin building real trading
-  skills one step at a time with Gaby guiding the way.
-</p>
+      <p className="mt-2 text-sm text-zinc-300">
+        Complete Lesson 1, join the Discord community, and begin building real
+        trading skills one step at a time with Gaby guiding the way.
+      </p>
     </div>
 
     <button
       onClick={onStartLesson}
-      className="group shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-3 font-black text-cyan-300 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white hover:shadow-[0_0_25px_rgba(34,211,238,0.25)]"
+      className="group w-full shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-3 text-center font-black text-cyan-300 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white hover:shadow-[0_0_25px_rgba(34,211,238,0.25)] md:w-auto"
     >
-      <span className="flex items-center gap-2">
-  Start Lesson 1
-  <span className="transition-transform duration-300 group-hover:translate-x-1">
-    →
-  </span>
-</span>
+      <span className="flex items-center justify-center gap-2">
+        Start Lesson 1
+        <span className="transition-transform duration-300 group-hover:translate-x-1">
+          →
+        </span>
+      </span>
     </button>
-
   </div>
 </div>
         </div>

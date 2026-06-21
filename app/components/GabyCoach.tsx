@@ -68,22 +68,22 @@ export default function GabyCoach({
             ))}
           </div>
 
-          <div className="mt-4 flex gap-3">
-            <input
-              value={gabyQuestion}
-              onChange={(e) => setGabyQuestion(e.target.value)}
-              placeholder="Ask Gaby anything about this lesson..."
-              className="flex-1 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400"
-            />
+<div className="mt-4 flex flex-col gap-3 md:flex-row">
+  <input
+    value={gabyQuestion}
+    onChange={(e) => setGabyQuestion(e.target.value)}
+    placeholder="Ask Gaby anything about this lesson..."
+    className="w-full min-w-0 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 text-white outline-none transition-all duration-300 focus:border-cyan-400 md:flex-1"
+  />
 
-            <button
-              onClick={() => askGaby(gabyQuestion)}
-              disabled={isGabyTyping}
-              className="rounded-2xl bg-cyan-400 px-6 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isGabyTyping ? "Thinking..." : "Ask Gaby"}
-            </button>
-          </div>
+  <button
+    onClick={() => askGaby(gabyQuestion)}
+    disabled={isGabyTyping}
+    className="w-full shrink-0 rounded-2xl bg-cyan-400 px-6 py-4 font-black text-black transition-all duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
+  >
+    {isGabyTyping ? "Thinking..." : "Ask Gaby"}
+  </button>
+</div>
         </div>
       </div>
     </div>
