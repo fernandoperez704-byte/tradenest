@@ -870,6 +870,8 @@ useEffect(() => {
   if (!chartRef.current || history.length === 0) return;
 
   if (!chartInstanceRef.current) {
+const isMobileChart = window.innerWidth < 1280;
+
     const chart = createChart(chartRef.current, {
       layout: {
         attributionLogo: false,
@@ -896,11 +898,11 @@ crosshair: {
         mouseWheel: true,
         pinch: true,
       },
-      width: chartRef.current.clientWidth,
-      height: 520,
+width: chartRef.current.clientWidth,
+height: isMobileChart ? 430 : 520,
 rightPriceScale: {
   borderColor: "#27272a",
-  visible: window.innerWidth >= 1280,
+  visible: !isMobileChart,
 },
 timeScale: {
   visible: true,
@@ -1932,10 +1934,16 @@ setTimeout(() => {
     <p className="text-xs text-zinc-500">{coin.name}</p>
   </div>
 
-  <p className="text-xs font-bold text-zinc-300">
+<p
+  className={`text-xs font-bold ${
+    selectedCoin === coin.symbol
+      ? "text-cyan-400"
+      : "text-emerald-400"
+  }`}
+>
   {coin.price
-  ? `$${coin.price.toLocaleString()}`
-  : "Loading..."}
+    ? `$${coin.price.toLocaleString()}`
+    : "Loading..."}
 </p>
 </div>
 
@@ -1981,7 +1989,7 @@ setTimeout(() => {
           </div>
 
             <div
-  className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-5 h-[760px] flex flex-col overflow-hidden ${
+  className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-4 xl:p-5 h-auto xl:h-[760px] flex flex-col overflow-visible xl:overflow-hidden ${
     mobileView === "TRADE" ? "flex" : "hidden xl:flex"
   } ${
     tourStep === 2
@@ -2119,7 +2127,7 @@ setTimeout(() => {
 <div className="flex-1 rounded-xl overflow-hidden">
   <div
     ref={chartRef}
-    className="h-[520px] w-full"
+    className="h-[430px] w-full xl:h-[520px]"
   />
 
 <div className="flex items-center justify-between border-t border-zinc-800 bg-[#0f172a] px-4 py-2 text-xs font-bold text-zinc-500">
@@ -2154,6 +2162,14 @@ setTimeout(() => {
 </button>
 
 </div>
+
+<button
+  onClick={() => setMobileView("ORDER")}
+  className="mt-4 flex w-full items-center justify-center rounded-2xl bg-cyan-500 px-5 py-4 text-xl font-black text-black xl:hidden"
+>
+  Trade
+</button>
+
 </div>
 
             <div
@@ -2495,7 +2511,7 @@ openFuturesPosition("SHORT");
       </div>
     <div
   className={`mt-2 page-container ${
-    mobileView === "TRADE" ? "block" : "hidden xl:block"
+    mobileView === "ORDER" ? "block" : "hidden xl:block"
   }`}
 >
   <div

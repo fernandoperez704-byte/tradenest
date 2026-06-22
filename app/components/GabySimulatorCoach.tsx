@@ -509,7 +509,7 @@ timeframe: timeframeText,
 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
 <button
   onClick={() => window.dispatchEvent(new Event("startSimulatorTour"))}
-  className="h-11 w-full sm:w-auto rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
+  className="hidden h-11 rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300 xl:block"
 >
   Explain Panel
 </button>
@@ -530,7 +530,7 @@ timeframe: timeframeText,
             if (e.key === "Enter") askGaby();
           }}
           placeholder="Ask me about the simulator or review a practice trade."
-          className="h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
+          className="h-14 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
         />
 
 <button
