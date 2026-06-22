@@ -108,7 +108,9 @@ const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a ca
 const [prices, setPrices] = useState<
   Partial<Record<AssetSymbol, number>>
 >({});
-
+const [previousPrices, setPreviousPrices] = useState<
+  Partial<Record<AssetSymbol, number>>
+>({});
   const [history, setHistory] = useState<PricePoint[]>([]);
   const [candlesReadyFor, setCandlesReadyFor] = useState("");
 const [timeframeStructures, setTimeframeStructures] = useState({});
@@ -474,11 +476,13 @@ if (livePrice && candlesReadyFor === activeCandleKey) {
   });
 }
 
-    setPrices((prev) => {
-      const updated = {
-        ...prev,
-        ...realPrices,
-      } as Record<AssetSymbol, number>;
+setPrices((prev) => {
+  setPreviousPrices(prev);
+
+  const updated = {
+    ...prev,
+    ...realPrices,
+  } as Record<AssetSymbol, number>;
 
 
 
@@ -1090,8 +1094,10 @@ const chartData = history
   );
 
 if (chartData.length > 80 && !chartInstanceRef.current.__didSetInitialRange) {
+  const visibleCandles = window.innerWidth < 1280 ? 70 : 160;
+
   chartInstanceRef.current.timeScale().setVisibleLogicalRange({
-    from: chartData.length - 160,
+    from: Math.max(chartData.length - visibleCandles, 0),
     to: chartData.length + 5,
   });
 
@@ -1911,7 +1917,7 @@ setTimeout(() => {
     520
   );
 
-  const visibleCandles = 50;
+  const visibleCandles = 70;
 
   chartInstanceRef.current?.timeScale().setVisibleLogicalRange({
     from: Math.max(history.length - visibleCandles, 0),
@@ -1936,9 +1942,13 @@ setTimeout(() => {
 
 <p
   className={`text-xs font-bold ${
-    selectedCoin === coin.symbol
+    previousPrices[coin.symbol] && coin.price
+      ? coin.price >= previousPrices[coin.symbol]!
+        ? "text-emerald-400"
+        : "text-red-400"
+      : selectedCoin === coin.symbol
       ? "text-cyan-400"
-      : "text-emerald-400"
+      : "text-zinc-300"
   }`}
 >
   {coin.price
@@ -2012,7 +2022,7 @@ setTimeout(() => {
   Ask Gaby
 </button>
 
-<div className="relative mb-4 block xl:hidden">
+<div className="relative mb-4 hidden">
   <button
     onClick={() => setShowMarketMenu(!showMarketMenu)}
     className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
@@ -2077,8 +2087,8 @@ setTimeout(() => {
   </div>
 </div>
 
-<div className="mb-2 flex items-center justify-between">
-  <div className="flex gap-2">
+<div className="mb-2 flex flex-col-reverse gap-2 xl:flex-row xl:items-center xl:justify-between">
+  <div className="flex flex-wrap gap-2">
     {["1M", "5M", "15M", "1H", "4H", "1D"].map(
       (timeframe) => (
         <button
@@ -2153,13 +2163,6 @@ setTimeout(() => {
     Live
   </button>
 </div>
-
-<button
-  onClick={() => setMobileView("ORDER")}
-  className="mt-4 flex w-full items-center justify-center rounded-2xl bg-cyan-500 px-5 py-4 text-xl font-black text-black xl:hidden"
->
-  Trade
-</button>
 
 </div>
 
