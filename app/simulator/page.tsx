@@ -98,7 +98,7 @@ useEffect(() => {
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
-  const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE">("WATCHLIST");
+  const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
   const [indicatorPanel, setIndicatorPanel] =
   useState<"VOLUME" | "RSI">("VOLUME");
@@ -898,9 +898,10 @@ crosshair: {
       },
       width: chartRef.current.clientWidth,
       height: 520,
-      rightPriceScale: {
-        borderColor: "#27272a",
-      },
+rightPriceScale: {
+  borderColor: "#27272a",
+  visible: window.innerWidth >= 1280,
+},
 timeScale: {
   visible: true,
   borderVisible: true,
@@ -2144,12 +2145,20 @@ setTimeout(() => {
     Live
   </button>
 </div>
+
+<button
+  onClick={() => setMobileView("ORDER")}
+  className="mt-4 flex w-full items-center justify-center rounded-2xl bg-cyan-500 px-5 py-4 text-xl font-black text-black xl:hidden"
+>
+  Trade
+</button>
+
 </div>
 </div>
 
             <div
   className={`space-y-2 xl:col-span-1 ${
-    mobileView === "TRADE" ? "block" : "hidden xl:block"
+    mobileView === "ORDER" ? "block" : "hidden xl:block"
   }`}
 >
 
@@ -2222,6 +2231,7 @@ setTimeout(() => {
 </div>
 
   <div
+  id="mobile-order-entry"
   className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-fit ${
     tourStep === 3
       ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
@@ -2229,6 +2239,13 @@ setTimeout(() => {
   }`}
 >
   
+<button
+  onClick={() => setMobileView("TRADE")}
+  className="mb-4 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
+>
+  ← Back To Chart
+</button>
+
 <div className="grid grid-cols-3 gap-3">
 
   <div className="col-span-2">
