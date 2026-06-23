@@ -125,7 +125,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 {showCommunity && (
   <>
     {/* Mobile dedicated community screen */}
-    <div className="fixed inset-0 z-[99999] bg-black text-white md:hidden">
+    <div className="fixed inset-0 z-[99999] bg-[#000000] opacity-100 text-white md:hidden">
       <button
         onClick={() => setShowCommunity(false)}
         className="absolute right-5 top-5 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-2xl font-black text-zinc-300 transition-all hover:border-cyan-400 hover:text-white"
@@ -133,7 +133,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
         ×
       </button>
 
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#000000] px-6 text-center">
         <h2 className="text-4xl font-black leading-tight text-white">
           Join TradeNestX Discord
         </h2>
