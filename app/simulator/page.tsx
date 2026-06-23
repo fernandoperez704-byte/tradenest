@@ -2115,48 +2115,44 @@ chartInstanceRef.current?.applyOptions({
     )}
   </div>
 
-<div className="flex items-center justify-between gap-2">
-  <div className="flex gap-2">
-    <button
-      onClick={() => setIndicatorPanel("VOLUME")}
-      className={`rounded-md border px-3 py-1.5 text-xs font-black ${
-        indicatorPanel === "VOLUME"
-          ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-          : "border-zinc-700 bg-[#111827] text-zinc-400"
-      }`}
-    >
-      Volume
-    </button>
+<div className="flex gap-2">
+  <button
+    onClick={() => setIndicatorPanel("VOLUME")}
+    className={`rounded-md border px-3 py-1.5 text-xs font-black ${
+      indicatorPanel === "VOLUME"
+        ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+        : "border-zinc-700 bg-[#111827] text-zinc-400"
+    }`}
+  >
+    Volume
+  </button>
 
-    <button
-      onClick={() => setIndicatorPanel("RSI")}
-      className={`rounded-md border px-3 py-1.5 text-xs font-black ${
-        indicatorPanel === "RSI"
-          ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-          : "border-zinc-700 bg-[#111827] text-zinc-400"
-      }`}
-    >
-      RSI
-    </button>
-  </div>
-</div>
+  <button
+    onClick={() => setIndicatorPanel("RSI")}
+    className={`rounded-md border px-3 py-1.5 text-xs font-black ${
+      indicatorPanel === "RSI"
+        ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+        : "border-zinc-700 bg-[#111827] text-zinc-400"
+    }`}
+  >
+    RSI
+  </button>
+
   <button
     onClick={() =>
-      chartInstanceRef.current?.timeScale().scrollToPosition(0, false)
+      chartInstanceRef.current?.timeScale().scrollToRealTime()
     }
     className="rounded-md border border-zinc-700 bg-[#111827] px-3 py-1.5 text-xs font-black text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
   >
     Live
   </button>
 </div>
-
-
-<div className="flex-1 rounded-xl overflow-hidden">
+</div>
+<div className="mt-2 flex-1 rounded-xl overflow-hidden">
   <div
     ref={chartRef}
     className="h-[430px] w-full xl:h-[520px]"
   />
-
 </div>
 
 <button
@@ -2165,10 +2161,9 @@ chartInstanceRef.current?.applyOptions({
 >
   Trade
 </button>
-
 </div>
 
-            <div
+<div
   className={`space-y-2 xl:col-span-1 ${
     mobileView === "ORDER" ? "block" : "hidden xl:block"
   }`}
