@@ -2138,14 +2138,14 @@ chartInstanceRef.current?.applyOptions({
     RSI
   </button>
 
-  <button
-    onClick={() =>
-      chartInstanceRef.current?.timeScale().scrollToRealTime()
-    }
-    className="rounded-md border border-zinc-700 bg-[#111827] px-3 py-1.5 text-xs font-black text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
-  >
-    Live
-  </button>
+<button
+  onClick={() =>
+    chartInstanceRef.current?.timeScale().scrollToRealTime()
+  }
+  className="rounded-md border px-3 py-1.5 text-xs font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+>
+  Live
+</button>
 </div>
 </div>
 <div className="mt-2 flex-1 rounded-xl overflow-hidden">
