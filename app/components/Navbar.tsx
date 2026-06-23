@@ -124,14 +124,8 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 {showCommunity && (
   <>
-    <div
-      onClick={() => setShowCommunity(false)}
-      className="fixed inset-0 z-[9998] bg-black"
-    />
-
-    <div className="fixed left-4 right-4 top-24 z-[9999] rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.85)] md:left-auto md:right-5 md:top-5 md:w-[360px]">
-
-    <div className="w-full max-w-md rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
+    {/* Mobile full-screen community */}
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black p-6 md:hidden">
       <button
         onClick={() => setShowCommunity(false)}
         className="absolute right-5 top-5 rounded-lg border border-zinc-700 px-3 py-1 text-zinc-400 transition hover:border-cyan-400 hover:text-white"
@@ -139,23 +133,58 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
         ✕
       </button>
 
-      <h2 className="pr-10 text-2xl font-black text-white">
-        Join TradeNestX Discord
-      </h2>
+      <div className="w-full max-w-md rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6">
+        <h2 className="text-2xl font-black text-white">
+          Join TradeNestX Discord
+        </h2>
 
-      <p className="mt-3 text-sm leading-6 text-zinc-400">
-        Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
-      </p>
+        <p className="mt-3 text-sm leading-6 text-zinc-400">
+          Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
+        </p>
 
-      <a
-        href="https://discord.gg/QReDrKSEKS"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition-all duration-200 hover:bg-cyan-400"
-      >
-        Open Discord
-      </a>
+        <a
+          href="https://discord.gg/QReDrKSEKS"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition-all duration-200 hover:bg-cyan-400"
+        >
+          Open Discord
+        </a>
+      </div>
     </div>
+
+    {/* Desktop popup */}
+    <div className="hidden md:block">
+      <div
+        onClick={() => setShowCommunity(false)}
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-md"
+      />
+
+      <div className="fixed right-5 top-5 z-50 w-[360px] rounded-[28px] border border-cyan-500/20 bg-[#050816]/95 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+        <button
+          onClick={() => setShowCommunity(false)}
+          className="absolute right-5 top-5 rounded-lg border border-zinc-700 px-3 py-1 text-zinc-400 transition hover:border-cyan-400 hover:text-white"
+        >
+          ✕
+        </button>
+
+        <h2 className="pr-10 text-2xl font-black text-white">
+          Join TradeNestX Discord
+        </h2>
+
+        <p className="mt-3 text-sm leading-6 text-zinc-400">
+          Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
+        </p>
+
+        <a
+          href="https://discord.gg/QReDrKSEKS"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition-all duration-200 hover:bg-cyan-400"
+        >
+          Open Discord
+        </a>
+      </div>
     </div>
   </>
 )}
