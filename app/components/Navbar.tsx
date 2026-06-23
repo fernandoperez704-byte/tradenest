@@ -124,12 +124,12 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
       {showCommunity && (
   <>
-    <div
-      onClick={() => setShowCommunity(false)}
-      className="fixed inset-0 z-40 bg-black/50 backdrop-blur-md"
-    />
+<div
+  onClick={() => setShowCommunity(false)}
+  className="fixed inset-0 z-40 bg-black/90"
+ />
 
-    <div className="fixed right-5 top-5 z-50 w-[360px] rounded-[28px] border border-cyan-500/20 bg-[#050816]/95 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+    <div className="fixed left-4 right-4 top-24 z-50 rounded-[28px] border border-cyan-500/20 bg-[#050816]/95 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)] md:left-auto md:right-5 md:top-5 md:w-[360px]">
       <button
         onClick={() => setShowCommunity(false)}
         className="absolute right-5 top-5 rounded-lg border border-zinc-700 px-3 py-1 text-zinc-400 transition hover:border-cyan-400 hover:text-white"

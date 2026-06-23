@@ -906,7 +906,12 @@ width: chartRef.current.clientWidth,
 height: isMobileChart ? 430 : 520,
 rightPriceScale: {
   borderColor: "#27272a",
-  visible: !isMobileChart,
+  visible: true,
+  entireTextOnly: true,
+  scaleMargins: {
+    top: 0.05,
+    bottom: 0.28,
+  },
 },
 timeScale: {
   visible: true,
@@ -922,13 +927,15 @@ timeScale: {
 },
     });
 
-    const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#16a34a",
-      downColor: "#dc2626",
-      borderVisible: false,
-      wickUpColor: "#16a34a",
-      wickDownColor: "#dc2626",
-    });
+const candleSeries = chart.addSeries(CandlestickSeries, {
+  upColor: "#16a34a",
+  downColor: "#dc2626",
+  borderVisible: false,
+  wickUpColor: "#16a34a",
+  wickDownColor: "#dc2626",
+  priceLineVisible: true,
+  lastValueVisible: true,
+});
 
     candleSeries.priceScale().applyOptions({
       scaleMargins: {
@@ -2137,7 +2144,7 @@ chartInstanceRef.current?.applyOptions({
     onClick={() =>
       chartInstanceRef.current?.timeScale().scrollToPosition(0, false)
     }
-    className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-black text-cyan-400 hover:bg-cyan-500/20"
+    className="rounded-md border border-zinc-700 bg-[#111827] px-3 py-1.5 text-xs font-black text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
   >
     Live
   </button>
@@ -2499,12 +2506,12 @@ openFuturesPosition("SHORT");
       </div>
       </div>
     <div
-  className={`mt-2 page-container ${
+  className={`mt-2 w-full px-4 xl:page-container ${
     mobileView === "ORDER" ? "block" : "hidden xl:block"
   }`}
 >
   <div
-  className={`max-w-[calc(100%-296px)] bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px] ${
+  className={`w-full bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px] xl:max-w-[calc(100%-296px)] ${
     tourStep === 4
       ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
       : ""
