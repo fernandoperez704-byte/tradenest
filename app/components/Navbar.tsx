@@ -124,34 +124,6 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 {showCommunity && (
   <>
-    {/* Mobile dedicated community screen */}
-    <div className="fixed inset-0 z-[99999] bg-black text-white md:hidden">
-      <button
-        onClick={() => setShowCommunity(false)}
-        className="absolute right-5 top-5 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-2xl font-black text-zinc-300 transition-all hover:border-cyan-400 hover:text-white"
-      >
-        ×
-      </button>
-
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <h2 className="text-4xl font-black leading-tight text-white">
-          Join TradeNestX Discord
-        </h2>
-
-        <p className="mt-5 max-w-sm text-lg leading-8 text-zinc-400">
-          Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
-        </p>
-
-        <a
-          href="https://discord.gg/QReDrKSEKS"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-8 flex h-16 w-full max-w-sm items-center justify-center rounded-2xl bg-cyan-500 text-xl font-black text-black transition-all duration-200 hover:bg-cyan-400"
-        >
-          Open Discord
-        </a>
-      </div>
-    </div>
 
     {/* Desktop popup */}
     <div className="hidden md:block">
@@ -189,6 +161,36 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   </>
 )}
     </nav>
+
+    {/* Mobile dedicated community screen */}
+    <div className="fixed inset-0 z-[99999] bg-black text-white md:hidden">
+      <button
+        onClick={() => setShowCommunity(false)}
+        className="absolute right-5 top-5 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-2xl font-black text-zinc-300 transition-all hover:border-cyan-400 hover:text-white"
+      >
+        ×
+      </button>
+
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <h2 className="text-4xl font-black leading-tight text-white">
+          Join TradeNestX Discord
+        </h2>
+
+        <p className="mt-5 max-w-sm text-lg leading-8 text-zinc-400">
+          Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
+        </p>
+
+        <a
+          href="https://discord.gg/QReDrKSEKS"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-8 flex h-16 w-full max-w-sm items-center justify-center rounded-2xl bg-cyan-500 text-xl font-black text-black transition-all duration-200 hover:bg-cyan-400"
+        >
+          Open Discord
+        </a>
+      </div>
+    </div>
+
 
 {mobileMenuOpen && (
   <div className="fixed inset-0 z-[9999] bg-[#000000] text-white md:hidden">
