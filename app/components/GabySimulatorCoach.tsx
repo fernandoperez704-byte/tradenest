@@ -151,11 +151,28 @@ if (originalQuestion.includes("resistance")) {
           supportLevels: marketIntelligence?.supportLevels,
           resistanceLevels: marketIntelligence?.resistanceLevels,
           patternAnalysis: marketIntelligence?.patternAnalysis,
-        momentumAnalysis: marketIntelligence?.momentumAnalysis,
-        volumeAnalysis: marketIntelligence?.volumeAnalysis,
-        rsiAnalysis: marketIntelligence?.rsiAnalysis,
-        marketConviction: marketIntelligence?.marketConviction,
-          trades: trades.slice(-5),
+momentumAnalysis: marketIntelligence?.momentumAnalysis,
+volumeAnalysis: marketIntelligence?.volumeAnalysis,
+rsiAnalysis: marketIntelligence?.rsiAnalysis,
+marketConviction: marketIntelligence?.marketConviction,
+
+marketState: marketIntelligence?.marketState,
+controlStrength: marketIntelligence?.controlStrength,
+moveCondition: marketIntelligence?.moveCondition,
+
+maStructureExtension:
+  marketIntelligence?.maStructureExtension,
+
+fallForce:
+  marketIntelligence?.fallForce,
+
+bouncePressure:
+  marketIntelligence?.bouncePressure,
+
+momentumStage:
+  marketIntelligence?.momentumStage,
+
+trades: trades.slice(-5),
           futuresHistory: futuresHistory.slice(-5),
           positions,
           futuresPositions,

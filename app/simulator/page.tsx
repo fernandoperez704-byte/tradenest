@@ -113,14 +113,18 @@ const [previousPrices, setPreviousPrices] = useState<
 >({});
   const [history, setHistory] = useState<PricePoint[]>([]);
   const [candlesReadyFor, setCandlesReadyFor] = useState("");
-const [timeframeStructures, setTimeframeStructures] = useState({});
+const [timeframeStructures, setTimeframeStructures] =
+  useState<Record<string, any>>({});
 const marketIntelligence =
   history.length > 20
     ? getMarketIntelligence(history)
     : null;
 
 const multiTimeframeAnalysis =
-  getMultiTimeframeAnalysis(timeframeStructures);
+  getMultiTimeframeAnalysis(
+    timeframeStructures,
+    selectedTimeframe
+  );
 
 const movingAverageAnalysis =
   history.length >= 99
@@ -835,7 +839,27 @@ const intelligence = getMarketIntelligence(data);
 
 setTimeframeStructures((prev) => ({
   ...prev,
-  [selectedTimeframe]: intelligence.structure,
+
+  [selectedTimeframe]: {
+    direction: intelligence.direction,
+
+    structure: intelligence.structure,
+
+    momentum:
+      intelligence.momentumAnalysis?.momentum,
+
+    conviction:
+      intelligence.marketConviction,
+
+    extension:
+      intelligence.maStructureExtension,
+
+    bouncePressure:
+      intelligence.bouncePressure,
+
+    momentumStage:
+      intelligence.momentumStage,
+  },
 }));
 
 setCandlesReadyFor(candleKey);

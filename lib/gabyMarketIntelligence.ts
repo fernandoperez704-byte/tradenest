@@ -82,6 +82,51 @@ export type MarketConviction =
   | "MIXED_CONDITIONS"
   | "LOW_CONVICTION";
 
+export type MAStructureExtension =
+  | "LOW"
+  | "MODERATE"
+  | "HIGH"
+  | "EXTREME_UPSIDE"
+  | "EXTREME_DOWNSIDE";
+
+export type FallForce =
+  | "WEAK"
+  | "NORMAL"
+  | "STRONG"
+  | "EXTREME";
+
+export type BouncePressure =
+  | "LOW"
+  | "MODERATE"
+  | "ELEVATED"
+  | "HIGH";
+
+export type MomentumStage =
+  | "EARLY_BREAKOUT"
+  | "EARLY_BREAKDOWN"
+  | "HEALTHY_CONTINUATION"
+  | "LATE_NEAR_RESISTANCE"
+  | "LATE_NEAR_SUPPORT"
+  | "EXHAUSTED_AT_RESISTANCE"
+  | "EXHAUSTED_AT_SUPPORT"
+  | "NONE";
+
+export type MarketState =
+  | "BULLS_IN_CONTROL"
+  | "BEARS_IN_CONTROL"
+  | "TRANSITION";
+
+export type ControlStrength =
+  | "STRENGTHENING"
+  | "STABLE"
+  | "WEAKENING";
+
+export type MoveCondition =
+  | "FRESH"
+  | "MATURE"
+  | "STRETCHED"
+  | "EXHAUSTED";
+
 export type MarketIntelligence = {
   direction: "BULLISH" | "BEARISH" | "TRANSITION";
   structure: MarketStructure;
@@ -93,6 +138,15 @@ export type MarketIntelligence = {
   momentumAnalysis: MomentumAnalysis | null;
   volumeAnalysis: VolumeAnalysis | null;
 rsiAnalysis: RSIAnalysis | null;
+maStructureExtension: MAStructureExtension;
+fallForce: FallForce;
+bouncePressure: BouncePressure;
+momentumStage: MomentumStage;
+
+marketState: MarketState;
+controlStrength: ControlStrength;
+moveCondition: MoveCondition;
+
 marketConviction: MarketConviction;
 };
 
@@ -106,9 +160,15 @@ export type TimeframeStructureMap = {
 };
 
 export type MultiTimeframeAnalysis = {
-  shortTerm: MarketStructure;
-  mediumTerm: MarketStructure;
-  longTerm: MarketStructure;
+  status:
+    | "ALIGNED"
+    | "PARTIALLY_ALIGNED"
+    | "CONFLICTING";
+
+  primaryTimeframe: string;
+
+  supportingTimeframes: string[];
+
   summary: string;
 };
 
@@ -765,15 +825,35 @@ return {
   patternAnalysis: null,
   momentumAnalysis: null,
   volumeAnalysis: null,
-  rsiAnalysis: null,
-  marketConviction: "LOW_CONVICTION",
+rsiAnalysis: null,
+maStructureExtension: "LOW",
+fallForce: "NORMAL",
+bouncePressure: "LOW",
+momentumStage: "NONE",
+marketState: "TRANSITION",
+controlStrength: "WEAKENING",
+moveCondition: "FRESH",
+marketConviction: "LOW_CONVICTION",
 };
   }
 
   const currentPrice = recentCandles[recentCandles.length - 1].close;
 
-const direction =
-  getMADirection(recentCandles).direction;
+const maDirection = getMADirection(recentCandles);
+
+const direction = maDirection.direction;
+
+const maStructureExtension =
+  maDirection.ma7 && maDirection.ma25 && maDirection.ma99
+    ? getMAStructureExtension(
+        currentPrice,
+        maDirection.ma7,
+        maDirection.ma25,
+        maDirection.ma99
+      )
+    : "LOW";
+
+const fallForce = getFallForce(recentCandles);
 
   const supportZones = groupZones(getSwingLows(recentCandles));
   const resistanceZones = groupZones(getSwingHighs(recentCandles));
@@ -803,6 +883,41 @@ const volumeAnalysis = getVolumeAnalysis(recentCandles);
 
 const rsiAnalysis = getRSIAnalysis(recentCandles);
 
+const bouncePressure = getBouncePressure(
+  maStructureExtension,
+  fallForce,
+  rsiAnalysis,
+  nearestSupport,
+  currentPrice
+);
+
+const momentumStage = getMomentumStage(
+  momentumAnalysis,
+  patternAnalysis,
+  nearestSupport,
+  nearestResistance,
+  currentPrice,
+  maStructureExtension,
+  bouncePressure
+);
+
+const marketState = getMarketState(
+  direction,
+  structure
+);
+
+const controlStrength = getControlStrength(
+  momentumAnalysis,
+  volumeAnalysis,
+  fallForce
+);
+
+const moveCondition = getMoveCondition(
+  maStructureExtension,
+  bouncePressure,
+  momentumStage
+);
+
 return {
   direction,
   structure,
@@ -814,6 +929,13 @@ return {
   momentumAnalysis,
   volumeAnalysis,
   rsiAnalysis,
+maStructureExtension,
+fallForce,
+bouncePressure,
+momentumStage,
+marketState,
+controlStrength,
+moveCondition,
 marketConviction: getMarketConviction(
   direction,
   structure,
@@ -826,67 +948,122 @@ marketConviction: getMarketConviction(
 }
 
 export function getMultiTimeframeAnalysis(
-  timeframeStructures: TimeframeStructureMap
+  timeframeData: Record<string, any>,
+  selectedTimeframe: string
 ): MultiTimeframeAnalysis {
-  const shortTerm = getDominantStructure([
-    timeframeStructures["1M"],
-    timeframeStructures["5M"],
-    timeframeStructures["15M"],
-  ]);
+  const contextMap: Record<
+    string,
+    string[]
+  > = {
+    "1M": ["5M", "15M"],
+    "5M": ["1M", "15M"],
+    "15M": ["5M", "1H"],
+    "1H": ["15M", "4H"],
+    "4H": ["1H", "1D"],
+    "1D": ["4H"],
+  };
 
-  const mediumTerm = getDominantStructure([
-    timeframeStructures["1H"],
-    timeframeStructures["4H"],
-  ]);
+  const primary =
+    timeframeData[selectedTimeframe];
 
-  const longTerm = timeframeStructures["1D"] ?? "RANGING";
+  if (!primary) {
+    return {
+      status: "CONFLICTING",
+      primaryTimeframe: selectedTimeframe,
+      supportingTimeframes: [],
+      summary:
+        "Not enough timeframe data yet.",
+    };
+  }
 
-  let summary = "The market is mixed across timeframes.";
+  const supporting =
+    contextMap[selectedTimeframe] || [];
 
+let alignedScore = 0;
+let conflictingScore = 0;
+let checkedTimeframes = 0;
+
+supporting.forEach((tf) => {
+  const data = timeframeData[tf];
+
+  if (!data) return;
+
+  checkedTimeframes++;
+
+  // Direction is most important
+  if (data.direction === primary.direction) {
+    alignedScore += 3;
+  } else {
+    conflictingScore += 3;
+  }
+
+  // Momentum confirms or weakens alignment
   if (
-    shortTerm === "BULLISH" &&
-    mediumTerm === "BULLISH" &&
-    longTerm === "BULLISH"
+    data.momentum &&
+    primary.momentum &&
+    data.momentum === primary.momentum
   ) {
-    summary =
-      "The market is bullish across short-term, medium-term, and long-term timeframes.";
+    alignedScore += 2;
   } else if (
-    shortTerm === "BEARISH" &&
-    mediumTerm === "BEARISH" &&
-    longTerm === "BEARISH"
+    data.momentum &&
+    primary.momentum &&
+    data.momentum !== primary.momentum
   ) {
-    summary =
-      "The market is bearish across short-term, medium-term, and long-term timeframes.";
+    conflictingScore += 2;
+  }
+
+  // Conviction adds smaller confirmation
+  if (
+    data.conviction &&
+    primary.conviction &&
+    data.conviction === primary.conviction
+  ) {
+    alignedScore += 1;
   } else if (
-    shortTerm === "BULLISH" &&
-    longTerm === "BEARISH"
+    data.conviction &&
+    primary.conviction &&
+    data.conviction !== primary.conviction
   ) {
+    conflictingScore += 1;
+  }
+});
+
+  let status:
+    | "ALIGNED"
+    | "PARTIALLY_ALIGNED"
+    | "CONFLICTING";
+
+if (checkedTimeframes === 0) {
+  status = "CONFLICTING";
+} else if (alignedScore >= conflictingScore + 4) {
+  status = "ALIGNED";
+} else if (alignedScore > conflictingScore) {
+  status = "PARTIALLY_ALIGNED";
+} else {
+  status = "CONFLICTING";
+}
+  let summary =
+    "Nearby timeframes are mixed.";
+
+  if (status === "ALIGNED") {
     summary =
-      "The short-term trend is bullish, but the higher timeframe trend is still bearish.";
-  } else if (
-    shortTerm === "BEARISH" &&
-    longTerm === "BULLISH"
-  ) {
+      "Nearby timeframes support the current timeframe direction.";
+  }
+
+  if (status === "PARTIALLY_ALIGNED") {
     summary =
-      "The short-term trend is bearish, but the higher timeframe trend is still bullish.";
-  } else if (
-    shortTerm === "BULLISH" &&
-    mediumTerm === "BULLISH"
-  ) {
+      "Some nearby timeframes support the current direction while others disagree.";
+  }
+
+  if (status === "CONFLICTING") {
     summary =
-      "The short-term and medium-term trends are bullish.";
-  } else if (
-    shortTerm === "BEARISH" &&
-    mediumTerm === "BEARISH"
-  ) {
-    summary =
-      "The short-term and medium-term trends are bearish.";
+      "Nearby timeframes are opposing the current timeframe direction.";
   }
 
   return {
-    shortTerm,
-    mediumTerm,
-    longTerm,
+    status,
+    primaryTimeframe: selectedTimeframe,
+    supportingTimeframes: supporting,
     summary,
   };
 }
@@ -1027,6 +1204,255 @@ export function getMovingAverageAnalysis(
     direction,
     summary,
   };
+}
+
+function percentDistance(price: number, ma: number) {
+  if (!ma || ma <= 0) return 0;
+  return ((price - ma) / ma) * 100;
+}
+
+export function getMAStructureExtension(
+  price: number,
+  ma7: number,
+  ma25: number,
+  ma99: number
+): MAStructureExtension {
+  const distances = [
+    percentDistance(price, ma7),
+    percentDistance(price, ma25),
+    percentDistance(price, ma99),
+  ];
+
+  const averageDistance =
+    distances.reduce((sum, value) => sum + Math.abs(value), 0) /
+    distances.length;
+
+  const aboveAll = price > ma7 && price > ma25 && price > ma99;
+  const belowAll = price < ma7 && price < ma25 && price < ma99;
+
+  if (belowAll && averageDistance >= 2.5) return "EXTREME_DOWNSIDE";
+  if (aboveAll && averageDistance >= 2.5) return "EXTREME_UPSIDE";
+  if (averageDistance >= 1.5) return "HIGH";
+  if (averageDistance >= 0.75) return "MODERATE";
+
+  return "LOW";
+}
+
+export function getFallForce(candles: Candle[]): FallForce {
+  if (candles.length < 10) return "NORMAL";
+
+  const recent = candles.slice(-8);
+
+  const firstClose = recent[0].close;
+  const lastClose = recent[recent.length - 1].close;
+
+  const movePercent = ((lastClose - firstClose) / firstClose) * 100;
+
+  let bearishCandles = 0;
+
+  recent.forEach((candle) => {
+    if (candle.close < candle.open) {
+      bearishCandles++;
+    }
+  });
+
+  const bearishRatio = bearishCandles / recent.length;
+
+  if (movePercent <= -2.5 && bearishRatio >= 0.75) return "EXTREME";
+  if (movePercent <= -1.5 && bearishRatio >= 0.6) return "STRONG";
+  if (movePercent <= -0.75) return "NORMAL";
+
+  return "WEAK";
+}
+
+export function getBouncePressure(
+  maStructureExtension: MAStructureExtension,
+  fallForce: FallForce,
+  rsi: RSIAnalysis | null,
+  nearestSupport: PriceZone | null,
+  currentPrice: number
+): BouncePressure {
+  let score = 0;
+
+  if (maStructureExtension === "EXTREME_DOWNSIDE") score += 3;
+  if (maStructureExtension === "HIGH") score += 2;
+  if (maStructureExtension === "MODERATE") score += 1;
+
+  if (fallForce === "EXTREME") score += 3;
+  if (fallForce === "STRONG") score += 2;
+  if (fallForce === "NORMAL") score += 1;
+
+  if (rsi?.rsi === "RSI_OVERSOLD") score += 2;
+
+  if (
+    nearestSupport &&
+    currentPrice > nearestSupport.low &&
+    currentPrice <= nearestSupport.high * 1.003
+  ) {
+    score += 2;
+  }
+
+  if (score >= 7) return "HIGH";
+  if (score >= 5) return "ELEVATED";
+  if (score >= 3) return "MODERATE";
+
+  return "LOW";
+}
+
+export function getMomentumStage(
+  momentum: MomentumAnalysis | null,
+  pattern: PatternAnalysis | null,
+  nearestSupport: PriceZone | null,
+  nearestResistance: PriceZone | null,
+  currentPrice: number,
+  maStructureExtension: MAStructureExtension,
+  bouncePressure: BouncePressure
+): MomentumStage {
+  const nearSupport = isPriceNearZone(
+    currentPrice,
+    nearestSupport,
+    0.003
+  );
+
+  const nearResistance = isPriceNearZone(
+    currentPrice,
+    nearestResistance,
+    0.003
+  );
+
+  if (
+    momentum?.momentum === "BULLISH_MOMENTUM" &&
+    pattern?.pattern === "RESISTANCE_BREAKING"
+  ) {
+    return "EARLY_BREAKOUT";
+  }
+
+  if (
+    momentum?.momentum === "BEARISH_MOMENTUM" &&
+    pattern?.pattern === "SUPPORT_BREAKING"
+  ) {
+    return "EARLY_BREAKDOWN";
+  }
+
+  if (
+    momentum?.momentum === "BULLISH_MOMENTUM" &&
+    nearResistance &&
+    maStructureExtension === "EXTREME_UPSIDE"
+  ) {
+    return "EXHAUSTED_AT_RESISTANCE";
+  }
+
+  if (
+    momentum?.momentum === "BEARISH_MOMENTUM" &&
+    nearSupport &&
+    bouncePressure === "HIGH"
+  ) {
+    return "EXHAUSTED_AT_SUPPORT";
+  }
+
+  if (
+    momentum?.momentum === "BULLISH_MOMENTUM" &&
+    nearResistance
+  ) {
+    return "LATE_NEAR_RESISTANCE";
+  }
+
+  if (
+    momentum?.momentum === "BEARISH_MOMENTUM" &&
+    nearSupport
+  ) {
+    return "LATE_NEAR_SUPPORT";
+  }
+
+  if (
+    momentum?.momentum === "BULLISH_MOMENTUM" ||
+    momentum?.momentum === "BEARISH_MOMENTUM"
+  ) {
+    return "HEALTHY_CONTINUATION";
+  }
+
+  return "NONE";
+}
+
+export function getMarketState(
+  direction: "BULLISH" | "BEARISH" | "TRANSITION",
+  structure: MarketStructure
+): MarketState {
+  if (
+    direction === "BULLISH" &&
+    (structure === "BULLISH" || structure === "HIGHER_HIGHS")
+  ) {
+    return "BULLS_IN_CONTROL";
+  }
+
+  if (
+    direction === "BEARISH" &&
+    (structure === "BEARISH" || structure === "LOWER_LOWS")
+  ) {
+    return "BEARS_IN_CONTROL";
+  }
+
+  return "TRANSITION";
+}
+
+export function getControlStrength(
+  momentum: MomentumAnalysis | null,
+  volume: VolumeAnalysis | null,
+  fallForce: FallForce
+): ControlStrength {
+  let score = 0;
+
+  if (
+    momentum?.momentum === "BULLISH_MOMENTUM" ||
+    momentum?.momentum === "BEARISH_MOMENTUM"
+  ) {
+    score += 2;
+  }
+
+  if (
+    volume?.volume === "RISING_VOLUME" ||
+    volume?.volume === "VOLUME_SPIKE"
+  ) {
+    score += 1;
+  }
+
+  if (fallForce === "STRONG") score += 1;
+  if (fallForce === "EXTREME") score += 2;
+
+  if (score >= 4) return "STRENGTHENING";
+  if (score >= 2) return "STABLE";
+
+  return "WEAKENING";
+}
+
+export function getMoveCondition(
+  extension: MAStructureExtension,
+  bouncePressure: BouncePressure,
+  momentumStage: MomentumStage
+): MoveCondition {
+  if (
+    momentumStage === "EXHAUSTED_AT_RESISTANCE" ||
+    momentumStage === "EXHAUSTED_AT_SUPPORT"
+  ) {
+    return "EXHAUSTED";
+  }
+
+  if (
+    bouncePressure === "HIGH" ||
+    extension === "EXTREME_DOWNSIDE" ||
+    extension === "EXTREME_UPSIDE"
+  ) {
+    return "STRETCHED";
+  }
+
+  if (
+    momentumStage === "LATE_NEAR_RESISTANCE" ||
+    momentumStage === "LATE_NEAR_SUPPORT"
+  ) {
+    return "MATURE";
+  }
+
+  return "FRESH";
 }
 
 export function getMADirection(candles: Candle[]) {
