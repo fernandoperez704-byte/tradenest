@@ -162,11 +162,14 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 )}
     </nav>
 
+{showCommunity && (
+  <>
     {/* Mobile dedicated community screen */}
     <div className="fixed inset-0 z-[99999] bg-black text-white md:hidden">
       <button
+        type="button"
         onClick={() => setShowCommunity(false)}
-        className="absolute right-5 top-5 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-2xl font-black text-zinc-300 transition-all hover:border-cyan-400 hover:text-white"
+        className="fixed right-5 top-24 z-[100000] rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-2xl font-black text-zinc-300 transition-all hover:border-cyan-400 hover:text-white"
       >
         ×
       </button>
@@ -190,7 +193,8 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
         </a>
       </div>
     </div>
-
+  </>
+)}
 
 {mobileMenuOpen && (
   <div className="fixed inset-0 z-[9999] bg-[#000000] text-white md:hidden">
