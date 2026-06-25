@@ -17,26 +17,49 @@ export async function POST(req: Request) {
 
 const normalizedQuestion = question?.trim().toLowerCase();
 
-const simpleReplies = [
-  "ok",
-  "okay",
-  "yes",
-  "yep",
-  "yup",
-  "thanks",
-  "thank you",
-  "got it",
-  "understood",
-  "makes sense",
-  "cool",
-  "nice",
-];
+const acknowledgementReplies: Record<string, string> = {
+  ok: "Great. What would you like to explore next?",
+  okay: "Great. What would you like to explore next?",
+  yes: "Perfect.",
+  yep: "Perfect.",
+  yup: "Perfect.",
+  cool: "Glad that helped.",
+  nice: "Happy to help.",
+  "got it": "Perfect.",
+  understood: "Excellent.",
+  "makes sense": "I'm glad it makes sense.",
+  thanks: "You're welcome!",
+  "thank you": "You're very welcome!",
+  ty: "You're welcome!",
+  thx: "You're welcome!",
+  hi: "Hi! What can I help you understand today?",
+  hello: "Hello! What would you like to explore today?",
+  hey: "Hey! What can I help you understand today?",
+  "good morning": "Good morning! Ready to learn something new?",
+  "good afternoon": "Good afternoon! What can I help you with today?",
+  "good evening": "Good evening! What would you like to discuss?",
+  bye: "Take care! Keep practicing, and I'll be here whenever you're ready.",
+  goodbye: "Take care! See you next time.",
+  "see you": "See you next time!",
+  "talk later": "Sounds good. I'll be here when you're back.",
+  "good night": "Good night! See you soon.",
+};
 
-if (simpleReplies.includes(normalizedQuestion)) {
+const acknowledgementReply =
+  acknowledgementReplies[normalizedQuestion];
+
+if (acknowledgementReply) {
   return Response.json({
-    answer: "Got it.",
+    answer: acknowledgementReply,
   });
 }
+
+const {
+  conversationIntent,
+  conversationSubject,
+  conversationState,
+  ...marketFacts
+} = simulatorContext || {};
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -165,19 +188,36 @@ Style:
 - No motivational filler.
 
 Conversation Style:
-- Never describe the conversation.
-- Never say:
-  "You asked why..."
-  "Earlier you asked..."
-  "The user asked..."
-  "After I mentioned..."
-  "Previously I said..."
 
-- Speak like a market analyst.
-- Explain support, resistance, direction, structure, and trade location directly.
-- Focus on the market, not the conversation.
-- Never explain why you are answering.
-- Just answer.
+Continue the current conversation naturally.
+
+Do not restart the discussion unless the user clearly changes topics.
+
+If the user asks a follow-up such as:
+
+- Why?
+- How?
+- Explain that.
+- Explain more.
+- Can you explain again?
+- What do you mean?
+
+Assume they are referring to the current conversation subject.
+
+Stay on the same subject until the user clearly changes topics.
+
+Do not switch into market analysis unless the user asks for market analysis.
+
+Do not introduce new topics.
+
+Never say:
+
+"You asked..."
+"Earlier you asked..."
+"The user asked..."
+"Previously I said..."
+
+Just answer naturally while staying on the current subject.
 
 Preferred examples:
 - "That resistance zone has rejected price before, which is why traders may watch it as a potential obstacle."
@@ -261,17 +301,35 @@ WEAK_MOMENTUM
 User Question:
 ${question}
 
-Simulator Facts:
-${JSON.stringify(simulatorContext || {}, null, 2)}
+Conversation State:
 
-Latest Reviewed Trade Facts:
-${lastReviewData ? JSON.stringify(lastReviewData, null, 2) : "NONE"}
+Intent:
+${conversationIntent || "NONE"}
+
+Subject:
+${conversationSubject || "NONE"}
+
+State:
+${JSON.stringify(conversationState || {}, null, 2)}
+
+Conversation Instruction:
+
+If the conversation subject exists, remain on that subject until the user clearly changes topics.
+
+Treat the conversation state as the highest-priority context for follow-up questions.
 
 Recent Conversation:
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
 
+Simulator Facts:
+${JSON.stringify(marketFacts, null, 2)}
+
+Latest Reviewed Trade Facts:
+${lastReviewData ? JSON.stringify(lastReviewData, null, 2) : "NONE"}
+
 Last Referenced Level:
 ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
+
 Last Topic:
 ${lastTopic || "NONE"}
 
@@ -405,6 +463,107 @@ Choose the response mode based on the user's question.
 Question Classification:
 
 Before answering, determine the user's intent.
+
+Conversation Priority Rule:
+
+Always decide what the user is trying to accomplish before using any market facts.
+
+The conversation determines the response.
+
+The market provides supporting evidence only when appropriate.
+
+Priority Order:
+
+1. Continue the current conversation.
+2. Answer the user's actual question.
+3. Follow simulatorContext.conversationIntent.
+4. Follow simulatorContext.conversationSubject.
+5. Use simulator facts only if they support the current conversation.
+6. Only perform a full market analysis when the user explicitly asks for one.
+
+Never abandon the current conversation simply because market facts are available.
+
+Never replace an educational discussion with a market analysis.
+
+Never replace a coaching discussion with a market analysis.
+
+Never replace a simulator help discussion with a market analysis.
+
+Conversation Intent Rule:
+
+If simulatorContext.conversationIntent is provided, use it as the primary intent.
+
+Do not override it unless the user question clearly requires a different intent.
+
+Intent meanings:
+
+CONVERSATION_ACKNOWLEDGEMENT:
+Respond naturally and briefly.
+
+Do not analyze the market.
+
+Do not teach.
+
+Do not change the conversation subject.
+
+CONVERSATION_THANKS:
+Respond politely.
+
+Do not continue teaching.
+
+Do not analyze the market.
+
+CONVERSATION_GREETING:
+Greet the user naturally and invite them to ask a question.
+
+CONVERSATION_FAREWELL:
+End the conversation warmly.
+
+Do not introduce new topics.
+
+FOLLOW_UP:
+Continue the current conversation.
+
+The current conversation subject is more important than the current market.
+
+If simulatorContext.conversationSubject exists, assume the user is still referring to that subject.
+
+Examples of follow-up questions:
+- Why?
+- How?
+- Explain that.
+- Explain more.
+- Can you explain again?
+- What do you mean?
+- How is that different?
+
+Continue teaching the existing subject.
+
+Do not replace the subject with a new market analysis.
+
+Do not introduce new topics.
+
+Only change subjects if the user clearly asks about something different.
+
+Only perform market analysis if the user explicitly asks for market analysis.
+
+EDUCATION:
+Teach the concept first. Use simulator facts only as a small example if helpful.
+
+COACHING:
+The user is sharing their own analysis. Respond like a coach: identify what makes sense, explain what is missing, and guide them to the stronger read.
+
+SIMULATOR_HELP:
+Explain the simulator, leverage, margin, liquidation, orders, balance, or position size. Do not analyze the chart unless directly relevant.
+
+TRADE_REVIEW:
+Use Latest Reviewed Trade Facts first. Do not perform a fresh chart analysis unless needed.
+
+MARKET_ANALYSIS:
+Use the Primary Market Framework.
+
+GENERAL_QUESTION:
+Answer the question directly. Use simulator facts only if relevant.
 
 Possible intents:
 
