@@ -13,6 +13,7 @@ type GabySimulatorCoachProps = {
   marginUsed: number;
 
   marketIntelligence?: any;
+  marketAnalysisSummary?: string;
   movingAverageAnalysis?: any;
   currentEntryQuality?: string | null;
   selectedTimeframe?: string;
@@ -29,8 +30,9 @@ export default function GabySimulatorCoach({
   futuresPositions,
   balance,
   marginUsed,
-  marketIntelligence,
-  movingAverageAnalysis,
+marketIntelligence,
+marketAnalysisSummary,
+movingAverageAnalysis,
   currentEntryQuality,
   selectedTimeframe,
   currentPrice,
@@ -338,16 +340,18 @@ simulatorContext: {
           ma7: movingAverageAnalysis?.ma7,
           ma25: movingAverageAnalysis?.ma25,
           ma99: movingAverageAnalysis?.ma99,
-          nearestSupport: marketIntelligence?.nearestSupport,
-          nearestResistance: marketIntelligence?.nearestResistance,
-          supportLevels: marketIntelligence?.supportLevels,
-          resistanceLevels: marketIntelligence?.resistanceLevels,
+nearestSupport: marketIntelligence?.nearestSupport,
+nextSupport: marketIntelligence?.nextSupport,
+nearestResistance: marketIntelligence?.nearestResistance,
+nextResistance: marketIntelligence?.nextResistance,
+supportLevels: marketIntelligence?.supportLevels,
+resistanceLevels: marketIntelligence?.resistanceLevels,
           patternAnalysis: marketIntelligence?.patternAnalysis,
 momentumAnalysis: marketIntelligence?.momentumAnalysis,
 volumeAnalysis: marketIntelligence?.volumeAnalysis,
 rsiAnalysis: marketIntelligence?.rsiAnalysis,
 marketConviction: marketIntelligence?.marketConviction,
-
+marketAnalysisSummary,
 marketState: marketIntelligence?.marketState,
 controlStrength: marketIntelligence?.controlStrength,
 moveCondition: marketIntelligence?.moveCondition,

@@ -21,6 +21,7 @@ import {
   getStructureAnalysis,
   getPriceLocation,
   getEntryQuality,
+  buildMarketAnalysisSummary,
 } from "@/lib/gabyMarketIntelligence";
 
 import { db } from "../firebase";
@@ -119,6 +120,15 @@ const marketIntelligence =
   history.length > 20
     ? getMarketIntelligence(history)
     : null;
+
+const marketAnalysisSummary =
+  marketIntelligence
+    ? buildMarketAnalysisSummary(
+        marketIntelligence,
+        selectedTimeframe,
+        selectedCoin
+      )
+    : "";
 
 const multiTimeframeAnalysis =
   getMultiTimeframeAnalysis(
@@ -3450,6 +3460,7 @@ takeProfit:
   balance={balance}
   marginUsed={marginUsed}
   marketIntelligence={marketIntelligence}
+  marketAnalysisSummary={marketAnalysisSummary}
   movingAverageAnalysis={movingAverageAnalysis}
   currentEntryQuality={currentEntryQuality}
   selectedTimeframe={selectedTimeframe}

@@ -130,8 +130,10 @@ export type MoveCondition =
 export type MarketIntelligence = {
   direction: "BULLISH" | "BEARISH" | "TRANSITION";
   structure: MarketStructure;
-  nearestSupport: PriceZone | null;
-  nearestResistance: PriceZone | null;
+nearestSupport: PriceZone | null;
+nextSupport: PriceZone | null;
+nearestResistance: PriceZone | null;
+nextResistance: PriceZone | null;
   supportLevels: PriceZone[];
   resistanceLevels: PriceZone[];
   patternAnalysis: PatternAnalysis | null;
@@ -818,8 +820,10 @@ if (
 return {
   direction: "TRANSITION",
   structure: "RANGING",
-  nearestSupport: null,
-  nearestResistance: null,
+nearestSupport: null,
+nextSupport: null,
+nearestResistance: null,
+nextResistance: null,
   supportLevels: [],
   resistanceLevels: [],
   patternAnalysis: null,
@@ -867,7 +871,10 @@ const resistanceLevels = resistanceZones
   .sort((a, b) => a.low - b.low);
 
 const nearestSupport = supportLevels[0] ?? null;
+const nextSupport = supportLevels[1] ?? null;
+
 const nearestResistance = resistanceLevels[0] ?? null;
+const nextResistance = resistanceLevels[1] ?? null;
 
 const structure = getMarketStructure(recentCandles);
 
@@ -921,10 +928,12 @@ const moveCondition = getMoveCondition(
 return {
   direction,
   structure,
-  nearestSupport,
-  nearestResistance,
-  supportLevels,
-  resistanceLevels,
+nearestSupport,
+nextSupport,
+nearestResistance,
+nextResistance,
+supportLevels,
+resistanceLevels,
   patternAnalysis,
   momentumAnalysis,
   volumeAnalysis,
@@ -1536,4 +1545,115 @@ export function getStructureAnalysis(
     summary:
       "Market structure is mixed.",
   };
+}
+
+function zonePrice(zone: PriceZone | null) {
+  if (!zone) return null;
+
+  const midpoint = (zone.low + zone.high) / 2;
+
+  return Number(midpoint.toFixed(0));
+}
+
+export function buildMarketAnalysisSummary(
+  market: MarketIntelligence,
+  selectedTimeframe: string,
+  selectedCoin: string
+): string {
+  const timeframe = selectedTimeframe || "1M";
+  const coin = selectedCoin || "the selected market";
+
+  const nearestSupport = zonePrice(market.nearestSupport);
+  const nextSupport = zonePrice(market.nextSupport);
+  const nearestResistance = zonePrice(market.nearestResistance);
+  const nextResistance = zonePrice(market.nextResistance);
+
+  let summary = "";
+
+  if (market.marketState === "BEARS_IN_CONTROL") {
+    summary += `On the ${timeframe} chart, sellers remain in control of ${coin}. `;
+  } else if (market.marketState === "BULLS_IN_CONTROL") {
+    summary += `On the ${timeframe} chart, buyers remain in control of ${coin}. `;
+  } else {
+    summary += `On the ${timeframe} chart, ${coin} is currently in transition because neither buyers nor sellers have clear control. `;
+  }
+
+  if (market.controlStrength === "STRENGTHENING") {
+    summary += `Control is strengthening, `;
+  } else if (market.controlStrength === "STABLE") {
+    summary += `Control is stable, `;
+  } else {
+    summary += `Control is weakening, `;
+  }
+
+  if (market.moveCondition === "FRESH") {
+    summary += `and the current move still appears fresh rather than mature. `;
+  } else if (market.moveCondition === "MATURE") {
+    summary += `and the current move is becoming mature rather than fresh. `;
+  } else if (market.moveCondition === "STRETCHED") {
+    summary += `and the move appears stretched rather than fresh. `;
+  } else {
+    summary += `and the move is showing signs of exhaustion. `;
+  }
+
+  if (market.momentumAnalysis?.momentum === "BULLISH_MOMENTUM") {
+    summary += `Bullish momentum is present, but it should be weighed against the broader market condition. `;
+  }
+
+  if (market.momentumAnalysis?.momentum === "BEARISH_MOMENTUM") {
+    summary += `Bearish momentum is present and supports the current downside pressure. `;
+  }
+
+  if (market.marketState === "BEARS_IN_CONTROL") {
+    if (nearestSupport && nearestResistance) {
+      summary += `Price is trading between support near ${nearestSupport} and resistance near ${nearestResistance}. `;
+    }
+
+    if (nearestResistance) {
+      summary += `As long as price remains below ${nearestResistance}, the current bearish market condition remains intact. `;
+    }
+
+    if (nearestSupport) {
+      summary += `If price breaks below ${nearestSupport}, bearish control would strengthen. `;
+    }
+
+    if (nextSupport) {
+      summary += `The next important support is around ${nextSupport}. `;
+    }
+
+    if (nearestResistance) {
+      summary += `If buyers reclaim ${nearestResistance}, the current bearish read would begin to weaken, but that alone would not confirm bullish control.`;
+    }
+  }
+
+  if (market.marketState === "BULLS_IN_CONTROL") {
+    if (nearestSupport && nearestResistance) {
+      summary += `Price is trading between support near ${nearestSupport} and resistance near ${nearestResistance}. `;
+    }
+
+    if (nearestSupport) {
+      summary += `As long as price remains above ${nearestSupport}, the current bullish market condition remains intact. `;
+    }
+
+    if (nearestResistance) {
+      summary += `If price breaks above ${nearestResistance}, bullish control would strengthen. `;
+    }
+
+    if (nextResistance) {
+      summary += `The next important resistance is around ${nextResistance}. `;
+    }
+
+    if (nearestSupport) {
+      summary += `If price loses ${nearestSupport}, the current bullish read would begin to weaken, but that alone would not confirm bearish control.`;
+    }
+  }
+
+  if (market.marketState === "TRANSITION") {
+    if (nearestSupport && nearestResistance) {
+      summary += `Price is trading between support near ${nearestSupport} and resistance near ${nearestResistance}. `;
+      summary += `A break beyond either level would be important because it would show which side is starting to gain control, but the current market condition remains mixed until that control becomes clearer.`;
+    }
+  }
+
+  return summary.trim();
 }

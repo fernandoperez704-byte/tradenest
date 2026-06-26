@@ -58,8 +58,36 @@ const {
   conversationIntent,
   conversationSubject,
   conversationState,
+  marketAnalysisSummary,
   ...marketFacts
 } = simulatorContext || {};
+
+const marketAnalysisQuestions = [
+  "what do you think about btc",
+  "what do you think of btc",
+  "what do you think about the market",
+  "what do you think about the market condition",
+  "how does btc look",
+  "how does the market look",
+  "market condition",
+  "analyze btc",
+  "analysis btc",
+];
+
+const isDirectMarketAnalysisQuestion =
+  marketAnalysisQuestions.some((phrase) =>
+    normalizedQuestion.includes(phrase)
+  );
+
+if (
+  conversationIntent === "MARKET_ANALYSIS" &&
+  marketAnalysisSummary &&
+  isDirectMarketAnalysisQuestion
+) {
+  return Response.json({
+    answer: marketAnalysisSummary,
+  });
+}
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -321,6 +349,9 @@ Treat the conversation state as the highest-priority context for follow-up quest
 Recent Conversation:
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
 
+Market Analysis Summary:
+${marketAnalysisSummary || "NONE"}
+
 Simulator Facts:
 ${JSON.stringify(marketFacts, null, 2)}
 
@@ -333,6 +364,33 @@ ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
 Last Topic:
 ${lastTopic || "NONE"}
 
+Deterministic Analysis Rule:
+
+When marketAnalysisSummary is provided by the Market Intelligence Engine:
+
+Treat it as the official market analysis.
+
+Use it as the foundation of every market analysis response.
+
+Do not change its conclusions.
+
+Do not reorder its logic.
+
+Do not introduce different market interpretations.
+
+Do not emphasize different indicators than those already reflected in the summary.
+
+Only improve readability and answer the user's specific question.
+
+Use the remaining simulator facts only when:
+
+- answering follow-up questions,
+- explaining why the engine reached its conclusion,
+- or teaching a concept.
+
+The Market Intelligence Engine determines the market analysis.
+
+You explain it.
 
 Market Analysis Rules:
 
@@ -417,6 +475,67 @@ Answer structure:
 4. Mention nearby timeframe context if available.
 5. Mention support or resistance only if relevant.
 6. Clearly say what is NOT confirmed when conditions are stretched.
+
+Market Roadmap Rules:
+
+After explaining the current market condition, naturally continue the same paragraph by explaining what would strengthen or weaken the current market read.
+
+Use conditional language such as:
+
+- if
+- as long as
+- unless
+- while
+
+Never predict what price will do.
+
+Never provide buy or sell signals.
+
+Use the nearest Support and Resistance levels from the Market Intelligence Engine.
+
+When relevant:
+
+- Explain what it means if price remains above or below the nearest level.
+- Explain what it would mean if the nearest support breaks.
+- Explain what it would mean if buyers reclaim the nearest resistance.
+- If additional support or resistance levels exist, naturally mention the next important level and why it matters.
+
+The roadmap should read as one continuous professional market analysis.
+
+Do not create a new section.
+
+Do not use headings.
+
+Do not present a list of scenarios.
+
+Blend the roadmap naturally into the final paragraph.
+
+Only reference support and resistance levels provided by the Market Intelligence Engine.
+
+Never invent price levels.
+
+If no additional support or resistance exists, explain only what reclaiming or losing the nearest level would imply for the current market condition.
+
+The purpose is to explain what would strengthen or weaken the current market read, not to predict future price movement.
+
+Roadmap Level Fields:
+
+Use these fields when available:
+
+- nearestSupport
+- nextSupport
+- nearestResistance
+- nextResistance
+
+If the current read is bearish:
+- Treat nearestResistance as the level that would weaken the bearish read if reclaimed.
+- Treat nearestSupport as the downside level that would strengthen bearish control if broken.
+- If nextSupport exists, mention it as the next important support after nearestSupport.
+
+If the current read is bullish:
+- Treat nearestSupport as the level that would weaken the bullish read if lost.
+- Treat nearestResistance as the upside level that would strengthen bullish control if reclaimed.
+- If nextResistance exists, mention it as the next important resistance after nearestResistance.
 
 Preferred style:
 
