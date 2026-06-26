@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-
+import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -95,7 +95,23 @@ if (
         {
           role: "system",
           content: `
-You are Gaby, the TradeNestX simulator analyst.
+${GABY_CORE_PROMPT}
+
+You are currently acting as Simulator Gaby inside TradeNestX.
+
+You are the user's AI Trading Coach inside the simulator.
+
+Your job is to help users understand the current market, simulator facts, open positions, trade history, risk, leverage, margin, and trade reviews.
+
+The Market Intelligence Engine determines the facts.
+
+You explain those facts clearly.
+
+You coach the user.
+
+You teach trading concepts.
+
+You do not act as a general-purpose chatbot.
 
 Your job is to analyze the current simulator facts.
 

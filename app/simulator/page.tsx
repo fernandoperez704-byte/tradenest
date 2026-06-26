@@ -24,6 +24,8 @@ import {
   buildMarketAnalysisSummary,
 } from "@/lib/gabyMarketIntelligence";
 
+import { reviewTrade } from "@/lib/tradeReviewEngine";
+
 import { db } from "../firebase";
 import {
   collection,
@@ -778,21 +780,40 @@ setFuturesPositions((prev) =>
   prev.filter((_, i) => i !== index)
 );
 
+const automaticReview = reviewTrade({
+  mode: "FUTURES",
+  side: position.side,
+  entryPrice: position.entryPrice,
+  exitPrice: current,
+  pnl: netPnl,
+  grossPnl: pnl,
+  totalFees: (position.entryFee || 0) + exitFee,
+  leverage: position.leverage,
+  margin: position.margin,
+  positionSize: position.positionSize || position.margin * position.leverage,
+  stopLoss: position.stopLoss,
+  takeProfit: position.takeProfit,
+  tradeContext: position.tradeContext,
+});
+console.log("AUTOMATIC REVIEW:", automaticReview);
 setFuturesHistory((prev) => [
   {
     ...position,
     exitPrice: current,
     pnl: netPnl,
-grossPnl: pnl,
-entryFee: position.entryFee || 0,
-exitFee,
-totalFees: (position.entryFee || 0) + exitFee,
+    grossPnl: pnl,
+    entryFee: position.entryFee || 0,
+    exitFee,
+    totalFees: (position.entryFee || 0) + exitFee,
     status: takeProfitHit ? "TAKE PROFIT" : "STOP LOSS",
     positionSize: position.positionSize || position.margin * position.leverage,
     balanceAtEntry: position.balanceAtEntry || startingBalance,
     stopLoss: position.stopLoss,
     takeProfit: position.takeProfit,
     closedReason: takeProfitHit ? "TP" : "SL",
+
+    tradeContext: position.tradeContext || null,
+automaticReview,
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
@@ -1384,6 +1405,55 @@ if (activeStopLoss != null) {
   stopLoss,
   indicatorPanel,
 ]);
+
+function buildTradeContext() {
+
+  return {
+    market: {
+      coin: selectedCoin,
+      timeframe: selectedTimeframe,
+      entryPrice: currentPrice || null,
+      marketAnalysisSummary: marketAnalysisSummary || null,
+
+      marketDirection: movingAverageAnalysis?.direction || null,
+      marketStructure: structureAnalysis?.structure || null,
+      marketConviction: marketIntelligence?.marketConviction || null,
+
+      momentum:
+        marketIntelligence?.momentumAnalysis?.momentum || null,
+
+      volume:
+        marketIntelligence?.volumeAnalysis?.volume || null,
+
+      rsi:
+        marketIntelligence?.rsiAnalysis || null,
+
+      pattern:
+        marketIntelligence?.patternAnalysis || null,
+
+      priceLocation: priceLocation || null,
+      entryQuality: currentEntryQuality || null,
+
+      nearestSupport:
+        marketIntelligence?.nearestSupport || null,
+
+      nearestResistance:
+        marketIntelligence?.nearestResistance || null,
+
+      movingAverageAnalysis:
+        movingAverageAnalysis || null,
+    },
+
+    account: {
+      balanceAtEntry: balance,
+      marginUsedAtEntry: marginUsed,
+      marketMode,
+    },
+
+    createdAt: new Date().toISOString(),
+  };
+}
+
 function buyCoin() {
 
   if (!currentPrice) {
@@ -1406,6 +1476,8 @@ const spotEntryFee = Number(tradeAmount) * feeRate;
 const quantity =
   effectiveTradeSize / currentPrice;
   
+const tradeContext = buildTradeContext();
+
     if (
   orderType === "LIMIT" &&
   limitPrice !== "" &&
@@ -1484,6 +1556,8 @@ setTrades((prev) => [
 
     entryFee: spotEntryFee,
 
+tradeContext,
+
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
@@ -1499,6 +1573,8 @@ addDoc(collection(db, "trades"), {
   price: currentPrice,
 
   entryFee: spotEntryFee,
+
+tradeContext,
 
   created: new Date(),
 });
@@ -1548,6 +1624,8 @@ setPendingFuturesLimitOrder({
 
 const quantity = positionSize / currentPrice;
 
+const tradeContext = buildTradeContext();
+
 const maintenanceBuffer = 0.005;
 
 const liquidation =
@@ -1587,6 +1665,8 @@ entryFee,
         ? Number(takeProfit)
         : null,
 
+tradeContext,
+
     time: new Date().toLocaleTimeString(),
   },
   ...prev,
@@ -1618,6 +1698,8 @@ setFuturesHistory((prev) => [
       takeProfit !== ""
         ? Number(takeProfit)
         : null,
+
+tradeContext,
 
     pnl: null,
 
