@@ -1,18 +1,4 @@
-export type TradeReviewInput = {
-  mode: "SPOT" | "FUTURES";
-  side: "BUY" | "SELL" | "LONG" | "SHORT";
-  entryPrice: number;
-  exitPrice: number;
-  pnl: number;
-  grossPnl?: number;
-  totalFees?: number;
-  leverage?: number;
-  margin?: number;
-  positionSize?: number;
-  stopLoss?: number | null;
-  takeProfit?: number | null;
-  tradeContext?: any;
-};
+import { TradeReviewInput } from "./types";
 
 export function reviewTrade(input: TradeReviewInput) {
   const market = input.tradeContext?.market || null;
@@ -119,3 +105,4 @@ export function reviewTrade(input: TradeReviewInput) {
     reviewedAt: new Date().toISOString(),
   };
 }
+

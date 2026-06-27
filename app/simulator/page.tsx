@@ -24,8 +24,8 @@ import {
   buildMarketAnalysisSummary,
 } from "@/lib/gabyMarketIntelligence";
 
-import { reviewTrade } from "@/lib/tradeReviewEngine";
-
+import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
+import { buildTraderDevelopment } from "@/lib/traderDevelopment/overview";
 import { db } from "../firebase";
 import {
   collection,
@@ -236,6 +236,29 @@ useEffect(() => {
 
   loadTrades();
 }, [user]);
+
+useEffect(() => {
+  async function loadTradeReviews() {
+    if (!user) return;
+
+    const q = query(
+      collection(db, "tradeReviews"),
+      where("userId", "==", user.id)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const loadedReviews = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    setTradeReviews(loadedReviews as any[]);
+  }
+
+  loadTradeReviews();
+}, [user]);
+
   const [message, setMessage] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
   const [tradeAmount, setTradeAmount] = useState<number | "">("");
@@ -251,6 +274,15 @@ useEffect(() => {
   console.log("FUTURES POSITIONS:", futuresPositions);
 }, [futuresPositions]);
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
+const [tradeReviews, setTradeReviews] = useState<any[]>([]);
+
+const traderDevelopment =
+  tradeReviews.length > 0
+    ? buildTraderDevelopment({
+        reviews: tradeReviews.map((item: any) => item.review),
+      })
+    : null;
+
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
   coin: AssetSymbol;
@@ -795,7 +827,37 @@ const automaticReview = reviewTrade({
   takeProfit: position.takeProfit,
   tradeContext: position.tradeContext,
 });
-console.log("AUTOMATIC REVIEW:", automaticReview);
+
+if (user) {
+  addDoc(collection(db, "tradeReviews"), {
+    userId: user.id,
+    userName: user.firstName || "Trader",
+
+    mode: "FUTURES",
+    coin: position.coin,
+    side: position.side,
+
+    tradeContext: position.tradeContext || null,
+    review: automaticReview,
+
+    tradeResult: {
+      entryPrice: position.entryPrice,
+      exitPrice: current,
+      pnl: netPnl,
+      grossPnl: pnl,
+      entryFee: position.entryFee || 0,
+      exitFee,
+      totalFees: (position.entryFee || 0) + exitFee,
+      status: takeProfitHit ? "TAKE PROFIT" : "STOP LOSS",
+      closedReason: takeProfitHit ? "TP" : "SL",
+      closedAt: new Date().toISOString(),
+    },
+
+    created: new Date(),
+  });
+}
+
+
 setFuturesHistory((prev) => [
   {
     ...position,
