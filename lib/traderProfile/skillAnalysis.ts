@@ -1,3 +1,4 @@
+import { TraderSkill } from "./types";
 export function buildSkillAnalysis(
   developmentReport: any,
   progressReport: any
@@ -48,7 +49,9 @@ export function buildSkillAnalysis(
   ];
 }
 
-function getSkillLevel(score: number) {
+function getSkillLevel(
+  score: number
+): TraderSkill["level"] {
   if (score >= 85) return "EXPERT";
   if (score >= 70) return "STRONG";
   if (score >= 50) return "DEVELOPING";
