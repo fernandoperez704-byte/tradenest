@@ -25,7 +25,7 @@ import {
 } from "@/lib/gabyMarketIntelligence";
 
 import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
-import { buildTraderDevelopment } from "@/lib/traderDevelopment/overview";
+
 import { db } from "../firebase";
 import {
   collection,
@@ -275,17 +275,6 @@ useEffect(() => {
 }, [futuresPositions]);
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
-
-const validTradeReviews = tradeReviews
-  .map((item: any) => item.review)
-  .filter(Boolean);
-
-const traderDevelopment =
-  validTradeReviews.length > 0
-    ? buildTraderDevelopment({
-        reviews: validTradeReviews,
-      })
-    : null;
 
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
@@ -3599,6 +3588,7 @@ takeProfit:
       </button>
 
 <GabySimulatorCoach
+  userId={user?.id || ""}
   mode={marketMode}
   selectedCoin={selectedCoin}
   trades={trades}

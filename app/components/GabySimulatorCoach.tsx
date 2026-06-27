@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 type GabySimulatorCoachProps = {
+userId: string;
   mode: string;
   selectedCoin: string;
   trades: any[];
@@ -22,6 +23,7 @@ type GabySimulatorCoachProps = {
 };
 
 export default function GabySimulatorCoach({
+  userId,
   mode,
   selectedCoin,
   trades,
@@ -167,6 +169,24 @@ if (farewellWords.includes(text)) {
   ) {
     return "TRADE_REVIEW";
   }
+
+if (
+  text.includes("how am i") ||
+  text.includes("how's my trading") ||
+  text.includes("how is my trading") ||
+  text.includes("overall performance") ||
+  text.includes("overall review") ||
+  text.includes("overall progress") ||
+  text.includes("improving") ||
+  text.includes("getting better") ||
+  text.includes("my strengths") ||
+  text.includes("my weaknesses") ||
+  text.includes("what should i improve") ||
+  text.includes("what should i work on") ||
+  text.includes("consistency")
+) {
+  return "TRADER_DEVELOPMENT";
+}
 
   if (
     text.includes("btc") ||
@@ -324,6 +344,7 @@ if (originalQuestion.includes("resistance")) {
         lastReviewData: isReviewFollowUp ? lastReviewData : null,
         conversationHistory: conversationHistory.slice(-8),
 simulatorContext: {
+  userId,
   conversationIntent,
   conversationSubject,
   conversationState,
@@ -386,18 +407,20 @@ if (conversationSubject) {
   setConversationState({
     intent: conversationIntent,
     subject: conversationSubject,
-    mode:
-      conversationIntent === "EDUCATION"
-        ? "TEACHING"
-        : conversationIntent === "COACHING"
-        ? "COACHING"
-        : conversationIntent === "MARKET_ANALYSIS"
-        ? "ANALYSIS"
-        : conversationIntent === "SIMULATOR_HELP"
-        ? "SIMULATOR_HELP"
-        : conversationIntent === "TRADE_REVIEW"
-        ? "TRADE_REVIEW"
-        : "GENERAL",
+mode:
+  conversationIntent === "EDUCATION"
+    ? "TEACHING"
+    : conversationIntent === "COACHING"
+    ? "COACHING"
+    : conversationIntent === "MARKET_ANALYSIS"
+    ? "ANALYSIS"
+    : conversationIntent === "SIMULATOR_HELP"
+    ? "SIMULATOR_HELP"
+    : conversationIntent === "TRADE_REVIEW"
+    ? "TRADE_REVIEW"
+    : conversationIntent === "TRADER_DEVELOPMENT"
+    ? "TRADER_DEVELOPMENT"
+    : "GENERAL",
     awaitingFollowUp: true,
   });
 }

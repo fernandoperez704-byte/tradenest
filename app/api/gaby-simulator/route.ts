@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
+import { buildTraderDevelopmentReport } from "@/lib/traderDevelopment/report";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -61,6 +62,11 @@ const {
   marketAnalysisSummary,
   ...marketFacts
 } = simulatorContext || {};
+
+const traderDevelopmentReport =
+  simulatorContext?.userId
+    ? await buildTraderDevelopmentReport(simulatorContext.userId)
+    : null;
 
 const marketAnalysisQuestions = [
   "what do you think about btc",
@@ -373,6 +379,16 @@ ${JSON.stringify(marketFacts, null, 2)}
 
 Latest Reviewed Trade Facts:
 ${lastReviewData ? JSON.stringify(lastReviewData, null, 2) : "NONE"}
+
+Trader Development Report:
+${traderDevelopmentReport?.developmentReport
+  ? JSON.stringify(traderDevelopmentReport.developmentReport, null, 2)
+  : "NONE"}
+
+Trader Progress Report:
+${traderDevelopmentReport?.progressReport
+  ? JSON.stringify(traderDevelopmentReport.progressReport, null, 2)
+  : "NONE"}
 
 Last Referenced Level:
 ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
@@ -694,6 +710,71 @@ Explain the simulator, leverage, margin, liquidation, orders, balance, or positi
 TRADE_REVIEW:
 Use Latest Reviewed Trade Facts first. Do not perform a fresh chart analysis unless needed.
 
+TRADER_DEVELOPMENT:
+
+If a Trader Development Report is provided, use it as the authoritative summary of the user's trading history.
+
+Do not calculate statistics yourself.
+
+Do not invent strengths or weaknesses.
+
+Base your coaching only on the report.
+
+When the user asks questions such as:
+
+- How am I doing?
+- How am I improving?
+- What mistakes do I keep making?
+- What should I work on?
+- What are my strengths?
+- What are my weaknesses?
+- Review my overall performance.
+- Am I becoming more consistent?
+
+Use the Trader Development Report first.
+
+Summarize the user's overall progress naturally.
+
+Explain the strongest positive habits.
+
+Explain the biggest improvement opportunities.
+
+Use the recommendations from the report as the coaching priorities.
+
+Do not discuss the current market unless the user asks about the current market.
+
+Focus on long-term development rather than a single trade.
+
+When a Trader Development Report is available:
+
+- Prefer it over individual trade reviews for questions about long-term performance.
+- Never recalculate the statistics yourself.
+- Never invent statistics.
+- Quote the report naturally.
+- If the report has no reviews, explain that there is not enough trading history yet.
+- Treat the report as the single source of truth for overall trader coaching.
+
+TRADER_PROGRESS:
+
+If a Trader Progress Report is provided:
+
+Use it to explain how the trader has improved over time.
+
+Never calculate improvement yourself.
+
+Never invent progress.
+
+Use only the supplied report.
+
+When discussing progress:
+
+- Explain whether performance is improving, declining, or stable.
+- Mention completed milestones when relevant.
+- Explain recent improvement before discussing weaknesses.
+- Focus on long-term growth rather than individual winning or losing trades.
+
+Treat the Trader Progress Report as the authoritative source for improvement over time.
+
 MARKET_ANALYSIS:
 Use the Primary Market Framework.
 
@@ -707,6 +788,7 @@ Possible intents:
 3. Coaching Discussion
 4. Simulator Help
 5. Trade Review Follow-up
+6. trader development
 
 Choose the single best intent first.
 
@@ -728,6 +810,21 @@ Examples:
 
 "Why did Gaby say my trade was weak?"
 → Trade Review Follow-up
+
+"How am I doing as a trader?"
+→ Trader Development
+
+"What are my biggest mistakes?"
+→ Trader Development
+
+"What should I improve?"
+→ Trader Development
+
+"What are my strengths?"
+→ Trader Development
+
+"Am I becoming more consistent?"
+→ Trader Development
 
 "Why is my liquidation price so close?"
 → Simulator Help
