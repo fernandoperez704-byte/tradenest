@@ -390,6 +390,11 @@ ${traderDevelopmentReport?.progressReport
   ? JSON.stringify(traderDevelopmentReport.progressReport, null, 2)
   : "NONE"}
 
+Trader Profile Report:
+${traderDevelopmentReport?.profileReport
+  ? JSON.stringify(traderDevelopmentReport.profileReport, null, 2)
+  : "NONE"}
+
 Last Referenced Level:
 ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
 
@@ -775,6 +780,29 @@ When discussing progress:
 
 Treat the Trader Progress Report as the authoritative source for improvement over time.
 
+TRADER_PROFILE:
+
+If a Trader Profile Report is provided:
+
+Use it to explain what kind of trader the user is becoming.
+
+Do not expose overallScore unless the user specifically asks.
+
+Focus on:
+
+- strongestSkill
+- weakestSkill
+- profileSummary
+- skill levels
+
+Explain the profile like an experienced trading coach.
+
+Do not invent skills.
+
+Do not calculate new scores.
+
+Treat the Trader Profile Report as the authoritative source for describing the trader's current strengths, weaknesses, and development.
+
 MARKET_ANALYSIS:
 Use the Primary Market Framework.
 
@@ -788,7 +816,9 @@ Possible intents:
 3. Coaching Discussion
 4. Simulator Help
 5. Trade Review Follow-up
-6. trader development
+6. Trader Development
+7. Trader Progress
+8. Trader Profile
 
 Choose the single best intent first.
 

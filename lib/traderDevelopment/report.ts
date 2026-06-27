@@ -1,5 +1,7 @@
 import { db } from "@/app/firebase";
 import { buildTraderProgress } from "@/lib/traderProgress/overview";
+import { buildTraderProfile } from "@/lib/traderProfile/overview";
+
 import {
   collection,
   getDocs,
@@ -33,8 +35,16 @@ const progressReport =
     reviews,
   });
 
+const profileReport =
+  buildTraderProfile({
+    developmentReport,
+    progressReport,
+  });
+
 return {
   developmentReport,
   progressReport,
+  profileReport,
 };
+
 }
