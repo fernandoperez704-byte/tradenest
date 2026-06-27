@@ -276,10 +276,14 @@ useEffect(() => {
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
 
+const validTradeReviews = tradeReviews
+  .map((item: any) => item.review)
+  .filter(Boolean);
+
 const traderDevelopment =
-  tradeReviews.length > 0
+  validTradeReviews.length > 0
     ? buildTraderDevelopment({
-        reviews: tradeReviews.map((item: any) => item.review),
+        reviews: validTradeReviews,
       })
     : null;
 
