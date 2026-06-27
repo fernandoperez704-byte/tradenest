@@ -1,13 +1,26 @@
 "use client";
 
 import { useState } from "react";
-
+import { db } from "@/app/firebase";
+import {
+  collection,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import {
+  completeSnapshot,
+  isSnapshotComplete,
+} from "@/lib/gabySnapshot/snapshot";
 type GabySimulatorCoachProps = {
 userId: string;
   mode: string;
   selectedCoin: string;
   trades: any[];
   futuresHistory: any[];
+  setFuturesHistory: any;
+setTrades: any;
   positions: any;
   futuresPositions: any[];
   balance: number;
@@ -28,6 +41,8 @@ export default function GabySimulatorCoach({
   selectedCoin,
   trades,
   futuresHistory,
+  setFuturesHistory,
+setTrades,
   positions,
   futuresPositions,
   balance,
@@ -46,7 +61,7 @@ movingAverageAnalysis,
   );
   const [loading, setLoading] = useState(false);
   
-const [lastReviewData, setLastReviewData] = useState<any>(null);
+
 const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
 const [lastTopic, setLastTopic] = useState<string | null>(null);
@@ -236,7 +251,49 @@ function getConversationSubject(message: string) {
   return null;
 }
 
-async function askGaby(customQuestion?: string) {
+async function persistCompletedTradeReviewSnapshot(
+  completedSnapshot: any
+) {
+  if (!completedSnapshot?.snapshotId) return;
+
+  setFuturesHistory((prev: any[]) =>
+    prev.map((trade) =>
+      trade.snapshotId === completedSnapshot.snapshotId
+        ? {
+            ...trade,
+            automaticReview: completedSnapshot,
+            review: completedSnapshot,
+          }
+        : trade
+    )
+  );
+
+  setTrades((prev: any[]) =>
+    prev.map((trade) =>
+      trade.snapshotId === completedSnapshot.snapshotId
+        ? {
+            ...trade,
+            review: completedSnapshot,
+          }
+        : trade
+    )
+  );
+
+  const q = query(
+    collection(db, "tradeReviews"),
+    where("snapshotId", "==", completedSnapshot.snapshotId)
+  );
+
+  const snapshot = await getDocs(q);
+
+  snapshot.docs.forEach(async (reviewDoc) => {
+    await updateDoc(reviewDoc.ref, {
+      review: completedSnapshot,
+    });
+  });
+}
+
+async function askGaby(customQuestion?: string, reviewOverride?: any) {
   let finalQuestion = customQuestion || question;
 
   if (!finalQuestion.trim()) return;
@@ -303,32 +360,14 @@ if (originalQuestion.includes("resistance")) {
   });
 }
 
-  const reviewFollowUpWords = [
-    "yes",
-    "yeah",
-    "yep",
-    "more",
-    "details",
-    "why",
-    "review",
-    "this trade",
-  ];
+const reviewSnapshot = reviewOverride || null;
 
-  const isReviewFollowUp =
-    lastReviewData &&
-    reviewFollowUpWords.some((word) =>
-      originalQuestion.includes(word)
-    );
+console.log("ASK GABY REVIEW SNAPSHOT:", reviewSnapshot);
 
-  if (
-    isReviewFollowUp &&
-    ["yes", "yeah", "yep", "more", "details"].includes(
-      originalQuestion
-    )
-  ) {
-    finalQuestion =
-      "Give more analysis about this review using the current chart facts.";
-  }
+if (isSnapshotComplete(reviewSnapshot)) {
+  setAnswer(reviewSnapshot.gaby.explanation);
+  return;
+}
 
   setLoading(true);
 
@@ -338,10 +377,11 @@ if (originalQuestion.includes("resistance")) {
       headers: {
         "Content-Type": "application/json",
       },
+      
       body: JSON.stringify({
         question: finalQuestion,
         lastReferencedLevel,
-        lastReviewData: isReviewFollowUp ? lastReviewData : null,
+        lastReviewData: reviewSnapshot,
         conversationHistory: conversationHistory.slice(-8),
 simulatorContext: {
   userId,
@@ -403,6 +443,21 @@ const gabyAnswer = data.answer || "Gaby could not respond right now.";
 
 setAnswer(gabyAnswer);
 
+if (
+  reviewSnapshot &&
+  !reviewSnapshot.gaby?.generated
+) {
+  const completedSnapshot = completeSnapshot(
+    reviewSnapshot,
+    gabyAnswer
+  );
+
+await persistCompletedTradeReviewSnapshot(
+  completedSnapshot
+);  
+
+}
+
 if (conversationSubject) {
   setConversationState({
     intent: conversationIntent,
@@ -442,318 +497,51 @@ setQuestion("");
 }
 
 function reviewTrade() {
-const closedTrades =
-  mode === "FUTURES"
-    ? futuresHistory.filter(
-        (trade) =>
-          trade.coin === selectedCoin &&
-          trade.status !== "OPEN" &&
-          trade.pnl !== null &&
-          trade.pnl !== undefined
-      )
-    : trades.filter(
-        (trade) =>
-          trade.coin === selectedCoin &&
-          trade.type === "SELL" &&
-          trade.pnl !== null &&
-          trade.pnl !== undefined
-      );
 
-  const latestTrade = [...closedTrades].sort((a, b) => {
-    const timeA = new Date(
-      a.closedAt ?? a.createdAt ?? a.time ?? a.date ?? 0
-    ).getTime();
+  const closedTrades =
+    mode === "FUTURES"
+      ? futuresHistory.filter(
+          (trade) =>
+            trade.coin === selectedCoin &&
+            trade.status !== "OPEN" &&
+            trade.pnl !== null &&
+            trade.pnl !== undefined
+        )
+      : trades.filter(
+          (trade) =>
+            trade.coin === selectedCoin &&
+            trade.type === "SELL" &&
+            trade.pnl !== null &&
+            trade.pnl !== undefined
+        );
 
-    const timeB = new Date(
-      b.closedAt ?? b.createdAt ?? b.time ?? b.date ?? 0
-    ).getTime();
-
-    return timeB - timeA;
-  })[0];
+  const latestTrade = closedTrades.find(
+  (trade) => trade.automaticReview || trade.review
+);
 
   if (!latestTrade) {
-    setAnswer(`Place a completed ${selectedCoin} practice trade first and I'll review it.`);
+    setAnswer(
+      `Complete a ${selectedCoin} practice trade first so I can review it.`
+    );
     return;
   }
 
-const marketDirection =
-  movingAverageAnalysis?.direction || "TRANSITION";
+const reviewSnapshot =
+  latestTrade.review || latestTrade.automaticReview;
 
- const structure =
-  marketIntelligence?.structure || "RANGING";
-
-const nearestSupport =
-  marketIntelligence?.nearestSupport?.low ?? null;
-
-const nearestResistance =
-  marketIntelligence?.nearestResistance?.high ?? null; 
-
-const coin = latestTrade.coin || selectedCoin;
-
-const directionLabel =
-  marketDirection === "BULLISH"
-    ? "Bullish"
-    : marketDirection === "BEARISH"
-    ? "Bearish"
-    : "Transition";
-
-const timeframeText = selectedTimeframe || "1M";
-
-let analystSentence = "";
-
-if (marketDirection === "BULLISH") {
-  analystSentence =
-    `${coin} is bullish on the ${timeframeText} timeframe because MA 7 is above MA 25 and MA 25 is above MA 99.`;
-
-  if (
-    structure === "BULLISH" ||
-    structure === "HIGHER_HIGHS"
-  ) {
-    analystSentence +=
-      ` Market structure is also making higher highs.`;
-  }
-
-  if (nearestResistance) {
-    analystSentence +=
-      ` The nearest resistance is around ${Number(nearestResistance).toFixed(0)}.`;
-  }
-}
-
-if (marketDirection === "BEARISH") {
-  analystSentence =
-    `${coin} is bearish on the ${timeframeText} timeframe because MA 7 is below MA 25 and MA 25 is below MA 99.`;
-
-  if (
-    structure === "BEARISH" ||
-    structure === "LOWER_LOWS"
-  ) {
-    analystSentence +=
-      ` Market structure is also bearish.`;
-  }
-
-  if (nearestSupport) {
-    analystSentence +=
-      ` The nearest support is around ${Number(nearestSupport).toFixed(0)}.`;
-  }
-}
-
-if (marketDirection === "TRANSITION") {
-  if (
-    structure === "BULLISH" ||
-    structure === "HIGHER_HIGHS"
-  ) {
-    analystSentence =
-      `${coin} is in a transition phase on the ${timeframeText} timeframe. Price structure is bullish, but MA 7, MA 25, and MA 99 are not fully aligned yet.`;
-
-    if (nearestResistance) {
-      analystSentence +=
-        ` The nearest resistance is around ${Number(nearestResistance).toFixed(0)}.`;
-    }
-  } else if (
-    structure === "BEARISH" ||
-    structure === "LOWER_LOWS"
-  ) {
-    analystSentence =
-      `${coin} is in a transition phase on the ${timeframeText} timeframe. Price structure is bearish, but MA 7, MA 25, and MA 99 are not fully aligned yet.`;
-
-    if (nearestSupport) {
-      analystSentence +=
-        ` The nearest support is around ${Number(nearestSupport).toFixed(0)}.`;
-    }
-  } else {
-    analystSentence =
-      `Market direction is unclear on the ${timeframeText} timeframe because MA 7, MA 25, and MA 99 are not fully aligned.`;
-  }
-}
-
-  const tradeDirection =
-    mode === "FUTURES"
-      ? latestTrade.side || "UNKNOWN"
-      : "LONG";
-
-  const alignedWithDirection =
-    marketDirection === "BULLISH"
-      ? tradeDirection === "LONG"
-      : marketDirection === "BEARISH"
-      ? tradeDirection === "SHORT"
-      : false;
-
-  const tradeDirectionText =
-    marketDirection === "TRANSITION"
-      ? `You opened a ${tradeDirection} position while market direction was unclear.`
-      : alignedWithDirection
-      ? `You opened a ${tradeDirection} position, so this trade was aligned with the market direction.`
-      : `You opened a ${tradeDirection} position, so this trade was against the market direction.`;
-
-  const accountSize = Number(
-    latestTrade.balanceAtEntry ??
-      latestTrade.balanceAtClose ??
-      balance ??
-      10000
+if (!reviewSnapshot) {
+  setAnswer(
+    "This completed trade does not have a saved review yet."
   );
+  return;
+}
 
-  let riskLabel = "Controlled";
-  let riskText = "";
-  let gabyReview = "";
-
-const entryPrice = Number(
-  latestTrade.entryPrice ?? latestTrade.price ?? 0
+askGaby(
+  "Review my latest completed trade using this snapshot.",
+  reviewSnapshot
 );
-
-const supportPrice = Number(
-  marketIntelligence?.nearestSupport ?? 0
-);
-
-const resistancePrice = Number(
-  marketIntelligence?.nearestResistance ?? 0
-);
-
-let tradeLocation = "UNKNOWN";
-
-if (entryPrice && supportPrice && resistancePrice) {
-  const supportDistance = Math.abs(entryPrice - supportPrice);
-  const resistanceDistance = Math.abs(entryPrice - resistancePrice);
-
-  tradeLocation =
-    supportDistance < resistanceDistance
-      ? "NEAR_SUPPORT"
-      : "NEAR_RESISTANCE";
 }
 
-  if (mode === "FUTURES") {
-    const marginUsedAmount = Number(
-      latestTrade.margin ?? latestTrade.amount ?? 0
-    );
-
-    const leverageUsed = Number(latestTrade.leverage ?? 1);
-
-    const positionSize = Number(
-      latestTrade.positionSize ?? marginUsedAmount * leverageUsed
-    );
-
-    const exposurePercent =
-      accountSize > 0 ? (positionSize / accountSize) * 100 : 0;
-
-    riskLabel =
-      exposurePercent > 75 || leverageUsed > 20
-        ? "High"
-        : exposurePercent > 25
-        ? "Moderate"
-        : "Controlled";
-
-    riskText = `Margin Used: $${marginUsedAmount.toFixed(2)}
-Leverage: ${leverageUsed}x
-Position Size: $${positionSize.toFixed(2)}
-Account Size: $${accountSize.toFixed(2)}
-Exposure: ${exposurePercent.toFixed(1)}% of account`;
-
-    if (!alignedWithDirection && marketDirection !== "TRANSITION") {
-      gabyReview = `The trade was against the market direction while using leverage.`;
-    } else if (riskLabel === "High") {
-      gabyReview = `The main concern was leverage.
-
-${leverageUsed}x leverage created more risk than necessary for this setup.`;
-    } else {
-      gabyReview = `This was a disciplined trade.`;
-    }
-  }
-
-  if (mode === "SPOT") {
-    const tradeValue = Number(
-      latestTrade.amount ?? latestTrade.value ?? 0
-    );
-
-    const exposurePercent =
-      accountSize > 0 ? (tradeValue / accountSize) * 100 : 0;
-
-    riskLabel =
-      exposurePercent > 50
-        ? "High"
-        : exposurePercent > 25
-        ? "Moderate"
-        : "Controlled";
-
-    riskText = `Position Size: $${tradeValue.toFixed(2)}
-Account Size: $${accountSize.toFixed(2)}
-Exposure: ${exposurePercent.toFixed(1)}% of account`;
-
-    if (!alignedWithDirection && marketDirection !== "TRANSITION") {
-      gabyReview = `The trade was against the market direction.`;
-    } else if (riskLabel === "High") {
-      gabyReview = `The main concern was risk exposure.
-
-Too much of the account was committed to a single trade.`;
-    } else {
-      gabyReview = `This was a disciplined trade.`;
-    }
-  }
-
-let tradeQuality = "Neutral";
-
-if (marketDirection === "TRANSITION") {
-  tradeQuality = "Neutral";
-} else if (!alignedWithDirection) {
-  tradeQuality = "Weak";
-} else if (riskLabel === "Controlled") {
-  tradeQuality = "Good";
-} else {
-  tradeQuality = "Neutral";
-}
-
-const patternSummary =
-  marketIntelligence?.patternAnalysis?.summary || "";
-
-const momentumSummary =
-  marketIntelligence?.momentumAnalysis?.summary || "";
-
-let reason = "";
-
-if (marketDirection === "TRANSITION") {
-  reason =
-    "Market direction was unclear at the time of entry.";
-} else if (!alignedWithDirection) {
-  reason = momentumSummary
-    ? `This ${tradeDirection} trade was opened against a ${directionLabel.toLowerCase()} market direction while ${momentumSummary.toLowerCase()}`
-    : `This ${tradeDirection} trade was opened against a ${directionLabel.toLowerCase()} market direction.`;
-} else if (riskLabel === "High") {
-  reason = "Risk exposure was too high for this setup.";
-} else {
-  reason = patternSummary
-    ? `This ${tradeDirection} trade was aligned with market direction, and ${patternSummary.toLowerCase()}`
-    : `This ${tradeDirection} trade was aligned with the market direction.`;
-}
-
-const reviewText = `
-Trade Quality: ${tradeQuality}
-
-Reason:
-${reason}
-
-Want more details?
-`;
-
-setLastReviewData({
-  marketDirection,
-  tradeDirection,
-  alignedWithDirection,
-  riskExposure: riskLabel,
-  riskText,
-  gabyReview,
-  mode,
-  coin,
-entryPrice,
-supportPrice,
-resistancePrice,
-tradeLocation,
-structure,
-nearestSupport,
-nearestResistance,
-timeframe: timeframeText,
-
-});
-
-  setAnswer(reviewText.trim());
-}
   return (
     <div className="rounded-3xl border border-cyan-400/20 bg-[#0f172a]/90 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
 

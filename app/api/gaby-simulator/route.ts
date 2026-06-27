@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { buildTraderDevelopmentReport } from "@/lib/traderDevelopment/report";
+import { TRADE_REVIEW_PROMPT } from "@/lib/gaby/prompts/tradeReviewPrompt";
+import { SIMULATOR_PROMPT } from "@/lib/gaby/prompts/simulatorPrompt";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -94,6 +96,11 @@ if (
     answer: marketAnalysisSummary,
   });
 }
+
+const systemPrompt =
+  conversationIntent === "TRADE_REVIEW" && lastReviewData
+    ? TRADE_REVIEW_PROMPT
+    : SIMULATOR_PROMPT;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",

@@ -17,6 +17,40 @@ export function reviewTrade(input: TradeReviewInput) {
   const priceLocation = market?.priceLocation || null;
   const entryQuality = market?.entryQuality || null;
 
+let locationReview = {
+  score: 50,
+  rating: "NEUTRAL",
+  explanation:
+    "The entry location was acceptable based on the recorded market conditions.",
+};
+
+if (entryQuality === "EXCELLENT") {
+  locationReview = {
+    score: 100,
+    rating: "STRONG",
+    explanation:
+      "The trade was opened from a high-quality location with strong market alignment.",
+  };
+}
+
+if (entryQuality === "GOOD") {
+  locationReview = {
+    score: 80,
+    rating: "GOOD",
+    explanation:
+      "The entry location supported the trade idea.",
+  };
+}
+
+if (entryQuality === "POOR") {
+  locationReview = {
+    score: 20,
+    rating: "WEAK",
+    explanation:
+      "The entry location offered poor alignment with the recorded market conditions.",
+  };
+}
+
   const tradeDirection =
     input.side === "LONG" || input.side === "BUY"
       ? "BULLISH"
@@ -31,6 +65,31 @@ export function reviewTrade(input: TradeReviewInput) {
       ? null
       : false;
 
+let directionReview = {
+  score: 50,
+  rating: "NEUTRAL",
+  explanation:
+    "Market direction was transitioning at the time of entry.",
+};
+
+if (trendAligned === true) {
+  directionReview = {
+    score: 100,
+    rating: "STRONG",
+    explanation:
+      "The trade followed the recorded market direction.",
+  };
+}
+
+if (trendAligned === false) {
+  directionReview = {
+    score: 0,
+    rating: "WEAK",
+    explanation:
+      "The trade was opened against the recorded market direction.",
+  };
+}
+
   let riskLevel: "LOW" | "MEDIUM" | "HIGH" = "LOW";
 
   if (input.mode === "FUTURES") {
@@ -40,6 +99,40 @@ export function reviewTrade(input: TradeReviewInput) {
       riskLevel = "MEDIUM";
     }
   }
+
+let riskReview = {
+  score: 100,
+  rating: "STRONG",
+  explanation:
+    "Risk was controlled based on the recorded trade settings.",
+};
+
+if (riskLevel === "MEDIUM") {
+  riskReview = {
+    score: 60,
+    rating: "NEUTRAL",
+    explanation:
+      "Risk was moderate because leverage increased the impact of price movement.",
+  };
+}
+
+if (riskLevel === "HIGH") {
+  riskReview = {
+    score: 20,
+    rating: "WEAK",
+    explanation:
+      "Risk was high because leverage increased the danger of a small price move.",
+  };
+}
+
+if (!usedStopLoss) {
+  riskReview = {
+    score: Math.min(riskReview.score, 30),
+    rating: "WEAK",
+    explanation:
+      "Risk control was weak because the trade did not use a stop loss.",
+  };
+}
 
   let primaryStrength = "The trade had a clear recorded entry and exit.";
   let primaryWeakness = "No major weakness was detected from the saved data.";
@@ -73,13 +166,33 @@ export function reviewTrade(input: TradeReviewInput) {
       "Better entries usually come from waiting for stronger alignment between direction, location, and market structure.";
   }
 
-  return {
-    reviewVersion: "1.0",
-    reviewType: "AUTOMATIC_DETERMINISTIC",
+const finalScore = Math.round(
+  directionReview.score * 0.4 +
+    locationReview.score * 0.35 +
+    riskReview.score * 0.25
+);
+
+const finalQuality =
+  finalScore >= 80
+    ? "GOOD"
+    : finalScore >= 55
+    ? "NEUTRAL"
+    : "WEAK";
+
+return {
+  version: "1.0",
+  type: "TRADE_REVIEW_SNAPSHOT",
+
+  createdAt: new Date().toISOString(),
+
+  facts: {
 
     mode: input.mode,
     side: input.side,
     result,
+finalScore,
+finalQuality,
+
 
     entryPrice: input.entryPrice,
     exitPrice: input.exitPrice,
@@ -90,19 +203,28 @@ export function reviewTrade(input: TradeReviewInput) {
     timeframe: market?.timeframe || null,
     marketAtEntry: market,
 
-    trendAligned,
-    priceLocation,
-    entryQuality,
+trendAligned,
+directionReview,
 
-    usedStopLoss,
-    usedTakeProfit,
-    riskLevel,
+priceLocation,
+entryQuality,
+locationReview,
+
+usedStopLoss,
+usedTakeProfit,
+riskLevel,
+riskReview,
 
     primaryStrength,
     primaryWeakness,
     mainLesson,
+  },
 
-    reviewedAt: new Date().toISOString(),
-  };
+  gaby: {
+    generated: false,
+    generatedAt: null,
+    model: null,
+    explanation: null,
+  },
+};
 }
-

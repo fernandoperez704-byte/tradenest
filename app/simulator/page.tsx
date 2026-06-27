@@ -805,7 +805,9 @@ setFuturesPositions((prev) =>
   prev.filter((_, i) => i !== index)
 );
 
-const automaticReview = reviewTrade({
+const snapshotId = crypto.randomUUID();
+
+const baseReview = reviewTrade({
   mode: "FUTURES",
   side: position.side,
   entryPrice: position.entryPrice,
@@ -821,10 +823,16 @@ const automaticReview = reviewTrade({
   tradeContext: position.tradeContext,
 });
 
+const automaticReview = {
+  ...baseReview,
+  snapshotId,
+};
+
 if (user) {
   addDoc(collection(db, "tradeReviews"), {
     userId: user.id,
     userName: user.firstName || "Trader",
+    snapshotId,
 
     mode: "FUTURES",
     coin: position.coin,
@@ -854,6 +862,7 @@ if (user) {
 setFuturesHistory((prev) => [
   {
     ...position,
+    snapshotId,
     exitPrice: current,
     pnl: netPnl,
     grossPnl: pnl,
@@ -866,10 +875,14 @@ setFuturesHistory((prev) => [
     stopLoss: position.stopLoss,
     takeProfit: position.takeProfit,
     closedReason: takeProfitHit ? "TP" : "SL",
+closedAt: new Date().toISOString(),
 
-    tradeContext: position.tradeContext || null,
+tradeContext: position.tradeContext || null,
+
 automaticReview,
-    time: new Date().toLocaleTimeString(),
+review: automaticReview,
+
+time: new Date().toLocaleTimeString(),
   },
   ...prev,
 ]);
@@ -3593,6 +3606,8 @@ takeProfit:
   selectedCoin={selectedCoin}
   trades={trades}
   futuresHistory={futuresHistory}
+  setFuturesHistory={setFuturesHistory}
+setTrades={setTrades}
   positions={positions}
   futuresPositions={futuresPositions}
   balance={balance}
