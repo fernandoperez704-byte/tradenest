@@ -179,20 +179,18 @@ const finalQuality =
     ? "NEUTRAL"
     : "WEAK";
 
-return {
+  return {
   version: "1.0",
   type: "TRADE_REVIEW_SNAPSHOT",
 
   createdAt: new Date().toISOString(),
 
-  facts: {
-
+  engine: {
     mode: input.mode,
     side: input.side,
     result,
-finalScore,
-finalQuality,
-
+    finalScore,
+    finalQuality,
 
     entryPrice: input.entryPrice,
     exitPrice: input.exitPrice,
@@ -203,17 +201,17 @@ finalQuality,
     timeframe: market?.timeframe || null,
     marketAtEntry: market,
 
-trendAligned,
-directionReview,
+    trendAligned,
+    directionReview,
 
-priceLocation,
-entryQuality,
-locationReview,
+    priceLocation,
+    entryQuality,
+    locationReview,
 
-usedStopLoss,
-usedTakeProfit,
-riskLevel,
-riskReview,
+    usedStopLoss,
+    usedTakeProfit,
+    riskLevel,
+    riskReview,
 
     primaryStrength,
     primaryWeakness,
@@ -227,4 +225,5 @@ riskReview,
     explanation: null,
   },
 };
+
 }

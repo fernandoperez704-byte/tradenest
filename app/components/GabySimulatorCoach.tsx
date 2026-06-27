@@ -362,7 +362,6 @@ if (originalQuestion.includes("resistance")) {
 
 const reviewSnapshot = reviewOverride || null;
 
-console.log("ASK GABY REVIEW SNAPSHOT:", reviewSnapshot);
 
 if (isSnapshotComplete(reviewSnapshot)) {
   setAnswer(reviewSnapshot.gaby.explanation);
@@ -498,6 +497,28 @@ setQuestion("");
 
 function reviewTrade() {
 
+  console.log("========== REVIEW START ==========");
+
+  console.log("Mode:", mode);
+
+  console.log("Selected Coin:", selectedCoin);
+
+  console.log(
+  "FUTURES HISTORY",
+  futuresHistory.map((trade) => ({
+    coin: trade.coin,
+    status: trade.status,
+    pnl: trade.pnl,
+    snapshotId: trade.snapshotId,
+    hasReview: !!trade.review,
+    hasAutomaticReview: !!trade.automaticReview,
+    reviewGenerated: trade.review?.gaby?.generated,
+    automaticGenerated: trade.automaticReview?.gaby?.generated,
+  }))
+);
+
+  console.log("Spot Trades:", trades);
+
   const closedTrades =
     mode === "FUTURES"
       ? futuresHistory.filter(
@@ -515,9 +536,20 @@ function reviewTrade() {
             trade.pnl !== undefined
         );
 
-  const latestTrade = closedTrades.find(
-  (trade) => trade.automaticReview || trade.review
-);
+console.log("CLOSED TRADES", closedTrades);
+
+const latestTrade = [...closedTrades]
+  .filter((trade) => trade.review || trade.automaticReview)
+  .sort((a, b) => {
+    const timeA = new Date(a.closedAt ?? a.time ?? 0).getTime();
+    const timeB = new Date(b.closedAt ?? b.time ?? 0).getTime();
+
+    return timeB - timeA;
+  })[0];
+
+console.log("LATEST TRADE", latestTrade);
+console.log("HAS REVIEW", !!latestTrade?.review);
+console.log("HAS AUTOMATIC REVIEW", !!latestTrade?.automaticReview);
 
   if (!latestTrade) {
     setAnswer(
@@ -528,6 +560,22 @@ function reviewTrade() {
 
 const reviewSnapshot =
   latestTrade.review || latestTrade.automaticReview;
+
+if (!reviewSnapshot) {
+  setAnswer(
+    "No completed trade with a saved review was found yet. Close a new TP or SL trade after the snapshot fix."
+  );
+  return;
+}
+
+console.log("LATEST TRADE", latestTrade);
+
+console.log("REVIEW SNAPSHOT", reviewSnapshot);
+
+console.log(
+  "SNAPSHOT COMPLETE",
+  isSnapshotComplete(reviewSnapshot)
+);
 
 if (!reviewSnapshot) {
   setAnswer(
@@ -559,7 +607,10 @@ askGaby(
 </button>
 
 <button
-  onClick={reviewTrade}
+  onClick={() => {
+    console.log("REVIEW BUTTON CLICKED");
+    reviewTrade();
+  }}
   className="h-11 w-full sm:w-auto rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
 >
   Review Trade

@@ -548,33 +548,21 @@ if (liquidatedPositions.length > 0) {
   setTakeProfit("");
   setStopLoss("");
 
-          setMarginUsed((prevMargin) =>
-            Math.max(
-              0,
-              prevMargin -
-                liquidatedPositions.reduce(
-                  (total, position) =>
-                    total + position.margin,
-                  0
-                )
-            )
-          );
+liquidatedPositions.forEach((position) => {
+  const index = prevPositions.findIndex(
+    (p) =>
+      p.coin === position.coin &&
+      p.entryPrice === position.entryPrice
+  );
 
-          setFuturesHistory((prevHistory) => [
-            ...liquidatedPositions.map(
-              (position) => ({
-                ...position,
-                exitPrice:
-                  updated[
-                    position.coin as AssetSymbol
-                  ],
-                pnl: -position.margin,
-                status: "LIQUIDATED",
-                time: new Date().toLocaleTimeString(),
-              })
-            ),
-            ...prevHistory,
-          ]);
+  closeFuturesPosition({
+    position,
+    exitPrice: updated[position.coin as AssetSymbol],
+    reason: "LIQUIDATION",
+    index,
+  });
+});
+
         }
 
         return prevPositions.filter((position) => {
@@ -784,111 +772,12 @@ const stopLossHit =
 
     if (!takeProfitHit && !stopLossHit) return;
 
-const pnl =
-  position.side === "LONG"
-    ? (current - position.entryPrice) * position.quantity
-    : (position.entryPrice - current) * position.quantity;
-
-const exitFee =
-  (position.positionSize || position.margin * position.leverage) * feeRate;
-
-const netPnl =
-  pnl - (position.entryFee || 0) - exitFee;
-
-setBalance((prev) => prev + position.margin + netPnl);
-
-    setMarginUsed((prev) =>
-      Math.max(0, prev - position.margin)
-    );
-
-setFuturesPositions((prev) =>
-  prev.filter((_, i) => i !== index)
-);
-
-const snapshotId = crypto.randomUUID();
-
-const baseReview = reviewTrade({
-  mode: "FUTURES",
-  side: position.side,
-  entryPrice: position.entryPrice,
+closeFuturesPosition({
+  position,
   exitPrice: current,
-  pnl: netPnl,
-  grossPnl: pnl,
-  totalFees: (position.entryFee || 0) + exitFee,
-  leverage: position.leverage,
-  margin: position.margin,
-  positionSize: position.positionSize || position.margin * position.leverage,
-  stopLoss: position.stopLoss,
-  takeProfit: position.takeProfit,
-  tradeContext: position.tradeContext,
+  reason: takeProfitHit ? "TP" : "SL",
+  index,
 });
-
-const automaticReview = {
-  ...baseReview,
-  snapshotId,
-};
-
-if (user) {
-  addDoc(collection(db, "tradeReviews"), {
-    userId: user.id,
-    userName: user.firstName || "Trader",
-    snapshotId,
-
-    mode: "FUTURES",
-    coin: position.coin,
-    side: position.side,
-
-    tradeContext: position.tradeContext || null,
-    review: automaticReview,
-
-    tradeResult: {
-      entryPrice: position.entryPrice,
-      exitPrice: current,
-      pnl: netPnl,
-      grossPnl: pnl,
-      entryFee: position.entryFee || 0,
-      exitFee,
-      totalFees: (position.entryFee || 0) + exitFee,
-      status: takeProfitHit ? "TAKE PROFIT" : "STOP LOSS",
-      closedReason: takeProfitHit ? "TP" : "SL",
-      closedAt: new Date().toISOString(),
-    },
-
-    created: new Date(),
-  });
-}
-
-
-setFuturesHistory((prev) => [
-  {
-    ...position,
-    snapshotId,
-    exitPrice: current,
-    pnl: netPnl,
-    grossPnl: pnl,
-    entryFee: position.entryFee || 0,
-    exitFee,
-    totalFees: (position.entryFee || 0) + exitFee,
-    status: takeProfitHit ? "TAKE PROFIT" : "STOP LOSS",
-    positionSize: position.positionSize || position.margin * position.leverage,
-    balanceAtEntry: position.balanceAtEntry || startingBalance,
-    stopLoss: position.stopLoss,
-    takeProfit: position.takeProfit,
-    closedReason: takeProfitHit ? "TP" : "SL",
-closedAt: new Date().toISOString(),
-
-tradeContext: position.tradeContext || null,
-
-automaticReview,
-review: automaticReview,
-
-time: new Date().toLocaleTimeString(),
-  },
-  ...prev,
-]);
-
-setTakeProfit("");
-setStopLoss("");
 
     setMessage(
       `${takeProfitHit ? "Take Profit" : "Stop Loss"} hit on ${position.coin}`
@@ -1474,6 +1363,7 @@ if (activeStopLoss != null) {
   indicatorPanel,
 ]);
 
+type FuturesCloseReason = "TP" | "SL" | "LIQUIDATION" | "MANUAL";
 function buildTradeContext() {
 
   return {
@@ -1520,6 +1410,140 @@ function buildTradeContext() {
 
     createdAt: new Date().toISOString(),
   };
+}
+
+async function closeFuturesPosition({
+  position,
+  exitPrice,
+  reason,
+  index,
+}: {
+  position: any;
+  exitPrice: number;
+  reason: FuturesCloseReason;
+  index: number;
+}) {
+  const pnl =
+    position.side === "LONG"
+      ? (exitPrice - position.entryPrice) * position.quantity
+      : (position.entryPrice - exitPrice) * position.quantity;
+
+  const exitFee =
+    (position.positionSize || position.margin * position.leverage) * feeRate;
+
+  const netPnl =
+    reason === "LIQUIDATION"
+      ? -position.margin
+      : pnl - (position.entryFee || 0) - exitFee;
+
+  const snapshotId = crypto.randomUUID();
+
+  const baseReview = reviewTrade({
+    mode: "FUTURES",
+    side: position.side,
+    entryPrice: position.entryPrice,
+    exitPrice,
+    pnl: netPnl,
+    grossPnl: pnl,
+    totalFees: (position.entryFee || 0) + exitFee,
+    leverage: position.leverage,
+    margin: position.margin,
+    positionSize: position.positionSize || position.margin * position.leverage,
+    stopLoss: position.stopLoss,
+    takeProfit: position.takeProfit,
+    tradeContext: position.tradeContext,
+  });
+
+  const automaticReview = {
+    ...baseReview,
+    snapshotId,
+  };
+
+  setBalance((prev) =>
+    reason === "LIQUIDATION"
+      ? prev
+      : prev + position.margin + netPnl
+  );
+
+  setMarginUsed((prev) =>
+    Math.max(0, prev - position.margin)
+  );
+
+  setFuturesPositions((prev) =>
+    prev.filter((_, i) => i !== index)
+  );
+
+  if (user) {
+    await addDoc(collection(db, "tradeReviews"), {
+      userId: user.id,
+      userName: user.firstName || "Trader",
+      snapshotId,
+
+      mode: "FUTURES",
+      coin: position.coin,
+      side: position.side,
+
+      tradeContext: position.tradeContext || null,
+      review: automaticReview,
+
+      tradeResult: {
+        entryPrice: position.entryPrice,
+        exitPrice,
+        pnl: netPnl,
+        grossPnl: pnl,
+        entryFee: position.entryFee || 0,
+        exitFee,
+        totalFees: (position.entryFee || 0) + exitFee,
+        status:
+          reason === "TP"
+            ? "TAKE PROFIT"
+            : reason === "SL"
+            ? "STOP LOSS"
+            : reason === "LIQUIDATION"
+            ? "LIQUIDATED"
+            : "MANUAL CLOSE",
+        closedReason: reason,
+        closedAt: new Date().toISOString(),
+      },
+
+      created: new Date(),
+    });
+  }
+
+  setFuturesHistory((prev) => [
+    {
+      ...position,
+      snapshotId,
+      exitPrice,
+      pnl: netPnl,
+      grossPnl: pnl,
+      entryFee: position.entryFee || 0,
+      exitFee,
+      totalFees: (position.entryFee || 0) + exitFee,
+      status:
+        reason === "TP"
+          ? "TAKE PROFIT"
+          : reason === "SL"
+          ? "STOP LOSS"
+          : reason === "LIQUIDATION"
+          ? "LIQUIDATED"
+          : "MANUAL CLOSE",
+      positionSize: position.positionSize || position.margin * position.leverage,
+      balanceAtEntry: position.balanceAtEntry || startingBalance,
+      stopLoss: position.stopLoss,
+      takeProfit: position.takeProfit,
+      closedReason: reason,
+      closedAt: new Date().toISOString(),
+      tradeContext: position.tradeContext || null,
+      automaticReview,
+      review: automaticReview,
+      time: new Date().toLocaleTimeString(),
+    },
+    ...prev,
+  ]);
+
+  setTakeProfit("");
+  setStopLoss("");
 }
 
 function buyCoin() {
@@ -2890,53 +2914,15 @@ const riskReward =
         return;
       }
 
-const pnl =
-  position.side === "LONG"
-    ? (current - position.entryPrice) * position.quantity
-    : (position.entryPrice - current) * position.quantity;
+closeFuturesPosition({
+  position,
+  exitPrice: current,
+  reason: "MANUAL",
+  index,
+});
 
-const exitFee =
-  (position.positionSize || position.margin * position.leverage) * feeRate;
+setMessage(`Closed ${position.side} ${position.coin} manually`);
 
-const netPnl =
-  pnl - (position.entryFee || 0) - exitFee;
-
-setBalance((prev) => prev + position.margin + netPnl);
-
-      setMarginUsed((prev) =>
-        Math.max(0, prev - position.margin)
-      );
-
-      setFuturesPositions((prev) =>
-        prev.filter((_, i) => i !== index)
-      );
-
-setFuturesHistory((prev) => [
-  {
-    ...position,
-    exitPrice: current,
-    pnl: netPnl,
-grossPnl: pnl,
-entryFee: position.entryFee || 0,
-exitFee,
-totalFees: (position.entryFee || 0) + exitFee,
-    status: "CLOSED",
-    positionSize: position.positionSize || position.margin * position.leverage,
-    balanceAtEntry: position.balanceAtEntry || startingBalance,
-    stopLoss: position.stopLoss,
-    takeProfit: position.takeProfit,
-    closedReason: "MANUAL",
-    time: new Date().toLocaleTimeString(),
-  },
-  ...prev,
-]);
-
-setTakeProfit("");
-setStopLoss("");
-
-      setMessage(
-        `${position.side} ${position.coin} closed. P/L after fees: $${netPnl.toFixed(2)}`
-      );
     }}
     className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
   >
