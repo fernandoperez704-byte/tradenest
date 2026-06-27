@@ -19,6 +19,34 @@ export function buildTraderDevelopment(
   input: TraderDevelopmentInput
 ): TraderDevelopmentReport {
 
+const minimumTrades = 10;
+
+if (input.reviews.length < minimumTrades) {
+  return {
+    enoughData: false,
+
+    currentTrades: input.reviews.length,
+
+    minimumTrades,
+
+    totalTrades: input.reviews.length,
+
+    wins: 0,
+
+    losses: 0,
+
+    winRate: 0,
+
+    trendAnalysis: null,
+
+    strengths: [],
+
+    weaknesses: [],
+
+    recommendations: [],
+  } as any;
+}
+
   const totalTrades = input.reviews.length;
 
   const wins =

@@ -10,6 +10,32 @@ export function buildTraderProfile(
   input: TraderProfileInput
 ): TraderProfileReport {
 
+const minimumTrades = 20;
+
+const currentTrades =
+  input.developmentReport?.totalTrades || 0;
+
+if (currentTrades < minimumTrades) {
+  return {
+    enoughData: false,
+
+    currentTrades,
+
+    minimumTrades,
+
+    overallScore: 0,
+
+    skills: [],
+
+    strongestSkill: "Not enough data",
+
+    weakestSkill: "Not enough data",
+
+    profileSummary:
+      `It's too early to build a reliable trader profile. You have ${currentTrades} reviewed trade${currentTrades === 1 ? "" : "s"} so far. A profile becomes more meaningful after around ${minimumTrades} reviewed trades.`,
+  } as any;
+}
+
   const skills = buildSkillAnalysis(
     input.developmentReport,
     input.progressReport
