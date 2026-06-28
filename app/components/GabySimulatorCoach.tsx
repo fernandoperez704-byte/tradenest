@@ -517,7 +517,17 @@ function reviewTrade() {
   }))
 );
 
-  console.log("Spot Trades:", trades);
+  console.log(
+  "Spot Trades",
+  trades.map((trade) => ({
+    type: trade.type,
+    status: trade.status,
+    pnl: trade.pnl,
+    snapshotId: trade.snapshotId,
+    hasReview: !!trade.review,
+    hasAutomaticReview: !!trade.automaticReview,
+  }))
+);
 
   const closedTrades =
     mode === "FUTURES"
@@ -531,7 +541,9 @@ function reviewTrade() {
       : trades.filter(
           (trade) =>
             trade.coin === selectedCoin &&
-            trade.type === "SELL" &&
+            (trade.type === "SELL" ||
+ trade.type === "TAKE PROFIT" ||
+ trade.type === "STOP LOSS") &&
             trade.pnl !== null &&
             trade.pnl !== undefined
         );

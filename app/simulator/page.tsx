@@ -61,13 +61,21 @@ type Trade = {
   type: string;
   coin: AssetSymbol;
   price: number;
-  amount: number;
+  amount: number | "";
   time: string;
   pnl?: number;
   entryFee?: number;
   exitFee?: number;
   totalFees?: number;
   grossPnl?: number;
+
+  snapshotId?: string;
+  automaticReview?: any;
+  review?: any;
+  closedReason?: "MANUAL" | "TP" | "SL";
+  closedAt?: string;
+  tradeContext?: any;
+  status?: string;
 
   entryQuality?: string | null;
   marketDirection?: string;
@@ -723,30 +731,37 @@ if (!current) return;
 }, [prices]);
 
 useEffect(() => {
-  if (positions[selectedCoin] <= 0) return;
+  Object.entries(positions).forEach(([coin, qty]) => {
+    const asset = coin as AssetSymbol;
 
-  const current = prices[selectedCoin];
-  const risk = spotRiskSettings[selectedCoin];
+    if (Number(qty) <= 0) return;
 
-  if (!current || !risk) return;
+    const current = prices[asset];
+    const risk = spotRiskSettings[asset];
 
-  if (
-    risk.takeProfit != null &&
-    current >= risk.takeProfit
-  ) {
-    sellCoin();
+    if (!current || !risk) return;
 
-    setMessage(`Take Profit hit on ${selectedCoin}`);
-  }
+    const takeProfitHit =
+      risk.takeProfit != null &&
+      current >= risk.takeProfit;
 
-  if (
-    risk.stopLoss != null &&
-    current <= risk.stopLoss
-  ) {
-    sellCoin();
+    const stopLossHit =
+      risk.stopLoss != null &&
+      current <= risk.stopLoss;
 
-    setMessage(`Stop Loss hit on ${selectedCoin}`);
-  }
+    if (!takeProfitHit && !stopLossHit) return;
+
+    closeSpotPosition({
+      coin: asset,
+      quantity: Number(qty),
+      currentPrice: current,
+      reason: takeProfitHit ? "TP" : "SL",
+    });
+
+    setMessage(
+      `${takeProfitHit ? "Take Profit" : "Stop Loss"} hit on ${asset}`
+    );
+  });
 }, [prices, selectedCoin, positions, spotRiskSettings]);
 
 useEffect(() => {
@@ -1546,6 +1561,261 @@ async function closeFuturesPosition({
   setStopLoss("");
 }
 
+async function closeSpotPosition({
+  coin,
+  quantity,
+  currentPrice,
+  reason,
+}: {
+  coin: AssetSymbol;
+  quantity: number;
+  currentPrice: number;
+  reason: "MANUAL" | "TP" | "SL";
+}) {
+
+  console.log("CLOSE SPOT", {
+    coin,
+    reason,
+  });
+
+console.log("SPOT CLOSE FUNCTION HIT", {
+  coin,
+  quantity,
+  currentPrice,
+  reason,
+});
+
+  const ownedAmount = positions[coin];
+
+  if (ownedAmount <= 0) {
+    setMessage(`No ${coin} owned.`);
+    return null;
+  }
+
+  const quantityToClose = Math.min(quantity, ownedAmount);
+
+  const sellValue = quantityToClose * currentPrice;
+  const spotExitFee = sellValue * feeRate;
+  const netSellValue = sellValue - spotExitFee;
+
+  const avgEntryPrice = averagePrices[coin] || 0;
+
+  const grossSpotPnl =
+    (currentPrice - avgEntryPrice) * quantityToClose;
+
+  const spotEntryFeePaid =
+    avgEntryPrice * quantityToClose * feeRate;
+
+  const spotPnl =
+    grossSpotPnl - spotEntryFeePaid - spotExitFee;
+
+  const snapshotId = crypto.randomUUID();
+
+  const tradeContext = buildTradeContext();
+
+  const baseReview = reviewTrade({
+    mode: "SPOT",
+    side: "LONG",
+    entryPrice: avgEntryPrice,
+    exitPrice: currentPrice,
+    pnl: spotPnl,
+    grossPnl: grossSpotPnl,
+    totalFees: spotEntryFeePaid + spotExitFee,
+    stopLoss: spotRiskSettings[coin]?.stopLoss,
+    takeProfit: spotRiskSettings[coin]?.takeProfit,
+    tradeContext,
+  });
+
+  const automaticReview = {
+    ...baseReview,
+    snapshotId,
+  };
+
+console.log("SPOT CLOSE REVIEW CREATED", {
+  snapshotId,
+  hasAutomaticReview: !!automaticReview,
+  hasReviewText: !!automaticReview?.gaby,
+  automaticReview,
+});
+
+  setBalance((prev) => prev + netSellValue);
+
+  setPositions((prev) => ({
+    ...prev,
+    [coin]: Math.max(0, prev[coin] - quantityToClose),
+  }));
+
+  setAveragePrices((prev) => ({
+    ...prev,
+    [coin]:
+      ownedAmount - quantityToClose <= 0
+        ? 0
+        : prev[coin],
+  }));
+
+  setSpotRiskSettings((prev) => ({
+    ...prev,
+    [coin]:
+      ownedAmount - quantityToClose <= 0
+        ? { takeProfit: null, stopLoss: null }
+        : prev[coin],
+  }));
+
+  setTakeProfit("");
+  setStopLoss("");
+
+setTrades((prev) => {
+  const next = [
+    {
+      snapshotId,
+      automaticReview,
+      review: automaticReview,
+
+      type:
+        reason === "TP"
+          ? "TAKE PROFIT"
+          : reason === "SL"
+          ? "STOP LOSS"
+          : "SELL",
+
+      coin,
+      amount: sellValue,
+      price: currentPrice,
+
+      pnl: spotPnl,
+      grossPnl: grossSpotPnl,
+      entryFee: spotEntryFeePaid,
+      exitFee: spotExitFee,
+      totalFees: spotEntryFeePaid + spotExitFee,
+
+      status:
+        reason === "TP"
+          ? "TAKE PROFIT"
+          : reason === "SL"
+          ? "STOP LOSS"
+          : "MANUAL CLOSE",
+
+      closedReason: reason,
+      closedAt: new Date().toISOString(),
+
+      tradeContext,
+
+      time: new Date().toLocaleTimeString(),
+    },
+    ...prev,
+  ];
+
+  console.log("NEW SPOT TRADE", next[0]);
+
+  return next;
+});
+
+  if (user) {
+    await addDoc(collection(db, "tradeReviews"), {
+      userId: user.id,
+      userName: user.firstName || "Trader",
+      snapshotId,
+
+      mode: "SPOT",
+      coin,
+      side: "LONG",
+
+      tradeContext,
+      review: automaticReview,
+
+      tradeResult: {
+        entryPrice: avgEntryPrice,
+        exitPrice: currentPrice,
+        pnl: spotPnl,
+        grossPnl: grossSpotPnl,
+        entryFee: spotEntryFeePaid,
+        exitFee: spotExitFee,
+        totalFees: spotEntryFeePaid + spotExitFee,
+        status:
+          reason === "TP"
+            ? "TAKE PROFIT"
+            : reason === "SL"
+            ? "STOP LOSS"
+            : "MANUAL CLOSE",
+        closedReason: reason,
+        closedAt: new Date().toISOString(),
+      },
+
+      created: new Date(),
+    });
+  }
+
+  if (user) {
+    await addDoc(collection(db, "trades"), {
+      userId: user.id,
+      userName: user.firstName || "Trader",
+      snapshotId,
+
+      type:
+        reason === "TP"
+          ? "TAKE PROFIT"
+          : reason === "SL"
+          ? "STOP LOSS"
+          : "SELL",
+
+      coin,
+      amount: sellValue,
+      price: currentPrice,
+
+      pnl: spotPnl,
+      grossPnl: grossSpotPnl,
+      entryFee: spotEntryFeePaid,
+      exitFee: spotExitFee,
+      totalFees: spotEntryFeePaid + spotExitFee,
+
+status:
+  reason === "TP"
+    ? "TAKE PROFIT"
+    : reason === "SL"
+    ? "STOP LOSS"
+    : "MANUAL CLOSE",
+
+closedReason: reason,
+closedAt: new Date().toISOString(),
+
+      tradeContext,
+      automaticReview,
+      review: automaticReview,
+
+      created: new Date(),
+    });
+  }
+
+  if (user) {
+    await setDoc(doc(db, "portfolios", user.id), {
+      userName: user.firstName || "Trader",
+      balance: balance + netSellValue,
+      positions: {
+        ...positions,
+        [coin]: Math.max(0, ownedAmount - quantityToClose),
+      },
+      averagePrices: {
+        ...averagePrices,
+        [coin]:
+          ownedAmount - quantityToClose <= 0
+            ? 0
+            : averagePrices[coin],
+      },
+      updated: new Date(),
+    });
+  }
+
+  return {
+    sellValue,
+    netSellValue,
+    grossSpotPnl,
+    spotPnl,
+    spotExitFee,
+    snapshotId,
+    automaticReview,
+  };
+}
+
 function buyCoin() {
 
   if (!currentPrice) {
@@ -1805,127 +2075,38 @@ tradeContext,
   setMessage(`${side} ${selectedCoin} opened with ${orderLeverage}x leverage`);
 }
 
-  function sellCoin() {
-    if (!currentPrice) {
-  setMessage("Loading real market price...");
-  return;
-}
-    if (
-  orderType === "LIMIT" &&
-  limitPrice !== ""
-) {
-  setPendingLimitOrder({
-    coin: selectedCoin,
-    amount: positions[selectedCoin] * currentPrice,
-    limitPrice: Number(limitPrice),
-    side: "SELL",
-    mode: "SPOT",
-  });
-
-  setMessage(
-    `Limit sell order placed for ${selectedCoin} at $${Number(limitPrice).toFixed(2)}`
-  );
-
-  return;
-}
-    const ownedAmount = positions[selectedCoin];
-
-    if (ownedAmount <= 0) {
-      setMessage(`No ${selectedCoin} owned.`);
-      return;
-    }
-
-    const value = ownedAmount * currentPrice;
-const spotExitFee = value * feeRate;
-const netValue = value - spotExitFee;
-    setBalance((prev) => prev + netValue);
-
-if (marketMode === "FUTURES") {
-  setMarginUsed((prev) => Math.max(0, prev - Number(tradeAmount || 0)));
-}
-if (user) {
- setDoc(doc(db, "portfolios", user.id), {
-  userName: user.firstName || "Trader",
-  balance: balance + netValue,
-  positions: {
-    ...positions,
-    [selectedCoin]: 0,
-  },
-  averagePrices: {
-    ...averagePrices,
-    [selectedCoin]: 0,
-  },
-  updated: new Date(),
-});
-}
-setPositions((prev) => ({
-  ...prev,
-  [selectedCoin]: 0,
-}));
-
-setAveragePrices((prev) => ({
-  ...prev,
-  [selectedCoin]: 0,
-}));
-
-setSpotRiskSettings((prev) => ({
-  ...prev,
-  [selectedCoin]: {
-    takeProfit: null,
-    stopLoss: null,
-  },
-}));
-
-setTakeProfit("");
-setStopLoss("");
-
-  const grossSpotPnl =
-  value - ownedAmount * averagePrices[selectedCoin];
-
-const spotEntryFeePaid =
-  trades.find(
-    (trade) =>
-      trade.type === "BUY" &&
-      trade.coin === selectedCoin
-  )?.entryFee || 0;
-
-const spotPnl =
-  grossSpotPnl - spotEntryFeePaid - spotExitFee;
-
-setTrades((prev) => [
-  {
-    type: "SELL",
-    coin: selectedCoin,
-    amount: value,
-    price: currentPrice,
-
-    pnl: spotPnl,
-
-    grossPnl: grossSpotPnl,
-entryFee: spotEntryFeePaid,
-exitFee: spotExitFee,
-totalFees: spotEntryFeePaid + spotExitFee,
-
-    time: new Date().toLocaleTimeString(),
-  },
-  ...prev,
-]);
-
-if (user) {
-  addDoc(collection(db, "trades"), {
-    userId: user.id,
-    userName: user.firstName || "Trader",
-    type: "SELL",
-    coin: selectedCoin,
-    amount: value,
-    price: currentPrice,
-    pnl: spotPnl,
-    created: new Date(),
-  });
-}
-
-    setMessage(`Sold ${selectedCoin} for $${value.toFixed(2)}`);
+function sellCoin() {
+  if (!currentPrice) {
+    setMessage("Loading real market price...");
+    return;
   }
+
+  if (
+    orderType === "LIMIT" &&
+    limitPrice !== ""
+  ) {
+    setPendingLimitOrder({
+      coin: selectedCoin,
+      amount: positions[selectedCoin] * currentPrice,
+      limitPrice: Number(limitPrice),
+      side: "SELL",
+      mode: "SPOT",
+    });
+
+    setMessage(
+      `Limit sell order placed for ${selectedCoin} at $${Number(limitPrice).toFixed(2)}`
+    );
+
+    return;
+  }
+
+  closeSpotPosition({
+    coin: selectedCoin,
+    quantity: positions[selectedCoin],
+    currentPrice,
+    reason: "MANUAL",
+  });
+}
 
 function resetAccount() {
   setBalance(startingBalance);
@@ -3056,110 +3237,15 @@ setMessage(`Closed ${position.side} ${position.coin} manually`);
   <div className="flex justify-end">
     <button
       onClick={() => {
-const sellValue = Number(qty) * currentPrice;
+  if (!currentPrice) return;
 
-const spotExitFee = sellValue * feeRate;
-
-const netSellValue = sellValue - spotExitFee;
-
-const grossSpotPnl =
-  sellValue - Number(qty) * averagePrices[coin as AssetSymbol];
-
-const spotEntryFeePaid =
-  trades.find(
-    (trade) =>
-      trade.type === "BUY" &&
-      trade.coin === (coin as AssetSymbol)
-  )?.entryFee || 0;
-
-const closePnl =
-  grossSpotPnl - spotEntryFeePaid - spotExitFee;
-
-setBalance((prev) => prev + netSellValue);
-
-        setPositions((prev) => ({
-          ...prev,
-          [coin]: 0,
-        }));
-
-        setAveragePrices((prev) => ({
-          ...prev,
-          [coin]: 0,
-        }));
-
-if (user) {
-  setDoc(doc(db, "portfolios", user.id), {
-    userName: user.firstName || "Trader",
-    balance: balance + netSellValue,
-    positions: {
-      ...positions,
-      [coin]: 0,
-    },
-    averagePrices: {
-      ...averagePrices,
-      [coin]: 0,
-    },
-    updated: new Date(),
-  });
-}
-
-setTrades((prev) => [
-  {
-    type: "SELL",
+  closeSpotPosition({
     coin: coin as AssetSymbol,
-    amount: sellValue,
-    price: currentPrice,
-
-    pnl: closePnl,
-
-    grossPnl: grossSpotPnl,
-    entryFee: spotEntryFeePaid,
-    exitFee: spotExitFee,
-    totalFees: spotEntryFeePaid + spotExitFee,
-
-    stopLoss:
-      stopLoss !== ""
-        ? Number(stopLoss)
-        : null,
-
-    takeProfit:
-      takeProfit !== ""
-        ? Number(takeProfit)
-        : null,
-
-    time: new Date().toLocaleTimeString(),
-  },
-  ...prev,
-]);
-if (user) {
-addDoc(collection(db, "trades"), {
-  userId: user.id,
-  userName: user.firstName || "Trader",
-  type: "SELL",
-  coin: coin,
-  amount: sellValue,
-  price: currentPrice,
-
-  pnl: closePnl,
-grossPnl: grossSpotPnl,
-entryFee: spotEntryFeePaid,
-exitFee: spotExitFee,
-totalFees: spotEntryFeePaid + spotExitFee,
-
-stopLoss:
-  stopLoss !== ""
-    ? Number(stopLoss)
-    : null,
-
-takeProfit:
-  takeProfit !== ""
-    ? Number(takeProfit)
-    : null,
-
-  created: new Date(),
-});
-}
-      }}
+    quantity: Number(qty),
+    currentPrice,
+    reason: "MANUAL",
+  });
+}}
       className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
     >
       Close
