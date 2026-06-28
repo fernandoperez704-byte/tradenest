@@ -105,6 +105,7 @@ useEffect(() => {
 }, []);
   const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
+  const [autoGabyQuestion, setAutoGabyQuestion] = useState<string | null>(null);
   const [showGabyHint, setShowGabyHint] = useState(true);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
@@ -1576,6 +1577,19 @@ async function closeFuturesPosition({
 
   setTakeProfit("");
   setStopLoss("");
+
+const nextReviewedTradeCount = tradeReviews.length + 1;
+
+if (
+  nextReviewedTradeCount >= 20 &&
+  nextReviewedTradeCount % 20 === 0
+) {
+  setShowSimulatorGaby(true);
+  setAutoGabyQuestion(
+    "Generate the Trader Development Report for the user's latest completed trades."
+  );
+}
+
 }
 
 async function closeSpotPosition({
@@ -1821,6 +1835,18 @@ closedAt: new Date().toISOString(),
       updated: new Date(),
     });
   }
+
+const nextReviewedTradeCount = tradeReviews.length + 1;
+
+if (
+  nextReviewedTradeCount >= 20 &&
+  nextReviewedTradeCount % 20 === 0
+) {
+  setShowSimulatorGaby(true);
+  setAutoGabyQuestion(
+    "Generate the Trader Development Report for the user's latest completed trades."
+  );
+}
 
   return {
     sellValue,
@@ -3691,6 +3717,8 @@ setMessage(`Closed ${position.side} ${position.coin} manually`);
 
 <GabySimulatorCoach
   userId={user?.id || ""}
+  autoQuestion={autoGabyQuestion}
+  clearAutoQuestion={() => setAutoGabyQuestion(null)}
   mode={marketMode}
   selectedCoin={selectedCoin}
   trades={trades}

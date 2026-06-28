@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { db } from "@/app/firebase";
 import {
   collection,
@@ -15,6 +15,8 @@ import {
 } from "@/lib/gabySnapshot/snapshot";
 type GabySimulatorCoachProps = {
 userId: string;
+autoQuestion?: string | null;
+clearAutoQuestion?: () => void;
   mode: string;
   selectedCoin: string;
   trades: any[];
@@ -37,6 +39,8 @@ setTrades: any;
 
 export default function GabySimulatorCoach({
   userId,
+  autoQuestion,
+  clearAutoQuestion,
   mode,
   selectedCoin,
   trades,
@@ -65,6 +69,17 @@ movingAverageAnalysis,
 const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
 const [lastTopic, setLastTopic] = useState<string | null>(null);
+
+useEffect(() => {
+  if (!autoQuestion) return;
+  if (loading) return;
+
+  askGaby(autoQuestion);
+
+  if (clearAutoQuestion) {
+    clearAutoQuestion();
+  }
+}, [autoQuestion]);
 
 const [conversationState, setConversationState] = useState<{
   intent: string | null;
