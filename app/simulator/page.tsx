@@ -239,7 +239,24 @@ useEffect(() => {
       ...doc.data(),
     }));
 
-    setTrades(loadedTrades as any[]);
+    setTrades((prev) => {
+  const mergedTrades = [...prev];
+
+  loadedTrades.forEach((loadedTrade: any) => {
+    const alreadyExists = mergedTrades.some(
+      (trade: any) =>
+        trade.snapshotId &&
+        loadedTrade.snapshotId &&
+        trade.snapshotId === loadedTrade.snapshotId
+    );
+
+    if (!alreadyExists) {
+      mergedTrades.push(loadedTrade as any);
+    }
+  });
+
+  return mergedTrades;
+});
   }
 
   loadTrades();
