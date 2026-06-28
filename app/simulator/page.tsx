@@ -61,7 +61,7 @@ type Trade = {
   type: string;
   coin: AssetSymbol;
   price: number;
-  amount: number | "";
+  amount: number;
   time: string;
   pnl?: number;
   entryFee?: number;
