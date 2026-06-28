@@ -73,4 +73,19 @@ outcomeAnalysis: {
   weaknesses: string[];
 
   recommendations: string[];
+
+  confidence: "LOW" | "MEDIUM" | "HIGH";
+
+  currentFocus: {
+    title: string;
+    reason: string;
+  };
+
+  gabyAnalysisData: {
+    primaryStrength: string | null;
+    primaryWeakness: string | null;
+    highestImpactFocus: string;
+    summaryFacts: string[];
+  };
+
 };

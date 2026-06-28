@@ -19,7 +19,7 @@ export function buildTraderDevelopment(
   input: TraderDevelopmentInput
 ): TraderDevelopmentReport {
 
-const minimumTrades = 10;
+const minimumTrades = 20;
 
 if (input.reviews.length < minimumTrades) {
   return {
@@ -136,6 +136,33 @@ strengths: insights.strengths,
 weaknesses: insights.weaknesses,
 
 recommendations: insights.recommendations,
+
+confidence:
+  totalTrades < 20
+    ? "LOW"
+    : totalTrades < 50
+    ? "MEDIUM"
+    : "HIGH",
+
+currentFocus: {
+  title:
+    insights.weaknesses[0] || "Continue Building Consistency",
+  reason:
+    insights.recommendations[0] ||
+    "More completed trades are needed to identify a stronger improvement focus.",
+},
+
+gabyAnalysisData: {
+  primaryStrength: insights.strengths[0] || null,
+  primaryWeakness: insights.weaknesses[0] || null,
+  highestImpactFocus:
+    insights.recommendations[0] ||
+    "Continue completing trades so the report can identify stronger patterns.",
+  summaryFacts: [
+    `Trades analyzed: ${totalTrades}`,
+    `Win rate: ${winRate.toFixed(1)}%`,
+  ],
+},
 
 };
 
