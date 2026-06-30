@@ -2,6 +2,19 @@
 
 import Navbar from "../components/Navbar";
 import GabySimulatorCoach from "../components/GabySimulatorCoach";
+import WatchlistPanel from "./components/WatchlistPanel";
+import ChartWorkspace from "./components/ChartWorkspace";
+import TradingPanel from "./components/TradingPanel";
+import AccountSummaryCard from "./components/AccountSummaryCard";
+import PortfolioPanel from "./components/PortfolioPanel";
+import PortfolioTabs from "./components/PortfolioTabs";
+import PortfolioPositions from "./components/PortfolioPositions";
+import PortfolioHistory from "./components/PortfolioHistory";
+import PortfolioOrders from "./components/PortfolioOrders";
+
+
+
+
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -39,50 +52,12 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-
-type PricePoint = {
-  time: string;
-  price: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-};
-
-type AssetSymbol =
-  | "BTC"
-  | "ETH"
-  | "SOL"
-  | "XRP"
-  | "DOGE";
-
-type Trade = {
-  type: string;
-  coin: AssetSymbol;
-  price: number;
-  amount: number;
-  time: string;
-  pnl?: number;
-  entryFee?: number;
-  exitFee?: number;
-  totalFees?: number;
-  grossPnl?: number;
-
-  snapshotId?: string;
-  automaticReview?: any;
-  review?: any;
-  closedReason?: "MANUAL" | "TP" | "SL";
-  closedAt?: string;
-  tradeContext?: any;
-  status?: string;
-
-  entryQuality?: string | null;
-  marketDirection?: string;
-  marketStructure?: string;
-  nearestSupport?: any;
-  nearestResistance?: any;
-};
+import type {
+  PricePoint,
+  AssetSymbol,
+  Trade,
+  FuturesCloseReason,
+} from "./types/simulator";
 
 
 const startingBalance = 10000;
@@ -1396,7 +1371,7 @@ if (activeStopLoss != null) {
   indicatorPanel,
 ]);
 
-type FuturesCloseReason = "TP" | "SL" | "LIQUIDATION" | "MANUAL";
+
 function buildTradeContext() {
 
   return {
@@ -2249,15 +2224,11 @@ const watchlist = [
       <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
 <div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
-          <div
-  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden ${
-    mobileView === "WATCHLIST" ? "block" : "hidden xl:flex"
-  } ${
-    tourStep === 1
-      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
-      : ""
-  }`}
+          <WatchlistPanel
+  mobileView={mobileView}
+  tourStep={tourStep}
 >
+
 <div className="relative mb-4">
   <button
     onClick={() => setShowMarketMenu(!showMarketMenu)}
@@ -2435,165 +2406,24 @@ chartInstanceRef.current?.applyOptions({
   </button>
 </div>
             </div>
-          </div>
+                    </WatchlistPanel>
 
-            <div
-  className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-4 xl:p-5 h-auto xl:h-[760px] flex flex-col overflow-visible xl:overflow-hidden ${
-    mobileView === "TRADE" ? "flex" : "hidden xl:flex"
-  } ${
-    tourStep === 2
-      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
-      : ""
-  }`}
->
-
-<button
-  onClick={() => setMobileView("WATCHLIST")}
-  className="mb-4 block rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
->
-  ← Back to Coins
-</button>
-
-<button
-  onClick={() => setShowSimulatorGaby(true)}
-  className="mb-4 flex w-full items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-4 text-lg font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.12)] xl:hidden"
->
-  Ask Gaby
-</button>
-
-<div className="relative mb-4 hidden">
-  <button
-    onClick={() => setShowMarketMenu(!showMarketMenu)}
-    className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
-  >
-    <span>
-      {marketMode === "SPOT" ? "Crypto Spot" : "Crypto Futures"}
-    </span>
-
-    <span className="text-cyan-400">▼</span>
-  </button>
-
-  {showMarketMenu && (
-    <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-zinc-700 bg-[#0f172a] shadow-xl">
-      <button
-        onClick={() => {
-          setMarketMode("SPOT");
-          setSelectedCoin("BTC");
-          setActiveBottomTab("POSITIONS");
-          setShowMarketMenu(false);
-        }}
-        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
-      >
-        Crypto Spot
-      </button>
-
-      <button
-        onClick={() => {
-          setMarketMode("FUTURES");
-          setSelectedCoin("BTC");
-          setActiveBottomTab("POSITIONS");
-          setShowMarketMenu(false);
-        }}
-        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
-      >
-        Crypto Futures
-      </button>
-    </div>
-  )}
-</div>
-
-<div className="mb-6 border-b border-zinc-800 pb-4">
-  <div className="flex items-end gap-4">
-    <h2 className="text-3xl font-black text-white">
-      {selectedCoin}/USD
-    </h2>
-
-    <p className="text-3xl font-black text-white">
-      {currentPrice
-  ? `$${currentPrice.toLocaleString()}`
-  : "Loading..."}
-    </p>
-  </div>
-
-  <div className="mt-2 flex items-center gap-4">
-    <p className="text-sm text-zinc-500">
-      {marketMode === "SPOT" ? "Spot Market" : "Futures Market"} · {selectedTimeframe}
-    </p>
-
-    <p className="text-sm text-zinc-500">
-      {now ? now.toLocaleTimeString() : "--:--:--"}
-    </p>
-  </div>
-</div>
-
-<div className="mb-2 flex flex-col-reverse gap-2 xl:flex-row xl:items-center xl:justify-between">
-  <div className="flex flex-wrap gap-2">
-    {["1M", "5M", "15M", "1H", "4H", "1D"].map(
-      (timeframe) => (
-        <button
-          key={timeframe}
-          onClick={() => {
-            setSelectedTimeframe(timeframe);
-          }}
-          className={`rounded-md border px-3 py-1.5 text-xs font-bold transition-all ${
-            selectedTimeframe === timeframe
-              ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-              : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
-          }`}
-        >
-          {timeframe}
-        </button>
-      )
-    )}
-  </div>
-
-<div className="flex gap-2">
-  <button
-    onClick={() => setIndicatorPanel("VOLUME")}
-    className={`rounded-md border px-3 py-1.5 text-xs font-black ${
-      indicatorPanel === "VOLUME"
-        ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-        : "border-zinc-700 bg-[#111827] text-zinc-400"
-    }`}
-  >
-    Volume
-  </button>
-
-  <button
-    onClick={() => setIndicatorPanel("RSI")}
-    className={`rounded-md border px-3 py-1.5 text-xs font-black ${
-      indicatorPanel === "RSI"
-        ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-        : "border-zinc-700 bg-[#111827] text-zinc-400"
-    }`}
-  >
-    RSI
-  </button>
-
-<button
-  onClick={() =>
-    chartInstanceRef.current?.timeScale().scrollToRealTime()
-  }
-  className="rounded-md border px-3 py-1.5 text-xs font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
->
-  Live
-</button>
-</div>
-</div>
-<div className="mt-2 flex-1 rounded-xl overflow-hidden">
-  <div
-    ref={chartRef}
-    className="h-[430px] w-full xl:h-[520px]"
-  />
-</div>
-
-<button
-  onClick={() => setMobileView("ORDER")}
-  className="mt-4 flex w-full items-center justify-center rounded-2xl bg-cyan-500 px-5 py-4 text-xl font-black text-black xl:hidden"
->
-  Trade
-</button>
-</div>
+<ChartWorkspace
+  mobileView={mobileView}
+  setMobileView={setMobileView}
+  selectedCoin={selectedCoin}
+  currentPrice={currentPrice}
+  marketMode={marketMode}
+  selectedTimeframe={selectedTimeframe}
+  setSelectedTimeframe={setSelectedTimeframe}
+  now={now}
+  indicatorPanel={indicatorPanel}
+  setIndicatorPanel={setIndicatorPanel}
+  chartInstanceRef={chartInstanceRef}
+  chartRef={chartRef}
+  setShowSimulatorGaby={setShowSimulatorGaby}
+  tourStep={tourStep}
+/>
 
 <div
   className={`space-y-2 xl:col-span-1 ${
@@ -2601,73 +2431,15 @@ chartInstanceRef.current?.applyOptions({
   }`}
 >
 
-          
-              <div
-  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 ${
-    tourStep === 5
-      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
-      : ""
-  }`}
->
-  <h2 className="text-lg font-black text-white mb-3">
-    Account Summary
-  </h2>
-
-  <div className="space-y-2 text-sm">
-    <div className="flex items-center justify-between">
-      <span className="text-zinc-500">Cash Balance</span>
-      <span className="font-bold text-white">${balance.toFixed(2)}</span>
-    </div>
-
-<div className="flex items-center justify-between">
-  <span className="text-zinc-500">
-    {marketMode === "FUTURES" ? "Account Equity" : "Portfolio Value"}
-  </span>
-
-  <span className="font-bold text-cyan-400">
-    ${accountEquity.toFixed(2)}
-  </span>
-</div>
-
-{marketMode === "FUTURES" && (
-  <div className="flex items-center justify-between">
-    <span className="text-zinc-500">Margin Used</span>
-    <span className="font-bold text-orange-400">${marginUsed.toFixed(2)}</span>
-  </div>
-)}
-
-{marketMode === "FUTURES" && (
-  <div className="flex items-center justify-between">
-    <span className="text-zinc-500">Open P/L</span>
-
-    <span
-      className={`font-bold ${
-        futuresUnrealizedPnl >= 0 ? "text-green-400" : "text-red-400"
-      }`}
-    >
-      ${futuresUnrealizedPnl.toFixed(2)}
-    </span>
-  </div>
-)}
-
-
-
-<div className="flex items-center justify-between">
-  <span className="text-zinc-500">Total Return</span>
-
-  <span
-    className={`font-bold ${
-      totalPnlPercent >= 0
-        ? "text-green-400"
-        : "text-red-400"
-    }`}
-  >
-    {totalPnlPercent.toFixed(2)}%
-  </span>
-</div>
-
-  </div>
-</div>
+<AccountSummaryCard
+  marketMode={marketMode}
+  balance={balance}
+  accountEquity={accountEquity}
+  marginUsed={marginUsed}
+  futuresUnrealizedPnl={futuresUnrealizedPnl}
+  totalPnlPercent={totalPnlPercent}
+  tourStep={tourStep}
+/>          
 
   <div
   id="mobile-order-entry"
@@ -2932,735 +2704,50 @@ openFuturesPosition("SHORT");
 </div> 
       </div>
       </div>
-    <div
-  className={`mt-2 w-full px-4 xl:page-container ${
-    mobileView === "ORDER" ? "block" : "hidden xl:block"
-  }`}
+    <PortfolioPanel
+  mobileView={mobileView}
+  tourStep={tourStep}
 >
-  <div
-  className={`w-full bg-[#111827] border border-zinc-700 rounded-2xl p-3 min-h-[100px] xl:max-w-[calc(100%-296px)] ${
-    tourStep === 4
-      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
-      : ""
-  }`}
->
+<PortfolioTabs
+  activeBottomTab={activeBottomTab}
+  setActiveBottomTab={setActiveBottomTab}
+  marketMode={marketMode}
+/>
 
-    <div className="flex items-center justify-between mb-8 border-b border-zinc-800 pb-4">
-      <div className="flex gap-3">
-
-        <button
-          onClick={() => setActiveBottomTab("POSITIONS")}
-          className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
-            activeBottomTab === "POSITIONS"
-              ? "bg-cyan-500 text-black"
-              : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
-          }`}
-        >
-          {marketMode === "FUTURES"
-  ? "Futures Positions"
-  : "Spot Positions"}
-        </button>
-
-        <button
-          onClick={() => setActiveBottomTab("HISTORY")}
-          className={`rounded-xl px-6 py-3 text-sm tracking-wide font-black transition-all duration-200 ${
-            activeBottomTab === "HISTORY"
-              ? "bg-cyan-500 text-black"
-              : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
-          }`}
-        >
-          {marketMode === "FUTURES"
-  ? "Futures History"
-  : "Spot History"}
-        </button>
-<button
-  onClick={() => setActiveBottomTab("ORDERS")}
-  className={`px-6 py-3 rounded-xl font-bold transition-all ${
-    activeBottomTab === "ORDERS"
-      ? "bg-cyan-500 text-black"
-      : "bg-[#18181b] text-zinc-400 border border-white/10"
-  }`}
->
-  {marketMode === "FUTURES" ? "Futures Orders" : "Spot Orders"}
-</button>
-      </div>
-
-      
-    </div>
-
-    {activeBottomTab === "POSITIONS" && (
-      <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
-{marketMode === "FUTURES" &&
-  futuresPositions.map((position, index) => (
-    <div
-      key={index}
-      className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 mb-3"
-    >
-  <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-9 gap-3 items-center">
-  <div>
-    <p className="text-cyan-400 text-lg font-bold">
-      {position.coin}
-    </p>
-
-    <p className={`text-sm mt-1 font-bold ${
-      position.side === "LONG" ? "text-green-400" : "text-red-400"
-    }`}>
-      {position.side}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">Entry</p>
-    <p className="text-sm font-bold text-white">
-      ${position.entryPrice.toFixed(2)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">Current</p>
-    <p className="text-sm font-bold text-white">
-      {prices[position.coin as AssetSymbol]
-  ? `$${prices[position.coin as AssetSymbol]!.toFixed(2)}`
-  : "Loading..."}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">Position Size</p>
-    <p className="text-sm font-bold text-white">
-      ${(position.margin * position.leverage).toFixed(2)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">Leverage</p>
-    <p className="text-sm font-bold text-white">
-      {position.leverage}x
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">Liquidation</p>
-    <p className="text-sm font-bold text-red-400">
-      {position.liquidationPrice
-  ? `$${position.liquidationPrice.toFixed(2)}`
-  : "N/A"}
-    </p>
-  </div>
-
-  <div>
-<p className="text-gray-400 text-xs font-bold uppercase">Risk</p>
-
-{(() => {
-  const current = prices[position.coin as AssetSymbol];
-
-  if (!current) {
-    return (
-      <p className="text-sm font-bold text-zinc-500">
-        Loading price...
-      </p>
-    );
-  }
-
-const tpDistance =
-  position.takeProfit != null
-    ? Math.abs(position.takeProfit - current)
-    : 0;
-
-const slDistance =
-  position.stopLoss != null
-    ? Math.abs(current - position.stopLoss)
-    : 0;
-
-const riskReward =
-  position.takeProfit != null &&
-  position.stopLoss != null &&
-  slDistance > 0
-    ? tpDistance / slDistance
-    : 0;
-
-  return (
-    <>
-      <p className="text-sm font-bold text-green-400">
-        TP: {position.takeProfit != null ? `$${tpDistance.toFixed(2)} away` : "Not set"}
-      </p>
-
-      <p className="mt-1 text-sm font-bold text-red-400">
-        SL: {position.stopLoss != null ? `$${slDistance.toFixed(2)} away` : "Not set"}
-      </p>
-
-      <p className="mt-1 text-sm font-bold text-cyan-400">
-        R/R: {riskReward > 0 ? riskReward.toFixed(2) : "N/A"}
-      </p>
-    </>
-  );
-})()}
-</div>
-
-<div>
-  <p className="text-gray-400 text-xs font-bold uppercase">Open P/L</p>
-
-  {(() => {
-    const current = prices[position.coin as AssetSymbol];
-
-    if (!current) {
-      return (
-        <p className="text-sm font-bold text-zinc-500">
-          Loading...
-        </p>
-      );
-    }
-
-    const pnl =
-      position.side === "LONG"
-        ? (current - position.entryPrice) * position.quantity
-        : (position.entryPrice - current) * position.quantity;
-
-    return (
-      <p
-        className={`text-base font-bold ${
-          pnl >= 0 ? "text-green-400" : "text-red-400"
-        }`}
-      >
-        ${pnl.toFixed(2)}
-      </p>
-    );
-  })()}
-</div>
-
-<div className="flex justify-end">
-  <button
-    onClick={() => {
-      const current = prices[position.coin as AssetSymbol];
-
-      if (!current) {
-        setMessage("Loading real market price...");
-        return;
-      }
-
-closeFuturesPosition({
-  position,
-  exitPrice: current,
-  reason: "MANUAL",
-  index,
-});
-
-setMessage(`Closed ${position.side} ${position.coin} manually`);
-
-    }}
-    className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
-  >
-    Close
-  </button>
-</div>
-</div>
-    </div>
-))}
-
-{marketMode === "FUTURES" && futuresPositions.length === 0 && (
-  <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-    <p className="text-2xl font-bold text-zinc-300">
-      No Futures Positions
-    </p>
-
-    <p className="text-zinc-500 mt-2">
-      Your open futures trades will appear here.
-    </p>
-  </div>
+{activeBottomTab === "POSITIONS" && (
+  <PortfolioPositions
+    marketMode={marketMode}
+    positions={positions}
+    futuresPositions={futuresPositions}
+    prices={prices}
+    averagePrices={averagePrices}
+    spotRiskSettings={spotRiskSettings}
+    closeSpotPosition={closeSpotPosition}
+    closeFuturesPosition={closeFuturesPosition}
+    setMessage={setMessage}
+  />
 )}
 
-      {marketMode === "SPOT" &&
-  Object.entries(positions)
-    .filter(([_, qty]) => Number(qty) > 0)
-    .map(([coin, qty]) => {
-            const currentPrice =
-              prices[coin as keyof typeof prices];
-              if (!currentPrice) return null;
-
-            const avgPrice =
-              averagePrices[coin as keyof typeof averagePrices];
-
-            const marketValue =
-              Number(qty) * currentPrice;
-
-            const pnl =
-              marketValue - Number(qty) * avgPrice;
-
-            return (
-<div
-  key={coin}
-  className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
->
-   <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
-  <div>
-    <p className="text-cyan-400 text-lg font-bold">
-      {coin}
-    </p>
-
-    <p className="text-gray-400 text-xs mt-1">
-      Position
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">
-      Quantity
-    </p>
-
-    <p className="text-sm font-bold text-white">
-      {Number(qty).toFixed(6)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">
-      Market Price
-    </p>
-
-    <p className="text-sm font-bold text-white">
-      ${currentPrice.toLocaleString()}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">
-      Market Value
-    </p>
-
-    <p className="text-sm font-bold text-white">
-      ${marketValue.toFixed(2)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">
-      Avg Cost
-    </p>
-
-    <p className="text-sm font-bold text-white">
-      ${avgPrice.toFixed(2)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-gray-400 text-xs">
-      Unrealized P/L
-    </p>
-
-    <p
-      className={`text-base font-bold ${
-        pnl >= 0 ? "text-green-400" : "text-red-400"
-      }`}
-    >
-      ${pnl.toFixed(2)}
-    </p>
-  </div>
-  <div>
-  <p className="text-gray-400 text-xs">
-    TP / SL
-  </p>
-
-{(() => {
-  const risk = spotRiskSettings[coin as AssetSymbol];
-
-  return (
-    <>
-      <p className="text-sm font-bold text-green-400">
-        TP: {risk?.takeProfit != null ? `$${risk.takeProfit.toFixed(2)}` : "Not set"}
-      </p>
-
-      <p className="mt-1 text-sm font-bold text-red-400">
-        SL: {risk?.stopLoss != null ? `$${risk.stopLoss.toFixed(2)}` : "Not set"}
-      </p>
-    </>
-  );
-})()}
-</div>
-
-  <div className="flex justify-end">
-    <button
-      onClick={() => {
-  if (!currentPrice) return;
-
-  closeSpotPosition({
-    coin: coin as AssetSymbol,
-    quantity: Number(qty),
-    currentPrice,
-    reason: "MANUAL",
-  });
-}}
-      className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
-    >
-      Close
-    </button>
-  </div>
-</div>
-              </div>
-            );
-          })}
-
-        {marketMode === "SPOT" &&
-  Object.values(positions).every(
-    (qty) => Number(qty) === 0
-  ) && (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">
-              No Open Positions
-            </p>
-
-            <p className="text-zinc-500 mt-2">
-              Your active trades will appear here.
-            </p>
-          </div>
-        )}
-
-      </div>
-    )}
-
-    {activeBottomTab === "HISTORY" && (
-      <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
-
-{marketMode === "FUTURES" ? (
-  futuresHistory.length === 0 ? (
-    <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-      <p className="text-2xl font-bold text-zinc-300">
-        No Futures History
-      </p>
-
-      <p className="text-zinc-500 mt-2">
-        Completed futures trades will appear here.
-      </p>
-    </div>
-  ) : (
-    futuresHistory.map((trade, index) => (
-<div
-  key={index}
-  className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
->
-  <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
-    <div>
-      <p
-        className={`text-base font-black ${
-          trade.side === "LONG" ? "text-green-400" : "text-red-400"
-        }`}
-      >
-        {trade.side}
-      </p>
-
-      <p className="text-xs text-zinc-500">
-        {trade.coin}
-      </p>
-    </div>
-
-    <div>
-      <p className="text-zinc-500 text-xs">Margin</p>
-      <p className="text-sm font-bold text-white">
-        ${trade.margin}
-      </p>
-    </div>
-
-    <div>
-      <p className="text-zinc-500 text-xs">Entry</p>
-      <p className="text-sm font-bold text-white">
-        ${trade.entryPrice.toFixed(2)}
-      </p>
-    </div>
-
-    <div>
-      <p className="text-zinc-500 text-xs">Leverage</p>
-      <p className="text-sm font-bold text-white">
-        {trade.leverage}x
-      </p>
-    </div>
-
-    <div>
-      <p className="text-zinc-500 text-xs">Liquidation</p>
-      <p className="text-sm font-bold text-red-400">
-        {trade.liquidationPrice != null
-  ? `$${trade.liquidationPrice.toFixed(2)}`
-  : "N/A"}
-      </p>
-    </div>
-
-<div>
-  <p className="text-zinc-500 text-xs">P/L</p>
-
-  {trade.pnl !== undefined && trade.pnl !== null ? (
-    <>
-      <p
-        className={`text-sm font-bold ${
-          trade.pnl >= 0 ? "text-green-400" : "text-red-400"
-        }`}
-      >
-        ${Number(trade.pnl).toFixed(2)}
-      </p>
-
-      <p className="mt-1 text-xs text-zinc-500">
-        Gross: ${Number(trade.grossPnl || 0).toFixed(2)}
-      </p>
-
-      <p className="text-xs text-zinc-500">
-        Fees: ${Number(trade.totalFees || 0).toFixed(2)}
-      </p>
-    </>
-  ) : (
-    <p className="text-sm font-bold text-zinc-500">
-      Open
-    </p>
-  )}
-</div>
-
-    <div>
-      <p className="text-zinc-500 text-xs">Status</p>
-      <p className="text-sm font-bold text-cyan-400">
-        {trade.status || "OPENED"}
-      </p>
-    </div>
-
-    <div className="text-right">
-      <p className="text-zinc-500 text-xs">Time</p>
-      <p className="text-sm font-bold text-white">
-        {trade.time}
-      </p>
-    </div>
-  </div>
-</div>
-    ))
-  )
-) : (
-  trades.length === 0 ? (
-    <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-      <p className="text-2xl font-bold text-zinc-300">
-        No Spot History
-      </p>
-
-      <p className="text-zinc-500 mt-2">
-        Completed spot trades will appear here.
-      </p>
-    </div>
-  ) : (
-    trades.map((trade, index) => (
- <div
-  key={index}
-  className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
->
-<div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
-
-  <div>
-    <p
-      className={`text-base font-black ${
-        trade.type === "BUY"
-          ? "text-green-400"
-          : "text-red-400"
-      }`}
-    >
-      {trade.type}
-    </p>
-
-    <p className="text-xs text-zinc-500">
-      {trade.coin}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Amount</p>
-
-    <p className="text-sm font-bold text-white">
-      ${trade.amount.toFixed(2)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Price</p>
-
-    <p className="text-sm font-bold text-white">
-      ${trade.price.toFixed(2)}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Value</p>
-
-    <p className="text-sm font-bold text-cyan-400">
-      ${trade.amount.toFixed(2)}
-    </p>
-  </div>
-
-<div>
-  <p className="text-zinc-500 text-xs">P/L</p>
-
-  {trade.type === "BUY" ? (
-    <p className="text-sm font-bold text-zinc-500">
-      Open
-    </p>
-  ) : (trade as any).pnl !== undefined &&
-    (trade as any).pnl !== null ? (
-    <>
-      <p
-        className={`text-sm font-bold ${
-          (trade as any).pnl >= 0
-            ? "text-green-400"
-            : "text-red-400"
-        }`}
-      >
-        ${Number((trade as any).pnl).toFixed(2)}
-      </p>
-
-      <p className="mt-1 text-xs text-zinc-500">
-        Gross: ${Number((trade as any).grossPnl || 0).toFixed(2)}
-      </p>
-
-      <p className="text-xs text-zinc-500">
-        Fees: ${Number((trade as any).totalFees || 0).toFixed(2)}
-      </p>
-    </>
-  ) : (
-    <p className="text-sm font-bold text-zinc-500">
-      N/A
-    </p>
-  )}
-</div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Status</p>
-
-<p
-  className={`text-sm font-bold ${
-    trade.type === "BUY"
-      ? "text-green-400"
-      : "text-red-400"
-  }`}
->
-  {trade.type === "BUY" ? "OPEN" : "CLOSE"}
-</p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Market</p>
-
-    <p className="text-sm font-bold text-white">
-      Spot
-    </p>
-  </div>
-
-  <div className="text-right">
-    <p className="text-zinc-500 text-xs">Time</p>
-
-    <p className="text-sm font-bold text-white">
-      {trade.time}
-    </p>
-  </div>
-
-</div>
-      </div>
-    ))
-  )
+{activeBottomTab === "HISTORY" && (
+  <PortfolioHistory
+    marketMode={marketMode}
+    trades={trades}
+    futuresHistory={futuresHistory}
+  />
 )}
 
-      </div>
-    )}
 {activeBottomTab === "ORDERS" && (
-  <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
-
-    {!activePendingOrder ? (
-      <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-        <p className="text-2xl font-bold text-zinc-300">
-          No Open Orders
-        </p>
-
-        <p className="text-zinc-500 mt-2">
-          Pending {marketMode === "FUTURES" ? "futures" : "spot"} limit orders will appear here.
-        </p>
-      </div>
-    ) : (
-      <div className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3">
-
-<div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
-
-  <div>
-    <p className="text-base font-black text-cyan-400">
-      LIMIT
-    </p>
-
-    <p className="text-xs text-zinc-500">
-      {activePendingOrder.coin}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Side</p>
-
-    <p className="text-sm font-bold text-white">
-      {activePendingOrder.side}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Limit Price</p>
-
-    <p className="text-sm font-bold text-cyan-400">
-      ${activePendingOrder.limitPrice.toLocaleString()}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Amount</p>
-
-    <p className="text-sm font-bold text-white">
-      ${activePendingOrder.amount}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Market</p>
-
-    <p className="text-sm font-bold text-white">
-      {activePendingOrder.mode}
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Status</p>
-
-    <p className="text-sm font-bold text-orange-400">
-      Pending
-    </p>
-  </div>
-
-  <div>
-    <p className="text-zinc-500 text-xs">Waiting For</p>
-
-    <p className="text-sm font-bold text-white">
-      Fill
-    </p>
-  </div>
-
-  <div className="flex justify-end">
-<button
-  onClick={() => {
-    if (marketMode === "FUTURES") {
-      setPendingFuturesLimitOrder(null);
-    } else {
-      setPendingLimitOrder(null);
-    }
-
-    setMessage("Limit order canceled.");
-  }}
-      className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 transition-all hover:bg-red-500/20"
-    >
-      Cancel
-    </button>
-  </div>
-
-</div>
-     
-      </div>
-    )}
-
-  </div>
+  <PortfolioOrders
+    marketMode={marketMode}
+    pendingLimitOrder={pendingLimitOrder}
+    pendingFuturesLimitOrder={pendingFuturesLimitOrder}
+    setPendingLimitOrder={setPendingLimitOrder}
+    setPendingFuturesLimitOrder={setPendingFuturesLimitOrder}
+    setMessage={setMessage}
+  />
 )}
-  </div>
-</div>
+
+</PortfolioPanel>
 
 {showResetModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
