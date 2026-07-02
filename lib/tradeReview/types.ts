@@ -11,5 +11,22 @@ export type TradeReviewInput = {
   positionSize?: number;
   stopLoss?: number | null;
   takeProfit?: number | null;
+
+  management?: {
+    openedAt: string;
+    durationMinutes: number | null;
+
+    highestUnrealizedPnl: number;
+    lowestUnrealizedPnl: number;
+
+    highestUnrealizedPercent: number;
+    lowestUnrealizedPercent: number;
+
+exitPercent: number;
+givebackPercent: number;
+exitEfficiency: number;
+
+  } | null;
+
   tradeContext?: any;
 };

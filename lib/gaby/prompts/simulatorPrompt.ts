@@ -8,12 +8,16 @@ import { PATTERN_RULES } from "./patternRules";
 import { MARKET_ANALYSIS_RULES } from "./marketAnalysisRules";
 import { COACHING_RULES } from "./coachingRules";
 import { MARKET_CONVICTION_RULES } from "./marketConvictionRules";
+import { tradenestxKnowledge } from "../core/tradenestxKnowledge";
+
 
 
 export const SIMULATOR_PROMPT = `
 ${GABY_CORE_PROMPT}
 
 ${SIMULATOR_IDENTITY}
+
+${tradenestxKnowledge}
 
 ${QUESTION_RULES}
 

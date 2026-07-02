@@ -1,14 +1,21 @@
 import { TradeReviewInput } from "./types";
+import { buildTradeOutcome } from "./tradeIntelligence";
+import { buildManagementReview } from "./buildManagementReview";
+
+
+
+
 
 export function reviewTrade(input: TradeReviewInput) {
   const market = input.tradeContext?.market || null;
 
-  const result =
-    input.pnl > 0
-      ? "PROFIT"
-      : input.pnl < 0
-      ? "LOSS"
-      : "BREAKEVEN";
+const outcome = buildTradeOutcome({
+  pnl: input.pnl,
+  grossPnl: input.grossPnl,
+  totalFees: input.totalFees,
+});
+
+const result = outcome.result;
 
   const usedStopLoss = input.stopLoss != null;
   const usedTakeProfit = input.takeProfit != null;
@@ -16,6 +23,12 @@ export function reviewTrade(input: TradeReviewInput) {
   const direction = market?.marketDirection || null;
   const priceLocation = market?.priceLocation || null;
   const entryQuality = market?.entryQuality || null;
+const management = input.management || null;
+const managementReview =
+  buildManagementReview(management);
+
+
+
 
 let locationReview = {
   score: 50,
@@ -198,8 +211,12 @@ const finalQuality =
     grossPnl: input.grossPnl || null,
     totalFees: input.totalFees || 0,
 
-    timeframe: market?.timeframe || null,
-    marketAtEntry: market,
+outcome,
+
+management: managementReview,
+
+timeframe: market?.timeframe || null,
+marketAtEntry: market,
 
     trendAligned,
     directionReview,

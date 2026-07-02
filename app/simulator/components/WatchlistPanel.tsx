@@ -149,15 +149,14 @@ onChange={(e) => setSearchTerm(e.target.value)}
 
             <div className="space-y-2.5 mt-2 flex-1 overflow-y-scroll scrollbar-hide pr-1">
               {watchlist
-  .filter(
-    (coin) =>
-      coin.symbol
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      coin.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  )
+.filter((coin) => {
+  const search = searchTerm.toLowerCase();
+
+  return (
+    coin.symbol.toLowerCase().startsWith(search) ||
+    coin.name.toLowerCase().startsWith(search)
+  );
+})
   .map((coin) => (
                 <button
                   key={coin.symbol}
@@ -217,32 +216,21 @@ to: 305,
                 </button>
               ))}
 
-<div className="w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827]">
-  <div className="flex h-[78px] items-center">
-    <div>
-      <p className="text-lg font-black tracking-wide text-white">
-        More Coins
-      </p>
 
-      <p className="mt-1 text-sm text-zinc-500">
-        Coming Soon
-      </p>
-    </div>
-  </div>
 </div>
 
-<div className="relative hidden xl:block">
-{showGabyHint && (
-  <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-bounce">
-    <div className="relative rounded-xl border border-amber-400 bg-amber-400 px-4 py-3 text-sm font-black text-black shadow-[0_0_25px_rgba(251,191,36,0.35)]">
-      Need help?
+<div className="relative hidden xl:block mt-3">
+  {showGabyHint && (
+    <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-bounce">
+      <div className="relative rounded-xl border border-amber-400 bg-amber-400 px-4 py-3 text-sm font-black text-black shadow-[0_0_25px_rgba(251,191,36,0.35)]">
+        Need help?
 
-      <div className="absolute left-1/2 top-full -translate-x-1/2">
-        <div className="h-0 w-0 border-l-[10px] border-r-[10px] border-t-[12px] border-l-transparent border-r-transparent border-t-amber-400" />
+        <div className="absolute left-1/2 top-full -translate-x-1/2">
+          <div className="h-0 w-0 border-l-[10px] border-r-[10px] border-t-[12px] border-l-transparent border-r-transparent border-t-amber-400" />
+        </div>
       </div>
     </div>
-  </div>
-)}
+  )}
 
   <button
     onClick={() => setShowSimulatorGaby(true)}
@@ -251,8 +239,7 @@ to: 305,
     Ask Gaby
   </button>
 </div>
-            </div>
 
-    </div>
+</div>
   );
 }

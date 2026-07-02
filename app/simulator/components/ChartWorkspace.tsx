@@ -31,6 +31,24 @@ export default function ChartWorkspace({
   setShowSimulatorGaby,
   tourStep,
 }: ChartWorkspaceProps) {
+
+const formattedPrice =
+  currentPrice == null
+    ? "Loading..."
+    : currentPrice >= 1000
+    ? `$${currentPrice.toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+      })}`
+    : currentPrice >= 1
+    ? `$${currentPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
+    : `$${currentPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 6,
+        maximumFractionDigits: 8,
+      })}`;
+
   return (
     <div
       className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-4 xl:p-5 h-auto xl:h-[760px] flex flex-col overflow-visible xl:overflow-hidden ${
@@ -62,9 +80,7 @@ export default function ChartWorkspace({
           </h2>
 
           <p className="text-3xl font-black text-white">
-            {currentPrice
-              ? `$${currentPrice.toLocaleString()}`
-              : "Loading..."}
+{formattedPrice}
           </p>
         </div>
 

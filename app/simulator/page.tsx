@@ -148,12 +148,33 @@ const structureAnalysis =
     ? getStructureAnalysis(history)
     : null;
 
-  const [positions, setPositions] =
-    useState<Record<AssetSymbol, number>>(emptyPositions);
-  const [averagePrices, setAveragePrices] =
-    useState<Record<AssetSymbol, number>>(emptyPositions);
+const [positions, setPositions] =
+  useState<Record<AssetSymbol, number>>(emptyPositions);
 
-    const [spotRiskSettings, setSpotRiskSettings] = useState<
+const [averagePrices, setAveragePrices] =
+  useState<Record<AssetSymbol, number>>(emptyPositions);
+
+// ADD EVERYTHING BELOW
+const [spotPositionManagement, setSpotPositionManagement] =
+  useState<
+    Partial<
+      Record<
+        AssetSymbol,
+        {
+          openedAt: string;
+
+          highestUnrealizedPnl: number;
+          lowestUnrealizedPnl: number;
+
+          highestUnrealizedPercent: number;
+          lowestUnrealizedPercent: number;
+        }
+      >
+    >
+  >({});
+// STOP ADDING HERE
+
+const [spotRiskSettings, setSpotRiskSettings] = useState<
   Partial<
     Record<
       AssetSymbol,
@@ -326,8 +347,9 @@ useEffect(() => {
 
   if (data.balance !== undefined) setBalance(data.balance);
   if (data.positions) setPositions(data.positions);
-  if (data.averagePrices) setAveragePrices(data.averagePrices);
-  if (data.trades) setTrades(data.trades);
+if (data.averagePrices) setAveragePrices(data.averagePrices);
+if (data.spotPositionManagement) setSpotPositionManagement(data.spotPositionManagement);
+if (data.trades) setTrades(data.trades);
   if (data.marginUsed !== undefined) setMarginUsed(data.marginUsed);
   if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
   if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
@@ -354,9 +376,10 @@ useEffect(() => {
     "tradenestx-simulator-session",
     JSON.stringify({
       balance,
-      positions,
-      averagePrices,
-      trades,
+positions,
+averagePrices,
+spotPositionManagement,
+trades,
       marginUsed,
       futuresPositions,
       futuresHistory,
@@ -376,9 +399,10 @@ useEffect(() => {
   );
 }, [
   balance,
-  positions,
-  averagePrices,
-  trades,
+positions,
+averagePrices,
+spotPositionManagement,
+trades,
   marginUsed,
   futuresPositions,
   futuresHistory,
@@ -395,6 +419,77 @@ useEffect(() => {
   activeBottomTab,
   sessionLoaded,
 ]);
+
+useEffect(() => {
+  setSpotPositionManagement((prev) => {
+    let changed = false;
+    const updated = { ...prev };
+
+    Object.entries(positions).forEach(([coin, qty]) => {
+      const asset = coin as AssetSymbol;
+      const quantity = Number(qty);
+
+      if (quantity <= 0) return;
+
+      const current = prices[asset];
+      const avgEntry = averagePrices[asset];
+      const management = updated[asset];
+
+      if (!current || !avgEntry || !management) return;
+
+      const unrealizedPnl =
+        (current - avgEntry) * quantity;
+
+      const positionValue =
+        avgEntry * quantity;
+
+      const unrealizedPercent =
+        positionValue > 0
+          ? (unrealizedPnl / positionValue) * 100
+          : 0;
+
+      const nextHighestPnl = Math.max(
+        management.highestUnrealizedPnl,
+        unrealizedPnl
+      );
+
+      const nextLowestPnl = Math.min(
+        management.lowestUnrealizedPnl,
+        unrealizedPnl
+      );
+
+      const nextHighestPercent = Math.max(
+        management.highestUnrealizedPercent,
+        unrealizedPercent
+      );
+
+      const nextLowestPercent = Math.min(
+        management.lowestUnrealizedPercent,
+        unrealizedPercent
+      );
+
+      if (
+        nextHighestPnl !== management.highestUnrealizedPnl ||
+        nextLowestPnl !== management.lowestUnrealizedPnl ||
+        nextHighestPercent !== management.highestUnrealizedPercent ||
+        nextLowestPercent !== management.lowestUnrealizedPercent
+      ) {
+        changed = true;
+
+        updated[asset] = {
+          ...management,
+          highestUnrealizedPnl: nextHighestPnl,
+          lowestUnrealizedPnl: nextLowestPnl,
+          highestUnrealizedPercent: nextHighestPercent,
+          lowestUnrealizedPercent: nextLowestPercent,
+        };
+      }
+    });
+
+    return changed ? updated : prev;
+  });
+}, [prices, positions, averagePrices]);
+
   const currentPrice = prices[selectedCoin];
 
 const priceLocation =
@@ -1609,6 +1704,40 @@ console.log("SPOT CLOSE FUNCTION HIT", {
 
   const tradeContext = buildTradeContext();
 
+const management = spotPositionManagement[coin] || null;
+
+const durationMinutes =
+  management?.openedAt
+    ? Math.round(
+        (Date.now() - new Date(management.openedAt).getTime()) / 60000
+      )
+    : null;
+
+const exitPercent =
+  avgEntryPrice > 0
+    ? ((currentPrice - avgEntryPrice) / avgEntryPrice) * 100
+    : 0;
+
+const givebackPercent =
+  management
+    ? Math.max(
+        0,
+        management.highestUnrealizedPercent - exitPercent
+      )
+    : 0;
+
+const exitEfficiency =
+  management && management.highestUnrealizedPercent > 0
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          (exitPercent / management.highestUnrealizedPercent) * 100
+        )
+      )
+    : 0;
+
+
   const baseReview = reviewTrade({
     mode: "SPOT",
     side: "LONG",
@@ -1618,9 +1747,28 @@ console.log("SPOT CLOSE FUNCTION HIT", {
     grossPnl: grossSpotPnl,
     totalFees: spotEntryFeePaid + spotExitFee,
     stopLoss: spotRiskSettings[coin]?.stopLoss,
-    takeProfit: spotRiskSettings[coin]?.takeProfit,
-    tradeContext,
-  });
+takeProfit: spotRiskSettings[coin]?.takeProfit,
+
+management: management
+  ? {
+      openedAt: management.openedAt,
+      durationMinutes,
+
+      highestUnrealizedPnl: management.highestUnrealizedPnl,
+      lowestUnrealizedPnl: management.lowestUnrealizedPnl,
+
+      highestUnrealizedPercent: management.highestUnrealizedPercent,
+      lowestUnrealizedPercent: management.lowestUnrealizedPercent,
+
+exitPercent,
+givebackPercent,
+exitEfficiency,
+
+    }
+  : null,
+
+tradeContext,
+});
 
   const automaticReview = {
     ...baseReview,
@@ -1649,15 +1797,23 @@ console.log("SPOT CLOSE REVIEW CREATED", {
         : prev[coin],
   }));
 
-  setSpotRiskSettings((prev) => ({
-    ...prev,
-    [coin]:
-      ownedAmount - quantityToClose <= 0
-        ? { takeProfit: null, stopLoss: null }
-        : prev[coin],
-  }));
+setSpotRiskSettings((prev) => ({
+  ...prev,
+  [coin]:
+    ownedAmount - quantityToClose <= 0
+      ? { takeProfit: null, stopLoss: null }
+      : prev[coin],
+}));
 
-  setTakeProfit("");
+if (ownedAmount - quantityToClose <= 0) {
+  setSpotPositionManagement((prev) => {
+    const updated = { ...prev };
+    delete updated[coin];
+    return updated;
+  });
+}
+
+setTakeProfit("");
   setStopLoss("");
 
 setTrades((prev) => {
@@ -1902,10 +2058,25 @@ if (user) {
       [selectedCoin]: newQty,
     }));
 
-    setAveragePrices((prev) => ({
-      ...prev,
-      [selectedCoin]: newAvg,
-    }));
+setAveragePrices((prev) => ({
+  ...prev,
+  [selectedCoin]: newAvg,
+}));
+
+if (oldQty <= 0) {
+  setSpotPositionManagement((prev) => ({
+    ...prev,
+    [selectedCoin]: {
+      openedAt: new Date().toISOString(),
+
+      highestUnrealizedPnl: 0,
+      lowestUnrealizedPnl: 0,
+
+      highestUnrealizedPercent: 0,
+      lowestUnrealizedPercent: 0,
+    },
+  }));
+}
 
 setSpotRiskSettings((prev) => ({
   ...prev,
@@ -1918,18 +2089,18 @@ setSpotRiskSettings((prev) => ({
 }));
 
 setTrades((prev) => [
-  {
-    type: "BUY",
-    coin: selectedCoin,
-    amount: tradeAmount,
-    price: currentPrice,
+{
+  type: "BUY",
+  coin: selectedCoin,
+  amount: tradeAmount,
+  price: currentPrice,
 
-    entryFee: spotEntryFee,
+  entryFee: spotEntryFee,
 
-tradeContext,
+  tradeContext,
 
-    time: new Date().toLocaleTimeString(),
-  },
+  time: new Date().toLocaleTimeString(),
+},
   ...prev,
 ]);
 
@@ -2120,6 +2291,7 @@ function resetAccount() {
   setBalance(startingBalance);
   setPositions(emptyPositions);
   setAveragePrices(emptyPositions);
+  setSpotPositionManagement({});
   setSpotRiskSettings({});
   setTrades([]);
   setMarginUsed(0);
