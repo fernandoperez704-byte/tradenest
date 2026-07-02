@@ -6,6 +6,22 @@ const productMap = [
   { symbol: "SOLUSDT", productId: "SOL-USD" },
   { symbol: "XRPUSDT", productId: "XRP-USD" },
   { symbol: "DOGEUSDT", productId: "DOGE-USD" },
+
+  { symbol: "ADAUSDT", productId: "ADA-USD" },
+  { symbol: "BNBUSDT", productId: "BNB-USD" },
+  { symbol: "LINKUSDT", productId: "LINK-USD" },
+  { symbol: "AVAXUSDT", productId: "AVAX-USD" },
+  { symbol: "SUIUSDT", productId: "SUI-USD" },
+  { symbol: "HBARUSDT", productId: "HBAR-USD" },
+  { symbol: "LTCUSDT", productId: "LTC-USD" },
+  { symbol: "BCHUSDT", productId: "BCH-USD" },
+  { symbol: "DOTUSDT", productId: "DOT-USD" },
+  { symbol: "UNIUSDT", productId: "UNI-USD" },
+  { symbol: "AAVEUSDT", productId: "AAVE-USD" },
+  { symbol: "ATOMUSDT", productId: "ATOM-USD" },
+  { symbol: "NEARUSDT", productId: "NEAR-USD" },
+  { symbol: "SHIBUSDT", productId: "SHIB-USD" },
+  { symbol: "PEPEUSDT", productId: "PEPE-USD" },
 ];
 
 export async function GET() {

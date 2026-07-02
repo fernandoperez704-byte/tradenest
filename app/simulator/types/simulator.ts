@@ -13,7 +13,22 @@ export type AssetSymbol =
   | "ETH"
   | "SOL"
   | "XRP"
-  | "DOGE";
+  | "DOGE"
+  | "ADA"
+  | "BNB"
+  | "LINK"
+  | "AVAX"
+  | "SUI"
+  | "HBAR"
+  | "LTC"
+  | "BCH"
+  | "DOT"
+  | "UNI"
+  | "AAVE"
+  | "ATOM"
+  | "NEAR"
+  | "SHIB"
+  | "PEPE";
 
 export type Trade = {
   type: string;

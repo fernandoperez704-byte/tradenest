@@ -248,22 +248,22 @@ export default function PortfolioPositions({
         Object.entries(positions)
           .filter(([_, qty]) => Number(qty) > 0)
           .map(([coin, qty]) => {
-            const currentPrice =
-              prices[coin as keyof typeof prices];
+const currentPrice =
+  prices[coin as keyof typeof prices];
 
-            if (!currentPrice) return null;
+if (!currentPrice) return null;
 
-            const avgPrice =
-              averagePrices[
-                coin as keyof typeof averagePrices
-              ];
+const avgPrice =
+  averagePrices[
+    coin as keyof typeof averagePrices
+  ];
 
-            const marketValue =
-              Number(qty) * currentPrice;
+const marketValue =
+  Number(qty) * currentPrice;
 
-            const pnl =
-              marketValue -
-              Number(qty) * avgPrice;
+const pnl =
+  marketValue -
+  Number(qty) * avgPrice;
 
             return (
               <div

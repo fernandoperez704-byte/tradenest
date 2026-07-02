@@ -6,6 +6,22 @@ const productMap: Record<string, string> = {
   SOL: "SOL-USD",
   XRP: "XRP-USD",
   DOGE: "DOGE-USD",
+
+  ADA: "ADA-USD",
+  BNB: "BNB-USD",
+  LINK: "LINK-USD",
+  AVAX: "AVAX-USD",
+  SUI: "SUI-USD",
+  HBAR: "HBAR-USD",
+  LTC: "LTC-USD",
+  BCH: "BCH-USD",
+  DOT: "DOT-USD",
+  UNI: "UNI-USD",
+  AAVE: "AAVE-USD",
+  ATOM: "ATOM-USD",
+  NEAR: "NEAR-USD",
+  SHIB: "SHIB-USD",
+  PEPE: "PEPE-USD",
 };
 
 const granularityMap: Record<string, number> = {

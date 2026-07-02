@@ -11,7 +11,7 @@ import PortfolioTabs from "./components/PortfolioTabs";
 import PortfolioPositions from "./components/PortfolioPositions";
 import PortfolioHistory from "./components/PortfolioHistory";
 import PortfolioOrders from "./components/PortfolioOrders";
-
+import { WATCHLIST } from "./data/watchlist";
 
 
 
@@ -69,6 +69,22 @@ const emptyPositions: Record<AssetSymbol, number> = {
   SOL: 0,
   XRP: 0,
   DOGE: 0,
+
+  ADA: 0,
+  BNB: 0,
+  LINK: 0,
+  AVAX: 0,
+  SUI: 0,
+  HBAR: 0,
+  LTC: 0,
+  BCH: 0,
+  DOT: 0,
+  UNI: 0,
+  AAVE: 0,
+  ATOM: 0,
+  NEAR: 0,
+  SHIB: 0,
+  PEPE: 0,
 };
 
 
@@ -271,9 +287,7 @@ const [showLeverageMenu, setShowLeverageMenu] = useState(false);
 const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
 const [marginUsed, setMarginUsed] = useState(0);
 const [futuresPositions, setFuturesPositions] = useState<any[]>([]);
-useEffect(() => {
-  console.log("FUTURES POSITIONS:", futuresPositions);
-}, [futuresPositions]);
+
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
 
@@ -613,30 +627,6 @@ const priceInterval = setInterval(
     };
   }, [selectedCoin, selectedTimeframe, candlesReadyFor]);
 
-useEffect(() => {
-  const livePrice = prices[selectedCoin];
-  const activeCandleKey = `${selectedCoin}-${selectedTimeframe}`;
-
-  if (!livePrice) return;
-  if (candlesReadyFor !== activeCandleKey) return;
-
-  setHistory((prevHistory) => {
-    if (prevHistory.length === 0) return prevHistory;
-
-    const updatedHistory = [...prevHistory];
-    const lastCandle = updatedHistory[updatedHistory.length - 1];
-
-    updatedHistory[updatedHistory.length - 1] = {
-      ...lastCandle,
-      close: livePrice,
-      high: Math.max(lastCandle.high, livePrice),
-      low: Math.min(lastCandle.low, livePrice),
-      price: livePrice,
-    };
-
-    return updatedHistory;
-  });
-}, [prices, selectedCoin, selectedTimeframe, candlesReadyFor]);
 
 useEffect(() => {
   if (!pendingLimitOrder) return;
@@ -2209,13 +2199,10 @@ const activePendingOrder =
     ? pendingFuturesLimitOrder
     : pendingLimitOrder;
 
-const watchlist = [
-  { symbol: "BTC" as AssetSymbol, name: "Bitcoin", price: prices.BTC },
-  { symbol: "ETH" as AssetSymbol, name: "Ethereum", price: prices.ETH },
-  { symbol: "SOL" as AssetSymbol, name: "Solana", price: prices.SOL },
-  { symbol: "XRP" as AssetSymbol, name: "XRP", price: prices.XRP },
-  { symbol: "DOGE" as AssetSymbol, name: "Dogecoin", price: prices.DOGE },
-];
+const watchlist = WATCHLIST.map((coin) => ({
+  ...coin,
+  price: prices[coin.symbol],
+}));
 
   return (
     <>
@@ -2224,189 +2211,29 @@ const watchlist = [
       <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
 <div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
-          <WatchlistPanel
+
+<WatchlistPanel
   mobileView={mobileView}
   tourStep={tourStep}
->
-
-<div className="relative mb-4">
-  <button
-    onClick={() => setShowMarketMenu(!showMarketMenu)}
-    className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
-  >
-    <span>
-      {marketMode === "SPOT" ? "Crypto Spot" : "Crypto Futures"}
-    </span>
-
-    <span className="text-cyan-400">▼</span>
-  </button>
-
-  {showMarketMenu && (
-    <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-zinc-700 bg-[#0f172a] shadow-xl">
-      <button
-        onClick={() => {
-          setMarketMode("SPOT");
-          
-          setSelectedCoin("BTC");
-          setActiveBottomTab("POSITIONS");
-          setShowMarketMenu(false);
-        }}
-        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
-      >
-        Crypto Spot
-      </button>
-
-      <button
-        onClick={() => {
-          setMarketMode("FUTURES");
-          
-          setSelectedCoin("BTC");
-          setActiveBottomTab("POSITIONS");
-          setShowMarketMenu(false);
-        }}
-        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
-      >
-        Crypto Futures
-      </button>
-
-      <div className="border-t border-zinc-800" />
-
-      <button
-        disabled
-        className="block w-full cursor-not-allowed px-4 py-3 text-left text-sm font-bold text-zinc-600"
-      >
-        Stocks Coming Soon
-      </button>
-
-      <button
-        disabled
-        className="block w-full cursor-not-allowed px-4 py-3 text-left text-sm font-bold text-zinc-600"
-      >
-        Options Coming Soon
-      </button>
-    </div>
-  )}
-</div>
-
-            <div className="mb-3">
-  <h2 className="text-lg font-black text-white">
-    Watchlist
-  </h2>
-</div>
-<input
-  type="text"
-  placeholder="Search assets..."
-  value={searchTerm}
-onChange={(e) => setSearchTerm(e.target.value)}
-  className="mb-3 w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500"
+  selectedCoin={selectedCoin}
+  setSelectedCoin={setSelectedCoin}
+  
+  watchlist={watchlist}
+  previousPrices={previousPrices}
+  searchTerm={searchTerm}
+  setSearchTerm={setSearchTerm}
+  marketMode={marketMode}
+  setMarketMode={setMarketMode}
+  showMarketMenu={showMarketMenu}
+  setShowMarketMenu={setShowMarketMenu}
+  setActiveBottomTab={setActiveBottomTab}
+  setMobileView={setMobileView}
+  chartInstanceRef={chartInstanceRef}
+  chartRef={chartRef}
+  
+  showGabyHint={showGabyHint}
+  setShowSimulatorGaby={setShowSimulatorGaby}
 />
-
-            <div className="space-y-2.5 mt-2 flex-1 overflow-y-scroll scrollbar-hide pr-1">
-              {watchlist
-  .filter(
-    (coin) =>
-      coin.symbol
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      coin.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  )
-  .map((coin) => (
-                <button
-                  key={coin.symbol}
-                  onClick={() => {
-  setSelectedCoin(coin.symbol);
-
-  if (window.innerWidth < 1280) {
-    setMobileView("TRADE");
-
-setTimeout(() => {
-chartInstanceRef.current?.applyOptions({
-  width: chartRef.current?.clientWidth || 0,
-  height: window.innerWidth < 1280 ? 430 : 520,
-});
-
-  const visibleCandles = 70;
-
-  chartInstanceRef.current?.timeScale().setVisibleLogicalRange({
-    from: Math.max(history.length - visibleCandles, 0),
-    to: history.length + 5,
-  });
-}, 300);
-  }
-}}
-                  className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
-                    selectedCoin === coin.symbol
-? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-: "border-zinc-800 bg-[#0f172a] hover:bg-[#111827]"
-                  }`}
-                >
-<div className="flex items-start justify-between">
-  <div>
-    <p className="text-sm font-black tracking-wide text-white">
-  {coin.symbol}
-</p>
-    <p className="text-xs text-zinc-500">{coin.name}</p>
-  </div>
-
-<p
-  className={`text-xs font-bold ${
-    previousPrices[coin.symbol] && coin.price
-      ? coin.price >= previousPrices[coin.symbol]!
-        ? "text-emerald-400"
-        : "text-red-400"
-      : selectedCoin === coin.symbol
-      ? "text-cyan-400"
-      : "text-zinc-300"
-  }`}
->
-  {coin.price
-    ? `$${coin.price.toLocaleString()}`
-    : "Loading..."}
-</p>
-</div>
-
-
-                </button>
-              ))}
-
-<div className="w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827]">
-  <div className="flex h-[78px] items-center">
-    <div>
-      <p className="text-lg font-black tracking-wide text-white">
-        More Coins
-      </p>
-
-      <p className="mt-1 text-sm text-zinc-500">
-        Coming Soon
-      </p>
-    </div>
-  </div>
-</div>
-
-<div className="relative hidden xl:block">
-{showGabyHint && (
-  <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-bounce">
-    <div className="relative rounded-xl border border-amber-400 bg-amber-400 px-4 py-3 text-sm font-black text-black shadow-[0_0_25px_rgba(251,191,36,0.35)]">
-      Need help?
-
-      <div className="absolute left-1/2 top-full -translate-x-1/2">
-        <div className="h-0 w-0 border-l-[10px] border-r-[10px] border-t-[12px] border-l-transparent border-r-transparent border-t-amber-400" />
-      </div>
-    </div>
-  </div>
-)}
-
-  <button
-    onClick={() => setShowSimulatorGaby(true)}
-    className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-5 py-6 xl:px-4 xl:py-4 text-base font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.18)] transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:shadow-[0_0_35px_rgba(34,211,238,0.28)]"
-  >
-    Ask Gaby
-  </button>
-</div>
-            </div>
-                    </WatchlistPanel>
 
 <ChartWorkspace
   mobileView={mobileView}
@@ -2441,273 +2268,46 @@ chartInstanceRef.current?.applyOptions({
   tourStep={tourStep}
 />          
 
-  <div
-  id="mobile-order-entry"
-  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-fit ${
-    tourStep === 3
-      ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
-      : ""
-  }`}
->
-  
-<button
-  onClick={() => setMobileView("TRADE")}
-  className="mb-4 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
->
-  ← Back To Chart
-</button>
-
-<div className="grid grid-cols-3 gap-3">
-
-  <div className="col-span-2">
-    <input
-      type="number"
-      value={tradeAmount}
-      placeholder="Enter amount"
-      onChange={(e) => {
-        const value = e.target.value;
-        setTradeAmount(value === "" ? "" : Number(value));
-      }}
-      className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-2.5 rounded-xl w-full text-center text-lg focus:outline-none focus:border-green-500"
-    />
-  </div>
-
-  {marketMode === "FUTURES" && (
-    <div className="relative">
-      <button
-        onClick={() => setShowLeverageMenu(!showLeverageMenu)}
-        className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center font-bold text-cyan-400 hover:border-cyan-500"
-      >
-        {leverage}x ▼
-      </button>
-
-      {showLeverageMenu && (
-        <div className="absolute left-0 top-full z-50 mt-2 h-64 w-full overflow-y-auto rounded-xl border border-zinc-700 bg-[#0f172a] scrollbar-hide">
-          {Array.from({ length: 50 }, (_, i) => i + 1).map((lev) => (
-            <button
-              key={lev}
-              onClick={() => {
-                setLeverage(lev);
-                setShowLeverageMenu(false);
-              }}
-              className={`block w-full px-3 py-2 text-center text-sm font-bold ${
-                leverage === lev
-                  ? "bg-cyan-500/10 text-cyan-400"
-                  : "text-zinc-300 hover:bg-zinc-800"
-              }`}
-            >
-              {lev}x
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )}
-</div>
-
-<div className="mt-3 grid grid-cols-2 gap-2">
-  <input
-  type="number"
-  placeholder="Take Profit"
-  value={takeProfit}
-  onChange={(e) => {
-    const value = e.target.value;
-    setTakeProfit(value === "" ? "" : Number(value));
-  }}
-  className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-2.5 rounded-xl w-full text-center text-sm focus:outline-none focus:border-green-500"
+<TradingPanel
+  mobileView={mobileView}
+  setMobileView={setMobileView}
+  tourStep={tourStep}
+  tradeAmount={tradeAmount}
+  setTradeAmount={setTradeAmount}
+  takeProfit={takeProfit}
+  setTakeProfit={setTakeProfit}
+  stopLoss={stopLoss}
+  setStopLoss={setStopLoss}
+  orderType={orderType}
+  setOrderType={setOrderType}
+  limitPrice={limitPrice}
+  setLimitPrice={setLimitPrice}
+  marketMode={marketMode}
+  leverage={leverage}
+  setLeverage={setLeverage}
+  showLeverageMenu={showLeverageMenu}
+  setShowLeverageMenu={setShowLeverageMenu}
+  balance={balance}
+  marginUsed={marginUsed}
+  estimatedLongLiquidation={estimatedLongLiquidation}
+  estimatedShortLiquidation={estimatedShortLiquidation}
+  feeRate={feeRate}
+  message={message}
+  buyCoin={buyCoin}
+  sellCoin={sellCoin}
+  openFuturesPosition={openFuturesPosition}
+  setPositionType={setPositionType}
+  setShowResetModal={setShowResetModal}
 />
 
- <input
-  type="number"
-  placeholder="Stop Loss"
-  value={stopLoss}
-  onChange={(e) => {
-    const value = e.target.value;
-    setStopLoss(value === "" ? "" : Number(value));
-  }}
-  className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-2.5 rounded-xl w-full text-center text-sm focus:outline-none focus:border-red-500"
-/>
-</div>
-
-
-<div className="mt-3">
-  <p className="mb-2 text-xs font-bold tracking-wide text-zinc-500">
-    ORDER TYPE
-  </p>
-
-<div className="grid grid-cols-2 gap-2">
-  {["MARKET", "LIMIT"].map((type) => (
-    <button
-      key={type}
-      onClick={() =>
-        setOrderType(type as "MARKET" | "LIMIT")
-      }
-      className={`rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
-        orderType === type
-          ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-          : "border-zinc-700 bg-[#0f172a] text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
-      }`}
-    >
-      {type}
-    </button>
-  ))}
 </div>
 </div>
-{orderType === "LIMIT" && (
-  <div className="mt-4">
-    <input
-      type="number"
-      placeholder="Enter Limit Price"
-      value={limitPrice}
-      onChange={(e) => {
-        const value = e.target.value;
-        setLimitPrice(value === "" ? "" : Number(value));
-      }}
-      className="bg-[#0f172a] border border-zinc-700 text-white px-3 py-2.5 rounded-xl w-full text-center text-base focus:outline-none focus:border-cyan-500"
-    />
-  </div>
-)}
-  <div className="mt-3 grid grid-cols-4 gap-2">
-    {[100, 500, 1000].map((amount) => (
-      <button
-        key={amount}
-        onClick={() => setTradeAmount(amount)}
-        className="flex h-10 items-center justify-center rounded-lg border border-zinc-700 bg-black text-sm font-bold text-zinc-300 transition-all hover:border-green-500 hover:text-green-400"
-      >
-        ${amount}
-      </button>
-    ))}
 
-    <button
-      onClick={() => setTradeAmount(Number(balance.toFixed(0)))}
-      className="flex h-10 items-center justify-center rounded-lg bg-orange-500 text-sm font-bold text-white hover:bg-orange-600"
-    >
-      MAX
-    </button>
-  </div>
-<div className="mt-3 rounded-xl border border-zinc-700 bg-[#0f172a] p-2.5">
-  <div className="flex items-center justify-between text-sm">
-    <span className="text-zinc-500">Trade Amount</span>
-
-    <span className="font-bold text-white">
-      ${tradeAmount || 0}
-    </span>
-  </div>
-
-  <div className="mt-2 flex items-center justify-between text-sm">
-    <span className="text-zinc-500">
-      {marketMode === "FUTURES" ? "Position Size" : "Order Value"}
-    </span>
-
-    <span className="font-bold text-cyan-400">
-      ${((Number(tradeAmount) || 0) * (marketMode === "FUTURES" ? leverage : 1)).toFixed(2)}
-    </span>
-  </div>
-
-  {marketMode === "FUTURES" && (
-    <>
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span className="text-zinc-500">Leverage</span>
-
-        <span className="font-bold text-white">
-          {leverage}x
-        </span>
-      </div>
-
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span className="text-zinc-500">Margin Used</span>
-
-        <span className="font-bold text-orange-400">
-          ${marginUsed.toFixed(2)}
-        </span>
-      </div>
-
-<div className="mt-2 flex items-center justify-between text-sm">
-  <span className="text-zinc-500">Est. Long Liq</span>
-
-  <span className="font-bold text-red-400">
-    {estimatedLongLiquidation != null
-      ? `$${estimatedLongLiquidation.toFixed(2)}`
-      : "N/A"}
-  </span>
-</div>
-
-<div className="mt-2 flex items-center justify-between text-sm">
-  <span className="text-zinc-500">Est. Short Liq</span>
-
-  <span className="font-bold text-red-400">
-    {estimatedShortLiquidation != null
-      ? `$${estimatedShortLiquidation.toFixed(2)}`
-      : "N/A"}
-  </span>
-</div>
-      
-    </>
-  )}
-
-  <div className="mt-2 flex items-center justify-between text-sm">
-    <span className="text-zinc-500">Estimated Fee</span>
-
-    <span className="font-bold text-zinc-300">
-      ${(
-  ((Number(tradeAmount) || 0) *
-    (marketMode === "FUTURES" ? leverage : 1) *
-    feeRate)
-).toFixed(2)}
-    </span>
-  </div>
-</div>
-  <div className="mt-3 grid grid-cols-2 gap-2">
-    <button
-  onClick={() => {
-  if (marketMode === "FUTURES") {
-    setPositionType("LONG");
-openFuturesPosition("LONG");
-  } else {
-    buyCoin();
-  }
-}}
-      className="rounded-xl bg-green-500 px-5 py-2 text-sm font-black text-black transition-all hover:scale-[1.02] hover:bg-green-400"
-    >
-      {marketMode === "FUTURES" ? "LONG" : "BUY"}
-    </button>
-
-    <button
-      onClick={() => {
-  if (marketMode === "FUTURES") {
-    setPositionType("SHORT");
-openFuturesPosition("SHORT");
-  } else {
-    sellCoin();
-  }
-}}
-      className="rounded-xl bg-red-500 px-5 py-2 text-sm font-black text-white transition-all hover:scale-[1.02] hover:bg-red-400"
-    >
-      {marketMode === "FUTURES" ? "SHORT" : "SELL"}
-    </button>
-  </div>
-
-  <div className="mt-4 flex justify-center">
-<button
-  onClick={() => setShowResetModal(true)}
-  className="bg-zinc-800 text-zinc-300 px-5 py-2 rounded-xl text-sm font-bold border border-zinc-700 transition-all hover:border-red-500 hover:text-red-400"
->
-  Reset Practice Account
-</button>
-  </div>
-
-  {message && (
-    <p className="mt-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-center text-xs font-bold text-cyan-400">
-      {message}
-    </p>
-  )}
-</div> 
-      </div>
-      </div>
-    <PortfolioPanel
+<PortfolioPanel
   mobileView={mobileView}
   tourStep={tourStep}
 >
+  
 <PortfolioTabs
   activeBottomTab={activeBottomTab}
   setActiveBottomTab={setActiveBottomTab}
