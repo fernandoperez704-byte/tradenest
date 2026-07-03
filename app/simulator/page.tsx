@@ -256,12 +256,25 @@ useEffect(() => {
   const mergedTrades = [...prev];
 
   loadedTrades.forEach((loadedTrade: any) => {
-    const alreadyExists = mergedTrades.some(
-      (trade: any) =>
-        trade.snapshotId &&
-        loadedTrade.snapshotId &&
-        trade.snapshotId === loadedTrade.snapshotId
-    );
+const alreadyExists = mergedTrades.some((trade: any) => {
+  if (
+    trade.tradeId &&
+    loadedTrade.tradeId &&
+    trade.tradeId === loadedTrade.tradeId
+  ) {
+    return true;
+  }
+
+  if (
+    trade.snapshotId &&
+    loadedTrade.snapshotId &&
+    trade.snapshotId === loadedTrade.snapshotId
+  ) {
+    return true;
+  }
+
+  return false;
+});
 
     if (!alreadyExists) {
       mergedTrades.push(loadedTrade as any);
@@ -309,6 +322,22 @@ const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
 const [marginUsed, setMarginUsed] = useState(0);
 const [futuresPositions, setFuturesPositions] = useState<any[]>([]);
 
+const [futuresPositionManagement, setFuturesPositionManagement] =
+  useState<
+    Record<
+      string,
+      {
+        openedAt: string;
+
+        highestUnrealizedPnl: number;
+        lowestUnrealizedPnl: number;
+
+        highestUnrealizedPercent: number;
+        lowestUnrealizedPercent: number;
+      }
+    >
+  >({});
+
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
 
@@ -351,8 +380,9 @@ if (data.averagePrices) setAveragePrices(data.averagePrices);
 if (data.spotPositionManagement) setSpotPositionManagement(data.spotPositionManagement);
 if (data.trades) setTrades(data.trades);
   if (data.marginUsed !== undefined) setMarginUsed(data.marginUsed);
-  if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
-  if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
+if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
+if (data.futuresPositionManagement) setFuturesPositionManagement(data.futuresPositionManagement);
+if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
   if (data.pendingLimitOrder) setPendingLimitOrder(data.pendingLimitOrder);
   if (data.pendingFuturesLimitOrder) setPendingFuturesLimitOrder(data.pendingFuturesLimitOrder);
   if (data.tradeAmount !== undefined) setTradeAmount(data.tradeAmount);
@@ -381,8 +411,9 @@ averagePrices,
 spotPositionManagement,
 trades,
       marginUsed,
-      futuresPositions,
-      futuresHistory,
+futuresPositions,
+futuresPositionManagement,
+futuresHistory,
       pendingLimitOrder,
       pendingFuturesLimitOrder,
       tradeAmount,
@@ -404,8 +435,9 @@ averagePrices,
 spotPositionManagement,
 trades,
   marginUsed,
-  futuresPositions,
-  futuresHistory,
+futuresPositions,
+futuresPositionManagement,
+futuresHistory,
   pendingLimitOrder,
   pendingFuturesLimitOrder,
   tradeAmount,
@@ -489,6 +521,73 @@ useEffect(() => {
     return changed ? updated : prev;
   });
 }, [prices, positions, averagePrices]);
+
+useEffect(() => {
+  setFuturesPositionManagement((prev) => {
+    let changed = false;
+    const updated = { ...prev };
+
+    futuresPositions.forEach((position) => {
+      if (!position.id) return;
+
+      const current = prices[position.coin as AssetSymbol];
+      const management = updated[position.id];
+
+      if (!current || !management) return;
+
+      const unrealizedPnl =
+        position.side === "LONG"
+          ? (current - position.entryPrice) * position.quantity
+          : (position.entryPrice - current) * position.quantity;
+
+      const unrealizedPercent =
+        position.entryPrice > 0
+          ? position.side === "LONG"
+            ? ((current - position.entryPrice) / position.entryPrice) * 100
+            : ((position.entryPrice - current) / position.entryPrice) * 100
+          : 0;
+
+      const nextHighestPnl = Math.max(
+        management.highestUnrealizedPnl,
+        unrealizedPnl
+      );
+
+      const nextLowestPnl = Math.min(
+        management.lowestUnrealizedPnl,
+        unrealizedPnl
+      );
+
+      const nextHighestPercent = Math.max(
+        management.highestUnrealizedPercent,
+        unrealizedPercent
+      );
+
+      const nextLowestPercent = Math.min(
+        management.lowestUnrealizedPercent,
+        unrealizedPercent
+      );
+
+      if (
+        nextHighestPnl !== management.highestUnrealizedPnl ||
+        nextLowestPnl !== management.lowestUnrealizedPnl ||
+        nextHighestPercent !== management.highestUnrealizedPercent ||
+        nextLowestPercent !== management.lowestUnrealizedPercent
+      ) {
+        changed = true;
+
+        updated[position.id] = {
+          ...management,
+          highestUnrealizedPnl: nextHighestPnl,
+          lowestUnrealizedPnl: nextLowestPnl,
+          highestUnrealizedPercent: nextHighestPercent,
+          lowestUnrealizedPercent: nextLowestPercent,
+        };
+      }
+    });
+
+    return changed ? updated : prev;
+  });
+}, [prices, futuresPositions]);
 
   const currentPrice = prices[selectedCoin];
 
@@ -1040,6 +1139,18 @@ const candleSeries = chart.addSeries(CandlestickSeries, {
   wickDownColor: "#dc2626",
   priceLineVisible: true,
   lastValueVisible: true,
+
+  priceFormat: {
+    type: "price",
+    precision:
+      selectedCoin === "SHIB" || selectedCoin === "PEPE"
+        ? 8
+        : 2,
+    minMove:
+      selectedCoin === "SHIB" || selectedCoin === "PEPE"
+        ? 0.00000001
+        : 0.01,
+  },
 });
 
     candleSeries.priceScale().applyOptions({
@@ -1531,6 +1642,41 @@ async function closeFuturesPosition({
 
   const snapshotId = crypto.randomUUID();
 
+const management =
+  position.id && futuresPositionManagement[position.id]
+    ? futuresPositionManagement[position.id]
+    : null;
+
+const durationMinutes =
+  management?.openedAt
+    ? Math.round(
+        (Date.now() - new Date(management.openedAt).getTime()) / 60000
+      )
+    : null;
+
+const exitPercent =
+  position.entryPrice > 0
+    ? position.side === "LONG"
+      ? ((exitPrice - position.entryPrice) / position.entryPrice) * 100
+      : ((position.entryPrice - exitPrice) / position.entryPrice) * 100
+    : 0;
+
+const givebackPercent =
+  management
+    ? Math.max(0, management.highestUnrealizedPercent - exitPercent)
+    : 0;
+
+const exitEfficiency =
+  management && management.highestUnrealizedPercent > 0
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          (exitPercent / management.highestUnrealizedPercent) * 100
+        )
+      )
+    : 0;
+
   const baseReview = reviewTrade({
     mode: "FUTURES",
     side: position.side,
@@ -1543,8 +1689,26 @@ async function closeFuturesPosition({
     margin: position.margin,
     positionSize: position.positionSize || position.margin * position.leverage,
     stopLoss: position.stopLoss,
-    takeProfit: position.takeProfit,
-    tradeContext: position.tradeContext,
+takeProfit: position.takeProfit,
+
+management: management
+  ? {
+      openedAt: management.openedAt,
+      durationMinutes,
+
+      highestUnrealizedPnl: management.highestUnrealizedPnl,
+      lowestUnrealizedPnl: management.lowestUnrealizedPnl,
+
+      highestUnrealizedPercent: management.highestUnrealizedPercent,
+      lowestUnrealizedPercent: management.lowestUnrealizedPercent,
+
+      exitPercent,
+      givebackPercent,
+      exitEfficiency,
+    }
+  : null,
+
+tradeContext: position.tradeContext,
   });
 
   const automaticReview = {
@@ -1565,6 +1729,14 @@ async function closeFuturesPosition({
   setFuturesPositions((prev) =>
     prev.filter((_, i) => i !== index)
   );
+
+if (position.id) {
+  setFuturesPositionManagement((prev) => {
+    const updated = { ...prev };
+    delete updated[position.id];
+    return updated;
+  });
+}
 
   if (user) {
     await addDoc(collection(db, "tradeReviews"), {
@@ -1628,9 +1800,13 @@ async function closeFuturesPosition({
       closedReason: reason,
       closedAt: new Date().toISOString(),
       tradeContext: position.tradeContext || null,
-      automaticReview,
-      review: automaticReview,
-      time: new Date().toLocaleTimeString(),
+automaticReview,
+review: automaticReview,
+
+management: automaticReview.engine.management,
+exit: automaticReview.engine.exit,
+
+time: new Date().toLocaleTimeString(),
     },
     ...prev,
   ]);
@@ -1840,6 +2016,8 @@ setTrades((prev) => {
       exitFee: spotExitFee,
       totalFees: spotEntryFeePaid + spotExitFee,
 
+management: automaticReview.engine.management,
+
       status:
         reason === "TP"
           ? "TAKE PROFIT"
@@ -1919,6 +2097,8 @@ setTrades((prev) => {
       entryFee: spotEntryFeePaid,
       exitFee: spotExitFee,
       totalFees: spotEntryFeePaid + spotExitFee,
+
+management: automaticReview.engine.management,
 
 status:
   reason === "TP"
@@ -2003,6 +2183,7 @@ const quantity =
   effectiveTradeSize / currentPrice;
   
 const tradeContext = buildTradeContext();
+const tradeId = crypto.randomUUID();
 
     if (
   orderType === "LIMIT" &&
@@ -2090,6 +2271,7 @@ setSpotRiskSettings((prev) => ({
 
 setTrades((prev) => [
 {
+  tradeId,
   type: "BUY",
   coin: selectedCoin,
   amount: tradeAmount,
@@ -2108,6 +2290,9 @@ if (user) {
 addDoc(collection(db, "trades"), {
   userId: user.id,
   userName: user.firstName || "Trader",
+
+  tradeId,
+
   type: "BUY",
   coin: selectedCoin,
   amount: tradeAmount,
@@ -2165,6 +2350,8 @@ setPendingFuturesLimitOrder({
 
 const quantity = positionSize / currentPrice;
 
+const positionId = crypto.randomUUID();
+
 const tradeContext = buildTradeContext();
 
 const maintenanceBuffer = 0.005;
@@ -2181,6 +2368,7 @@ const liquidation =
 
 setFuturesPositions((prev) => [
   {
+    id: positionId,
     coin: selectedCoin,
     side,
     margin,
@@ -2213,8 +2401,22 @@ tradeContext,
   ...prev,
 ]);
 
+setFuturesPositionManagement((prev) => ({
+  ...prev,
+  [positionId]: {
+    openedAt: new Date().toISOString(),
+
+    highestUnrealizedPnl: 0,
+    lowestUnrealizedPnl: 0,
+
+    highestUnrealizedPercent: 0,
+    lowestUnrealizedPercent: 0,
+  },
+}));
+
 setFuturesHistory((prev) => [
   {
+    id: positionId,
     coin: selectedCoin,
     side,
     margin,
@@ -2296,6 +2498,7 @@ function resetAccount() {
   setTrades([]);
   setMarginUsed(0);
   setFuturesPositions([]);
+  setFuturesPositionManagement({});
   setFuturesHistory([]);
 
   setTradeAmount("");

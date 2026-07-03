@@ -42,13 +42,17 @@ const formattedPrice =
     : currentPrice >= 1
     ? `$${currentPrice.toLocaleString(undefined, {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 3,
+      })}`
+    : currentPrice >= 0.01
+    ? `$${currentPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 5,
       })}`
     : `$${currentPrice.toLocaleString(undefined, {
         minimumFractionDigits: 6,
         maximumFractionDigits: 8,
       })}`;
-
   return (
     <div
       className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-4 xl:p-5 h-auto xl:h-[760px] flex flex-col overflow-visible xl:overflow-hidden ${

@@ -126,15 +126,33 @@ export default function PortfolioHistory({
                   )}
                 </div>
 
-                <div>
-                  <p className="text-zinc-500 text-xs">
-                    Status
-                  </p>
+<div>
+  <p className="text-zinc-500 text-xs">
+    Management
+  </p>
 
-                  <p className="text-sm font-bold text-cyan-400">
-                    {trade.status || "OPENED"}
-                  </p>
-                </div>
+  {trade.management ? (
+    <>
+      <p className="text-sm font-bold text-cyan-400">
+        {trade.management.managementQuality}
+      </p>
+
+      <p className="text-xs text-zinc-500">
+        Exit Eff: {Number(trade.management.exitEfficiency || 0).toFixed(0)}%
+      </p>
+
+      {trade.exit && (
+        <p className="text-xs text-zinc-400">
+          Exit: {trade.exit.exitQuality}
+        </p>
+      )}
+    </>
+  ) : (
+    <p className="text-sm font-bold text-zinc-500">
+      N/A
+    </p>
+  )}
+</div>
 
                 <div className="text-right">
                   <p className="text-zinc-500 text-xs">
@@ -258,13 +276,35 @@ export default function PortfolioHistory({
                   </p>
                 </div>
 
-                <div>
-                  <p className="text-zinc-500 text-xs">Market</p>
+<div>
+  <p className="text-zinc-500 text-xs">Management</p>
 
-                  <p className="text-sm font-bold text-white">
-                    Spot
-                  </p>
-                </div>
+  {trade.type === "BUY" ? (
+    <p className="text-sm font-bold text-zinc-500">
+      Open
+    </p>
+  ) : (trade as any).management ? (
+    <>
+<p className="text-sm font-bold text-cyan-400">
+  {(trade as any).management.managementQuality}
+</p>
+
+<p className="text-xs text-zinc-500">
+  Exit Eff: {Number((trade as any).management.exitEfficiency || 0).toFixed(0)}%
+</p>
+
+{(trade as any).review?.engine?.exit && (
+  <p className="text-xs text-zinc-400">
+    Exit: {(trade as any).review.engine.exit.exitQuality}
+  </p>
+)}
+    </>
+  ) : (
+    <p className="text-sm font-bold text-zinc-500">
+      N/A
+    </p>
+  )}
+</div>
 
                 <div className="text-right">
                   <p className="text-zinc-500 text-xs">Time</p>

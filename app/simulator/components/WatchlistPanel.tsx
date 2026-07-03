@@ -206,9 +206,27 @@ to: 305,
       : "text-zinc-300"
   }`}
 >
-  {coin.price
-    ? `$${coin.price.toLocaleString()}`
-    : "Loading..."}
+{coin.price == null
+  ? "Loading..."
+  : coin.price >= 1000
+  ? `$${coin.price.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    })}`
+  : coin.price >= 1
+  ? `$${coin.price.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 3,
+    })}`
+  : coin.price >= 0.01
+  ? `$${coin.price.toLocaleString(undefined, {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 5,
+    })}`
+  : `$${coin.price.toLocaleString(undefined, {
+      minimumFractionDigits: 6,
+      maximumFractionDigits: 8,
+    })}`}
+    
 </p>
 </div>
 

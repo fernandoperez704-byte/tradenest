@@ -212,12 +212,20 @@ return (
       </button>
     ))}
 
-    <button
-      onClick={() => setTradeAmount(Number(balance.toFixed(0)))}
-      className="flex h-10 items-center justify-center rounded-lg bg-orange-500 text-sm font-bold text-white hover:bg-orange-600"
-    >
-      MAX
-    </button>
+<button
+  onClick={() => {
+    const maxTradeAmount =
+      balance / (1 + feeRate);
+
+    setTradeAmount(
+      Number(maxTradeAmount.toFixed(2))
+    );
+  }}
+  className="flex h-10 items-center justify-center rounded-lg bg-orange-500 text-sm font-bold text-white hover:bg-orange-600"
+>
+  MAX
+</button>
+
   </div>
 <div className="mt-3 rounded-xl border border-zinc-700 bg-[#0f172a] p-2.5">
   <div className="flex items-center justify-between text-sm">

@@ -60,9 +60,22 @@ movingAverageAnalysis,
   priceLocation,
 }: GabySimulatorCoachProps) {
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState(
-    "Hi, I’m Gaby. I can help explain the simulator, spot trading, futures, leverage, liquidation, and review your practice trades."
-  );
+const [answer, setAnswer] = useState(`Not sure what to ask? Ask me about:
+
+Review my last trade
+My trades report
+My biggest strength
+My biggest weakness
+My entry quality
+My exit timing
+My risk management
+My trade management
+My profit protection
+My trading psychology
+Leverage & liquidation
+Stop losses
+How the simulator works  `);
+
   const [loading, setLoading] = useState(false);
   
 
@@ -311,6 +324,8 @@ async function persistCompletedTradeReviewSnapshot(
 async function askGaby(customQuestion?: string, reviewOverride?: any) {
   let finalQuestion = customQuestion || question;
 
+let reviewSnapshot = reviewOverride || null;
+
   if (!finalQuestion.trim()) return;
 
   const originalQuestion = finalQuestion.trim().toLowerCase();
@@ -318,6 +333,46 @@ async function askGaby(customQuestion?: string, reviewOverride?: any) {
 const conversationIntent =
   getConversationIntent(finalQuestion);
 
+const wantsMultiTradeReview =
+  originalQuestion.includes("20") ||
+  originalQuestion.includes("last 20") ||
+  originalQuestion.includes("recent trades") ||
+  originalQuestion.includes("all trades") ||
+  originalQuestion.includes("overall") ||
+  originalQuestion.includes("performance") ||
+  originalQuestion.includes("progress");
+
+if (
+  conversationIntent === "TRADE_REVIEW" &&
+  !wantsMultiTradeReview &&
+  !reviewSnapshot
+) {
+  const closedTrades =
+    mode === "FUTURES"
+      ? futuresHistory.filter(
+          (trade) =>
+            trade.status !== "OPEN" &&
+            (trade.review || trade.automaticReview)
+        )
+      : trades.filter(
+          (trade) =>
+            (trade.type === "SELL" ||
+              trade.type === "TAKE PROFIT" ||
+              trade.type === "STOP LOSS") &&
+            (trade.review || trade.automaticReview)
+        );
+
+  const latestTrade = [...closedTrades].sort(
+    (a, b) =>
+      new Date(b.closedAt ?? b.time ?? 0).getTime() -
+      new Date(a.closedAt ?? a.time ?? 0).getTime()
+  )[0];
+
+  reviewSnapshot =
+    latestTrade?.review ||
+    latestTrade?.automaticReview ||
+    null;
+}
 let conversationSubject =
   getConversationSubject(finalQuestion);
 
@@ -374,8 +429,6 @@ if (originalQuestion.includes("resistance")) {
     index: 0,
   });
 }
-
-const reviewSnapshot = reviewOverride || null;
 
 
 if (isSnapshotComplete(reviewSnapshot)) {
@@ -611,9 +664,21 @@ if (!reviewSnapshot) {
   return;
 }
 
-askGaby(
-  "Review my latest completed trade using this snapshot.",
-  reviewSnapshot
+const review = reviewSnapshot.engine?.review;
+
+if (!review) {
+  setAnswer(
+    "This trade does not have a completed deterministic review yet."
+  );
+  return;
+}
+
+setAnswer(
+  `${review.explanation}
+
+${review.context}
+
+Lesson: ${review.lesson}`
 );
 }
 
@@ -621,9 +686,39 @@ askGaby(
     <div className="rounded-3xl border border-cyan-400/20 bg-[#0f172a]/90 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
 
 
-      <div className="whitespace-pre-line rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-6 text-zinc-200">
-        {loading ? "Gaby is reviewing..." : answer}
+<div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-6 text-zinc-200">
+  {loading ? (
+    "Gaby is reviewing..."
+  ) : answer.startsWith("Not sure what to ask?") ? (
+    <>
+      <p className="mb-4 font-semibold">
+        Not sure what to ask? Ask me about:
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+{[
+  "Review my last trade",
+  "Show my trades report",
+  "Where is the nearest support?",
+  "Where is the nearest resistance?",
+  "What is the overall market direction?",
+].map((prompt) => (
+          <button
+            key={prompt}
+            onClick={() => askGaby(prompt)}
+            className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+          >
+            {prompt}
+          </button>
+        ))}
       </div>
+    </>
+  ) : (
+    <div className="whitespace-pre-line">
+      {answer}
+    </div>
+  )}
+</div>
 
 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
 <button
@@ -633,15 +728,7 @@ askGaby(
   Explain Panel
 </button>
 
-<button
-  onClick={() => {
-    console.log("REVIEW BUTTON CLICKED");
-    reviewTrade();
-  }}
-  className="h-11 w-full sm:w-auto rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300"
->
-  Review Trade
-</button>
+
 </div>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">

@@ -18,7 +18,15 @@ const reviews = snapshot.docs
   .map((doc) => {
     const data = doc.data();
 
-    return data.review || data;
+    const review = data.review || data;
+
+    return review.engine
+      ? {
+          ...review.engine,
+          snapshotId: review.snapshotId,
+          createdAt: review.createdAt,
+        }
+      : review;
   })
   .filter(Boolean);
 

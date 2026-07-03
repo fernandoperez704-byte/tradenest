@@ -102,6 +102,21 @@ export async function POST(req: Request) {
         ? TRADE_REVIEW_PROMPT
         : SIMULATOR_PROMPT;
 
+const reviewEngine =
+  lastReviewData?.engine ?? null;
+
+const reviewOnlyPrompt = `
+User Question:
+${question}
+
+Latest Reviewed Trade Facts:
+${
+  lastReviewData
+    ? JSON.stringify(lastReviewData, null, 2)
+    : "NONE"
+}
+`;
+
     const userPrompt = `
 User Question:
 ${question}
@@ -133,7 +148,19 @@ Simulator Facts:
 ${JSON.stringify(marketFacts, null, 2)}
 
 Latest Reviewed Trade Facts:
-${lastReviewData ? JSON.stringify(lastReviewData, null, 2) : "NONE"}
+${
+  reviewEngine
+    ? JSON.stringify(
+        {
+          result: reviewEngine.result,
+          finalQuality: reviewEngine.finalQuality,
+          review: reviewEngine.review,
+        },
+        null,
+        2
+      )
+    : "NONE"
+}
 
 Trader Development Report:
 ${
@@ -172,7 +199,11 @@ ${lastTopic || "NONE"}
         },
         {
           role: "user",
-          content: userPrompt,
+          content:
+  conversationIntent === "TRADE_REVIEW" &&
+  lastReviewData
+    ? reviewOnlyPrompt
+    : userPrompt,
         },
       ],
     });

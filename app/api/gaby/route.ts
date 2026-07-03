@@ -1,5 +1,11 @@
 import OpenAI from "openai";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
+import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
+
+
+
+
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -130,7 +136,13 @@ Future TradeNestX topics may include:
       messages: [
         {
           role: "system",
-          content: `${GABY_CORE_PROMPT}\n\n${websitePrompt}`,
+          content: `
+${GABY_CORE_PROMPT}
+
+${tradenestxKnowledge}
+
+${websitePrompt}
+`,
         },
         {
           role: "user",
