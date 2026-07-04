@@ -1286,9 +1286,9 @@ setGabyQuestion("");
     <>
       <Navbar />
 
-      <main className="page-shell">
-        <div className="mx-auto w-full max-w-[1650px] px-4">
-  <div className="mt-6 grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)] gap-4">
+      <main className="page-shell !pt-0">
+        <div className="mx-auto w-full max-w-[1780px] px-6">
+  <div className="mt-2 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-4">
          <aside
   className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 xl:sticky xl:top-24 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide ${
     mobileLearnView === "LESSONS" ? "block" : "hidden xl:block"
@@ -1461,8 +1461,8 @@ window.scrollTo({
 )}
 
 {activeLesson === "buying" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
     Every trader starts by asking the same question:
@@ -1579,9 +1579,9 @@ onClick={completeLesson}
 
 
 {activeLesson === "market" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -1711,9 +1711,9 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "orders" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -1834,8 +1834,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "risk" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
     You now know what you're buying, why markets move, and how traders
@@ -1957,8 +1957,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "timeframes" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2080,8 +2080,8 @@ onClick={completeLesson}
   </div>
 )}
 {activeLesson === "candlesticks" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2202,8 +2202,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "volume" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2323,8 +2323,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "support" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2444,8 +2444,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "supplydemand" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2564,8 +2564,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "patterns" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2687,8 +2687,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "setups" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2808,8 +2808,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "psychology" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2929,8 +2929,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "vocabulary" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -3054,7 +3054,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "quiz" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-4 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
     <div>
 <h2 className="text-5xl md:text-6xl font-black tracking-tight leading-tight">

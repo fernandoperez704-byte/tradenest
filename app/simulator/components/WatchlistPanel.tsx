@@ -65,7 +65,7 @@ setShowSimulatorGaby,
 }: WatchlistPanelProps) {
   return (
     <div
-      className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 h-[760px] flex flex-col overflow-hidden ${
+      className={`bg-[#111827] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-hidden ${
         mobileView === "WATCHLIST" ? "block" : "hidden xl:flex"
       } ${
         tourStep === 1
@@ -75,7 +75,7 @@ setShowSimulatorGaby,
     >
       
 
-<div className="relative mb-4">
+<div className="relative mb-3">
   <button
     onClick={() => setShowMarketMenu(!showMarketMenu)}
     className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
@@ -134,7 +134,7 @@ setShowSimulatorGaby,
   )}
 </div>
 
-            <div className="mb-3">
+            <div className="mb-2">
   <h2 className="text-lg font-black text-white">
     Watchlist
   </h2>
@@ -147,7 +147,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
   className="mb-3 w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500"
 />
 
-            <div className="space-y-2.5 mt-2 flex-1 overflow-y-scroll scrollbar-hide pr-1">
+            <div className="space-y-2 mt-1 flex-1 overflow-y-scroll scrollbar-hide pr-1">
               {watchlist
 .filter((coin) => {
   const search = searchTerm.toLowerCase();
@@ -169,7 +169,7 @@ onChange={(e) => setSearchTerm(e.target.value)}
 setTimeout(() => {
 chartInstanceRef.current?.applyOptions({
   width: chartRef.current?.clientWidth || 0,
-  height: window.innerWidth < 1280 ? 430 : 520,
+  height: window.innerWidth < 1280 ? 420 : 470,
 });
 
   const visibleCandles = 70;
@@ -252,7 +252,7 @@ to: 305,
 
   <button
     onClick={() => setShowSimulatorGaby(true)}
-    className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-5 py-6 xl:px-4 xl:py-4 text-base font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.18)] transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:shadow-[0_0_35px_rgba(34,211,238,0.28)]"
+    className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-5 py-6 xl:px-4 xl:py-3 text-base font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.18)] transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:shadow-[0_0_35px_rgba(34,211,238,0.28)]"
   >
     Ask Gaby
   </button>

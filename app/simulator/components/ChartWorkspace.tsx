@@ -55,7 +55,7 @@ const formattedPrice =
       })}`;
   return (
     <div
-      className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-4 xl:p-5 h-auto xl:h-[760px] flex flex-col overflow-visible xl:overflow-hidden ${
+      className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
         mobileView === "TRADE" ? "flex" : "hidden xl:flex"
       } ${
         tourStep === 2
@@ -77,13 +77,13 @@ const formattedPrice =
         Ask Gaby
       </button>
 
-      <div className="mb-6 border-b border-zinc-800 pb-4">
+      <div className="mb-3 border-b border-zinc-800 pb-3">
         <div className="flex items-end gap-4">
-          <h2 className="text-3xl font-black text-white">
+          <h2 className="text-2xl xl:text-3xl font-black text-white">
             {selectedCoin}/USD
           </h2>
 
-          <p className="text-3xl font-black text-white">
+          <p className="text-2xl xl:text-3xl font-black text-white">
 {formattedPrice}
           </p>
         </div>
@@ -152,7 +152,7 @@ const formattedPrice =
       </div>
 
       <div className="mt-2 flex-1 rounded-xl overflow-hidden">
-        <div ref={chartRef} className="h-[430px] w-full xl:h-[520px]" />
+        <div ref={chartRef} className="h-[420px] w-full xl:h-[470px]" />
       </div>
 
       <button

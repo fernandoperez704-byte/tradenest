@@ -233,15 +233,15 @@ export default function PortfolioPositions({
 
       {marketMode === "FUTURES" &&
         futuresPositions.length === 0 && (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">
-              No Futures Positions
-            </p>
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+  <p className="text-base font-bold text-zinc-300">
+    No Futures Positions
+  </p>
 
-            <p className="text-zinc-500 mt-2">
-              Your open futures trades will appear here.
-            </p>
-          </div>
+  <p className="mt-1 text-sm text-zinc-500">
+    Your open futures trades will appear here.
+  </p>
+</div>
         )}
 
       {marketMode === "SPOT" &&
@@ -387,12 +387,12 @@ const pnl =
         Object.values(positions).every(
           (qty) => Number(qty) === 0
         ) && (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">
+          <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+            <p className="text-base font-bold text-zinc-300">
               No Open Positions
             </p>
 
-            <p className="text-zinc-500 mt-2">
+            <p className="mt-1 text-sm text-zinc-500">
               Your active trades will appear here.
             </p>
           </div>

@@ -164,7 +164,7 @@ return (
 />
 </div>
 
-<div className="mt-3">
+<div className="mt-2">
   <p className="mb-2 text-xs font-bold tracking-wide text-zinc-500">
     ORDER TYPE
   </p>
@@ -201,7 +201,7 @@ return (
     />
   </div>
 )}
-  <div className="mt-3 grid grid-cols-4 gap-2">
+  <div className="mt-2 grid grid-cols-4 gap-2">
     {[100, 500, 1000].map((amount) => (
       <button
         key={amount}
@@ -227,7 +227,7 @@ return (
 </button>
 
   </div>
-<div className="mt-3 rounded-xl border border-zinc-700 bg-[#0f172a] p-2.5">
+<div className="mt-2 rounded-xl border border-zinc-700 bg-[#0f172a] p-2">
   <div className="flex items-center justify-between text-sm">
     <span className="text-zinc-500">Trade Amount</span>
 
@@ -329,7 +329,7 @@ openFuturesPosition("SHORT");
     </button>
   </div>
 
-  <div className="mt-4 flex justify-center">
+  <div className="mt-3 flex justify-center">
 <button
   onClick={() => setShowResetModal(true)}
   className="bg-zinc-800 text-zinc-300 px-5 py-2 rounded-xl text-sm font-bold border border-zinc-700 transition-all hover:border-red-500 hover:text-red-400"

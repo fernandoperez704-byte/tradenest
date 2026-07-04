@@ -1107,7 +1107,7 @@ crosshair: {
         pinch: true,
       },
 width: chartRef.current.clientWidth,
-height: isMobileChart ? 430 : 520,
+height: isMobileChart ? 420 : 470,
 rightPriceScale: {
   borderColor: "#27272a",
   visible: true,
@@ -2585,7 +2585,7 @@ const watchlist = WATCHLIST.map((coin) => ({
 
       <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
-<div className="mt-2 grid grid-cols-1 xl:grid-cols-[230px_minmax(0,1fr)_280px] gap-4 w-full page-container">
+<div className="mt-2 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_270px] gap-3 w-full page-container">
 
 <WatchlistPanel
   mobileView={mobileView}
@@ -2628,8 +2628,8 @@ const watchlist = WATCHLIST.map((coin) => ({
 />
 
 <div
-  className={`space-y-2 xl:col-span-1 ${
-    mobileView === "ORDER" ? "block" : "hidden xl:block"
+  className={`xl:col-span-1 xl:flex xl:h-[690px] xl:flex-col xl:gap-2 ${
+    mobileView === "ORDER" ? "block" : "hidden xl:flex"
   }`}
 >
 
@@ -2769,7 +2769,7 @@ const watchlist = WATCHLIST.map((coin) => ({
   className="fixed inset-0 z-40 bg-black/10"
  />
 
-    <div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[270px] xl:w-[500px]">
+    <div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[255px] xl:w-[500px]">
       <button
         onClick={() => setShowSimulatorGaby(false)}
         className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"

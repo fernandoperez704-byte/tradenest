@@ -25,11 +25,11 @@ export default function AccountSummaryCard({
           : ""
       }`}
     >
-      <h2 className="text-lg font-black text-white mb-3">
+      <h2 className="text-base font-black text-white mb-2">
         Account Summary
       </h2>
 
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1.5 text-sm">
 
         <div className="flex items-center justify-between">
           <span className="text-zinc-500">Cash Balance</span>
