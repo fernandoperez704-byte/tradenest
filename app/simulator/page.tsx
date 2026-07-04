@@ -326,15 +326,27 @@ const [futuresPositionManagement, setFuturesPositionManagement] =
   useState<
     Record<
       string,
-      {
-        openedAt: string;
+{
+  openedAt: string;
 
-        highestUnrealizedPnl: number;
-        lowestUnrealizedPnl: number;
+  highestUnrealizedPnl: number;
+  lowestUnrealizedPnl: number;
 
-        highestUnrealizedPercent: number;
-        lowestUnrealizedPercent: number;
-      }
+  highestUnrealizedPercent: number;
+  lowestUnrealizedPercent: number;
+
+  maintenanceMargin?: number;
+  marginBalance?: number;
+  marginRatio?: number;
+
+  marginHealth?: number;
+
+  marginStatus?:
+    | "SAFE"
+    | "CAUTION"
+    | "MARGIN_CALL"
+    | "LIQUIDATION_DANGER";
+}
     >
   >({});
 
@@ -540,6 +552,42 @@ useEffect(() => {
           ? (current - position.entryPrice) * position.quantity
           : (position.entryPrice - current) * position.quantity;
 
+const maintenanceMarginRate = 0.005;
+
+const maintenanceMargin =
+  position.positionSize * maintenanceMarginRate;
+
+const marginBalance =
+  position.margin + unrealizedPnl;
+
+const marginRatio =
+  marginBalance > 0
+    ? (maintenanceMargin / marginBalance) * 100
+    : 100;
+
+const marginHealth =
+  Math.max(
+    0,
+    Math.min(
+      100,
+      100 - marginRatio
+    )
+  );
+
+let marginStatus:
+  | "SAFE"
+  | "CAUTION"
+  | "MARGIN_CALL"
+  | "LIQUIDATION_DANGER" = "SAFE";
+
+if (marginRatio >= 95) {
+  marginStatus = "LIQUIDATION_DANGER";
+} else if (marginRatio >= 80) {
+  marginStatus = "MARGIN_CALL";
+} else if (marginRatio >= 50) {
+  marginStatus = "CAUTION";
+}
+
       const unrealizedPercent =
         position.entryPrice > 0
           ? position.side === "LONG"
@@ -575,13 +623,23 @@ useEffect(() => {
       ) {
         changed = true;
 
-        updated[position.id] = {
-          ...management,
-          highestUnrealizedPnl: nextHighestPnl,
-          lowestUnrealizedPnl: nextLowestPnl,
-          highestUnrealizedPercent: nextHighestPercent,
-          lowestUnrealizedPercent: nextLowestPercent,
-        };
+updated[position.id] = {
+  ...management,
+
+  highestUnrealizedPnl: nextHighestPnl,
+  lowestUnrealizedPnl: nextLowestPnl,
+
+  highestUnrealizedPercent: nextHighestPercent,
+  lowestUnrealizedPercent: nextLowestPercent,
+
+maintenanceMargin,
+marginBalance,
+marginRatio,
+marginHealth,
+marginStatus,
+
+};
+
       }
     });
 
@@ -2690,17 +2748,18 @@ const watchlist = WATCHLIST.map((coin) => ({
 />
 
 {activeBottomTab === "POSITIONS" && (
-  <PortfolioPositions
-    marketMode={marketMode}
-    positions={positions}
-    futuresPositions={futuresPositions}
-    prices={prices}
-    averagePrices={averagePrices}
-    spotRiskSettings={spotRiskSettings}
-    closeSpotPosition={closeSpotPosition}
-    closeFuturesPosition={closeFuturesPosition}
-    setMessage={setMessage}
-  />
+<PortfolioPositions
+  marketMode={marketMode}
+  positions={positions}
+  futuresPositions={futuresPositions}
+  futuresPositionManagement={futuresPositionManagement}
+  prices={prices}
+  averagePrices={averagePrices}
+  spotRiskSettings={spotRiskSettings}
+  closeSpotPosition={closeSpotPosition}
+  closeFuturesPosition={closeFuturesPosition}
+  setMessage={setMessage}
+/>
 )}
 
 {activeBottomTab === "HISTORY" && (
@@ -2789,6 +2848,7 @@ const watchlist = WATCHLIST.map((coin) => ({
 setTrades={setTrades}
   positions={positions}
   futuresPositions={futuresPositions}
+  futuresPositionManagement={futuresPositionManagement}
   balance={balance}
   marginUsed={marginUsed}
   marketIntelligence={marketIntelligence}

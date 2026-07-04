@@ -9,7 +9,7 @@ import { MARKET_ANALYSIS_RULES } from "./marketAnalysisRules";
 import { COACHING_RULES } from "./coachingRules";
 import { MARKET_CONVICTION_RULES } from "./marketConvictionRules";
 import { tradenestxKnowledge } from "../core/tradenestxKnowledge";
-
+import { MARGIN_RULES } from "./marginRules";
 
 
 export const SIMULATOR_PROMPT = `
@@ -34,6 +34,10 @@ ${MARKET_ANALYSIS_RULES}
 ${COACHING_RULES}
 
 ${MARKET_CONVICTION_RULES}
+
+${MARGIN_RULES}
+
+
 
 
 `;

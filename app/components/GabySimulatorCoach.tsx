@@ -25,6 +25,7 @@ clearAutoQuestion?: () => void;
 setTrades: any;
   positions: any;
   futuresPositions: any[];
+  futuresPositionManagement: any;
   balance: number;
   marginUsed: number;
 
@@ -47,9 +48,10 @@ export default function GabySimulatorCoach({
   futuresHistory,
   setFuturesHistory,
 setTrades,
-  positions,
-  futuresPositions,
-  balance,
+positions,
+futuresPositions,
+futuresPositionManagement,
+balance,
   marginUsed,
 marketIntelligence,
 marketAnalysisSummary,
@@ -498,8 +500,9 @@ momentumStage:
 
 trades: trades.slice(-5),
           futuresHistory: futuresHistory.slice(-5),
-          positions,
-          futuresPositions,
+positions,
+futuresPositions,
+futuresPositionManagement,
         },
       }),
     });

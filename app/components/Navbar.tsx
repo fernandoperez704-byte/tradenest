@@ -13,7 +13,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
   <>
     <nav className="sticky top-0 z-50 w-full border-b border-cyan-500/10 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
-      <div className="page-container flex h-[78px] items-center justify-between">
+      <div className="page-container flex h-[56px] items-center justify-between">
         <div className="flex items-center gap-8 xl:gap-16">
           <Link href="/" className="group flex items-center">
             <div className="relative flex items-center text-3xl font-black tracking-tight md:text-4xl">
@@ -30,7 +30,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
           <div className="hidden items-center gap-4 md:flex">
             <Link
               href="/learn"
-              className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+              className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/learn"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
                   : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -41,7 +41,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
             <Link
               href="/simulator"
-              className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+              className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/simulator"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
                   : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -52,7 +52,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
             <Link
               href="/leaderboard"
-              className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+              className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/leaderboard"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
                   : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -63,7 +63,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
             <Link
               href="/news"
-              className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+              className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/news"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
                   : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -74,7 +74,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 <Link
   href="/support"
-  className={`flex h-11 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+  className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
     pathname === "/support"
       ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
       : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
@@ -84,7 +84,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 </Link>
             <button
   onClick={() => setShowCommunity(true)}
- className="flex h-11 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
+ className="flex h-10 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
 >
   Community
 </button>
@@ -93,20 +93,20 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 <div className="hidden min-w-[150px] items-center justify-end gap-4 md:flex">
   {!isLoaded ? (
-    <div className="h-11 w-[92px]" />
+    <div className="h-10 w-[92px]" />
   ) : isSignedIn ? (
-    <div suppressHydrationWarning className="flex h-11 w-11 items-center justify-center">
+    <div suppressHydrationWarning className="flex h-10 w-11 items-center justify-center">
       <UserButton
         appearance={{
           elements: {
-            avatarBox: "h-11 w-11 border border-zinc-700",
+            avatarBox: "h-10 w-11 border border-zinc-700",
           },
         }}
       />
     </div>
   ) : (
     <SignInButton mode="modal">
-      <button className="h-11 rounded-xl bg-cyan-500 px-5 text-sm font-black text-black transition-all duration-200 hover:bg-cyan-400">
+      <button className="h-10 rounded-xl bg-cyan-500 px-5 text-sm font-black text-black transition-all duration-200 hover:bg-cyan-400">
         Sign In
       </button>
     </SignInButton>
@@ -115,7 +115,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 <button
   onClick={() => setMobileMenuOpen(true)}
-  className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-[#18181b] text-3xl font-black text-white md:hidden"
+  className="flex h-10 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-[#18181b] text-3xl font-black text-white md:hidden"
 >
   ☰
 </button>

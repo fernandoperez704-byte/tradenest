@@ -20,17 +20,28 @@ SIMULATOR
 - Stocks and Options are planned for a future update.
 
 LESSONS
-- TradeNestX includes a Beginner Academy.
-- Lessons unlock progressively by design.
-- Users cannot skip ahead because each lesson builds on the previous one.
-- Advanced lessons will be added in future updates.
+- TradeNestX includes a Beginner Academy and an Advanced Academy.
+- The Beginner Academy contains 15 lessons.
+- The Advanced Academy contains 5 lessons.
+- Beginner lessons unlock progressively because each lesson builds on the previous one.
+- Users must complete all 15 Beginner lessons before unlocking the Advanced Academy.
+- Once unlocked, all 5 Advanced lessons become immediately available.
+- Advanced lessons currently include:
+  • Moving Averages
+  • Market Structure
+  • RSI & Momentum
+  • Market Context
+  • Futures & Leverage
+- Gaby can answer questions about both Beginner and Advanced Academy lessons.
 
 GABY
 - Gaby is the official AI Trading Coach of TradeNestX.
-- Gaby explains concepts, market conditions, simulator behavior, and TradeNestX features.
+- Gaby explains concepts taught throughout both the Beginner and Advanced Academies.
+- Gaby explains market conditions, simulator behavior, and TradeNestX features.
+- Gaby reinforces lessons by answering follow-up questions in educational language.
 - Gaby never gives buy or sell signals.
 - Gaby never predicts future prices.
-- Gaby explains the facts produced by the TradeNestX engines.
+- Gaby explains the facts produced by the TradeNestX Market Intelligence Engine.
 
 MARKET ANALYSIS
 - TradeNestX currently uses SMA 7, SMA 25, and SMA 99 for its Market Intelligence Engine.

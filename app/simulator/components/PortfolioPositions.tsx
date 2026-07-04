@@ -6,6 +6,7 @@ type PortfolioPositionsProps = {
   marketMode: "SPOT" | "FUTURES";
   positions: any;
   futuresPositions: any[];
+  futuresPositionManagement: any;
   prices: any;
   averagePrices: any;
   spotRiskSettings: any;
@@ -18,6 +19,7 @@ export default function PortfolioPositions({
   marketMode,
   positions,
   futuresPositions,
+  futuresPositionManagement,
   prices,
   averagePrices,
   spotRiskSettings,
@@ -34,7 +36,7 @@ export default function PortfolioPositions({
             key={index}
             className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 mb-3"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-9 gap-3 items-center">
+            <div className="grid grid-cols-2 md:grid-cols-5 xl:grid-cols-10 gap-3 items-center">
 
               <div>
                 <p className="text-cyan-400 text-lg font-bold">
@@ -199,6 +201,57 @@ export default function PortfolioPositions({
                   );
                 })()}
               </div>
+
+<div>
+  <p className="text-gray-400 text-xs font-bold uppercase">
+    Margin
+  </p>
+
+  <p className="text-sm font-bold text-white">
+    $
+    {(
+      futuresPositionManagement[position.id]?.marginBalance ??
+      position.margin
+    ).toFixed(2)}
+  </p>
+
+  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-700">
+    <div
+      className={`h-full transition-all ${
+        futuresPositionManagement[position.id]?.marginStatus === "SAFE"
+          ? "bg-green-500"
+          : futuresPositionManagement[position.id]?.marginStatus === "CAUTION"
+          ? "bg-yellow-400"
+          : futuresPositionManagement[position.id]?.marginStatus === "MARGIN_CALL"
+          ? "bg-orange-500"
+          : "bg-red-500"
+      }`}
+      style={{
+        width: `${Math.min(
+          100,
+          futuresPositionManagement[position.id]?.marginHealth ?? 100
+        )}%`,
+      }}
+    />
+  </div>
+
+  <p
+    className={`mt-1 text-xs font-bold ${
+      futuresPositionManagement[position.id]?.marginStatus === "SAFE"
+        ? "text-green-400"
+        : futuresPositionManagement[position.id]?.marginStatus === "CAUTION"
+        ? "text-yellow-400"
+        : futuresPositionManagement[position.id]?.marginStatus === "MARGIN_CALL"
+        ? "text-orange-400"
+        : "text-red-400"
+    }`}
+  >
+    {(
+      futuresPositionManagement[position.id]?.marginHealth ?? 100
+    ).toFixed(0)}
+    %
+  </p>
+</div>
 
               <div className="flex justify-end">
                 <button
