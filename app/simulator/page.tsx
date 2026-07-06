@@ -570,7 +570,7 @@ const marginHealth =
     0,
     Math.min(
       100,
-      100 - marginRatio
+      (marginBalance / position.margin) * 100
     )
   );
 
@@ -580,11 +580,11 @@ let marginStatus:
   | "MARGIN_CALL"
   | "LIQUIDATION_DANGER" = "SAFE";
 
-if (marginRatio >= 95) {
+if (marginHealth <= 10) {
   marginStatus = "LIQUIDATION_DANGER";
-} else if (marginRatio >= 80) {
+} else if (marginHealth <= 25) {
   marginStatus = "MARGIN_CALL";
-} else if (marginRatio >= 50) {
+} else if (marginHealth <= 50) {
   marginStatus = "CAUTION";
 }
 

@@ -8,25 +8,25 @@ type GabyIntroProps = {
 
 export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
   return (
-    <div className="relative min-h-[calc(100vh-150px)] overflow-hidden rounded-[40px] border border-cyan-400/20 bg-[#070b14] p-6 lg:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)] flex items-center">
+    <div className="relative min-h-[calc(100vh-110px)] overflow-hidden rounded-[32px] border border-cyan-400/20 bg-[#070b14] p-5 lg:p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
       <div className="pointer-events-none absolute -left-32 top-20 h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[100px]" />
       <div className="pointer-events-none absolute right-0 top-0 h-[260px] w-[260px] rounded-full bg-blue-500/10 blur-[90px]" />
 
-      <div className="relative grid w-full grid-cols-1 lg:grid-cols-[310px_1fr] gap-10 items-start">
-        <div className="flex justify-start pt-10">
+      <div className="relative grid w-full grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-6 items-start">
+        <div className="flex justify-center pt-4">
           <div className="relative animate-[gabyFloat_4s_ease-in-out_infinite]">
-            <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-[80px] animate-[gabyPulse_3s_ease-in-out_infinite]" />
+            <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-[60px] animate-[gabyPulse_3s_ease-in-out_infinite]" />
 
-            <Image
-              src="/gaby.png"
-              alt="Gaby AI Coach"
-              width={430}
-              height={430}
-              className="relative h-[390px] w-[390px] object-contain drop-shadow-[0_0_70px_rgba(34,211,238,0.45)]"
-            />
+  <Image
+  src="/gaby.png"
+  alt="Gaby AI Coach"
+  width={280}
+  height={280}
+  className="relative h-[250px] w-[250px] object-contain drop-shadow-[0_0_55px_rgba(34,211,238,0.45)]"
+/>
 
-<div className="mt-4 rounded-3xl border border-cyan-400/20 bg-[#0f172a]/80 p-5 text-center">
-  <p className="text-cyan-300 font-black">
+<div className="mt-3 rounded-2xl border border-cyan-400/20 bg-[#0f172a]/80 p-3 text-center">
+  <p className="text-sm leading-6 font-black text-cyan-300">
     Gaby guides every lesson, reinforces concepts in Discord, and helps you learn inside the simulator.
   </p>
 </div>
@@ -35,7 +35,7 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
 
         <div className="animate-[fadeUp_0.8s_ease-out_both]">
           <div className="flex items-center gap-3">
-            <p className="text-3xl md:text-4xl font-black tracking-[0.18em] uppercase">
+            <p className="text-2xl md:text-3xl font-black tracking-[0.18em] uppercase">
               <span className="text-white">Welcome To TradeNest</span>
               <span className="text-cyan-400">X</span>
             </p>
@@ -44,34 +44,34 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
           </div>
 
           <div className="mt-4 grid gap-1">
-            <div className="relative rounded-3xl border border-cyan-400/25 bg-[#0f172a]/90 p-6 shadow-[0_0_35px_rgba(34,211,238,0.08)] transition-all duration-300 hover:border-cyan-300/50 hover:shadow-[0_0_45px_rgba(34,211,238,0.16)]">
+            <div className="relative rounded-2xl border border-cyan-400/25 bg-[#0f172a]/90 p-4 shadow-[0_0_35px_rgba(34,211,238,0.08)] transition-all duration-300 hover:border-cyan-300/50 hover:shadow-[0_0_45px_rgba(34,211,238,0.16)]">
               <div className="hidden lg:block absolute -left-3 top-8 h-6 w-6 rotate-45 border-l border-b border-cyan-400/25 bg-[#0f172a]" />
 
-              <p className="text-2xl font-black text-cyan-300">
+              <p className="text-xl font-black text-cyan-300">
                 Hi, I&apos;m Gaby.
               </p>
 
-              <p className="mt-3 text-zinc-300 text-lg leading-8">
+              <p className="mt-2 text-zinc-300 text-base leading-7">
                 I&apos;ll guide you through TradeNestX step by step so you can
                 learn first, practice safely, and build confidence before risking real money.
               </p>
             </div>
 
-<div className="mt-3 rounded-3xl border border-cyan-400/20 bg-[#0f172a]/80 p-7">
-  <h3 className="text-2xl font-black text-white">
+<div className="mt-3 rounded-2xl border border-cyan-400/20 bg-[#0f172a]/80 p-5">
+  <h3 className="text-xl font-black text-white">
     How TradeNest<span className="text-cyan-400">X</span> Works
   </h3>
 
-  <p className="mt-4 text-zinc-300 text-lg leading-8">
+  <p className="mt-4 text-zinc-300 text-base leading-7">
     TradeNestX is designed to guide you step by step. You do not need to rush,
     guess, or jump between random trading advice.
   </p>
 
-  <p className="mt-4 text-zinc-300 text-lg leading-8">
+  <p className="mt-4 text-zinc-300 text-base leading-7">
     Follow this process to get the best results:
   </p>
 
-  <div className="mt-6 space-y-5">
+  <div className="mt-4 space-y-3">
 
     <div>
       <p className="font-black text-cyan-300">
@@ -122,18 +122,18 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
 
   </div>
 
-  <p className="mt-6 text-cyan-300 font-black text-lg">
+  <p className="mt-4 text-cyan-300 font-black">
     Learn. Practice. Ask. Improve.
   </p>
 </div>
 </div>
-          <div className="mt-3 rounded-3xl border border-orange-400/30 bg-orange-500/10 p-6">
-            <h3 className="flex items-center gap-2 text-xl font-black text-orange-300">
+          <div className="mt-3 rounded-2xl border border-orange-400/30 bg-orange-500/10 p-4">
+            <h3 className="flex items-center gap-2 text-lg font-black text-orange-300">
               <span>⚠️</span>
               Important Disclaimer
             </h3>
 
-            <p className="mt-3 text-zinc-300 leading-8">
+            <p className="mt-2 text-sm text-zinc-300 leading-6">
               TradeNestX is education only. We do not provide financial advice,
               investment recommendations, or trading signals.
             </p>
@@ -141,14 +141,14 @@ export default function GabyIntro({ onStartLesson }: GabyIntroProps) {
 
           </div>
 
-<div className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+<div className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div className="w-full md:max-w-[520px]">
       <h3 className="text-lg font-black text-emerald-300">
         Ready To Start Your Journey?
       </h3>
 
-      <p className="mt-2 text-sm text-zinc-300">
+      <p className="mt-1 text-sm leading-6 text-zinc-300">
         Complete Lesson 1, join the Discord community, and begin building real
         trading skills one step at a time with Gaby guiding the way.
       </p>

@@ -207,36 +207,27 @@ export default function PortfolioPositions({
     Margin
   </p>
 
-  <p className="text-sm font-bold text-white">
-    $
-    {(
-      futuresPositionManagement[position.id]?.marginBalance ??
-      position.margin
-    ).toFixed(2)}
-  </p>
-
-  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-700">
-    <div
-      className={`h-full transition-all ${
-        futuresPositionManagement[position.id]?.marginStatus === "SAFE"
-          ? "bg-green-500"
-          : futuresPositionManagement[position.id]?.marginStatus === "CAUTION"
-          ? "bg-yellow-400"
-          : futuresPositionManagement[position.id]?.marginStatus === "MARGIN_CALL"
-          ? "bg-orange-500"
-          : "bg-red-500"
-      }`}
-      style={{
-        width: `${Math.min(
-          100,
-          futuresPositionManagement[position.id]?.marginHealth ?? 100
-        )}%`,
-      }}
-    />
-  </div>
 
   <p
-    className={`mt-1 text-xs font-bold ${
+    className={`mt-1 text-sm font-bold ${
+      (futuresPositionManagement[position.id]?.marginHealth ?? 100) > 50
+        ? "text-green-400"
+        : (futuresPositionManagement[position.id]?.marginHealth ?? 100) > 25
+        ? "text-yellow-400"
+        : (futuresPositionManagement[position.id]?.marginHealth ?? 100) > 10
+        ? "text-orange-400"
+        : "text-red-400"
+    }`}
+  >
+    Health:{" "}
+    {(
+      futuresPositionManagement[position.id]?.marginHealth ?? 100
+    ).toFixed(0)}
+    %
+  </p>
+
+  <p
+    className={`mt-1 text-xs font-black ${
       futuresPositionManagement[position.id]?.marginStatus === "SAFE"
         ? "text-green-400"
         : futuresPositionManagement[position.id]?.marginStatus === "CAUTION"
@@ -246,10 +237,7 @@ export default function PortfolioPositions({
         : "text-red-400"
     }`}
   >
-    {(
-      futuresPositionManagement[position.id]?.marginHealth ?? 100
-    ).toFixed(0)}
-    %
+    {futuresPositionManagement[position.id]?.marginStatus ?? "SAFE"}
   </p>
 </div>
 
