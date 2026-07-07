@@ -339,6 +339,9 @@ TradeNestX Engine Review
 Timeframe:
 ${reviewEngine?.timeframe || "Unknown"}
 
+Market Direction:
+${reviewEngine?.review?.marketDirection}
+
 Explanation:
 ${reviewEngine?.review?.explanation}
 
@@ -351,16 +354,17 @@ ${reviewEngine?.review?.lesson}
 Rules:
 
 - Answer ONLY the user's question.
-- Explain the trade review naturally.
-- Use the Explanation, Context, and Lesson above.
-- Do NOT explain market direction.
-- Do NOT explain support or resistance.
-- Do NOT explain RSI, momentum, or patterns.
-- Do NOT create a new review.
-- Do NOT invent new reasons.
+- Explain the trade review naturally and ensure correct causal logic.
+- Use ONLY the Explanation, Context, Lesson, and Market Direction provided.
+- Treat the Explanation and Market Direction as authoritative facts.
+- If the trade was a loss but the market moved in the user's favor, explain that the loss occurred despite the favorable move because the move was too small to overcome fees or other stated costs. Never say the loss occurred because the market moved in the user's favor.
+- If the user asks about the market direction, explain it using ONLY the provided Market Direction. Do not infer or analyze beyond it.
+- Do NOT create a new trade review.
+- Do NOT invent new reasons or market conditions.
+- Do NOT explain support or resistance unless they are explicitly included in the review.
+- Do NOT explain RSI, momentum, patterns, or other indicators unless they are explicitly included in the review.
 - Keep the answer under 80 words.
 `;
-
     // Standard comprehensive fallback layout
     const userPrompt = `
 User Question:
