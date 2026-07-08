@@ -189,20 +189,16 @@ How the simulator works   `);
       return "SIMULATOR_HELP";
     }
 
-    if (
-      text.includes("review") ||
-      text.includes("trade") ||
-      text.includes("entry")
-    ) {
-      return "TRADE_REVIEW";
-    }
-
 if (
   text.includes("trade report") ||
   text.includes("trades report") ||
   text.includes("trader report") ||
   text.includes("development report") ||
   text.includes("progress report") ||
+  text.includes("last trades") ||
+  text.includes("last 10 trades") ||
+  text.includes("last ten trades") ||
+  text.includes("last 20 trades") ||
   text.includes("how am i") ||
   text.includes("how's my trading") ||
   text.includes("how is my trading") ||
@@ -218,6 +214,60 @@ if (
   text.includes("consistency")
 ) {
   return "TRADER_DEVELOPMENT";
+}
+
+if (
+  text.includes("review my trade") ||
+  text.includes("review my last trade") ||
+  text.includes("last trade") ||
+  text.includes("my trade") ||
+  text.includes("my entry") ||
+  text.includes("my exit")
+) {
+  return "TRADE_REVIEW";
+}
+
+
+
+if (
+  (text.includes("btc") &&
+    (
+      text.includes("go up") ||
+      text.includes("going up") ||
+      text.includes("goin up") ||
+      text.includes("go down") ||
+      text.includes("going down") ||
+      text.includes("goin down")
+    )) ||
+  text.includes("will btc") ||
+  text.includes("will bitcoin") ||
+  text.includes("where is btc going") ||
+  text.includes("is btc going to") ||
+  text.includes("will the market") ||
+  text.includes("price prediction") ||
+  text.includes("predict")
+) {
+  return "PRICE_PREDICTION";
+}
+
+if (
+  text.includes("what price to buy") ||
+  text.includes("prices to buy") ||
+  text.includes("where should i buy") ||
+  text.includes("where to buy") ||
+  text.includes("when should i buy") ||
+  text.includes("when to buy") ||
+  text.includes("what should i buy") ||
+  text.includes("tell me what to buy") ||
+  text.includes("tell me when to buy") ||
+  text.includes("tell me at what prices to buy") ||
+  text.includes("buy price") ||
+  text.includes("good buy") ||
+  text.includes("good entry") ||
+  text.includes("good long") ||
+  text.includes("good short")
+) {
+  return "SIGNAL_REQUEST";
 }
 
     if (
@@ -340,14 +390,16 @@ if (
     const originalQuestion = finalQuestion.trim().toLowerCase();
     const conversationIntent = getConversationIntent(finalQuestion);
 
-    const wantsMultiTradeReview =
-      originalQuestion.includes("20") ||
-      originalQuestion.includes("last 20") ||
-      originalQuestion.includes("recent trades") ||
-      originalQuestion.includes("all trades") ||
-      originalQuestion.includes("overall") ||
-      originalQuestion.includes("performance") ||
-      originalQuestion.includes("progress");
+const wantsMultiTradeReview =
+  originalQuestion.includes("10") ||
+  originalQuestion.includes("20") ||
+  originalQuestion.includes("last 10") ||
+  originalQuestion.includes("last 20") ||
+  originalQuestion.includes("recent trades") ||
+  originalQuestion.includes("all trades") ||
+  originalQuestion.includes("overall") ||
+  originalQuestion.includes("performance") ||
+  originalQuestion.includes("progress");
 
     if (
       conversationIntent === "TRADE_REVIEW" &&

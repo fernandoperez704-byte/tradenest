@@ -63,6 +63,20 @@ export async function POST(req: Request) {
       ...marketFacts
     } = simulatorContext || {};
 
+if (conversationIntent === "PRICE_PREDICTION") {
+  return Response.json({
+    answer:
+      "I can't predict whether BTC will go up or down. I can explain the current market direction, structure, momentum, support, resistance, and other TradeNestX engine facts to help you understand the market, but I don't predict future price movements.",
+  });
+}
+
+if (conversationIntent === "SIGNAL_REQUEST") {
+  return Response.json({
+    answer:
+      "I can't answer yes or no to buying, selling, going long, or going short. TradeNestX is designed to help you evaluate the market, not make trading decisions for you. If you'd like, I can explain the current market conditions and the factors the TradeNestX engine uses to evaluate an entry.",
+  });
+}
+
     // Fetch the development report async if a userId exists
     const traderDevelopmentReport = simulatorContext?.userId
       ? await buildTraderDevelopmentReport(simulatorContext.userId)
@@ -109,7 +123,20 @@ Weakest Skill: ${profile?.weakestSkill}`,
 // Handle nearest support with focused GPT explanation
 if (normalizedQuestion.includes("nearest support")) {
   const support = marketFacts.nearestSupport;
-  const timeframe = marketFacts.selectedTimeframe || "selected";
+  const timeframe =
+  marketFacts.selectedTimeframe === "1M"
+    ? "1 Minute"
+    : marketFacts.selectedTimeframe === "5M"
+    ? "5 Minutes"
+    : marketFacts.selectedTimeframe === "15M"
+    ? "15 Minutes"
+    : marketFacts.selectedTimeframe === "1H"
+    ? "1 Hour"
+    : marketFacts.selectedTimeframe === "4H"
+    ? "4 Hours"
+    : marketFacts.selectedTimeframe === "1D"
+    ? "1 Day"
+    : marketFacts.selectedTimeframe || "Selected";
   const coin = marketFacts.selectedCoin || "the selected market";
   const currentPrice = marketFacts.currentPrice;
 
@@ -127,12 +154,17 @@ TradeNestX Engine Facts:
 Coin: ${coin}
 Selected Timeframe: ${timeframe}
 Current Price: ${currentPrice ? `$${currentPrice.toFixed(2)}` : "N/A"}
-Nearest Support Zone: $${support.low.toFixed(2)} - $${support.high.toFixed(2)}
+${
+  support.low === support.high
+    ? `Nearest Support Level: $${support.low.toFixed(2)}`
+    : `Nearest Support Zone: $${support.low.toFixed(2)} - $${support.high.toFixed(2)}`
+}
 
 Rules:
 - Answer only the nearest support question.
 - Mention the selected timeframe.
-- Explain that support is a zone, not one exact price.
+- If a Support Zone is provided, explain that support is a zone, not one exact price.
+- If a Support Level is provided, refer to it as a single support level.
 - Do not mention resistance, RSI, momentum, conviction, or market direction.
 - Do not give trade advice.
 - Keep it under 80 words.
@@ -163,7 +195,20 @@ Rules:
 // Handle nearest resistance with focused GPT explanation
 if (normalizedQuestion.includes("nearest resistance")) {
   const resistance = marketFacts.nearestResistance;
-  const timeframe = marketFacts.selectedTimeframe || "selected";
+  const timeframe =
+  marketFacts.selectedTimeframe === "1M"
+    ? "1 Minute"
+    : marketFacts.selectedTimeframe === "5M"
+    ? "5 Minutes"
+    : marketFacts.selectedTimeframe === "15M"
+    ? "15 Minutes"
+    : marketFacts.selectedTimeframe === "1H"
+    ? "1 Hour"
+    : marketFacts.selectedTimeframe === "4H"
+    ? "4 Hours"
+    : marketFacts.selectedTimeframe === "1D"
+    ? "1 Day"
+    : marketFacts.selectedTimeframe || "Selected";
   const coin = marketFacts.selectedCoin || "the selected market";
   const currentPrice = marketFacts.currentPrice;
 
@@ -183,14 +228,18 @@ Coin: ${coin}
 Selected Timeframe: ${timeframe}
 Current Price: ${currentPrice ? `$${currentPrice.toFixed(2)}` : "N/A"}
 
-Nearest Resistance Zone:
-$${resistance.low.toFixed(2)} - $${resistance.high.toFixed(2)}
+${
+  resistance.low === resistance.high
+    ? `Nearest Resistance Level: $${resistance.low.toFixed(2)}`
+    : `Nearest Resistance Zone: $${resistance.low.toFixed(2)} - $${resistance.high.toFixed(2)}`
+}
 
 Rules:
 
 - Answer ONLY the nearest resistance question.
 - Mention the selected timeframe.
-- Explain that resistance is a zone, not one exact price.
+- If a Resistance Zone is provided, explain that resistance is a zone, not one exact price.
+- If a Resistance Level is provided, refer to it as a single resistance level.
 - Do NOT mention support.
 - Do NOT mention RSI.
 - Do NOT mention momentum.
@@ -231,7 +280,20 @@ if (
   const direction = marketFacts.marketDirection;
   const structure = marketFacts.structure;
   const conviction = marketFacts.marketConviction;
-  const timeframe = marketFacts.selectedTimeframe || "selected";
+  const timeframe =
+  marketFacts.selectedTimeframe === "1M"
+    ? "1 Minute"
+    : marketFacts.selectedTimeframe === "5M"
+    ? "5 Minutes"
+    : marketFacts.selectedTimeframe === "15M"
+    ? "15 Minutes"
+    : marketFacts.selectedTimeframe === "1H"
+    ? "1 Hour"
+    : marketFacts.selectedTimeframe === "4H"
+    ? "4 Hours"
+    : marketFacts.selectedTimeframe === "1D"
+    ? "1 Day"
+    : marketFacts.selectedTimeframe || "Selected";
   const coin = marketFacts.selectedCoin || "the selected market";
 
   if (!direction) {
@@ -303,8 +365,20 @@ Rules:
       return Response.json({ answer: marketAnalysisSummary });
     }
 
+const isTradeReviewFollowUp =
+  normalizedQuestion.includes("my trade") ||
+  normalizedQuestion.includes("last trade") ||
+  normalizedQuestion.includes("my entry") ||
+  normalizedQuestion.includes("my exit") ||
+  normalizedQuestion.includes("my stop loss") ||
+  normalizedQuestion.includes("my take profit") ||
+  normalizedQuestion.includes("my market direction");
+
     // 4. Setup Dynamic Engine Prompts & Context Payloads
-    const isTradeReviewMode = conversationIntent === "TRADE_REVIEW" && !!lastReviewData;
+    const isTradeReviewMode =
+  conversationIntent === "TRADE_REVIEW" &&
+  !!lastReviewData &&
+  isTradeReviewFollowUp;
 const systemPrompt = `
 ${GABY_CORE_PROMPT}
 
@@ -321,6 +395,21 @@ Keep direct questions short and focused.
     
     const reviewEngine = lastReviewData?.engine ?? null;
     
+const reviewTimeframe =
+  reviewEngine?.timeframe === "1M"
+    ? "1 Minute"
+    : reviewEngine?.timeframe === "5M"
+    ? "5 Minutes"
+    : reviewEngine?.timeframe === "15M"
+    ? "15 Minutes"
+    : reviewEngine?.timeframe === "1H"
+    ? "1 Hour"
+    : reviewEngine?.timeframe === "4H"
+    ? "4 Hours"
+    : reviewEngine?.timeframe === "1D"
+    ? "1 Day"
+    : reviewEngine?.timeframe || "Unknown";
+
     // Safely structure condensed trade data to save token overhead
     const condensedTradeFacts = reviewEngine
       ? {
@@ -336,8 +425,8 @@ ${question}
 
 TradeNestX Engine Review
 
-Timeframe:
-${reviewEngine?.timeframe || "Unknown"}
+Trading Timeframe:
+${reviewTimeframe}
 
 Market Direction:
 ${reviewEngine?.review?.marketDirection}
@@ -351,11 +440,15 @@ ${reviewEngine?.review?.context}
 Lesson:
 ${reviewEngine?.review?.lesson}
 
+
 Rules:
 
 - Answer ONLY the user's question.
 - Explain the trade review naturally and ensure correct causal logic.
-- Use ONLY the Explanation, Context, Lesson, and Market Direction provided.
+- Use ONLY the Explanation, Context, Lesson, Market Direction, Entry Quality, Entry Review, and Entry Lesson provided.
+- Treat follow-up questions as referring to the latest reviewed trade unless the user clearly asks about multiple trades or a trader report.
+- If the user asks about the entry, answer using ONLY the Entry Quality, Entry Review, and Entry Lesson.
+- Do NOT answer trade-review follow-up questions as general trading questions.
 - Treat the Explanation and Market Direction as authoritative facts.
 - If the trade was a loss but the market moved in the user's favor, explain that the loss occurred despite the favorable move because the move was too small to overcome fees or other stated costs. Never say the loss occurred because the market moved in the user's favor.
 - If the user asks about the market direction, explain it using ONLY the provided Market Direction. Do not infer or analyze beyond it.
@@ -389,7 +482,11 @@ Simulator Facts:
 ${JSON.stringify(marketFacts, null, 2)}
 
 Latest Reviewed Trade Facts:
-${condensedTradeFacts ? JSON.stringify(condensedTradeFacts, null, 2) : "NONE"}
+${
+  isTradeReviewMode
+    ? JSON.stringify(condensedTradeFacts, null, 2)
+    : "NONE"
+}
 
 Trader Development Report:
 ${traderDevelopmentReport?.developmentReport ? JSON.stringify(traderDevelopmentReport.developmentReport, null, 2) : "NONE"}

@@ -216,10 +216,13 @@ export function reviewTrade(input: TradeReviewInput) {
   const currentEntryQuality = entryReview.quality;
 
   if (result === "LOSS") {
-    if (input.pnl < 0 && (input.grossPnl || 0) > 0) {
-      reviewExplanation = "The trade resulted in a loss because the market moved slightly in your favor, but not enough to overcome trading fees.";
-      reviewContext = "The trade idea showed some potential, but the move was too small to produce a positive net result.";
-      reviewLesson = "Look for setups with enough expected movement to comfortably cover trading fees.";
+if (input.pnl < 0 && (input.grossPnl || 0) > 0) {
+  reviewExplanation =
+    "The trade resulted in a small net loss. The market moved slightly in your favor, but the move wasn't large enough to overcome trading fees.";
+  reviewContext =
+    "The trade idea showed potential, but the price movement was too small to produce a positive net result after fees.";
+  reviewLesson =
+    "Look for setups with enough expected movement to comfortably cover trading fees.";
     } else if (managementReview.managementQuality === "WEAK") {
       reviewExplanation = "The trade resulted in a loss because too much of the available profit was given back before exiting.";
       reviewContext = "The market initially supported the trade, but trade management allowed the position to reverse.";
