@@ -10,7 +10,7 @@ export function buildTraderProfile(
   input: TraderProfileInput
 ): TraderProfileReport {
 
-const minimumTrades = 20;
+const minimumTrades = 1;
 
 const currentTrades =
   input.developmentReport?.totalTrades || 0;

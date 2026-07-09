@@ -73,14 +73,20 @@ if (conversationIntent === "PRICE_PREDICTION") {
 if (conversationIntent === "SIGNAL_REQUEST") {
   return Response.json({
     answer:
-      "I can't answer yes or no to buying, selling, going long, or going short. TradeNestX is designed to help you evaluate the market, not make trading decisions for you. If you'd like, I can explain the current market conditions and the factors the TradeNestX engine uses to evaluate an entry.",
+      "I can't answer yes or no to a buy, sell, long, or short decision. If you're referring to the support or resistance we were just discussing, remember that a single level is only one part of the TradeNestX analysis. Entry quality is evaluated using the overall market context, including direction, structure, momentum, volume, risk, and price location.",
   });
 }
 
     // Fetch the development report async if a userId exists
-    const traderDevelopmentReport = simulatorContext?.userId
-      ? await buildTraderDevelopmentReport(simulatorContext.userId)
-      : null;
+const tradeLimitMatch = normalizedQuestion.match(/last\s+(\d+)\s+trades/);
+
+const tradeLimit = tradeLimitMatch
+  ? Number(tradeLimitMatch[1])
+  : undefined;
+
+const traderDevelopmentReport = simulatorContext?.userId
+  ? await buildTraderDevelopmentReport(simulatorContext.userId, tradeLimit)
+  : null;
 
 // Handle trader report questions directly
 if (
@@ -88,7 +94,14 @@ if (
   normalizedQuestion.includes("trades report") ||
   normalizedQuestion.includes("trader report") ||
   normalizedQuestion.includes("development report") ||
-  normalizedQuestion.includes("progress report")
+  normalizedQuestion.includes("progress report") ||
+  /last\s+\d+\s+trades/.test(normalizedQuestion) ||
+  normalizedQuestion.includes("last 10 trades") ||
+  normalizedQuestion.includes("last ten trades") ||
+  normalizedQuestion.includes("last 20 trades") ||
+  normalizedQuestion.includes("last trades") ||
+  normalizedQuestion.includes("recent trades") ||
+  normalizedQuestion.includes("my last trades")
 ) {
   if (!traderDevelopmentReport) {
     return Response.json({
@@ -366,19 +379,15 @@ Rules:
     }
 
 const isTradeReviewFollowUp =
-  normalizedQuestion.includes("my trade") ||
-  normalizedQuestion.includes("last trade") ||
-  normalizedQuestion.includes("my entry") ||
-  normalizedQuestion.includes("my exit") ||
-  normalizedQuestion.includes("my stop loss") ||
-  normalizedQuestion.includes("my take profit") ||
-  normalizedQuestion.includes("my market direction");
+  conversationState?.intent === "TRADE_REVIEW";
 
     // 4. Setup Dynamic Engine Prompts & Context Payloads
     const isTradeReviewMode =
-  conversationIntent === "TRADE_REVIEW" &&
   !!lastReviewData &&
-  isTradeReviewFollowUp;
+  (
+    conversationIntent === "TRADE_REVIEW" ||
+    conversationState?.intent === "TRADE_REVIEW"
+  );
 const systemPrompt = `
 ${GABY_CORE_PROMPT}
 
@@ -469,8 +478,24 @@ Subject: ${conversationSubject || "NONE"}
 State: ${JSON.stringify(conversationState || {}, null, 2)}
 
 Conversation Instruction:
-If the conversation subject exists, remain on that subject until the user clearly changes topics.
-Treat the conversation state as the highest-priority context for follow-up questions.
+- If the conversation subject exists, remain on that subject until the user clearly changes topics.
+- Treat the conversation state as the highest-priority context for follow-up questions.
+
+General Answer Rules:
+- Answer the user's question directly before adding extra information.
+- Use the TradeNestX facts provided below as the primary source of truth.
+- Use the Current Market Facts when the user asks about the market.
+- Use the Latest Reviewed Trade Facts only when the user is referring to their reviewed trade.
+- Use the Trader Development Report only when the user asks about their trading performance or multiple trades.
+- Use the Conversation History to continue natural follow-up conversations.
+
+- Use the Market Analysis Summary only when it is relevant to the user's question.
+- If information is missing, clearly say you don't have enough information instead of guessing.
+- Never invent market facts, trade results, or TradeNestX features.
+- Never predict future prices.
+- Never provide buy, sell, long, or short signals.
+- Explain the reasoning behind the TradeNestX engine facts instead of creating new analysis.
+- Keep answers concise unless the user asks for more detail.
 
 Recent Conversation:
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
@@ -478,8 +503,27 @@ ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
 Market Analysis Summary:
 ${marketAnalysisSummary || "NONE"}
 
-Simulator Facts:
-${JSON.stringify(marketFacts, null, 2)}
+Current Market Facts:
+${JSON.stringify(
+  {
+    selectedCoin: marketFacts.selectedCoin,
+    selectedTimeframe: marketFacts.selectedTimeframe,
+    currentPrice: marketFacts.currentPrice,
+    marketDirection: marketFacts.marketDirection,
+    structure: marketFacts.structure,
+    priceLocation: marketFacts.priceLocation,
+    nearestSupport: marketFacts.nearestSupport,
+    nextSupport: marketFacts.nextSupport,
+    nearestResistance: marketFacts.nearestResistance,
+    nextResistance: marketFacts.nextResistance,
+    momentumAnalysis: marketFacts.momentumAnalysis,
+    volumeAnalysis: marketFacts.volumeAnalysis,
+    rsiAnalysis: marketFacts.rsiAnalysis,
+    marketConviction: marketFacts.marketConviction,
+  },
+  null,
+  2
+)}
 
 Latest Reviewed Trade Facts:
 ${

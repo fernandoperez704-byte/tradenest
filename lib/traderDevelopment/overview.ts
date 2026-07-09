@@ -19,7 +19,7 @@ export function buildTraderDevelopment(
   input: TraderDevelopmentInput
 ): TraderDevelopmentReport {
 
-const minimumTrades = 20;
+const minimumTrades = 1;
 
 if (input.reviews.length < minimumTrades) {
   return {

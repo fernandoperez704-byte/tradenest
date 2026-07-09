@@ -146,21 +146,6 @@ How the simulator works   `);
       return "CONVERSATION_FAREWELL";
     }
 
-    const followUps = [
-      "why",
-      "how",
-      "explain more",
-      "more details",
-      "what do you mean",
-      "explain that",
-      "that",
-      "this",
-      "can you explain",
-    ];
-
-    if (followUps.some((word) => text.includes(word))) {
-      return "FOLLOW_UP";
-    }
 
     if (
       text.includes("what is") ||
@@ -228,7 +213,6 @@ if (
 }
 
 
-
 if (
   (text.includes("btc") &&
     (
@@ -269,6 +253,22 @@ if (
 ) {
   return "SIGNAL_REQUEST";
 }
+
+    const followUps = [
+      "why",
+      "how",
+      "explain more",
+      "more details",
+      "what do you mean",
+      "explain that",
+      "that",
+      "this",
+      "can you explain",
+    ];
+
+    if (followUps.some((word) => text.includes(word))) {
+      return "FOLLOW_UP";
+    }
 
     if (
       text.includes("btc") ||
@@ -388,7 +388,23 @@ if (
     if (!finalQuestion.trim()) return;
 
     const originalQuestion = finalQuestion.trim().toLowerCase();
-    const conversationIntent = getConversationIntent(finalQuestion);
+    let conversationIntent = getConversationIntent(finalQuestion);
+
+// If we're already in a conversation and this doesn't look like
+// a brand-new topic, keep using the current intent.
+if (
+  conversationState.awaitingFollowUp &&
+  conversationState.intent &&
+  (
+    conversationIntent === "FOLLOW_UP" ||
+    conversationIntent === "GENERAL_QUESTION"
+  )
+) {
+  conversationIntent = conversationState.intent;
+}
+
+console.log("QUESTION:", finalQuestion);
+console.log("INTENT:", conversationIntent);
 
 const wantsMultiTradeReview =
   originalQuestion.includes("10") ||
@@ -415,44 +431,53 @@ const wantsMultiTradeReview =
     
     let conversationSubject = getConversationSubject(finalQuestion);
 
-    if (
-      conversationIntent === "FOLLOW_UP" &&
-      conversationState.subject
-    ) {
-      conversationSubject = conversationState.subject;
-    }
+// Continue the previous subject if we're still talking about the same topic.
+if (
+  conversationState.awaitingFollowUp &&
+  conversationState.subject &&
+  (
+    conversationIntent === "FOLLOW_UP" ||
+    conversationIntent === conversationState.intent
+  )
+) {
+  conversationSubject = conversationState.subject;
+}
 
-    if (
-      conversationIntent === "FOLLOW_UP" &&
-      conversationSubject
-    ) {
-      finalQuestion = `${finalQuestion} Context: continue explaining ${conversationSubject}.`;
-    }
+// Give GPT explicit context.
+if (conversationSubject) {
+  finalQuestion = `${finalQuestion}
 
-    if (originalQuestion.includes("support")) {
-      setLastTopic("SUPPORT");
-    }
+Context: Continue discussing ${conversationSubject}.`;
+}
 
-    if (originalQuestion.includes("resistance")) {
-      setLastTopic("RESISTANCE");
-    }
+let currentTopic = lastTopic;
 
-    if (
-      originalQuestion.includes("direction") ||
-      originalQuestion.includes("bullish") ||
-      originalQuestion.includes("bearish") ||
-      originalQuestion.includes("transition")
-    ) {
-      setLastTopic("DIRECTION");
-    }
+if (originalQuestion.includes("support")) {
+  currentTopic = "SUPPORT";
+}
 
-    if (
-      originalQuestion.includes("review") ||
-      originalQuestion.includes("trade") ||
-      originalQuestion.includes("entry")
-    ) {
-      setLastTopic("REVIEW");
-    }
+if (originalQuestion.includes("resistance")) {
+  currentTopic = "RESISTANCE";
+}
+
+if (
+  originalQuestion.includes("direction") ||
+  originalQuestion.includes("bullish") ||
+  originalQuestion.includes("bearish") ||
+  originalQuestion.includes("transition")
+) {
+  currentTopic = "DIRECTION";
+}
+
+if (
+  originalQuestion.includes("review") ||
+  originalQuestion.includes("trade") ||
+  originalQuestion.includes("entry")
+) {
+  currentTopic = "REVIEW";
+}
+
+setLastTopic(currentTopic);
 
     if (originalQuestion.includes("support")) {
       setLastReferencedLevel({
@@ -491,7 +516,7 @@ const wantsMultiTradeReview =
             conversationIntent,
             conversationSubject,
             conversationState,
-            lastTopic,
+            lastTopic: currentTopic,
             mode,
             selectedCoin,
             balance,
