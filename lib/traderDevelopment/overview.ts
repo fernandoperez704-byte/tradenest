@@ -51,12 +51,12 @@ if (input.reviews.length < minimumTrades) {
 
   const wins =
     input.reviews.filter(
-      (r) => r.result === "PROFIT"
+      (r) => r.result?.toUpperCase() === "PROFIT" || r.result?.toUpperCase() === "WIN"
     ).length;
 
   const losses =
     input.reviews.filter(
-      (r) => r.result === "LOSS"
+      (r) => r.result?.toUpperCase() === "LOSS"
     ).length;
 
   const winRate =

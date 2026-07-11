@@ -20,6 +20,31 @@ export async function POST(req: Request) {
 
     const normalizedQuestion = question?.trim().toLowerCase() || "";
 
+if (
+      normalizedQuestion.includes("good time to short") ||
+      normalizedQuestion.includes("good to short") ||
+      normalizedQuestion.includes("should i short") ||
+      normalizedQuestion.includes("when to short") ||
+      normalizedQuestion.includes("good time to buy") ||
+      normalizedQuestion.includes("good to buy") ||
+      normalizedQuestion.includes("should i buy") ||
+      normalizedQuestion.includes("when to buy") ||
+      normalizedQuestion.includes("should i long") ||
+      normalizedQuestion.includes("should i sell")
+    ) {
+      return Response.json({
+        answer: "I can't provide specific buy, sell, long, or short recommendations or financial advice. I can explain the technical factors—like how traders view a resistance zone or bearish momentum conceptually—but individual entry quality depends entirely on your own risk management and execution criteria.",
+      });
+    }
+
+const formattedHistory: any[] = [];
+if (Array.isArray(conversationHistory)) {
+  conversationHistory.forEach((turn) => {
+    if (turn.user) formattedHistory.push({ role: "user", content: turn.user });
+    if (turn.gaby) formattedHistory.push({ role: "assistant", content: turn.gaby });
+  });
+}
+
     // 1. Instant Acknowledgement Handlers
     const acknowledgementReplies: Record<string, string> = {
       ok: "Great. What would you like to explore next?",
@@ -54,28 +79,52 @@ export async function POST(req: Request) {
       return Response.json({ answer: acknowledgementReply });
     }
 
-    // 2. Extract Context Elements
-    const {
-      conversationIntent,
-      conversationSubject,
-      conversationState,
-      marketAnalysisSummary,
-      ...marketFacts
-    } = simulatorContext || {};
+// 🚨 Short-circuit immediately if trying to review a trade but no active trade data exists
+const isAskingToReviewLastTrade = 
+  normalizedQuestion.includes("review my last trade") || 
+  normalizedQuestion.includes("review last trade") ||
+  normalizedQuestion.includes("review my trade");
 
-if (conversationIntent === "PRICE_PREDICTION") {
+if (isAskingToReviewLastTrade && !lastReviewData) {
   return Response.json({
-    answer:
-      "I can't predict whether BTC will go up or down. I can explain the current market direction, structure, momentum, support, resistance, and other TradeNestX engine facts to help you understand the market, but I don't predict future price movements.",
+    answer: "You haven't executed or selected a trade in the simulator to review yet. Try opening and closing a practice position first!",
   });
 }
 
-if (conversationIntent === "SIGNAL_REQUEST") {
-  return Response.json({
-    answer:
-      "I can't answer yes or no to a buy, sell, long, or short decision. If you're referring to the support or resistance we were just discussing, remember that a single level is only one part of the TradeNestX analysis. Entry quality is evaluated using the overall market context, including direction, structure, momentum, volume, risk, and price location.",
-  });
-}
+// 2. Extract Context Elements
+const {
+  conversationIntent,
+  conversationSubject,
+  conversationState,
+  marketAnalysisSummary,
+  traderDevelopmentEngines,
+  ...marketFacts
+} = simulatorContext || {};
+
+    // 🛑 STRICTOR GUARDRAIL: Intercept bypass phrases that act like signals or predictions
+    const lowerQuestion = normalizedQuestion.toLowerCase();
+    const isAskingForSignalOrAdvice = 
+      conversationIntent === "SIGNAL_REQUEST" || 
+      lowerQuestion.includes("good to short") ||
+      lowerQuestion.includes("good to buy") ||
+      lowerQuestion.includes("should i short") ||
+      lowerQuestion.includes("should i buy") ||
+      lowerQuestion.includes("when to short") ||
+      lowerQuestion.includes("when to buy");
+
+    if (conversationIntent === "PRICE_PREDICTION") {
+      return Response.json({
+        answer:
+          "I can't predict whether BTC will go up or down. I can explain the current market direction, structure, momentum, support, resistance, and other TradeNestX engine facts to help you understand the market, but I don't predict future price movements.",
+      });
+    }
+
+    if (isAskingForSignalOrAdvice) {
+      return Response.json({
+        answer:
+          "I can't provide specific buy, sell, long, or short recommendations or financial advice. I can explain the technical factors—like how traders view a resistance zone or bearish momentum conceptually—but individual entry quality depends entirely on your own risk management and execution criteria.",
+      });
+    }
 
     // Fetch the development report async if a userId exists
 const tradeLimitMatch = normalizedQuestion.match(/last\s+(\d+)\s+trades/);
@@ -103,11 +152,12 @@ if (
   normalizedQuestion.includes("recent trades") ||
   normalizedQuestion.includes("my last trades")
 ) {
-  if (!traderDevelopmentReport) {
-    return Response.json({
-      answer: "I don't have enough simulator history yet to build your trader report.",
-    });
-  }
+// 🚨 Short-circuit immediately if no history exists for reports or reviews
+if (!traderDevelopmentReport) {
+  return Response.json({
+    answer: "I don't have any reviewed trades available for your account to analyze yet. Please complete or save some practice trades in the simulator first!",
+  });
+}
 
   const development = traderDevelopmentReport.developmentReport;
   const profile = traderDevelopmentReport.profileReport;
@@ -124,7 +174,10 @@ Main Weaknesses:
 ${development?.weaknesses?.map((x: string) => `• ${x}`).join("\n")}
 
 Recommendations:
-${development?.recommendations?.map((x: string) => `• ${x}`).join("\n")}
+${development?.recommendations
+  ?.filter((x: string) => !x.toLowerCase().includes("interval") && !x.toLowerCase().includes("chart"))
+  ?.map((x: string) => `• ${x}`)
+  .join("\n")}
 
 Profile Summary:
 Overall Score: ${profile?.overallScore}
@@ -191,6 +244,7 @@ Rules:
         role: "system",
         content: GABY_CORE_PROMPT,
       },
+      ...formattedHistory,
       {
         role: "user",
         content: supportPrompt,
@@ -269,6 +323,7 @@ Rules:
         role: "system",
         content: GABY_CORE_PROMPT,
       },
+      ...formattedHistory,
       {
         role: "user",
         content: resistancePrompt,
@@ -348,6 +403,7 @@ Rules:
         role: "system",
         content: GABY_CORE_PROMPT,
       },
+      ...formattedHistory,
       {
         role: "user",
         content: directionPrompt,
@@ -496,6 +552,8 @@ General Answer Rules:
 - Never provide buy, sell, long, or short signals.
 - Explain the reasoning behind the TradeNestX engine facts instead of creating new analysis.
 - Keep answers concise unless the user asks for more detail.
+- If the user asks a conversational follow-up or summary phrase (e.g., "so in conclusion", "what does this mean", "makes sense"), answer with a brief, natural 2-sentence conversational response. Do NOT re-generate list structures, bullet points, or repeat the entire performance diagnostic.
+
 
 Recent Conversation:
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
@@ -532,6 +590,19 @@ ${
     : "NONE"
 }
 
+Trader Development Engine Facts:
+${
+  traderDevelopmentEngines
+    ? JSON.stringify(traderDevelopmentEngines, null, 2)
+    : "NONE"
+}
+
+IMPORTANT TRADER DEVELOPMENT RULES:
+- The Trader Development Engine Facts are the authoritative values currently displayed in the simulator.
+- Never recalculate, estimate, round differently, or replace these percentages.
+- When asked about Trend Bias, Risk Allocation, Entry Quality, or Exit Management, use these exact values.
+- Do not use a separately calculated report percentage when a matching Trader Development Engine value is available.
+
 Trader Development Report:
 ${traderDevelopmentReport?.developmentReport ? JSON.stringify(traderDevelopmentReport.developmentReport, null, 2) : "NONE"}
 
@@ -551,16 +622,18 @@ ${lastTopic || "NONE"}
     // 5. Query LLM Instance Engine
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini", // Fixed target ID from non-existent gpt-4.1-mini
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-{
-  role: "user",
-  content: isTradeReviewMode ? reviewPrompt : userPrompt,
-},
-      ],
+messages: [
+  {
+    role: "system",
+    content: systemPrompt,
+  },
+  ...formattedHistory, // ✨ Splice the conversation thread into the middle here
+  {
+    role: "user",
+    content: isTradeReviewMode ? reviewPrompt : userPrompt,
+  },
+],
+      
     });
 
     return Response.json({

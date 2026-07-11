@@ -1,4 +1,14 @@
+
+import { useMemo, useState } from "react";
+import { EngineSelector, EngineType } from "./EngineSelector";
+import { buildTrendAnalysis } from "../../../lib/traderDevelopment/trendAnalysis";
+import { buildRiskAnalysis } from "../../../lib/traderDevelopment/riskAnalysis";
+import { buildEntryQualityAnalysis } from "../../../lib/traderDevelopment/entryQualityAnalysis";
+import { buildExitManagementAnalysis } from "../../../lib/traderDevelopment/exitManagementAnalysis";
+
+
 type ChartWorkspaceProps = {
+  reviews: any[];
   mobileView: "WATCHLIST" | "TRADE" | "ORDER";
   setMobileView: (view: "WATCHLIST" | "TRADE" | "ORDER") => void;
   selectedCoin: string;
@@ -16,6 +26,7 @@ type ChartWorkspaceProps = {
 };
 
 export default function ChartWorkspace({
+  reviews,
   mobileView,
   setMobileView,
   selectedCoin,
@@ -31,6 +42,152 @@ export default function ChartWorkspace({
   setShowSimulatorGaby,
   tourStep,
 }: ChartWorkspaceProps) {
+
+const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
+
+
+const normalizedReviews = useMemo(() => {
+  return (reviews || []).map((item) => {
+    const savedReview =
+      item?.review ??
+      item?.automaticReview ??
+      item;
+
+    return {
+      ...savedReview,
+
+      mode:
+        item?.mode ??
+        savedReview?.mode ??
+        item?.tradeContext?.account?.marketMode ??
+        null,
+
+      coin:
+        item?.coin ??
+        savedReview?.coin ??
+        item?.tradeContext?.market?.coin ??
+        savedReview?.tradeContext?.market?.coin ??
+        null,
+
+      leverage:
+        item?.leverage ??
+        savedReview?.leverage ??
+        savedReview?.engine?.risk?.leverage ??
+        1,
+
+      margin:
+        item?.margin ??
+        savedReview?.margin ??
+        savedReview?.engine?.risk?.margin ??
+        0,
+
+      positionSize:
+        item?.positionSize ??
+        savedReview?.positionSize ??
+        savedReview?.engine?.risk?.positionSize ??
+        0,
+
+      balanceAtEntry:
+        item?.balanceAtEntry ??
+        savedReview?.balanceAtEntry ??
+        item?.tradeContext?.account?.balanceAtEntry ??
+        savedReview?.tradeContext?.account?.balanceAtEntry ??
+        0,
+
+      amount:
+        item?.amount ??
+        savedReview?.amount ??
+        item?.tradeResult?.amount ??
+        0,
+
+      tradeContext:
+        item?.tradeContext ??
+        savedReview?.tradeContext ??
+        null,
+
+      managementReview:
+        savedReview?.managementReview ??
+        savedReview?.management ??
+        savedReview?.engine?.management ??
+        item?.management ??
+        null,
+    };
+  });
+}, [reviews]);
+
+const engineResults = useMemo(() => {
+  return {
+    trendBias: buildTrendAnalysis(normalizedReviews),
+    riskZone: buildRiskAnalysis(normalizedReviews),
+    entryQuality: buildEntryQualityAnalysis(normalizedReviews),
+    tradeManagement:
+      buildExitManagementAnalysis(normalizedReviews),
+  };
+}, [normalizedReviews]);
+
+const engineData: Partial<Record<EngineType, string>> = {
+  trendBias:
+    engineResults.trendBias.aligned +
+      engineResults.trendBias.against ===
+    0
+      ? "No Data"
+      : `${engineResults.trendBias.status} · ${engineResults.trendBias.alignmentRate}% aligned`,
+
+riskZone: (() => {
+  const result = engineResults.riskZone;
+
+  const total =
+    result.lowRisk +
+    result.mediumRisk +
+    result.highRisk;
+
+  if (total === 0) {
+    return "No Data";
+  }
+
+  const lowRiskRate = Math.round(
+    (result.lowRisk / total) * 100
+  );
+
+  const mediumRiskRate = Math.round(
+    (result.mediumRisk / total) * 100
+  );
+
+  if (
+    result.lowRisk >= result.mediumRisk &&
+    result.lowRisk >= result.highRisk
+  ) {
+    return `${result.status} · ${lowRiskRate}% low risk`;
+  }
+
+  if (result.mediumRisk >= result.highRisk) {
+    return `${result.status} · ${mediumRiskRate}% moderate risk`;
+  }
+
+  return `${result.status} · ${result.highRiskRate}% high risk`;
+})(),
+
+  entryQuality:
+    engineResults.entryQuality.good +
+      engineResults.entryQuality.average +
+      engineResults.entryQuality.poor ===
+    0
+      ? "No Data"
+      : `${engineResults.entryQuality.status} · ${engineResults.entryQuality.goodEntryRate}% good`,
+
+  tradeManagement:
+    engineResults.tradeManagement.total === 0
+      ? "No Data"
+      : `${engineResults.tradeManagement.status} · ${engineResults.tradeManagement.averageExitEfficiency}% efficiency`,
+};
+
+  const handleEngineToggle = (engine: EngineType) => {
+    setActiveEngines((prev) => {
+      if (prev.includes(engine)) return prev.filter((e) => e !== engine);
+      if (prev.length >= 3) return prev;
+      return [...prev, engine];
+    });
+  };
 
 const formattedPrice =
   currentPrice == null
@@ -86,6 +243,32 @@ const formattedPrice =
           <p className="text-2xl xl:text-3xl font-black text-white">
 {formattedPrice}
           </p>
+
+{activeEngines.length > 0 && (
+  <div className="ml-auto hidden flex-wrap justify-end gap-1.5 xl:flex">
+    {activeEngines.map((engineId) => (
+      <div
+        key={engineId}
+        className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 min-w-[110px]"
+      >
+<p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">
+  {engineId === "trendBias"
+    ? "Trend Bias"
+    : engineId === "riskZone"
+    ? "Risk Allocation"
+    : engineId === "entryQuality"
+    ? "Entry Quality"
+    : "Exit Management"}
+</p>
+
+<p className="text-xl font-extrabold leading-none text-cyan-400">
+  {engineData[engineId]?.match(/\d+%/)?.[0] ?? "--"}
+</p>
+      </div>
+    ))}
+  </div>
+)}
+
         </div>
 
         <div className="mt-2 flex items-center gap-4">
@@ -118,6 +301,13 @@ const formattedPrice =
         </div>
 
         <div className="flex gap-2">
+
+<EngineSelector
+  activeEngines={activeEngines}
+  onToggleEngine={handleEngineToggle}
+  engineData={engineData}
+/>
+
           <button
             onClick={() => setIndicatorPanel("VOLUME")}
             className={`rounded-md border px-3 py-1.5 text-xs font-black ${
@@ -150,6 +340,7 @@ const formattedPrice =
           </button>
         </div>
       </div>
+
 
       <div className="mt-2 flex-1 rounded-xl overflow-hidden">
         <div ref={chartRef} className="h-[420px] w-full xl:h-[470px]" />

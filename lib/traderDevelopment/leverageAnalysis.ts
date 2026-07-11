@@ -18,17 +18,28 @@ export function buildLeverageAnalysis(reviews: any[]) {
           ).toFixed(2)
         );
 
-  const highLeverageTrades = leverageValues.filter(
-    (value) => value >= 25
+  // 1. Find all trades with leverage >= 25
+  const highLeveragePositions = futuresReviews.filter(
+    (r) => typeof r.leverage === "number" && r.leverage >= 25
+  );
+
+  const highLeverageTrades = highLeveragePositions.length;
+
+  // 2. Out of those high leverage trades, count how many were losses
+  const highLeverageLosses = highLeveragePositions.filter(
+    (r) => r.result?.toUpperCase() === "LOSS"
   ).length;
+
+  // 3. Calculate the percentage of high leverage trades that fail
+  const highLeverageLossRate = highLeverageTrades === 0
+    ? 0
+    : Math.round((highLeverageLosses / highLeverageTrades) * 100);
 
   return {
     totalFuturesTrades: futuresReviews.length,
-
     averageLeverage,
-
     highLeverageTrades,
-
+    highLeverageLossRate, // New Metric!
     highLeverageRate:
       total === 0
         ? 0

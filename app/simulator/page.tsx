@@ -12,11 +12,17 @@ import PortfolioPositions from "./components/PortfolioPositions";
 import PortfolioHistory from "./components/PortfolioHistory";
 import PortfolioOrders from "./components/PortfolioOrders";
 import { WATCHLIST } from "./data/watchlist";
+import { buildTrendAnalysis } from "@/lib/traderDevelopment/trendAnalysis";
+import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
+import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
+import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagementAnalysis";
+
+
 
 
 
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
   ColorType,
@@ -352,6 +358,72 @@ const [futuresPositionManagement, setFuturesPositionManagement] =
 
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
+
+const normalizedTradeReviews = useMemo(() => {
+  return (tradeReviews || []).map((item) => {
+    const savedReview =
+      item?.review ??
+      item?.automaticReview ??
+      item;
+
+    return {
+      ...savedReview,
+
+      mode:
+        item?.mode ??
+        savedReview?.mode ??
+        null,
+
+      coin:
+        item?.coin ??
+        savedReview?.coin ??
+        null,
+
+      leverage:
+        item?.leverage ??
+        savedReview?.leverage ??
+        1,
+
+      margin:
+        item?.margin ??
+        savedReview?.margin ??
+        0,
+
+      positionSize:
+        item?.positionSize ??
+        savedReview?.positionSize ??
+        0,
+
+      balanceAtEntry:
+        item?.balanceAtEntry ??
+        savedReview?.balanceAtEntry ??
+        savedReview?.tradeContext?.account?.balanceAtEntry ??
+        0,
+
+      amount:
+        item?.amount ??
+        savedReview?.amount ??
+        0,
+
+      tradeContext:
+        item?.tradeContext ??
+        savedReview?.tradeContext ??
+        null,
+
+      managementReview:
+        savedReview?.management ??
+        savedReview?.managementReview ??
+        null,
+    };
+  });
+}, [tradeReviews]);
+
+const traderDevelopmentEngines = useMemo(() => ({
+  trendBias: buildTrendAnalysis(normalizedTradeReviews),
+  riskAllocation: buildRiskAnalysis(normalizedTradeReviews),
+  entryQuality: buildEntryQualityAnalysis(normalizedTradeReviews),
+  exitManagement: buildExitManagementAnalysis(normalizedTradeReviews),
+}), [normalizedTradeReviews]);
 
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
@@ -1774,6 +1846,24 @@ tradeContext: position.tradeContext,
     snapshotId,
   };
 
+setTradeReviews((prev) => [
+  {
+    snapshotId,
+    mode: "FUTURES",
+    coin: position.coin,
+    side: position.side,
+
+    leverage: position.leverage,
+    margin: position.margin,
+    positionSize: position.positionSize,
+    balanceAtEntry: position.balanceAtEntry,
+
+    tradeContext: position.tradeContext || null,
+    review: automaticReview,
+  },
+  ...prev,
+]);
+
   setBalance((prev) =>
     reason === "LIQUIDATION"
       ? prev
@@ -1805,6 +1895,14 @@ if (position.id) {
       mode: "FUTURES",
       coin: position.coin,
       side: position.side,
+
+leverage: position.leverage,
+margin: position.margin,
+positionSize:
+  position.positionSize ||
+  position.margin * position.leverage,
+balanceAtEntry:
+  position.balanceAtEntry || startingBalance,
 
       tradeContext: position.tradeContext || null,
       review: automaticReview,
@@ -2008,6 +2106,23 @@ tradeContext,
     ...baseReview,
     snapshotId,
   };
+
+setTradeReviews((prev) => [
+  {
+    snapshotId,
+    mode: "SPOT",
+    coin,
+    side: "LONG",
+
+    amount: avgEntryPrice * quantityToClose,
+    balanceAtEntry:
+      tradeContext?.account?.balanceAtEntry ?? 0,
+
+    tradeContext,
+    review: automaticReview,
+  },
+  ...prev,
+]);
 
 console.log("SPOT CLOSE REVIEW CREATED", {
   snapshotId,
@@ -2669,6 +2784,7 @@ const watchlist = WATCHLIST.map((coin) => ({
 />
 
 <ChartWorkspace
+reviews={tradeReviews}
   mobileView={mobileView}
   setMobileView={setMobileView}
   selectedCoin={selectedCoin}
@@ -2838,6 +2954,7 @@ const watchlist = WATCHLIST.map((coin) => ({
 
 <GabySimulatorCoach
   userId={user?.id || ""}
+  traderDevelopmentEngines={traderDevelopmentEngines}
   autoQuestion={autoGabyQuestion}
   clearAutoQuestion={() => setAutoGabyQuestion(null)}
   mode={marketMode}

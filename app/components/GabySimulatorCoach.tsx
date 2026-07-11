@@ -16,6 +16,14 @@ import {
 
 type GabySimulatorCoachProps = {
   userId: string;
+
+  traderDevelopmentEngines?: {
+    trendBias: any;
+    riskAllocation: any;
+    entryQuality: any;
+    exitManagement: any;
+  };
+
   autoQuestion?: string | null;
   clearAutoQuestion?: () => void;
   mode: string;
@@ -40,6 +48,7 @@ type GabySimulatorCoachProps = {
 
 export default function GabySimulatorCoach({
   userId,
+  traderDevelopmentEngines,
   autoQuestion,
   clearAutoQuestion,
   mode,
@@ -196,7 +205,15 @@ if (
   text.includes("my weaknesses") ||
   text.includes("what should i improve") ||
   text.includes("what should i work on") ||
-  text.includes("consistency")
+  text.includes("consistency") ||
+
+text.includes("exit management") ||
+text.includes("my exit management") ||
+text.includes("exit efficiency") ||
+text.includes("my exit efficiency") ||
+text.includes("trade management") ||
+text.includes("my trade management") 
+
 ) {
   return "TRADER_DEVELOPMENT";
 }
@@ -493,10 +510,30 @@ setLastTopic(currentTopic);
       });
     }
 
-    if (isSnapshotComplete(reviewSnapshot)) {
-      setAnswer(reviewSnapshot.gaby.explanation);
-      return;
-    }
+if (isSnapshotComplete(reviewSnapshot)) {
+  const gabyAnswer = reviewSnapshot.gaby.explanation;
+  setAnswer(gabyAnswer);
+  
+  // ✨ Prime the state so the user can immediately ask follow-up questions about this snapshot
+  setConversationState({
+    intent: "TRADE_REVIEW",
+    subject: "TRADE_REVIEW",
+    mode: "TRADE_REVIEW",
+    awaitingFollowUp: true,
+  });
+
+  // ✨ Save it to history so the backend knows what snapshot was just shown
+  setConversationHistory((prev) => [
+    ...prev.slice(-7),
+    {
+      user: finalQuestion,
+      gaby: gabyAnswer,
+    },
+  ]);
+
+  setQuestion("");
+  return;
+}
 
     setLoading(true);
 
@@ -511,13 +548,16 @@ setLastTopic(currentTopic);
           lastReferencedLevel,
           lastReviewData: reviewSnapshot,
           conversationHistory: conversationHistory.slice(-8),
-          simulatorContext: {
-            userId,
-            conversationIntent,
-            conversationSubject,
-            conversationState,
-            lastTopic: currentTopic,
-            mode,
+simulatorContext: {
+  userId,
+  conversationIntent,
+  conversationSubject,
+  conversationState,
+  lastTopic: currentTopic,
+
+  traderDevelopmentEngines,
+
+  mode,
             selectedCoin,
             balance,
             marginUsed,
@@ -573,27 +613,22 @@ setLastTopic(currentTopic);
         await persistCompletedTradeReviewSnapshot(completedSnapshot);
       }
 
-      if (conversationSubject) {
-        setConversationState({
-          intent: conversationIntent,
-          subject: conversationSubject,
-          mode:
-            conversationIntent === "EDUCATION"
-              ? "TEACHING"
-              : conversationIntent === "COACHING"
-              ? "COACHING"
-              : conversationIntent === "MARKET_ANALYSIS"
-              ? "ANALYSIS"
-              : conversationIntent === "SIMULATOR_HELP"
-              ? "SIMULATOR_HELP"
-              : conversationIntent === "TRADE_REVIEW"
-              ? "TRADE_REVIEW"
-              : conversationIntent === "TRADER_DEVELOPMENT"
-              ? "TRADER_DEVELOPMENT"
-              : "GENERAL",
-          awaitingFollowUp: true,
-        });
-      }
+// ✨ Check for either a new subject OR an existing active conversation thread
+if (conversationSubject || conversationState.awaitingFollowUp) {
+  setConversationState({
+    intent: conversationIntent,
+    // Keep the previous subject if the current follow-up query didn't mention a new one
+    subject: conversationSubject || conversationState.subject,
+    mode:
+      conversationIntent === "EDUCATION" ? "TEACHING" :
+      conversationIntent === "COACHING" ? "COACHING" :
+      conversationIntent === "MARKET_ANALYSIS" ? "ANALYSIS" :
+      conversationIntent === "SIMULATOR_HELP" ? "SIMULATOR_HELP" :
+      conversationIntent === "TRADE_REVIEW" ? "TRADE_REVIEW" :
+      conversationIntent === "TRADER_DEVELOPMENT" ? "TRADER_DEVELOPMENT" : "GENERAL",
+    awaitingFollowUp: true,
+  });
+}
 
       setConversationHistory((prev) => [
         ...prev.slice(-7),
@@ -694,7 +729,7 @@ setLastTopic(currentTopic);
 
   return (
     <div className="rounded-3xl border border-cyan-400/20 bg-[#0f172a]/90 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
-      <div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-6 text-zinc-200">
+      <div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-6 text-zinc-200 max-h-[460px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {loading ? (
           "Gaby is reviewing..."
         ) : answer.startsWith("Not sure what to ask?") ? (
@@ -704,21 +739,48 @@ setLastTopic(currentTopic);
             </p>
 
             <div className="flex flex-wrap gap-2">
-              {[
-                "Review my last trade",
-                "Show my trades report",
-                "Where is the nearest support?",
-                "Where is the nearest resistance?",
-                "What is the overall market direction?",
-              ].map((prompt) => (
-                <button
-                  key={prompt}
-                  onClick={() => askGaby(prompt)}
-                  className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
-                >
-                  {prompt}
-                </button>
-              ))}
+{[
+  "Review my last trade",
+  "Show my trades report",
+  "Where is the nearest support?",
+  "Where is the nearest resistance?",
+  "What is the overall market direction?",
+].map((prompt) => (
+  <button
+    key={prompt}
+    onClick={() => {
+      // 1. Force the conversation state immediately based on the button action
+      if (prompt === "Review my last trade") {
+        setConversationState({
+          intent: "TRADE_REVIEW",
+          subject: "TRADE_REVIEW",
+          mode: "TRADE_REVIEW",
+          awaitingFollowUp: true,
+        });
+      } else if (prompt === "Show my trades report") {
+        setConversationState({
+          intent: "TRADER_DEVELOPMENT",
+          subject: "TRADE_REVIEW",
+          mode: "TRADER_DEVELOPMENT",
+          awaitingFollowUp: true,
+        });
+      } else if (prompt.includes("support") || prompt.includes("resistance") || prompt.includes("direction")) {
+        setConversationState({
+          intent: "MARKET_ANALYSIS",
+          subject: prompt.includes("support") ? "SUPPORT" : prompt.includes("resistance") ? "RESISTANCE" : "MARKET_STATE",
+          mode: "ANALYSIS",
+          awaitingFollowUp: true,
+        });
+      }
+
+      // 2. Run the request thread with the state safely locked down
+      askGaby(prompt);
+    }}
+    className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+  >
+    {prompt}
+  </button>
+))}
             </div>
           </>
         ) : (

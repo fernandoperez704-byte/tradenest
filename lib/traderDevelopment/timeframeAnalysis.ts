@@ -9,8 +9,7 @@ export function buildTimeframeAnalysis(reviews: any[]) {
   > = {};
 
   reviews.forEach((review) => {
-    const timeframe =
-      review.timeframe || "UNKNOWN";
+    const timeframe = review.timeframe || "UNKNOWN";
 
     if (!stats[timeframe]) {
       stats[timeframe] = {
@@ -22,11 +21,14 @@ export function buildTimeframeAnalysis(reviews: any[]) {
 
     stats[timeframe].trades++;
 
-    if (review.result === "PROFIT") {
+    // Normalize result comparison strings
+    const res = review.result?.toUpperCase();
+
+    if (res === "PROFIT" || res === "WIN") {
       stats[timeframe].wins++;
     }
 
-    if (review.result === "LOSS") {
+    if (res === "LOSS") {
       stats[timeframe].losses++;
     }
   });
