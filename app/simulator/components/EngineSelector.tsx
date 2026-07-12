@@ -23,26 +23,35 @@ interface EngineSelectorProps {
 const engines: {
   id: EngineType;
   label: string;
+  description: string;
   icon: React.ElementType;
 }[] = [
-  {
-    id: "trendBias",
-    label: "Trend Bias Engine",
-    icon: TrendingUp,
-  },
-  {
-    id: "riskZone",
-    label: "Risk Allocation",
-    icon: Shield,
-  },
+{
+  id: "trendBias",
+  label: "Trend Bias Engine",
+  description:
+    "Measures how often your trades follow the overall market trend.",
+  icon: TrendingUp,
+},
+{
+  id: "riskZone",
+  label: "Risk Allocation",
+  description:
+    "Measures how responsibly you allocate capital using exposure, margin and leverage.",
+  icon: Shield,
+},
 {
   id: "entryQuality",
   label: "Entry Quality",
+  description:
+    "Measures how often your entries occur under favorable market conditions.",
   icon: Target,
 },
 {
   id: "tradeManagement",
   label: "Exit Management",
+  description:
+    "Measures how effectively you manage exits, protect profits and control losses.",
   icon: Target,
 },
 ];
@@ -84,51 +93,65 @@ export const EngineSelector: React.FC<EngineSelectorProps> = ({
 
             const status = engineData[engine.id] || "No trade data";
 
-            return (
-              <button
-                key={engine.id}
-                type="button"
-                disabled={isDisabled}
-                onClick={() => onToggleEngine(engine.id)}
-                className={`mb-1 flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors last:mb-0 ${
-                  isActive
-                    ? "bg-cyan-500/10 text-cyan-400"
-                    : isDisabled
-                    ? "cursor-not-allowed text-slate-600 opacity-50"
-                    : "text-slate-300 hover:bg-slate-800"
-                }`}
-              >
-                <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                    isActive
-                      ? "bg-cyan-500/15"
-                      : "bg-slate-800"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                </div>
+return (
+  <div
+    key={engine.id}
+    className="group relative mb-1 last:mb-0"
+  >
+    <button
+      type="button"
+      disabled={isDisabled}
+      onClick={() => onToggleEngine(engine.id)}
+      className={`flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors ${
+        isActive
+          ? "bg-cyan-500/10 text-cyan-400"
+          : isDisabled
+          ? "cursor-not-allowed text-slate-600 opacity-50"
+          : "text-slate-300 hover:bg-slate-800"
+      }`}
+    >
+      <div
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+          isActive
+            ? "bg-cyan-500/15"
+            : "bg-slate-800"
+        }`}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
 
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold">
-                    {engine.label}
-                  </p>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold">
+          {engine.label}
+        </p>
 
-                  <p
-                    className={`mt-0.5 truncate text-[11px] ${
-                      isActive
-                        ? "text-cyan-300/80"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    {status}
-                  </p>
-                </div>
+        <p
+          className={`mt-0.5 truncate text-[11px] ${
+            isActive
+              ? "text-cyan-300/80"
+              : "text-slate-500"
+          }`}
+        >
+          {status}
+        </p>
+      </div>
 
-                {isActive && (
-                  <Check className="h-4 w-4 shrink-0 text-cyan-400" />
-                )}
-              </button>
-            );
+      {isActive && (
+        <Check className="h-4 w-4 shrink-0 text-cyan-400" />
+      )}
+    </button>
+
+    <div className="pointer-events-none absolute right-full top-1/2 z-50 mr-4 -translate-y-1/2 w-80 rounded-xl border border-cyan-500/20 bg-[#111827] p-5 opacity-0 shadow-2xl transition-opacity duration-200 group-hover:opacity-100">
+      <p className="text-sm font-bold text-cyan-400">
+        {engine.label}
+      </p>
+
+      <p className="mt-2 text-sm leading-7 text-zinc-300">
+        {engine.description}
+      </p>
+    </div>
+  </div>
+);
           })}
 
           {activeEngines.length >= MAX_ENGINES && (

@@ -133,39 +133,13 @@ const engineData: Partial<Record<EngineType, string>> = {
       ? "No Data"
       : `${engineResults.trendBias.status} · ${engineResults.trendBias.alignmentRate}% aligned`,
 
-riskZone: (() => {
-  const result = engineResults.riskZone;
-
-  const total =
-    result.lowRisk +
-    result.mediumRisk +
-    result.highRisk;
-
-  if (total === 0) {
-    return "No Data";
-  }
-
-  const lowRiskRate = Math.round(
-    (result.lowRisk / total) * 100
-  );
-
-  const mediumRiskRate = Math.round(
-    (result.mediumRisk / total) * 100
-  );
-
-  if (
-    result.lowRisk >= result.mediumRisk &&
-    result.lowRisk >= result.highRisk
-  ) {
-    return `${result.status} · ${lowRiskRate}% low risk`;
-  }
-
-  if (result.mediumRisk >= result.highRisk) {
-    return `${result.status} · ${mediumRiskRate}% moderate risk`;
-  }
-
-  return `${result.status} · ${result.highRiskRate}% high risk`;
-})(),
+riskZone:
+  engineResults.riskZone.lowRisk +
+    engineResults.riskZone.mediumRisk +
+    engineResults.riskZone.highRisk ===
+  0
+    ? "No Data"
+    : `${engineResults.riskZone.status} · ${engineResults.riskZone.highRiskRate}% high risk`,
 
   entryQuality:
     engineResults.entryQuality.good +
@@ -210,6 +184,24 @@ const formattedPrice =
         minimumFractionDigits: 6,
         maximumFractionDigits: 8,
       })}`;
+
+
+
+function getEnginePercentColor(
+  engineId: EngineType,
+  value: number
+) {
+  if (engineId === "riskZone") {
+    if (value >= 60) return "text-red-400";
+    if (value >= 30) return "text-yellow-400";
+    return "text-green-400";
+  }
+
+  if (value >= 70) return "text-green-400";
+  if (value >= 40) return "text-yellow-400";
+  return "text-red-400";
+}
+
   return (
     <div
       className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
@@ -240,9 +232,9 @@ const formattedPrice =
             {selectedCoin}/USD
           </h2>
 
-          <p className="text-2xl xl:text-3xl font-black text-white">
-{formattedPrice}
-          </p>
+<p className="text-2xl xl:text-3xl font-black text-white">
+  {formattedPrice}
+</p>
 
 {activeEngines.length > 0 && (
   <div className="ml-auto hidden flex-wrap justify-end gap-1.5 xl:flex">
@@ -261,9 +253,27 @@ const formattedPrice =
     : "Exit Management"}
 </p>
 
-<p className="text-xl font-extrabold leading-none text-cyan-400">
-  {engineData[engineId]?.match(/\d+%/)?.[0] ?? "--"}
-</p>
+{(() => {
+  const percentText =
+    engineData[engineId]?.match(/\d+%/)?.[0] ?? "--";
+
+  const percentValue =
+    percentText === "--"
+      ? 0
+      : Number(percentText.replace("%", ""));
+
+  return (
+    <p
+      className={`text-xl font-extrabold leading-none ${getEnginePercentColor(
+        engineId,
+        percentValue
+      )}`}
+    >
+      {percentText}
+    </p>
+  );
+})()}
+
       </div>
     ))}
   </div>

@@ -24,8 +24,10 @@ export default function LearnSidebar({
   completedLessons = [],
   isAdvancedUnlocked = false,
 }: LearnSidebarProps) {
-  return (
-    <aside className="bg-[#111827] border border-zinc-700 rounded-2xl p-4 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide">
+return (
+  <aside className="flex h-fit self-start rounded-2xl border border-zinc-700 bg-[#111827] p-4 xl:sticky xl:top-[76px] xl:h-[calc(100vh-88px)]">
+    {/* Fixed Header */}
+    <div className="shrink-0">
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm font-black tracking-wide text-zinc-500">
           LESSONS
@@ -63,7 +65,10 @@ export default function LearnSidebar({
           Advanced
         </Link>
       </div>
+    </div>
 
+    {/* Scrollable Lessons */}
+    <div className="min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-hide">
       <div className="space-y-2">
         {lessons.map((lesson) => {
           const isCompleted = completedLessons.includes(lesson.id);
@@ -83,7 +88,7 @@ export default function LearnSidebar({
                 <span className="leading-5">{lesson.label}</span>
 
                 {mode === "BASIC" && isCompleted && (
-                  <span className="shrink-0 text-emerald-400 font-black">
+                  <span className="shrink-0 font-black text-emerald-400">
                     ✓
                   </span>
                 )}
@@ -92,6 +97,7 @@ export default function LearnSidebar({
           );
         })}
       </div>
-    </aside>
-  );
+    </div>
+  </aside>
+);
 }

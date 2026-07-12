@@ -1286,14 +1286,17 @@ setGabyQuestion("");
     <>
       <Navbar />
 
-      <main className="page-shell !pt-0">
-        <div className="mx-auto w-full max-w-[1780px] px-6">
-  <div className="mt-2 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-4">
-         <aside
-  className={`bg-[#111827] border border-zinc-700 rounded-2xl p-4 xl:sticky xl:top-24 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide ${
+<main className="page-shell !pt-0 xl:h-[calc(100dvh-78px)] xl:overflow-hidden">
+  <div className="mx-auto h-full w-full max-w-[1780px] px-6">
+    <div className="grid h-full min-h-0 grid-cols-1 gap-4 pt-2 xl:grid-cols-[220px_minmax(0,1fr)] xl:overflow-hidden">
+
+<div
+  className={`min-h-0 ${
     mobileLearnView === "LESSONS" ? "block" : "hidden xl:block"
   }`}
 >
+  <aside className="flex h-[calc(100%-12px)] min-h-0 flex-col rounded-2xl border border-zinc-700 bg-[#111827] p-4">
+
 <div className="mb-4 flex items-center justify-between gap-3">
   <p className="text-sm font-black tracking-wide text-zinc-500">
     LESSONS
@@ -1353,8 +1356,10 @@ setGabyQuestion("");
   </button>
 )}
 
+<div className="min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-hide">
   <div className="space-y-2">
-{lessons.map((lesson, index) => {
+    {lessons.map((lesson, index) => {
+
   const isCompleted = completedLessons.includes(lesson.id);
 
 const today = new Date().toDateString();
@@ -1442,13 +1447,15 @@ window.scrollTo({
 </div>
       </button>
   );
-})}
+    })}
   </div>
+</div>
 </aside>
+</div>
 
 <section
   id="lesson-content"
-  className={`min-w-0 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-hide ${
+  className={`min-h-0 min-w-0 overflow-y-auto pb-6 pr-2 scrollbar-hide ${
     mobileLearnView === "LESSON" ? "block" : "hidden xl:block"
   }`}
 >
@@ -1481,8 +1488,8 @@ window.scrollTo({
 )}
 
 {activeLesson === "buying" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
     Every trader starts by asking the same question:
@@ -1599,9 +1606,9 @@ onClick={completeLesson}
 
 
 {activeLesson === "market" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -1731,9 +1738,9 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "orders" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -1854,8 +1861,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "risk" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
     You now know what you're buying, why markets move, and how traders
@@ -1977,8 +1984,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "timeframes" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2100,8 +2107,8 @@ onClick={completeLesson}
   </div>
 )}
 {activeLesson === "candlesticks" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2222,8 +2229,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "volume" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2343,8 +2350,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "support" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2464,8 +2471,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "supplydemand" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2584,8 +2591,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "patterns" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2707,8 +2714,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "setups" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2828,8 +2835,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "psychology" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -2949,8 +2956,8 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "vocabulary" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-8 items-start">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
   <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
@@ -3074,7 +3081,7 @@ onClick={completeLesson}
 )}
 
 {activeLesson === "quiz" && (
-  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+  <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
     <div>
 <h2 className="text-5xl md:text-6xl font-black tracking-tight leading-tight">

@@ -109,12 +109,19 @@ return (
 
       {marketMode === "FUTURES" && (
         <div className="relative">
-          <button
-            onClick={() => setShowLeverageMenu(!showLeverageMenu)}
-            className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center font-bold text-cyan-400 hover:border-cyan-500"
-          >
-            {leverage}x ▼
-          </button>
+<button
+  type="button"
+  onClick={() => setShowLeverageMenu(!showLeverageMenu)}
+  className="flex h-[46px] w-full items-center justify-center gap-1 whitespace-nowrap rounded-xl border border-zinc-700 bg-[#0f172a] px-2 text-center font-bold text-cyan-400 hover:border-cyan-500"
+>
+  <span className="leading-none">
+    {leverage}x
+  </span>
+
+  <span className="text-xs leading-none">
+    ▼
+  </span>
+</button>
 
           {showLeverageMenu && (
             <div className="absolute left-0 top-full z-50 mt-2 h-64 w-full overflow-y-auto rounded-xl border border-zinc-700 bg-[#0f172a] scrollbar-hide">
@@ -213,13 +220,21 @@ return (
     ))}
 
 <button
+  type="button"
   onClick={() => {
-    const maxTradeAmount =
-      balance / (1 + feeRate);
+    const feeMultiplier =
+      marketMode === "FUTURES"
+        ? leverage * feeRate
+        : feeRate;
 
-    setTradeAmount(
-      Number(maxTradeAmount.toFixed(2))
-    );
+    const rawMax =
+      balance / (1 + feeMultiplier);
+
+    // Round down instead of up so margin + fee never exceeds balance.
+    const safeMax =
+      Math.floor(rawMax * 100) / 100;
+
+    setTradeAmount(safeMax);
   }}
   className="flex h-10 items-center justify-center rounded-lg bg-orange-500 text-sm font-bold text-white hover:bg-orange-600"
 >

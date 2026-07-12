@@ -930,19 +930,8 @@ return position.side === "LONG"
     setNow(new Date());
     updatePrices();
 
-const timeframeSpeed = {
-  "1M": 1000,
-  "5M": 1000,
-  "15M": 1000,
-  "1H": 1000,
-  "4H": 1000,
-  "1D": 1000,
-};
+const priceInterval = setInterval(updatePrices, 500);
 
-const priceInterval = setInterval(
-  updatePrices,
-  timeframeSpeed[selectedTimeframe as keyof typeof timeframeSpeed]
-);
     const clockInterval = setInterval(() => setNow(new Date()), 1000);
 
     return () => {
