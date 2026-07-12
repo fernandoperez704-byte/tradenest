@@ -28,9 +28,10 @@ export default function AdvancedLearnPage() {
     <>
       <Navbar />
 
-      <main className="page-shell !pt-0">
-        <div className="mx-auto w-full max-w-[1780px] px-6">
-          <div className="mt-2 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-4">
+<main className="page-shell !pt-0 xl:h-[calc(100dvh-78px)] xl:overflow-hidden">
+  <div className="mx-auto h-full w-full max-w-[1780px] px-6">
+    <div className="grid h-full min-h-0 grid-cols-1 gap-4 pt-2 xl:grid-cols-[220px_minmax(0,1fr)] xl:overflow-hidden">
+
             <LearnSidebar
               mode="ADVANCED"
               lessons={advancedLessons}
@@ -39,7 +40,7 @@ export default function AdvancedLearnPage() {
               isAdvancedUnlocked={true}
             />
           
-<section className="min-w-0">
+<section className="min-h-0 min-w-0 overflow-y-auto pb-6 pr-2 scrollbar-hide">
 
 {activeLesson === "moving-averages" && <MovingAverageLesson />}
 {activeLesson === "market-structure" && <MarketStructureLesson />}

@@ -2,19 +2,27 @@ import OpenAI from "openai";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
 
-
-
-
-
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+type ConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 const OFF_TOPIC_REDIRECT =
   "I'm your TradeNestX trading coach, so I focus on helping you understand markets, trading concepts, risk, and the TradeNestX platform. If you have a trading-related question, I'd be happy to help.";
 
-async function classifyGabyTopic(message: string) {
+async function classifyGabyTopic(
+  message: string,
+  conversationHistory: ConversationMessage[]
+) {
+  const recentContext = conversationHistory
+    .slice(-6)
+    .map((item) => `${item.role}: ${item.content}`)
+    .join("\n");
+
   const completion = await openai.chat.completions.create({
     model: "gpt-4.1-mini",
     temperature: 0,
@@ -24,14 +32,25 @@ async function classifyGabyTopic(message: string) {
         content: `
 You are a strict topic classifier for TradeNestX Gaby.
 
-Classify the user's message as:
+Classify the user's newest message as:
 TRADING
 or
 OFF_TOPIC
 
-TRADING includes trading, investing, financial markets, crypto, stocks, ETFs, indexes, forex, commodities, futures, options, technical analysis, market news education, risk management, trading psychology, simulator questions, TradeNestX platform questions, TradeNestX lessons, and English or Spanish trading questions.
+Use the recent conversation when the newest message is a short follow-up
+such as "why?", "how?", "explain that", "what about it?", or "tell me more."
 
-OFF_TOPIC includes sex, sexual content, dating, relationships, politics, religion, celebrities, sports, movies, music, gaming, recipes, travel, homework unrelated to trading, programming unrelated to TradeNestX or trading tools, medical advice, legal advice, personal life advice, and random general knowledge.
+TRADING includes trading, investing, financial markets, crypto, stocks,
+ETFs, indexes, forex, commodities, futures, options, technical analysis,
+market education, risk management, trading psychology, simulator questions,
+TradeNestX platform questions, TradeNestX lessons, and English or Spanish
+trading questions.
+
+OFF_TOPIC includes sex, sexual content, dating, relationships, politics,
+religion, celebrities, sports, movies, music, gaming, recipes, travel,
+homework unrelated to trading, programming unrelated to TradeNestX or
+trading tools, medical advice, legal advice, personal life advice, and
+random general knowledge.
 
 Return only one word:
 TRADING
@@ -41,7 +60,13 @@ OFF_TOPIC
       },
       {
         role: "user",
-        content: message,
+        content: `
+Recent conversation:
+${recentContext || "No previous conversation"}
+
+Newest message:
+${message}
+`,
       },
     ],
   });
@@ -53,42 +78,87 @@ OFF_TOPIC
 
 export async function POST(req: Request) {
   try {
-    const { message, lesson } = await req.json();
+    const body = await req.json();
 
-    if (!message || typeof message !== "string") {
+    const message =
+      typeof body?.message === "string"
+        ? body.message.trim()
+        : "";
+
+    const lesson =
+      typeof body?.lesson === "string"
+        ? body.lesson
+        : "No specific lesson selected";
+
+    const conversationHistory: ConversationMessage[] = Array.isArray(
+      body?.conversationHistory
+    )
+      ? body.conversationHistory
+          .filter(
+            (item: unknown): item is ConversationMessage => {
+              if (
+                typeof item !== "object" ||
+                item === null
+              ) {
+                return false;
+              }
+
+              const candidate = item as Partial<ConversationMessage>;
+
+              return (
+                (candidate.role === "user" ||
+                  candidate.role === "assistant") &&
+                typeof candidate.content === "string" &&
+                candidate.content.trim().length > 0
+              );
+            }
+          )
+          .slice(-10)
+      : [];
+
+    if (!message) {
       return Response.json({
-        answer: "Ask me a trading or TradeNestX question and I’ll help.",
+        answer:
+          "Ask me a trading or TradeNestX question and I’ll help.",
       });
     }
 
-const topic = await classifyGabyTopic(message);
+    const topic = await classifyGabyTopic(
+      message,
+      conversationHistory
+    );
 
-if (topic === "OFF_TOPIC") {
-  return Response.json({
-    answer: OFF_TOPIC_REDIRECT,
-  });
-}
+    if (topic === "OFF_TOPIC") {
+      return Response.json({
+        answer: OFF_TOPIC_REDIRECT,
+      });
+    }
 
     const websitePrompt = `
 You are answering inside the TradeNestX Learn page.
 
 Current TradeNestX lesson:
-${lesson || "No specific lesson selected"}
-
-User question:
-${message}
+${lesson}
 
 Website Gaby instructions:
-- Focus on the current lesson when it helps.
-- Answer the user's question first.
+- Answer the newest user question directly.
+- Use the previous conversation to understand follow-up questions.
+- When the user says "why?", "how?", "explain that", "what about it?",
+  or refers to something mentioned earlier, continue from the prior topic.
+- Stay focused on the current lesson unless the user clearly changes topics.
+- Do not repeat information the user already understands unless needed.
 - Do not immediately redirect to TradeNestX.
 - Mention TradeNestX only when it naturally helps.
 - Do not sound salesy, repetitive, or robotic.
 - Do not end every answer by recommending TradeNestX.
-- Do not recommend outside platforms, courses, communities, influencers, or brokers.
-- Keep most answers 1-2 sentences.
-- Maximum 40 words unless the user asks for more detail.
+- Do not recommend outside platforms, courses, communities,
+  influencers, or brokers.
+- Keep most answers to 1–3 sentences.
+- Maximum 60 words unless the user requests more detail.
 - Answer in the same language the user uses.
+- Never provide buy or sell signals.
+- Never predict future prices.
+- Never provide financial advice.
 
 TradeNestX Beginner Academy currently teaches:
 1. What Are You Buying?
@@ -106,14 +176,23 @@ TradeNestX Beginner Academy currently teaches:
 13. Essential Trading Terms
 14. Trader Checkpoint
 
+TradeNestX Advanced Academy currently teaches:
+1. Moving Averages
+2. Market Structure
+3. RSI & Momentum
+4. Market Context
+5. Futures & Leverage
+
 TradeNestX Simulator currently supports:
 - Crypto spot trading
-- Crypto futures trading
+- Binance-style crypto perpetual futures simulation
 - Longs and shorts
 - Leverage
+- Margin
 - Liquidation
 - Market orders
 - Limit orders
+- Take profit and stop loss
 - Open positions
 - Trade history
 - Paper trading only
@@ -126,13 +205,13 @@ Future TradeNestX topics may include:
 - ETFs
 - Commodities
 - Advanced indicators
-- Advanced market structure
 - Market scanners
 - Portfolio analytics
 `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
+      temperature: 0.4,
       messages: [
         {
           role: "system",
@@ -144,6 +223,12 @@ ${tradenestxKnowledge}
 ${websitePrompt}
 `,
         },
+
+        ...conversationHistory.map((item) => ({
+          role: item.role,
+          content: item.content,
+        })),
+
         {
           role: "user",
           content: message,

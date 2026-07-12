@@ -24,14 +24,21 @@ const [gabyAnswer, setGabyAnswer] = useState(
 );
 const [loading, setLoading] = useState(false);
 
+const [conversationHistory, setConversationHistory] = useState<
+  { role: "user" | "assistant"; content: string }[]
+>([]);
+
   const currentImage = images[slide];
 
 async function askGaby(question?: string) {
-  const finalQuestion = question || message;
+  const finalQuestion = (question || message).trim();
 
-  if (!finalQuestion.trim()) return;
+  if (!finalQuestion || loading) return;
+
+  const previousHistory = conversationHistory;
 
   setLoading(true);
+  setMessage("");
 
   try {
     const res = await fetch("/api/gaby", {
@@ -42,22 +49,41 @@ async function askGaby(question?: string) {
       body: JSON.stringify({
         message: finalQuestion,
         lesson: `advanced-${title}`,
+        conversationHistory: previousHistory,
       }),
     });
 
     const data = await res.json();
 
-    setGabyAnswer(data.answer || "Gaby could not respond right now.");
-    setMessage("");
+    const answer =
+      data.answer || "Gaby could not respond right now.";
+
+    setGabyAnswer(answer);
+
+    setConversationHistory((prev) =>
+      [
+        ...prev,
+        {
+          role: "user" as const,
+          content: finalQuestion,
+        },
+        {
+          role: "assistant" as const,
+          content: answer,
+        },
+      ].slice(-10)
+    );
   } catch (error) {
-    setGabyAnswer("Gaby is having trouble responding right now.");
+    setGabyAnswer(
+      "Gaby is having trouble responding right now."
+    );
   } finally {
     setLoading(false);
   }
 }
 
   return (
-    <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-5 md:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+    <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
       <div className="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-6 items-start">
 
 <div className="flex h-[646px] min-h-0 flex-col rounded-2xl border border-cyan-500/20 bg-[#111827] p-5">

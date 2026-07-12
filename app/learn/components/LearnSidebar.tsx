@@ -25,7 +25,13 @@ export default function LearnSidebar({
   isAdvancedUnlocked = false,
 }: LearnSidebarProps) {
 return (
-  <aside className="flex h-fit self-start rounded-2xl border border-zinc-700 bg-[#111827] p-4 xl:sticky xl:top-[76px] xl:h-[calc(100vh-88px)]">
+  <aside
+  className={`flex h-fit self-start flex-col rounded-2xl border border-zinc-700 bg-[#111827] p-4 xl:sticky xl:top-[8px] ${
+    mode === "ADVANCED" ? "xl:-translate-y-2" : ""
+  }`}
+>
+
+
     {/* Fixed Header */}
     <div className="shrink-0">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -62,42 +68,44 @@ return (
               : "cursor-not-allowed border-white/5 bg-[#0b0f1a] text-zinc-600"
           }`}
         >
-          Advanced
-        </Link>
-      </div>
+        Advanced
+      </Link>
     </div>
+  </div>
 
-    {/* Scrollable Lessons */}
-    <div className="min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-hide">
-      <div className="space-y-2">
-        {lessons.map((lesson) => {
-          const isCompleted = completedLessons.includes(lesson.id);
-          const isActive = activeLesson === lesson.id;
+  {/* Scrollable Lessons */}
+  <div className="w-full pr-1">
+    <div className="w-full space-y-2">
+      {lessons.map((lesson) => {
+        const isCompleted = completedLessons.includes(lesson.id);
+        const isActive = activeLesson === lesson.id;
 
-          return (
-            <button
-              key={lesson.id}
-              onClick={() => setActiveLesson(lesson.id)}
-              className={`group relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left text-sm font-black tracking-wide transition-all duration-300 ${
-                isActive
-                  ? "border-cyan-400 bg-cyan-400 text-black shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-                  : "border-white/5 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/30 hover:bg-[#131c2b] hover:text-cyan-300"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="leading-5">{lesson.label}</span>
+        return (
+          <button
+            key={lesson.id}
+            onClick={() => setActiveLesson(lesson.id)}
+            className={`block w-full overflow-hidden rounded-2xl border px-4 py-4 text-left text-sm font-black tracking-wide transition-all duration-300 ${
+              isActive
+                ? "border-cyan-400 bg-cyan-400 text-black shadow-[0_0_25px_rgba(34,211,238,0.35)]"
+                : "border-white/5 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/30 hover:bg-[#131c2b] hover:text-cyan-300"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="leading-5">
+                {lesson.label}
+              </span>
 
-                {mode === "BASIC" && isCompleted && (
-                  <span className="shrink-0 font-black text-emerald-400">
-                    ✓
-                  </span>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              {mode === "BASIC" && isCompleted && (
+                <span className="shrink-0 font-black text-emerald-400">
+                  ✓
+                </span>
+              )}
+            </div>
+          </button>
+        );
+      })}
     </div>
-  </aside>
+  </div>
+</aside>
 );
 }
