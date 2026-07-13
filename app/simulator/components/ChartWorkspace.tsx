@@ -202,16 +202,17 @@ function getEnginePercentColor(
   return "text-red-400";
 }
 
-  return (
-    <div
-      className={`bg-[#0f172a] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
-        mobileView === "TRADE" ? "flex" : "hidden xl:flex"
-      } ${
-        tourStep === 2
-          ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
-          : ""
-      }`}
-    >
+return (
+  <div
+    className={`min-w-0 w-full bg-[#0f172a] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
+      mobileView === "TRADE" ? "flex" : "hidden xl:flex"
+    } ${
+      tourStep === 2
+        ? "relative z-50 ring-4 ring-cyan-400 shadow-[0_0_45px_rgba(34,211,238,0.45)]"
+        : ""
+    }`}
+  >
+
       <button
         onClick={() => setMobileView("WATCHLIST")}
         className="mb-4 block rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"

@@ -752,11 +752,15 @@ const estimatedShortLiquidation =
     ? currentPrice * (1 + 1 / leverage - maintenanceBuffer)
     : null;
 
-  const chartRef = useRef<HTMLDivElement | null>(null);
-  const chartInstanceRef = useRef<any>(null);
+const chartRef = useRef<HTMLDivElement | null>(null);
+const chartInstanceRef = useRef<any>(null);
+
 const candleSeriesRef = useRef<any>(null);
 const volumeSeriesRef = useRef<any>(null);
 const rsiSeriesRef = useRef<any>(null);
+
+const initialRangeKeyRef = useRef<string>("");
+
 const indicatorPanelRef =
   useRef<"VOLUME" | "RSI">("VOLUME");
 
@@ -1108,9 +1112,7 @@ useEffect(() => {
       setCandlesReadyFor("");
       setHistory([]);
 
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.__didSetInitialRange = false;
-      }
+initialRangeKeyRef.current = "";
 
 await updatePrices();
 
@@ -1177,240 +1179,234 @@ setCandlesReadyFor(candleKey);
 }, [selectedCoin, selectedTimeframe, simulatorReady]);
 
 useEffect(() => {
-  if (chartInstanceRef.current) {
-    chartInstanceRef.current.remove();
-    chartInstanceRef.current = null;
-candleSeriesRef.current = null;
-volumeSeriesRef.current = null;
-rsiSeriesRef.current = null;
-ma7SeriesRef.current = null;
-ma25SeriesRef.current = null;
-ma99SeriesRef.current = null;
+  const container = chartRef.current;
 
-    liquidationLinesRef.current = [];
-    entryLinesRef.current = [];
-    riskLinesRef.current = [];
-  }
-}, [selectedCoin, selectedTimeframe]);
+  if (!container) return;
+  if (chartInstanceRef.current) return;
 
-useEffect(() => {
-  if (!chartRef.current || history.length === 0) return;
+  const chart = createChart(container, {
+    autoSize: true,
 
-  if (!chartInstanceRef.current) {
-const isMobileChart = window.innerWidth < 1280;
-
-    const chart = createChart(chartRef.current, {
-      layout: {
-        attributionLogo: false,
-        background: {
-          type: ColorType.Solid,
-          color: "#0f172a",
-        },
-        textColor: "#d4d4d8",
+    layout: {
+      attributionLogo: false,
+      background: {
+        type: ColorType.Solid,
+        color: "#0f172a",
       },
-      grid: {
-        vertLines: { color: "#1f2937" },
-        horzLines: { color: "#1f2937" },
+      textColor: "#d4d4d8",
+    },
+
+    grid: {
+      vertLines: {
+        color: "#1f2937",
       },
-crosshair: {
-  mode: CrosshairMode.Normal,
-},
-
-
-      handleScroll: {
-        mouseWheel: true,
-        pressedMouseMove: true,
+      horzLines: {
+        color: "#1f2937",
       },
-      handleScale: {
-        mouseWheel: true,
-        pinch: true,
-      },
-width: chartRef.current.clientWidth,
-height: isMobileChart ? 420 : 470,
-rightPriceScale: {
-  borderColor: "#27272a",
-  visible: true,
-  entireTextOnly: true,
-  scaleMargins: {
-    top: 0.05,
-    bottom: 0.28,
-  },
-},
-timeScale: {
-  visible: true,
-  borderVisible: true,
-  borderColor: "#3f3f46",
-  timeVisible: false,
-  secondsVisible: false,
-  fixLeftEdge: true,
-  fixRightEdge: true,
-  rightOffset: 0,
-  barSpacing: 3,
-  minBarSpacing: 1,
-},
-    });
+    },
 
-const candleSeries = chart.addSeries(CandlestickSeries, {
-  upColor: "#16a34a",
-  downColor: "#dc2626",
-  borderVisible: false,
-  wickUpColor: "#16a34a",
-  wickDownColor: "#dc2626",
-  priceLineVisible: true,
-  lastValueVisible: true,
+    crosshair: {
+      mode: CrosshairMode.Normal,
+    },
 
-  priceFormat: {
-    type: "price",
-    precision:
-      selectedCoin === "SHIB" || selectedCoin === "PEPE"
-        ? 8
-        : 2,
-    minMove:
-      selectedCoin === "SHIB" || selectedCoin === "PEPE"
-        ? 0.00000001
-        : 0.01,
-  },
-});
+    handleScroll: {
+      mouseWheel: true,
+      pressedMouseMove: true,
+    },
 
-    candleSeries.priceScale().applyOptions({
+    handleScale: {
+      mouseWheel: true,
+      pinch: true,
+    },
+
+    rightPriceScale: {
+      borderColor: "#27272a",
+      visible: true,
+      entireTextOnly: true,
       scaleMargins: {
         top: 0.05,
         bottom: 0.28,
       },
-    });
+    },
 
-const volumeSeries = chart.addSeries(HistogramSeries, {
-  priceFormat: {
-    type: "volume",
-  },
-  priceScaleId: "volume",
-});
+    timeScale: {
+      visible: true,
+      borderVisible: true,
+      borderColor: "#3f3f46",
+      timeVisible: false,
+      secondsVisible: false,
+      fixLeftEdge: true,
+      fixRightEdge: true,
+      rightOffset: 12,
+      barSpacing: 3,
+      minBarSpacing: 1,
+    },
+  });
 
-chart.priceScale("volume").applyOptions({
-  scaleMargins: {
-    top: 0.78,
-    bottom: 0,
-  },
-  visible: false,
-});
+  const candleSeries = chart.addSeries(CandlestickSeries, {
+    upColor: "#16a34a",
+    downColor: "#dc2626",
+    borderVisible: false,
+    wickUpColor: "#16a34a",
+    wickDownColor: "#dc2626",
+    priceLineVisible: true,
+    lastValueVisible: true,
 
-const rsiSeries = chart.addSeries(LineSeries, {
-  color: "#f97316",
-  lineWidth: 2,
-  priceScaleId: "rsi",
-  priceLineVisible: false,
-  lastValueVisible: true,
-});
+    priceFormat: {
+      type: "price",
+      precision: 2,
+      minMove: 0.01,
+    },
+  });
 
-chart.priceScale("rsi").applyOptions({
-  scaleMargins: {
-    top: 0.78,
-    bottom: 0,
-  },
-  visible: false,
-});
+  candleSeries.priceScale().applyOptions({
+    scaleMargins: {
+      top: 0.05,
+      bottom: 0.28,
+    },
+  });
 
-rsiSeries.createPriceLine({
-  price: 70,
-  color: "#ef4444",
-  lineWidth: 1,
-  lineStyle: 2,
-  axisLabelVisible: false,
-  title: "",
-});
+  const volumeSeries = chart.addSeries(HistogramSeries, {
+    priceFormat: {
+      type: "volume",
+    },
+    priceScaleId: "volume",
+  });
 
-rsiSeries.createPriceLine({
-  price: 50,
-  color: "#64748b",
-  lineWidth: 1,
-  lineStyle: 2,
-  axisLabelVisible: false,
-  title: "",
-});
+  chart.priceScale("volume").applyOptions({
+    scaleMargins: {
+      top: 0.78,
+      bottom: 0,
+    },
+    visible: false,
+  });
 
-rsiSeries.createPriceLine({
-  price: 30,
-  color: "#22c55e",
-  lineWidth: 1,
-  lineStyle: 2,
-  axisLabelVisible: false,
-  title: "",
-});
+  const rsiSeries = chart.addSeries(LineSeries, {
+    color: "#f97316",
+    lineWidth: 2,
+    priceScaleId: "rsi",
+    priceLineVisible: false,
+    lastValueVisible: true,
+  });
 
-const ma7Series = chart.addSeries(LineSeries, {
-  color: "#facc15",
-  lineWidth: 1,
-  priceLineVisible: false,
-  lastValueVisible: false,
-});
+  chart.priceScale("rsi").applyOptions({
+    scaleMargins: {
+      top: 0.78,
+      bottom: 0,
+    },
+    visible: false,
+  });
 
-const ma25Series = chart.addSeries(LineSeries, {
-  color: "#38bdf8",
-  lineWidth: 1,
-  priceLineVisible: false,
-  lastValueVisible: false,
-});
+  rsiSeries.createPriceLine({
+    price: 70,
+    color: "#ef4444",
+    lineWidth: 1,
+    lineStyle: 2,
+    axisLabelVisible: false,
+    title: "",
+  });
 
-const ma99Series = chart.addSeries(LineSeries, {
-  color: "#a78bfa",
-  lineWidth: 1,
-  priceLineVisible: false,
-  lastValueVisible: false,
-});
+  rsiSeries.createPriceLine({
+    price: 50,
+    color: "#64748b",
+    lineWidth: 1,
+    lineStyle: 2,
+    axisLabelVisible: false,
+    title: "",
+  });
 
-chartInstanceRef.current = chart;
-candleSeriesRef.current = candleSeries;
-volumeSeriesRef.current = volumeSeries;
-rsiSeriesRef.current = rsiSeries;
-ma7SeriesRef.current = ma7Series;
-ma25SeriesRef.current = ma25Series;
-ma99SeriesRef.current = ma99Series;
+  rsiSeries.createPriceLine({
+    price: 30,
+    color: "#22c55e",
+    lineWidth: 1,
+    lineStyle: 2,
+    axisLabelVisible: false,
+    title: "",
+  });
 
-    const handleResize = () => {
-      if (!chartRef.current || !chartInstanceRef.current) return;
+  const ma7Series = chart.addSeries(LineSeries, {
+    color: "#facc15",
+    lineWidth: 1,
+    priceLineVisible: false,
+    lastValueVisible: false,
+  });
 
-      chartInstanceRef.current.applyOptions({
-        width: chartRef.current.clientWidth,
-      });
-    };
+  const ma25Series = chart.addSeries(LineSeries, {
+    color: "#38bdf8",
+    lineWidth: 1,
+    priceLineVisible: false,
+    lastValueVisible: false,
+  });
 
-    window.addEventListener("resize", handleResize);
+  const ma99Series = chart.addSeries(LineSeries, {
+    color: "#a78bfa",
+    lineWidth: 1,
+    priceLineVisible: false,
+    lastValueVisible: false,
+  });
 
-    chart.subscribeCrosshairMove((param) => {
-      if (!param.time) {
-        setSelectedCandleDate("Hover a candle");
-        return;
-      }
+  chartInstanceRef.current = chart;
+  candleSeriesRef.current = candleSeries;
+  volumeSeriesRef.current = volumeSeries;
+  rsiSeriesRef.current = rsiSeries;
+  ma7SeriesRef.current = ma7Series;
+  ma25SeriesRef.current = ma25Series;
+  ma99SeriesRef.current = ma99Series;
 
-      const time = param.time as any;
+  chart.subscribeCrosshairMove((param) => {
+    if (!param.time) {
+      setSelectedCandleDate("Hover a candle");
+      return;
+    }
 
-const rsiData =
-  param.seriesData.get(rsiSeriesRef.current);
+    const rsiData = param.seriesData.get(rsiSeries);
 
-if (
-  indicatorPanelRef.current === "RSI" &&
-  rsiData &&
-  "value" in rsiData
-) {
-  setSelectedCandleDate(
-    `RSI: ${Number(rsiData.value).toFixed(2)}`
-  );
-  return;
-}
+    if (
+      indicatorPanelRef.current === "RSI" &&
+      rsiData &&
+      "value" in rsiData
+    ) {
+      setSelectedCandleDate(
+        `RSI: ${Number(rsiData.value).toFixed(2)}`
+      );
 
-     
-      if (typeof time === "object") {
-        const date = new Date(time.year, time.month - 1, time.day);
+      return;
+    }
 
-        setSelectedCandleDate(
-          date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })
-        );
-      }
-    });
-  }
+    const time = param.time as any;
+
+    if (typeof time === "object") {
+      const date = new Date(
+        time.year,
+        time.month - 1,
+        time.day
+      );
+
+      setSelectedCandleDate(
+        date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      );
+    }
+  });
+
+  return () => {
+    chart.remove();
+
+    chartInstanceRef.current = null;
+    candleSeriesRef.current = null;
+    volumeSeriesRef.current = null;
+    rsiSeriesRef.current = null;
+    ma7SeriesRef.current = null;
+    ma25SeriesRef.current = null;
+    ma99SeriesRef.current = null;
+  };
+}, []);
+
+useEffect(() => {
+  if (!chartRef.current || history.length === 0) return;
+
 
 const chartData = history
   .map((item) => ({
@@ -1425,6 +1421,20 @@ const chartData = history
     return index === 0 || item.time > array[index - 1].time;
   });
 
+const usesEightDecimals =
+  selectedCoin === "SHIB" ||
+  selectedCoin === "PEPE";
+
+candleSeriesRef.current.applyOptions({
+  priceFormat: {
+    type: "price",
+    precision: usesEightDecimals ? 8 : 2,
+    minMove: usesEightDecimals
+      ? 0.00000001
+      : 0.01,
+  },
+});
+
   candleSeriesRef.current?.setData(
     chartData.map((item) => ({
       time: item.time,
@@ -1435,15 +1445,36 @@ const chartData = history
     }))
   );
 
-if (chartData.length > 80 && !chartInstanceRef.current.__didSetInitialRange) {
-  const visibleCandles = window.innerWidth < 1280 ? 70 : 160;
+const rangeKey =
+  `${selectedCoin}-${selectedTimeframe}`;
 
-  chartInstanceRef.current.timeScale().setVisibleLogicalRange({
-    from: Math.max(chartData.length - visibleCandles, 0),
-    to: chartData.length + 5,
+if (
+  chartData.length > 80 &&
+  initialRangeKeyRef.current !== rangeKey
+) {
+  const containerWidth =
+    chartRef.current?.clientWidth ?? 0;
+
+  const visibleCandles =
+    containerWidth < 700 ? 70 : 160;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!chartInstanceRef.current) return;
+
+      chartInstanceRef.current
+        .timeScale()
+        .setVisibleLogicalRange({
+          from: Math.max(
+            chartData.length - visibleCandles,
+            0
+          ),
+          to: chartData.length + 12,
+        });
+
+      initialRangeKeyRef.current = rangeKey;
+    });
   });
-
-  chartInstanceRef.current.__didSetInitialRange = true;
 }
 
 if (indicatorPanel === "VOLUME") {
@@ -1548,7 +1579,7 @@ if (marketMode === "FUTURES") {
       lineWidth: 2,
       lineStyle: 2,
       axisLabelVisible: true,
-      title: "LIQ",
+      title: "LQ",
     });
 
     if (line) {
@@ -1583,7 +1614,7 @@ color: "#64748b",
 lineWidth: 2,
     lineStyle: 2,
     axisLabelVisible: true,
-    title: "ENTRY",
+    title: "ET",
   });
 
   if (entryLine) {
@@ -1598,7 +1629,7 @@ color: "#64748b",
 lineWidth: 2,
     lineStyle: 2,
     axisLabelVisible: true,
-    title: "ENTRY",
+    title: "ET",
   });
 
   if (entryLine) {
@@ -2747,7 +2778,7 @@ const watchlist = WATCHLIST.map((coin) => ({
 
       <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
-<div className="mt-2 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_270px] gap-3 w-full page-container">
+<div className="mt-2 grid min-w-0 w-full grid-cols-1 gap-3 page-container xl:grid-cols-[220px_minmax(0,1fr)_270px]">
 
 <WatchlistPanel
   mobileView={mobileView}

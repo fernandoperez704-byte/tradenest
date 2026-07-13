@@ -7,6 +7,25 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+function formatPrice(price: number | null | undefined) {
+  if (price == null || !Number.isFinite(price)) {
+    return "N/A";
+  }
+
+  if (price >= 1000) return price.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (price >= 1) return price.toFixed(2);
+
+  if (price >= 0.01) return price.toFixed(4);
+
+  if (price >= 0.0001) return price.toFixed(6);
+
+  return price.toFixed(8);
+}
+
 export async function POST(req: Request) {
   try {
     const {
@@ -219,11 +238,12 @@ ${question}
 TradeNestX Engine Facts:
 Coin: ${coin}
 Selected Timeframe: ${timeframe}
-Current Price: ${currentPrice ? `$${currentPrice.toFixed(2)}` : "N/A"}
+Current Price: $${formatPrice(currentPrice)}
+
 ${
   support.low === support.high
-    ? `Nearest Support Level: $${support.low.toFixed(2)}`
-    : `Nearest Support Zone: $${support.low.toFixed(2)} - $${support.high.toFixed(2)}`
+    ? `Nearest Support Level: $${formatPrice(support.low)}`
+    : `Nearest Support Zone: $${formatPrice(support.low)} - $${formatPrice(support.high)}`
 }
 
 Rules:
@@ -252,11 +272,11 @@ Rules:
     ],
   });
 
-  return Response.json({
-    answer:
-      completion.choices[0].message.content ||
-      `The nearest support on the selected **${timeframe}** timeframe is between **$${support.low.toFixed(2)}** and **$${support.high.toFixed(2)}**.`,
-  });
+return Response.json({
+  answer:
+    completion.choices[0].message.content ||
+    `The nearest support on the selected **${timeframe}** timeframe is between **$${formatPrice(support.low)}** and **$${formatPrice(support.high)}**.`,
+});
 }
 
 // Handle nearest resistance with focused GPT explanation
@@ -293,12 +313,12 @@ TradeNestX Engine Facts:
 
 Coin: ${coin}
 Selected Timeframe: ${timeframe}
-Current Price: ${currentPrice ? `$${currentPrice.toFixed(2)}` : "N/A"}
+Current Price: $${formatPrice(currentPrice)}
 
 ${
   resistance.low === resistance.high
-    ? `Nearest Resistance Level: $${resistance.low.toFixed(2)}`
-    : `Nearest Resistance Zone: $${resistance.low.toFixed(2)} - $${resistance.high.toFixed(2)}`
+    ? `Nearest Resistance Level: $${formatPrice(resistance.low)}`
+    : `Nearest Resistance Zone: $${formatPrice(resistance.low)} - $${formatPrice(resistance.high)}`
 }
 
 Rules:
@@ -331,11 +351,11 @@ Rules:
     ],
   });
 
-  return Response.json({
-    answer:
-      completion.choices[0].message.content ||
-      `The nearest resistance on the selected **${timeframe}** timeframe is between **$${resistance.low.toFixed(2)}** and **$${resistance.high.toFixed(2)}**.`,
-  });
+return Response.json({
+  answer:
+    completion.choices[0].message.content ||
+    `The nearest resistance on the selected **${timeframe}** timeframe is between **$${formatPrice(resistance.low)}** and **$${formatPrice(resistance.high)}**.`,
+});
 }
 
 

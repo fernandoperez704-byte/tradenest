@@ -196,15 +196,17 @@ to: 305,
   </div>
 
 <p
-  className={`text-xs font-bold ${
-    previousPrices[coin.symbol] && coin.price
-      ? coin.price >= previousPrices[coin.symbol]!
-        ? "text-emerald-400"
-        : "text-red-400"
-      : selectedCoin === coin.symbol
-      ? "text-cyan-400"
+className={`text-xs font-bold ${
+  previousPrices[coin.symbol] != null && coin.price != null
+    ? coin.price > previousPrices[coin.symbol]!
+      ? "text-emerald-400"
+      : coin.price < previousPrices[coin.symbol]!
+      ? "text-red-400"
       : "text-zinc-300"
-  }`}
+    : selectedCoin === coin.symbol
+    ? "text-cyan-400"
+    : "text-zinc-300"
+}`}
 >
 {coin.price == null
   ? "Loading..."
