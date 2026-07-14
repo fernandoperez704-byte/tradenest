@@ -5,6 +5,8 @@ import { buildTrendAnalysis } from "../../../lib/traderDevelopment/trendAnalysis
 import { buildRiskAnalysis } from "../../../lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "../../../lib/traderDevelopment/entryQualityAnalysis";
 import { buildExitManagementAnalysis } from "../../../lib/traderDevelopment/exitManagementAnalysis";
+import type { DetectedPattern } from "@/lib/patternRecognition";
+import PatternOverlay from "./PatternOverlay";
 
 
 type ChartWorkspaceProps = {
@@ -17,10 +19,16 @@ type ChartWorkspaceProps = {
   selectedTimeframe: string;
   setSelectedTimeframe: (timeframe: string) => void;
   now: Date | null;
-  indicatorPanel: "VOLUME" | "RSI";
-  setIndicatorPanel: (panel: "VOLUME" | "RSI") => void;
-  chartInstanceRef: any;
-  chartRef: any;
+indicatorPanel: "VOLUME" | "RSI";
+setIndicatorPanel: (panel: "VOLUME" | "RSI") => void;
+
+patternRecognitionEnabled: boolean;
+setPatternRecognitionEnabled: (value: boolean) => void;
+strongestPattern: DetectedPattern | null;
+
+chartInstanceRef: any;
+candleSeriesRef: any;
+chartRef: any;
   setShowSimulatorGaby: (value: boolean) => void;
   tourStep: number | null;
 };
@@ -35,10 +43,14 @@ export default function ChartWorkspace({
   selectedTimeframe,
   setSelectedTimeframe,
   now,
-  indicatorPanel,
-  setIndicatorPanel,
-  chartInstanceRef,
-  chartRef,
+indicatorPanel,
+setIndicatorPanel,
+patternRecognitionEnabled,
+setPatternRecognitionEnabled,
+strongestPattern,
+chartInstanceRef,
+candleSeriesRef,
+chartRef,
   setShowSimulatorGaby,
   tourStep,
 }: ChartWorkspaceProps) {
@@ -202,6 +214,27 @@ function getEnginePercentColor(
   return "text-red-400";
 }
 
+function formatPatternName(
+  patternType: DetectedPattern["type"]
+) {
+  switch (patternType) {
+    case "DOUBLE_BOTTOM":
+      return "Double Bottom";
+
+    case "DOUBLE_TOP":
+      return "Double Top";
+
+    case "BULL_FLAG":
+      return "Bull Flag";
+
+    case "BEAR_FLAG":
+      return "Bear Flag";
+
+    default:
+      return patternType;
+  }
+}
+
 return (
   <div
     className={`min-w-0 w-full bg-[#0f172a] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
@@ -319,6 +352,48 @@ return (
   engineData={engineData}
 />
 
+<button
+  onClick={() =>
+    setPatternRecognitionEnabled(
+      !patternRecognitionEnabled
+    )
+  }
+  title="Pattern Recognition"
+  className={`rounded-md border px-3 py-1.5 text-xs font-black transition-all ${
+    patternRecognitionEnabled
+      ? "border-green-500 bg-green-500/15 text-green-400"
+      : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+  }`}
+>
+  PAT
+</button>
+
+{patternRecognitionEnabled && strongestPattern && (
+  <div
+    className={`hidden items-center rounded-md border px-2.5 py-1.5 text-xs font-bold xl:flex ${
+      strongestPattern.direction === "BULLISH"
+        ? "border-green-500/40 bg-green-500/10 text-green-400"
+        : strongestPattern.direction === "BEARISH"
+        ? "border-red-500/40 bg-red-500/10 text-red-400"
+        : "border-yellow-500/40 bg-yellow-500/10 text-yellow-400"
+    }`}
+  >
+    {formatPatternName(strongestPattern.type)}
+    {" · "}
+    {strongestPattern.status === "CONFIRMED"
+      ? "Confirmed"
+      : "Forming"}
+    {" · "}
+    {strongestPattern.confidence}%
+  </div>
+)}
+
+{patternRecognitionEnabled && !strongestPattern && (
+  <div className="hidden items-center rounded-md border border-zinc-700 bg-[#111827] px-2.5 py-1.5 text-xs font-bold text-zinc-500 xl:flex">
+    No pattern
+  </div>
+)}
+
           <button
             onClick={() => setIndicatorPanel("VOLUME")}
             className={`rounded-md border px-3 py-1.5 text-xs font-black ${
@@ -352,10 +427,25 @@ return (
         </div>
       </div>
 
+<div className="relative mt-2 flex-1 rounded-xl overflow-hidden">
 
-      <div className="mt-2 flex-1 rounded-xl overflow-hidden">
-        <div ref={chartRef} className="h-[420px] w-full xl:h-[470px]" />
-      </div>
+    <div
+        ref={chartRef}
+        className="h-[420px] w-full xl:h-[470px]"
+    />
+
+<PatternOverlay
+  pattern={
+    patternRecognitionEnabled
+      ? strongestPattern
+      : null
+  }
+  chartInstanceRef={chartInstanceRef}
+  candleSeriesRef={candleSeriesRef}
+  chartContainerRef={chartRef}
+/>
+
+</div>
 
       <button
         onClick={() => setMobileView("ORDER")}

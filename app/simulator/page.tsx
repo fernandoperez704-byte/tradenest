@@ -45,6 +45,11 @@ import {
 
 import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
 
+import {
+  detectPatterns,
+  type DetectedPattern,
+} from "@/lib/patternRecognition";
+
 import { db } from "../firebase";
 import {
   collection,
@@ -109,6 +114,18 @@ useEffect(() => {
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
+
+const [patternRecognitionEnabled, setPatternRecognitionEnabled] =
+  useState(false);
+
+const [detectedPatterns, setDetectedPatterns] =
+  useState<DetectedPattern[]>([]);
+
+const strongestPattern =
+  detectedPatterns.length > 0
+    ? detectedPatterns[0]
+    : null;
+
   const [indicatorPanel, setIndicatorPanel] =
   useState<"VOLUME" | "RSI">("VOLUME");
   const [activeBottomTab, setActiveBottomTab] = useState<"POSITIONS" | "HISTORY" | "ORDERS">("POSITIONS");
@@ -1177,6 +1194,40 @@ setCandlesReadyFor(candleKey);
     cancelled = true;
   };
 }, [selectedCoin, selectedTimeframe, simulatorReady]);
+
+useEffect(() => {
+  if (!patternRecognitionEnabled) {
+    setDetectedPatterns([]);
+    return;
+  }
+
+  const candleKey =
+    `${selectedCoin}-${selectedTimeframe}`;
+
+  if (
+    candlesReadyFor !== candleKey ||
+    history.length < 50
+  ) {
+    setDetectedPatterns([]);
+    return;
+  }
+
+const results = detectPatterns(history);
+
+console.log("PAT detected patterns:", results);
+console.log(
+  "PAT strongest pattern:",
+  results[0] ?? null
+);
+
+setDetectedPatterns(results);
+}, [
+  patternRecognitionEnabled,
+  history,
+  candlesReadyFor,
+  selectedCoin,
+  selectedTimeframe,
+]);
 
 useEffect(() => {
   const container = chartRef.current;
@@ -2815,7 +2866,11 @@ reviews={tradeReviews}
   now={now}
   indicatorPanel={indicatorPanel}
   setIndicatorPanel={setIndicatorPanel}
+patternRecognitionEnabled={patternRecognitionEnabled}
+setPatternRecognitionEnabled={setPatternRecognitionEnabled}
+strongestPattern={strongestPattern}
   chartInstanceRef={chartInstanceRef}
+  candleSeriesRef={candleSeriesRef}
   chartRef={chartRef}
   setShowSimulatorGaby={setShowSimulatorGaby}
   tourStep={tourStep}
