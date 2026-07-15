@@ -6,51 +6,127 @@ export type SwingPoint = {
   price: number;
 };
 
-export function findSwingHighs(
+type PriceField = "high" | "low";
+
+function findSwings(
   history: PricePoint[],
-  windowSize = 3
+  field: PriceField,
+  windowSize: number,
+  isSwing: (
+    current: number,
+    neighbors: number[]
+  ) => boolean
 ): SwingPoint[] {
-  const swingHighs: SwingPoint[] = [];
+  const swings: SwingPoint[] = [];
+
+  if (
+    !Array.isArray(history) ||
+    history.length <
+      windowSize * 2 + 1
+  ) {
+    return swings;
+  }
 
   for (
     let index = windowSize;
-    index < history.length - windowSize;
+    index <
+    history.length - windowSize;
     index++
   ) {
-    const currentHigh = Number(history[index].high);
+    const currentPrice = Number(
+      history[index][field]
+    );
 
-    let isSwingHigh = true;
+    if (
+      !Number.isFinite(currentPrice)
+    ) {
+      continue;
+    }
+
+    const neighbors: number[] = [];
+
+    let validNeighbors = true;
 
     for (
       let offset = 1;
       offset <= windowSize;
       offset++
     ) {
-      const leftHigh = Number(
-        history[index - offset].high
+      const leftPrice = Number(
+        history[index - offset][field]
       );
 
-      const rightHigh = Number(
-        history[index + offset].high
+      const rightPrice = Number(
+        history[index + offset][field]
       );
 
       if (
-        currentHigh <= leftHigh ||
-        currentHigh <= rightHigh
+        !Number.isFinite(leftPrice) ||
+        !Number.isFinite(rightPrice)
       ) {
-        isSwingHigh = false;
+        validNeighbors = false;
         break;
       }
+
+      neighbors.push(
+        leftPrice,
+        rightPrice
+      );
     }
 
-    if (!isSwingHigh) continue;
+    if (!validNeighbors) {
+      continue;
+    }
 
-    swingHighs.push({
+    if (
+      !isSwing(
+        currentPrice,
+        neighbors
+      )
+    ) {
+      continue;
+    }
+
+    swings.push({
       index,
-      time: Number(history[index].time),
-      price: currentHigh,
+      time: Number(
+        history[index].time
+      ),
+      price: currentPrice,
     });
   }
 
-  return swingHighs;
+  return swings;
+}
+
+export function findSwingHighs(
+  history: PricePoint[],
+  windowSize = 3
+): SwingPoint[] {
+  return findSwings(
+    history,
+    "high",
+    windowSize,
+    (current, neighbors) =>
+      neighbors.every(
+        (neighbor) =>
+          current > neighbor
+      )
+  );
+}
+
+export function findSwingLows(
+  history: PricePoint[],
+  windowSize = 3
+): SwingPoint[] {
+  return findSwings(
+    history,
+    "low",
+    windowSize,
+    (current, neighbors) =>
+      neighbors.every(
+        (neighbor) =>
+          current < neighbor
+      )
+  );
 }

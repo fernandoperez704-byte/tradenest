@@ -6,51 +6,108 @@ export type SwingPoint = {
   price: number;
 };
 
-export function findSwingLows(
+/**
+ * Shared swing-point detection logic.
+ */
+function findSwings(
   history: PricePoint[],
-  windowSize = 3
+  windowSize: number,
+  type: "high" | "low"
 ): SwingPoint[] {
-  const swingLows: SwingPoint[] = [];
+  const swings: SwingPoint[] = [];
+
+  if (
+    !Array.isArray(history) ||
+    windowSize < 1 ||
+    history.length < windowSize * 2 + 1
+  ) {
+    return swings;
+  }
 
   for (
     let index = windowSize;
     index < history.length - windowSize;
     index++
   ) {
-    const currentLow = Number(history[index].low);
+    const currentPrice = Number(
+      history[index][type]
+    );
 
-    let isSwingLow = true;
+    if (
+      !Number.isFinite(currentPrice) ||
+      currentPrice <= 0
+    ) {
+      continue;
+    }
+
+    let isSwing = true;
 
     for (
       let offset = 1;
       offset <= windowSize;
       offset++
     ) {
-      const leftLow = Number(
-        history[index - offset].low
+      const leftPrice = Number(
+        history[index - offset][type]
       );
 
-      const rightLow = Number(
-        history[index + offset].low
+      const rightPrice = Number(
+        history[index + offset][type]
       );
 
       if (
-        currentLow >= leftLow ||
-        currentLow >= rightLow
+        !Number.isFinite(leftPrice) ||
+        !Number.isFinite(rightPrice)
       ) {
-        isSwingLow = false;
+        isSwing = false;
+        break;
+      }
+
+      const isExtreme =
+        type === "high"
+          ? currentPrice > leftPrice &&
+            currentPrice > rightPrice
+          : currentPrice < leftPrice &&
+            currentPrice < rightPrice;
+
+      if (!isExtreme) {
+        isSwing = false;
         break;
       }
     }
 
-    if (!isSwingLow) continue;
+    if (!isSwing) {
+      continue;
+    }
 
-    swingLows.push({
+    swings.push({
       index,
       time: Number(history[index].time),
-      price: currentLow,
+      price: currentPrice,
     });
   }
 
-  return swingLows;
+  return swings;
+}
+
+export function findSwingHighs(
+  history: PricePoint[],
+  windowSize = 3
+): SwingPoint[] {
+  return findSwings(
+    history,
+    windowSize,
+    "high"
+  );
+}
+
+export function findSwingLows(
+  history: PricePoint[],
+  windowSize = 3
+): SwingPoint[] {
+  return findSwings(
+    history,
+    windowSize,
+    "low"
+  );
 }

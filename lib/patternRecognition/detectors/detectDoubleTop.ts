@@ -13,11 +13,24 @@ import {
   calculatePatternConfidence,
 } from "../confidence/calculatePatternConfidence";
 
+const CONFIG = {
+  MIN_CANDLE_DIST: 6,
+  MAX_CANDLE_DIST: 35,
+  MAX_CANDLES_SINCE_SECOND_TOP: 15,
+  MAX_TOP_DIFF_PERCENT: 2.5,
+  MIN_NECKLINE_DROP_PERCENT: 2,
+  MIN_LEG_BALANCE: 0.3,
+};
+
 export function detectDoubleTop(
-  history: PricePoint[]
+  history: PricePoint[],
+  lookback: number
 ): DetectedPattern | null {
-  const swingHighs = findSwingHighs(history);
-  const swingLows = findSwingLows(history);
+  const swingHighs =
+    findSwingHighs(history);
+
+  const swingLows =
+    findSwingLows(history);
 
   if (
     swingHighs.length < 2 ||
@@ -26,31 +39,53 @@ export function detectDoubleTop(
     return null;
   }
 
-  const recentSwingHighs = swingHighs.slice(-8);
+  const windowStartIndex =
+    Math.max(
+      0,
+      history.length - lookback
+    );
+
+  const recentSwingHighs =
+    swingHighs.filter(
+      (swingHigh) =>
+        swingHigh.index >=
+        windowStartIndex
+    );
+
+  const candidates:
+    DetectedPattern[] = [];
 
   for (
-    let secondIndex = recentSwingHighs.length - 1;
+    let secondIndex =
+      recentSwingHighs.length - 1;
     secondIndex >= 1;
     secondIndex--
   ) {
-    const secondTop =
-      recentSwingHighs[secondIndex];
-
     for (
-      let firstIndex = secondIndex - 1;
+      let firstIndex =
+        secondIndex - 1;
       firstIndex >= 0;
       firstIndex--
     ) {
+      const secondTop =
+        recentSwingHighs[
+          secondIndex
+        ];
+
       const firstTop =
-        recentSwingHighs[firstIndex];
+        recentSwingHighs[
+          firstIndex
+        ];
 
       const candleDistance =
         secondTop.index -
         firstTop.index;
 
       if (
-        candleDistance < 6 ||
-        candleDistance > 35
+        candleDistance <
+          CONFIG.MIN_CANDLE_DIST ||
+        candleDistance >
+          CONFIG.MAX_CANDLE_DIST
       ) {
         continue;
       }
@@ -60,38 +95,11 @@ export function detectDoubleTop(
         1 -
         secondTop.index;
 
-      if (candlesSinceSecondTop > 40) {
-        continue;
-      }
-
-      /*
-       * A Double Top should form after an upward move.
-       */
-      const trendLookbackIndex = Math.max(
-        0,
-        firstTop.index - 20
-      );
-
-      const prePatternPrice = Number(
-        history[trendLookbackIndex].close
-      );
-
-      const priceNearFirstTop = Number(
-        history[
-          Math.max(0, firstTop.index - 1)
-        ].close
-      );
-
-      const priorRisePercent =
-        prePatternPrice > 0
-          ? (
-              (priceNearFirstTop -
-                prePatternPrice) /
-              prePatternPrice
-            ) * 100
-          : 0;
-
-      if (priorRisePercent < 2) {
+      if (
+        candlesSinceSecondTop >
+        CONFIG
+          .MAX_CANDLES_SINCE_SECOND_TOP
+      ) {
         continue;
       }
 
@@ -101,7 +109,9 @@ export function detectDoubleTop(
           secondTop.price
         ) / 2;
 
-      if (averageTopPrice <= 0) {
+      if (
+        averageTopPrice <= 0
+      ) {
         continue;
       }
 
@@ -114,13 +124,13 @@ export function detectDoubleTop(
           averageTopPrice
         ) * 100;
 
-      if (topDifferencePercent > 2.5) {
+      if (
+        topDifferencePercent >
+        CONFIG.MAX_TOP_DIFF_PERCENT
+      ) {
         continue;
       }
 
-      /*
-       * Require a genuine swing low between the two tops.
-       */
       const lowsBetweenTops =
         swingLows.filter(
           (swingLow) =>
@@ -130,100 +140,107 @@ export function detectDoubleTop(
               secondTop.index
         );
 
-      if (lowsBetweenTops.length === 0) {
+      if (
+        lowsBetweenTops.length === 0
+      ) {
         continue;
       }
 
-      const necklineSwing =
+      const neckline =
         lowsBetweenTops.reduce(
           (lowest, current) =>
-            current.price < lowest.price
+            current.price <
+            lowest.price
               ? current
               : lowest
         );
 
-      const necklinePrice =
-        necklineSwing.price;
-
-      /*
-       * Keep the valley reasonably centered.
-       */
-      const firstLegDistance =
-        necklineSwing.index -
+      const firstLeg =
+        neckline.index -
         firstTop.index;
 
-      const secondLegDistance =
+      const secondLeg =
         secondTop.index -
-        necklineSwing.index;
+        neckline.index;
 
-      const shorterLeg = Math.min(
-        firstLegDistance,
-        secondLegDistance
-      );
+      const shorterLeg =
+        Math.min(
+          firstLeg,
+          secondLeg
+        );
 
-      const longerLeg = Math.max(
-        firstLegDistance,
-        secondLegDistance
-      );
+      const longerLeg =
+        Math.max(
+          firstLeg,
+          secondLeg
+        );
 
       const legBalance =
         longerLeg > 0
-          ? shorterLeg / longerLeg
+          ? shorterLeg /
+            longerLeg
           : 0;
 
-      if (legBalance < 0.3) {
+      if (
+        legBalance <
+        CONFIG.MIN_LEG_BALANCE
+      ) {
         continue;
       }
 
       const necklineDropPercent =
         (
           (averageTopPrice -
-            necklinePrice) /
+            neckline.price) /
           averageTopPrice
         ) * 100;
 
-      if (necklineDropPercent < 2) {
+      if (
+        necklineDropPercent <
+        CONFIG
+          .MIN_NECKLINE_DROP_PERCENT
+      ) {
         continue;
       }
 
-      /*
-       * Confirmation requires a close below
-       * the neckline after the second top.
-       */
-      const candlesAfterSecondTop =
-        history.slice(
-          secondTop.index + 1
+      const latestClose =
+        Number(
+          history[
+            history.length - 1
+          ].close
         );
 
-      const confirmationOffset =
-        candlesAfterSecondTop.findIndex(
-          (candle) =>
-            Number(candle.close) <
-            necklinePrice
+      const topResistance =
+        Math.max(
+          firstTop.price,
+          secondTop.price
         );
 
-      const confirmationIndex =
-        confirmationOffset >= 0
-          ? secondTop.index +
-            1 +
-            confirmationOffset
-          : null;
+      if (
+        latestClose >
+        topResistance
+      ) {
+        continue;
+      }
 
       const confirmed =
-        confirmationIndex !== null;
+        latestClose <
+        neckline.price;
 
       const confidence =
-        calculatePatternConfidence({
-          patternSimilarity:
-            topDifferencePercent,
-
-          breakoutStrength:
-            necklineDropPercent,
-
+        calculateConfidence(
+          topDifferencePercent,
+          necklineDropPercent,
           confirmed,
-        });
+          legBalance
+        );
 
-      return {
+      const endIndex =
+        confirmed
+          ? secondTop.index
+          : history.length - 1;
+
+      candidates.push({
         id: `double-top-${firstTop.time}-${secondTop.time}`,
 
         type: "DOUBLE_TOP",
@@ -235,31 +252,33 @@ export function detectDoubleTop(
 
         confidence,
 
-        startIndex: firstTop.index,
-        endIndex: secondTop.index,
+        startIndex:
+          firstTop.index,
 
-        startTime: firstTop.time,
-        endTime: secondTop.time,
+        endIndex,
 
-        highPrice: Math.max(
-          firstTop.price,
-          secondTop.price
+        startTime:
+          firstTop.time,
+
+        endTime: Number(
+          history[endIndex].time
         ),
 
-        lowPrice: necklinePrice,
+        highPrice:
+          topResistance,
+
+        lowPrice:
+          neckline.price,
 
         evidence: [
           "Two similar swing highs were identified.",
-          "A genuine swing low was identified between the two tops.",
+          "A genuine swing low was identified between the tops.",
           `The tops are ${topDifferencePercent.toFixed(
             2
           )}% apart.`,
-          `The middle valley falls ${necklineDropPercent.toFixed(
+          `The neckline is ${necklineDropPercent.toFixed(
             2
           )}% below the tops.`,
-          `Price rose ${priorRisePercent.toFixed(
-            2
-          )}% before the first top.`,
         ],
 
         cautions: confirmed
@@ -267,9 +286,74 @@ export function detectDoubleTop(
           : [
               "Price has not closed below the neckline.",
             ],
-      };
+      });
     }
   }
 
-  return null;
+  if (
+    candidates.length === 0
+  ) {
+    return null;
+  }
+
+  candidates.sort((a, b) => {
+    const confidenceDifference =
+      b.confidence -
+      a.confidence;
+
+    if (
+      confidenceDifference !== 0
+    ) {
+      return confidenceDifference;
+    }
+
+    const statusDifference =
+      Number(
+        b.status ===
+          "CONFIRMED"
+      ) -
+      Number(
+        a.status ===
+          "CONFIRMED"
+      );
+
+    if (
+      statusDifference !== 0
+    ) {
+      return statusDifference;
+    }
+
+    return (
+      b.endIndex -
+      a.endIndex
+    );
+  });
+
+  return candidates[0] ?? null;
+}
+
+function calculateConfidence(
+  similarity: number,
+  necklineDrop: number,
+  confirmed: boolean,
+  legBalance: number
+) {
+  const base =
+    calculatePatternConfidence({
+      patternSimilarity:
+        similarity,
+
+      breakoutStrength:
+        necklineDrop,
+
+      confirmed,
+    });
+
+  return Math.min(
+    confirmed ? 100 : 79,
+    base +
+      Math.round(
+        legBalance * 5
+      )
+  );
 }

@@ -1,31 +1,54 @@
 type ConfidenceInput = {
   patternSimilarity: number;
   breakoutStrength: number;
-  confirmed: boolean;
+};
+
+const SCORE = {
+  BASE: 70,
+
+  SIMILARITY_EXCELLENT: 1,
+  SIMILARITY_GOOD: 2,
+
+  BREAKOUT_STRONG: 5,
+  BREAKOUT_MODERATE: 3,
 };
 
 export function calculatePatternConfidence({
   patternSimilarity,
   breakoutStrength,
-  confirmed,
-}: ConfidenceInput) {
-  let confidence = 70;
+}: ConfidenceInput): number {
+  let score = SCORE.BASE;
 
-  if (patternSimilarity <= 1) {
-    confidence += 10;
-  } else if (patternSimilarity <= 2) {
-    confidence += 5;
+  /*
+   * Better symmetry = stronger pattern
+   */
+  if (
+    patternSimilarity <=
+    SCORE.SIMILARITY_EXCELLENT
+  ) {
+    score += 10;
+  } else if (
+    patternSimilarity <=
+    SCORE.SIMILARITY_GOOD
+  ) {
+    score += 5;
   }
 
-  if (breakoutStrength >= 5) {
-    confidence += 10;
-  } else if (breakoutStrength >= 3) {
-    confidence += 5;
+  /*
+   * Larger neckline movement
+   * = stronger structure
+   */
+  if (
+    breakoutStrength >=
+    SCORE.BREAKOUT_STRONG
+  ) {
+    score += 10;
+  } else if (
+    breakoutStrength >=
+    SCORE.BREAKOUT_MODERATE
+  ) {
+    score += 5;
   }
 
-  if (confirmed) {
-    confidence += 5;
-  }
-
-  return Math.min(confidence, 95);
+  return Math.min(score, 90);
 }

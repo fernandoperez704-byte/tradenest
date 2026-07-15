@@ -13,11 +13,24 @@ import {
   calculatePatternConfidence,
 } from "../confidence/calculatePatternConfidence";
 
+const CONFIG = {
+  MIN_CANDLE_DIST: 6,
+  MAX_CANDLE_DIST: 35,
+  MAX_CANDLES_SINCE_SECOND_BOTTOM: 15,
+  MAX_BOTTOM_DIFF_PERCENT: 2.5,
+  MIN_NECKLINE_RISE_PERCENT: 2,
+  MIN_LEG_BALANCE: 0.3,
+};
+
 export function detectDoubleBottom(
-  history: PricePoint[]
+  history: PricePoint[],
+  lookback: number
 ): DetectedPattern | null {
-  const swingLows = findSwingLows(history);
-  const swingHighs = findSwingHighs(history);
+  const swingLows =
+    findSwingLows(history);
+
+  const swingHighs =
+    findSwingHighs(history);
 
   if (
     swingLows.length < 2 ||
@@ -26,31 +39,53 @@ export function detectDoubleBottom(
     return null;
   }
 
-  const recentSwingLows = swingLows.slice(-8);
+  const windowStartIndex =
+    Math.max(
+      0,
+      history.length - lookback
+    );
+
+  const recentSwingLows =
+    swingLows.filter(
+      (swingLow) =>
+        swingLow.index >=
+        windowStartIndex
+    );
+
+  const candidates:
+    DetectedPattern[] = [];
 
   for (
-    let secondIndex = recentSwingLows.length - 1;
+    let secondIndex =
+      recentSwingLows.length - 1;
     secondIndex >= 1;
     secondIndex--
   ) {
-    const secondBottom =
-      recentSwingLows[secondIndex];
-
     for (
-      let firstIndex = secondIndex - 1;
+      let firstIndex =
+        secondIndex - 1;
       firstIndex >= 0;
       firstIndex--
     ) {
+      const secondBottom =
+        recentSwingLows[
+          secondIndex
+        ];
+
       const firstBottom =
-        recentSwingLows[firstIndex];
+        recentSwingLows[
+          firstIndex
+        ];
 
       const candleDistance =
         secondBottom.index -
         firstBottom.index;
 
       if (
-        candleDistance < 6 ||
-        candleDistance > 35
+        candleDistance <
+          CONFIG.MIN_CANDLE_DIST ||
+        candleDistance >
+          CONFIG.MAX_CANDLE_DIST
       ) {
         continue;
       }
@@ -60,40 +95,11 @@ export function detectDoubleBottom(
         1 -
         secondBottom.index;
 
-      if (candlesSinceSecondBottom > 40) {
-        continue;
-      }
-
-      /*
-       * A Double Bottom should form after a decline.
-       * Compare price before the first bottom with
-       * price 20 candles earlier.
-       */
-      const trendLookbackIndex = Math.max(
-        0,
-        firstBottom.index - 20
-      );
-
-      const prePatternPrice = Number(
-        history[trendLookbackIndex].close
-      );
-
-      const priceNearFirstBottom = Number(
-        history[
-          Math.max(0, firstBottom.index - 1)
-        ].close
-      );
-
-      const priorDeclinePercent =
-        prePatternPrice > 0
-          ? (
-              (prePatternPrice -
-                priceNearFirstBottom) /
-              prePatternPrice
-            ) * 100
-          : 0;
-
-      if (priorDeclinePercent < 2) {
+      if (
+        candlesSinceSecondBottom >
+        CONFIG
+          .MAX_CANDLES_SINCE_SECOND_BOTTOM
+      ) {
         continue;
       }
 
@@ -103,7 +109,9 @@ export function detectDoubleBottom(
           secondBottom.price
         ) / 2;
 
-      if (averageBottomPrice <= 0) {
+      if (
+        averageBottomPrice <= 0
+      ) {
         continue;
       }
 
@@ -116,16 +124,14 @@ export function detectDoubleBottom(
           averageBottomPrice
         ) * 100;
 
-      if (bottomDifferencePercent > 2.5) {
+      if (
+        bottomDifferencePercent >
+        CONFIG
+          .MAX_BOTTOM_DIFF_PERCENT
+      ) {
         continue;
       }
 
-      /*
-       * Require a genuine swing high between the
-       * two bottoms. This prevents flat ranges or
-       * random nearby lows from being classified
-       * as a Double Bottom.
-       */
       const highsBetweenBottoms =
         swingHighs.filter(
           (swingHigh) =>
@@ -135,101 +141,108 @@ export function detectDoubleBottom(
               secondBottom.index
         );
 
-      if (highsBetweenBottoms.length === 0) {
+      if (
+        highsBetweenBottoms.length ===
+        0
+      ) {
         continue;
       }
 
-      const necklineSwing =
+      const neckline =
         highsBetweenBottoms.reduce(
           (highest, current) =>
-            current.price > highest.price
+            current.price >
+            highest.price
               ? current
               : highest
         );
 
-      const necklinePrice =
-        necklineSwing.price;
-
-      /*
-       * Make sure the middle peak is not sitting
-       * extremely close to one of the bottoms.
-       */
-      const firstLegDistance =
-        necklineSwing.index -
+      const firstLeg =
+        neckline.index -
         firstBottom.index;
 
-      const secondLegDistance =
+      const secondLeg =
         secondBottom.index -
-        necklineSwing.index;
+        neckline.index;
 
-      const shorterLeg = Math.min(
-        firstLegDistance,
-        secondLegDistance
-      );
+      const shorterLeg =
+        Math.min(
+          firstLeg,
+          secondLeg
+        );
 
-      const longerLeg = Math.max(
-        firstLegDistance,
-        secondLegDistance
-      );
+      const longerLeg =
+        Math.max(
+          firstLeg,
+          secondLeg
+        );
 
       const legBalance =
         longerLeg > 0
-          ? shorterLeg / longerLeg
+          ? shorterLeg /
+            longerLeg
           : 0;
 
-      if (legBalance < 0.3) {
+      if (
+        legBalance <
+        CONFIG.MIN_LEG_BALANCE
+      ) {
         continue;
       }
 
       const necklineRisePercent =
         (
-          (necklinePrice -
+          (neckline.price -
             averageBottomPrice) /
           averageBottomPrice
         ) * 100;
 
-      if (necklineRisePercent < 2) {
+      if (
+        necklineRisePercent <
+        CONFIG
+          .MIN_NECKLINE_RISE_PERCENT
+      ) {
         continue;
       }
 
-      /*
-       * Confirmation is a close above the
-       * neckline after the second bottom.
-       */
-      const candlesAfterSecondBottom =
-        history.slice(
-          secondBottom.index + 1
+      const latestClose =
+        Number(
+          history[
+            history.length - 1
+          ].close
         );
 
-      const confirmationOffset =
-        candlesAfterSecondBottom.findIndex(
-          (candle) =>
-            Number(candle.close) >
-            necklinePrice
+      const bottomSupport =
+        Math.min(
+          firstBottom.price,
+          secondBottom.price
         );
 
-      const confirmationIndex =
-        confirmationOffset >= 0
-          ? secondBottom.index +
-            1 +
-            confirmationOffset
-          : null;
+      if (
+        latestClose <
+        bottomSupport
+      ) {
+        continue;
+      }
 
       const confirmed =
-        confirmationIndex !== null;
+        latestClose >
+        neckline.price;
 
       const confidence =
-        calculatePatternConfidence({
-          patternSimilarity:
-            bottomDifferencePercent,
-
-          breakoutStrength:
-            necklineRisePercent,
-
+        calculateConfidence(
+          bottomDifferencePercent,
+          necklineRisePercent,
           confirmed,
-        });
+          legBalance
+        );
 
-      return {
+      const endIndex =
+        confirmed
+          ? secondBottom.index
+          : history.length - 1;
+
+      candidates.push({
         id: `double-bottom-${firstBottom.time}-${secondBottom.time}`,
 
         type: "DOUBLE_BOTTOM",
@@ -241,31 +254,33 @@ export function detectDoubleBottom(
 
         confidence,
 
-        startIndex: firstBottom.index,
-        endIndex: secondBottom.index,
+        startIndex:
+          firstBottom.index,
 
-        startTime: firstBottom.time,
-        endTime: secondBottom.time,
+        endIndex,
 
-        highPrice: necklinePrice,
+        startTime:
+          firstBottom.time,
 
-        lowPrice: Math.min(
-          firstBottom.price,
-          secondBottom.price
+        endTime: Number(
+          history[endIndex].time
         ),
+
+        highPrice:
+          neckline.price,
+
+        lowPrice:
+          bottomSupport,
 
         evidence: [
           "Two similar swing lows were identified.",
-          "A genuine swing high was identified between the two bottoms.",
+          "A genuine swing high was identified between the bottoms.",
           `The bottoms are ${bottomDifferencePercent.toFixed(
             2
           )}% apart.`,
-          `The middle peak rises ${necklineRisePercent.toFixed(
+          `The neckline is ${necklineRisePercent.toFixed(
             2
           )}% above the bottoms.`,
-          `Price declined ${priorDeclinePercent.toFixed(
-            2
-          )}% before the first bottom.`,
         ],
 
         cautions: confirmed
@@ -273,9 +288,74 @@ export function detectDoubleBottom(
           : [
               "Price has not closed above the neckline.",
             ],
-      };
+      });
     }
   }
 
-  return null;
+  if (
+    candidates.length === 0
+  ) {
+    return null;
+  }
+
+  candidates.sort((a, b) => {
+    const confidenceDifference =
+      b.confidence -
+      a.confidence;
+
+    if (
+      confidenceDifference !== 0
+    ) {
+      return confidenceDifference;
+    }
+
+    const statusDifference =
+      Number(
+        b.status ===
+          "CONFIRMED"
+      ) -
+      Number(
+        a.status ===
+          "CONFIRMED"
+      );
+
+    if (
+      statusDifference !== 0
+    ) {
+      return statusDifference;
+    }
+
+    return (
+      b.endIndex -
+      a.endIndex
+    );
+  });
+
+  return candidates[0] ?? null;
+}
+
+function calculateConfidence(
+  similarity: number,
+  necklineRise: number,
+  confirmed: boolean,
+  legBalance: number
+) {
+  const base =
+    calculatePatternConfidence({
+      patternSimilarity:
+        similarity,
+
+      breakoutStrength:
+        necklineRise,
+
+      confirmed,
+    });
+
+  return Math.min(
+    confirmed ? 100 : 79,
+    base +
+      Math.round(
+        legBalance * 5
+      )
+  );
 }
