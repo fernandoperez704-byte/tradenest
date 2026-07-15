@@ -337,23 +337,26 @@ function calculateConfidence(
   necklineDrop: number,
   confirmed: boolean,
   legBalance: number
-) {
-  const base =
+): number {
+  let score =
     calculatePatternConfidence({
       patternSimilarity:
         similarity,
 
       breakoutStrength:
         necklineDrop,
-
-      confirmed,
     });
+
+  score += Math.round(
+    legBalance * 5
+  );
+
+  if (confirmed) {
+    score += 10;
+  }
 
   return Math.min(
     confirmed ? 100 : 79,
-    base +
-      Math.round(
-        legBalance * 5
-      )
+    score
   );
 }
