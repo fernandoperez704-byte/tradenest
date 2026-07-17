@@ -9,7 +9,11 @@ export type Candle = {
 
 export type MarketStructure =
   | "BULLISH"
+  | "BULLISH_CONSOLIDATION"
+  | "BULLISH_PULLBACK"
   | "BEARISH"
+  | "BEARISH_CONSOLIDATION"
+  | "BEARISH_PULLBACK"
   | "RANGING"
   | "HIGHER_HIGHS"
   | "LOWER_LOWS"
@@ -257,32 +261,103 @@ export function isPriceNearZone(price: number, zone: PriceZone | null, tolerance
 // CORE TRADING CORE ENGINE LOGIC
 // ==========================================
 
-function getMarketStructure(candles: Candle[]): MarketStructure {
+function getMarketStructure(
+  candles: Candle[],
+  direction: "BULLISH" | "BEARISH" | "TRANSITION"
+): MarketStructure {
   const recentCandles = candles.slice(-80);
-  if (recentCandles.length < 30) return "RANGING";
 
-  const firstClose = recentCandles[0].close;
-  const lastClose = recentCandles[recentCandles.length - 1].close;
-  const priceChangePercent = ((lastClose - firstClose) / firstClose) * 100;
+  if (recentCandles.length < 30) {
+    return "RANGING";
+  }
 
-  const halfLength = Math.floor(recentCandles.length / 2);
-  const firstHalf = recentCandles.slice(0, halfLength);
-  const secondHalf = recentCandles.slice(halfLength);
+  const half = Math.floor(recentCandles.length / 2);
 
-  const firstHalfHigh = Math.max(...firstHalf.map((c) => c.high));
-  const firstHalfLow = Math.min(...firstHalf.map((c) => c.low));
-  const secondHalfHigh = Math.max(...secondHalf.map((c) => c.high));
-  const secondHalfLow = Math.min(...secondHalf.map((c) => c.low));
+  const firstHalf = recentCandles.slice(0, half);
+  const secondHalf = recentCandles.slice(half);
 
-  const makingHigherHighs = secondHalfHigh > firstHalfHigh;
-  const makingHigherLows = secondHalfLow > firstHalfLow;
-  const makingLowerHighs = secondHalfHigh < firstHalfHigh;
-  const makingLowerLows = secondHalfLow < firstHalfLow;
+  const firstHigh = Math.max(...firstHalf.map((c) => c.high));
+  const firstLow = Math.min(...firstHalf.map((c) => c.low));
 
-  if (priceChangePercent > 1 && (makingHigherHighs || makingHigherLows)) return "BULLISH";
-  if (priceChangePercent < -1 && (makingLowerHighs || makingLowerLows)) return "BEARISH";
-  if (makingHigherHighs && makingHigherLows) return "BULLISH";
-  if (makingLowerHighs && makingLowerLows) return "BEARISH";
+  const secondHigh = Math.max(...secondHalf.map((c) => c.high));
+  const secondLow = Math.min(...secondHalf.map((c) => c.low));
+
+  const makingHigherHighs = secondHigh > firstHigh;
+  const makingHigherLows = secondLow > firstLow;
+
+  const makingLowerHighs = secondHigh < firstHigh;
+  const makingLowerLows = secondLow < firstLow;
+
+  const last10 = recentCandles.slice(-10);
+
+  const lastClose = last10[last10.length - 1].close;
+  const recentHigh = Math.max(...last10.map((c) => c.high));
+  const recentLow = Math.min(...last10.map((c) => c.low));
+
+  const rangePercent =
+    lastClose > 0
+      ? ((recentHigh - recentLow) / lastClose) * 100
+      : 0;
+
+  const closeNearHigh =
+    recentHigh > 0 &&
+    Math.abs(lastClose - recentHigh) / recentHigh <= 0.01;
+
+  const closeNearLow =
+    recentLow > 0 &&
+    Math.abs(lastClose - recentLow) / recentLow <= 0.01;
+
+  // Clear bullish structure
+  if (
+    direction === "BULLISH" &&
+    makingHigherHighs &&
+    makingHigherLows
+  ) {
+    return "BULLISH";
+  }
+
+  // Clear bearish structure
+  if (
+    direction === "BEARISH" &&
+    makingLowerHighs &&
+    makingLowerLows
+  ) {
+    return "BEARISH";
+  }
+
+  // Bullish direction temporarily moving sideways near recent highs
+  if (
+    direction === "BULLISH" &&
+    rangePercent <= 2 &&
+    closeNearHigh
+  ) {
+    return "BULLISH_CONSOLIDATION";
+  }
+
+  // Bearish direction temporarily moving sideways near recent lows
+  if (
+    direction === "BEARISH" &&
+    rangePercent <= 2 &&
+    closeNearLow
+  ) {
+    return "BEARISH_CONSOLIDATION";
+  }
+
+  // Bullish direction with structure temporarily pulling back
+  if (
+    direction === "BULLISH" &&
+    !makingHigherHighs
+  ) {
+    return "BULLISH_PULLBACK";
+  }
+
+  // Bearish direction with structure temporarily bouncing
+  if (
+    direction === "BEARISH" &&
+    !makingLowerLows
+  ) {
+    return "BEARISH_PULLBACK";
+  }
 
   return "RANGING";
 }
@@ -531,10 +606,26 @@ export function getMomentumStage(
 }
 
 export function getMarketState(direction: "BULLISH" | "BEARISH" | "TRANSITION", structure: MarketStructure): MarketState {
-  if (direction === "BULLISH" && (structure === "BULLISH" || structure === "HIGHER_HIGHS")) {
+  if (
+  direction === "BULLISH" &&
+  (
+    structure === "BULLISH" ||
+    structure === "BULLISH_CONSOLIDATION" ||
+    structure === "BULLISH_PULLBACK" ||
+    structure === "HIGHER_HIGHS"
+  )
+) {
     return "BULLS_IN_CONTROL";
   }
-  if (direction === "BEARISH" && (structure === "BEARISH" || structure === "LOWER_LOWS")) {
+  if (
+  direction === "BEARISH" &&
+  (
+    structure === "BEARISH" ||
+    structure === "BEARISH_CONSOLIDATION" ||
+    structure === "BEARISH_PULLBACK" ||
+    structure === "LOWER_LOWS"
+  )
+) {
     return "BEARS_IN_CONTROL";
   }
   return "TRANSITION";
@@ -554,8 +645,23 @@ function getMarketConviction(
   if (direction === "BULLISH") bullishScore += 3;
   if (direction === "BEARISH") bearishScore += 3;
 
-  if (structure === "BULLISH" || structure === "HIGHER_HIGHS") bullishScore += 2;
-  if (structure === "BEARISH" || structure === "LOWER_LOWS") bearishScore += 2;
+if (
+  structure === "BULLISH" ||
+  structure === "BULLISH_CONSOLIDATION" ||
+  structure === "BULLISH_PULLBACK" ||
+  structure === "HIGHER_HIGHS"
+) {
+  bullishScore += 2;
+}
+
+if (
+  structure === "BEARISH" ||
+  structure === "BEARISH_CONSOLIDATION" ||
+  structure === "BEARISH_PULLBACK" ||
+  structure === "LOWER_LOWS"
+) {
+  bearishScore += 2;
+}
 
   if (pattern?.bias === "BULLISH_CONTEXT") bullishScore += 2;
   if (pattern?.bias === "BEARISH_CONTEXT") bearishScore += 2;
@@ -720,7 +826,10 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
   const nearestResistance = resistanceLevels[0] ?? null;
   const nextResistance = resistanceLevels[1] ?? null;
 
-  const structure = getMarketStructure(recentCandles);
+  const structure = getMarketStructure(
+  recentCandles,
+  direction
+);
   const patternAnalysis = getPatternAnalysis(recentCandles, nearestSupport, nearestResistance);
   const momentumAnalysis = getMomentumAnalysis(recentCandles);
   const volumeAnalysis = getVolumeAnalysis(recentCandles);
@@ -847,7 +956,13 @@ export function getEntryQuality(
  * to satisfy the getStructureAnalysis import.
  */
 export function getStructureAnalysis(candles: Candle[]): StructureAnalysis {
-  const structure = getMarketStructure(candles);
+  const direction =
+  getMovingAverageAnalysis(candles).direction;
+
+const structure = getMarketStructure(
+  candles,
+  direction
+);
   const recentHighs = getSwingHighs(candles, 5);
   const recentLows = getSwingLows(candles, 5);
 

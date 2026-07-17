@@ -1,17 +1,33 @@
-import { TradeResult } from "./types";
+import type {
+  TradeReview,
+} from "@/lib/traderDevelopment/types";
 
 export interface MilestoneResult {
   milestonesReached: string[];
 }
 
-export function buildMilestoneAnalysis(reviews: Array<{ result: TradeResult }>): MilestoneResult {
-  const milestones: string[] = [];
-  const total = reviews ? reviews.length : 0;
+const MILESTONES = [
+  10,
+  25,
+  50,
+  100,
+] as const;
 
-  if (total >= 10) milestones.push("Completed first 10 reviewed trades.");
-  if (total >= 25) milestones.push("Completed first 25 reviewed trades.");
-  if (total >= 50) milestones.push("Completed first 50 reviewed trades.");
-  if (total >= 100) milestones.push("Completed first 100 reviewed trades.");
+export function buildMilestoneAnalysis(
+  reviews: TradeReview[]
+): MilestoneResult {
+  const totalTrades = reviews.length;
 
-  return { milestonesReached: milestones };
+  const milestonesReached =
+    MILESTONES.filter(
+      (milestone) =>
+        totalTrades >= milestone
+    ).map(
+      (milestone) =>
+        `Completed first ${milestone} reviewed trades.`
+    );
+
+  return {
+    milestonesReached,
+  };
 }

@@ -1,8 +1,41 @@
 import { adminDb } from "@/lib/firebaseAdmin";
 import { buildTraderProgress } from "@/lib/traderProgress/overview";
 import { buildTraderProfile } from "@/lib/traderProfile/overview";
-
 import { buildTraderDevelopment } from "./overview";
+
+import type { TradeReview } from "./types";
+
+function getCreatedTime(
+  createdAt: TradeReview["createdAt"]
+): number {
+  if (!createdAt) {
+    return 0;
+  }
+
+  if (
+    typeof createdAt === "object" &&
+    "toMillis" in createdAt &&
+    typeof createdAt.toMillis === "function"
+  ) {
+    return createdAt.toMillis();
+  }
+
+  if (
+    typeof createdAt === "object" &&
+    "toDate" in createdAt &&
+    typeof createdAt.toDate === "function"
+  ) {
+    return createdAt.toDate().getTime();
+  }
+
+  const time = new Date(
+    createdAt as string | number | Date
+  ).getTime();
+
+  return Number.isFinite(time)
+    ? time
+    : 0;
+}
 
 export async function buildTraderDevelopmentReport(
   userId: string,
@@ -13,47 +46,87 @@ export async function buildTraderDevelopmentReport(
     .where("userId", "==", userId)
     .get();
 
-  let reviews = snapshot.docs
-    .map((doc) => {
-      const data = doc.data();
+  // 1. Data normalization
+  let reviews: TradeReview[] =
+    snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
 
-      const review = data.review || data;
+        const raw =
+          data.review ?? data;
 
-      return review.engine
-        ? {
-            ...review.engine,
-            snapshotId: review.snapshotId,
-            createdAt: review.createdAt,
-          }
-        : review;
-    })
-.filter((review: any) =>
-  review &&
-  review.result &&
-  review.result !== "OPEN"
-)
-.sort((a: any, b: any) => {
-      const timeA = new Date(a.createdAt || 0).getTime();
-      const timeB = new Date(b.createdAt || 0).getTime();
-      return timeB - timeA;
-    });
+        const engine =
+          raw.engine &&
+          typeof raw.engine === "object"
+            ? raw.engine
+            : null;
 
-  if (limit) {
+        const review: TradeReview = {
+          ...raw,
+          ...(engine ?? {}),
+
+          engine:
+            engine ?? raw.engine,
+
+          snapshotId:
+            raw.snapshotId ??
+            data.snapshotId,
+
+          createdAt:
+            raw.createdAt ??
+            data.createdAt,
+
+          userId:
+            raw.userId ??
+            data.userId,
+        };
+
+        return review;
+      })
+      .filter((review) => {
+        const result = String(
+          review.result ??
+            review.outcome ??
+            review.automaticReview?.result ??
+            ""
+        ).toUpperCase();
+
+        return (
+          result !== "" &&
+          result !== "OPEN"
+        );
+      })
+      .sort(
+        (first, second) =>
+          getCreatedTime(second.createdAt) -
+          getCreatedTime(first.createdAt)
+      );
+
+  if (
+    typeof limit === "number" &&
+    Number.isInteger(limit) &&
+    limit > 0
+  ) {
     reviews = reviews.slice(0, limit);
   }
 
-  const developmentReport = buildTraderDevelopment({
-    reviews,
-  });
+  // 2. Report generation pipeline
+  const developmentReport =
+    buildTraderDevelopment({
+      reviews,
+    });
 
-  const progressReport = buildTraderProgress({
-    reviews,
-  });
+  const progressReport =
+    buildTraderProgress({
+      reviews,
+    });
 
-  const profileReport = buildTraderProfile({
-    developmentReport,
-    progressReport,
-  });
+  // 3. Profile report
+  const profileReport =
+    buildTraderProfile({
+      developmentReport,
+      progressReport,
+    });
 
   return {
     developmentReport,

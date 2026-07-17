@@ -1,33 +1,54 @@
-export function buildOutcomeAnalysis(reviews: any[]) {
-  const profit = reviews.filter(
-    (r) => r.result === "PROFIT"
-  ).length;
+import type {
+  OutcomeMetrics,
+  TradeReview,
+} from "./types";
 
-  const loss = reviews.filter(
-    (r) => r.result === "LOSS"
-  ).length;
+type OutcomeCounts = {
+  wins: number;
+  losses: number;
+  breakeven: number;
+};
 
-  const breakeven = reviews.filter(
-    (r) => r.result === "BREAKEVEN"
-  ).length;
+export function buildOutcomeAnalysis(
+  reviews: TradeReview[]
+): OutcomeMetrics {
+  const counts =
+    reviews.reduce<OutcomeCounts>(
+      (acc, review) => {
+        const result = String(
+          review.result ??
+            review.outcome ??
+            review.automaticReview?.result ??
+            review.automaticReview?.outcome ??
+            ""
+        ).toUpperCase();
 
-  const total = profit + loss + breakeven;
+        if (
+          result === "PROFIT" ||
+          result === "WIN"
+        ) {
+          acc.wins++;
+        } else if (result === "LOSS") {
+          acc.losses++;
+        } else if (
+          result === "BREAKEVEN" ||
+          result === "BREAK_EVEN"
+        ) {
+          acc.breakeven++;
+        }
+
+        return acc;
+      },
+      {
+        wins: 0,
+        losses: 0,
+        breakeven: 0,
+      }
+    );
 
   return {
-    profit,
-
-    loss,
-
-    breakeven,
-
-    profitRate:
-      total === 0
-        ? 0
-        : Math.round((profit / total) * 100),
-
-    lossRate:
-      total === 0
-        ? 0
-        : Math.round((loss / total) * 100),
+    wins: counts.wins,
+    losses: counts.losses,
+    breakeven: counts.breakeven,
   };
 }

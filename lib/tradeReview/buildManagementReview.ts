@@ -1,107 +1,234 @@
-export function buildManagementReview(management: {
-  openedAt: string;
-  durationMinutes: number | null;
-  highestUnrealizedPnl: number;
-  lowestUnrealizedPnl: number;
-highestUnrealizedPercent: number;
-lowestUnrealizedPercent: number;
+import type {
+  TradeManagementData,
+} from "./types";
 
-exitPercent: number;
-givebackPercent: number;
-exitEfficiency: number;
+export type ProfitCaptureQuality =
+  | "EXCELLENT"
+  | "GOOD"
+  | "AVERAGE"
+  | "POOR"
+  | "UNKNOWN";
 
-} | null) {
+export type DrawdownControlQuality =
+  | "GOOD"
+  | "AVERAGE"
+  | "WEAK"
+  | "UNKNOWN";
+
+export type ManagementQuality =
+  | "STRONG"
+  | "GOOD"
+  | "AVERAGE"
+  | "WEAK"
+  | "UNKNOWN";
+
+export interface ManagementReviewResult {
+  available: boolean;
+
+  durationMinutes?: number | null;
+
+  highestUnrealizedPnl?: number;
+  lowestUnrealizedPnl?: number;
+
+  highestUnrealizedPercent?: number;
+  lowestUnrealizedPercent?: number;
+
+  exitPercent?: number;
+  givebackPercent?: number;
+  exitEfficiency?: number;
+
+  profitCapture: ProfitCaptureQuality;
+  drawdownControl: DrawdownControlQuality;
+  managementQuality: ManagementQuality;
+
+  lesson: string;
+}
+
+function toFiniteNumber(
+  value: unknown
+): number | null {
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function clampPercent(
+  value: number
+): number {
+  return Math.max(
+    0,
+    Math.min(100, value)
+  );
+}
+
+export function buildManagementReview(
+  management: TradeManagementData | null
+): ManagementReviewResult {
   if (!management) {
     return {
       available: false,
-      managementQuality: "UNKNOWN",
       profitCapture: "UNKNOWN",
       drawdownControl: "UNKNOWN",
+      managementQuality: "UNKNOWN",
       lesson:
         "Management data was not available for this trade.",
     };
   }
 
+  const highestUnrealizedPnl =
+    toFiniteNumber(
+      management.highestUnrealizedPnl
+    ) ?? 0;
 
-const retainedMostProfit =
-  management.exitEfficiency >= 80;
+  const lowestUnrealizedPnl =
+    toFiniteNumber(
+      management.lowestUnrealizedPnl
+    ) ?? 0;
 
-const gaveBackLargeMove =
-  management.givebackPercent >= 5;
+  const highestUnrealizedPercent =
+    toFiniteNumber(
+      management.highestUnrealizedPercent
+    ) ?? 0;
 
-const closedNearPeak =
-  management.givebackPercent <= 2 &&
-  management.highestUnrealizedPercent >= 2;
+  const lowestUnrealizedPercent =
+    toFiniteNumber(
+      management.lowestUnrealizedPercent
+    ) ?? 0;
 
+  const exitPercent =
+    toFiniteNumber(
+      management.exitPercent
+    ) ?? 0;
 
-let profitCapture = "AVERAGE";
-let drawdownControl = "GOOD";
-let managementQuality = "AVERAGE";
+  const givebackPercent =
+    clampPercent(
+      toFiniteNumber(
+        management.givebackPercent
+      ) ?? 0
+    );
 
-let lesson =
-  "Trade management was acceptable based on the recorded data.";
+  const exitEfficiency =
+    clampPercent(
+      toFiniteNumber(
+        management.exitEfficiency
+      ) ?? 0
+    );
 
-if (closedNearPeak) {
-  profitCapture = "EXCELLENT";
-  managementQuality = "STRONG";
+  const durationMinutes =
+    management.durationMinutes;
 
-  lesson =
-    "Most of the available profit was captured before exiting.";
-}
+  const retainedMostProfit =
+    exitEfficiency >= 80;
 
-if (retainedMostProfit && !closedNearPeak) {
-  profitCapture = "GOOD";
-  managementQuality = "GOOD";
+  const gaveBackLargeMove =
+    givebackPercent >= 5;
 
-  lesson =
-    "Most unrealized profit was retained before the trade was closed.";
-}
+  const closedNearPeak =
+    givebackPercent <= 2 &&
+    highestUnrealizedPercent >= 2;
 
-if (gaveBackLargeMove) {
-  profitCapture = "POOR";
-  managementQuality = "WEAK";
+  const neverDevelopedProfit =
+    highestUnrealizedPercent <= 0;
 
-  lesson =
-    "A significant portion of unrealized profit was given back before exiting.";
-}
+  const experiencedMeaningfulDrawdown =
+    lowestUnrealizedPercent <= -5;
 
-if (
-  management.highestUnrealizedPercent <= 0 &&
-  management.lowestUnrealizedPercent < -1
-) {
-  managementQuality = "WEAK";
+  const experiencedModerateDrawdown =
+    lowestUnrealizedPercent <= -2;
 
-  lesson =
-    "The trade remained under pressure and never developed meaningful unrealized profit.";
-}
+  let profitCapture:
+    ProfitCaptureQuality =
+      "AVERAGE";
+
+  let drawdownControl:
+    DrawdownControlQuality =
+      "GOOD";
+
+  let managementQuality:
+    ManagementQuality =
+      "AVERAGE";
+
+  let lesson =
+    "Trade management was acceptable based on the recorded data.";
+
+  // Profit-capture classification
+  if (closedNearPeak) {
+    profitCapture = "EXCELLENT";
+  } else if (retainedMostProfit) {
+    profitCapture = "GOOD";
+  } else if (gaveBackLargeMove) {
+    profitCapture = "POOR";
+  }
+
+  // Drawdown-control classification
+  if (experiencedMeaningfulDrawdown) {
+    drawdownControl = "WEAK";
+  } else if (experiencedModerateDrawdown) {
+    drawdownControl = "AVERAGE";
+  }
+
+  // Overall management quality
+  if (
+    profitCapture === "EXCELLENT" &&
+    drawdownControl !== "WEAK"
+  ) {
+    managementQuality = "STRONG";
+
+    lesson =
+      "The trade captured most of the available move while keeping drawdown under control.";
+  } else if (
+    profitCapture === "GOOD" &&
+    drawdownControl === "GOOD"
+  ) {
+    managementQuality = "GOOD";
+
+    lesson =
+      "Most unrealized profit was retained and drawdown remained controlled before the trade was closed.";
+  } else if (
+    profitCapture === "POOR"
+  ) {
+    managementQuality = "WEAK";
+
+    lesson =
+      "A significant portion of unrealized profit was given back before the trade was closed.";
+  } else if (
+    neverDevelopedProfit &&
+    experiencedModerateDrawdown
+  ) {
+    managementQuality = "WEAK";
+
+    lesson =
+      "The trade remained under pressure and did not develop meaningful unrealized profit.";
+  } else if (
+    drawdownControl === "WEAK"
+  ) {
+    managementQuality = "WEAK";
+
+    lesson =
+      "The trade experienced a large adverse move before it was closed.";
+  }
 
   return {
     available: true,
 
-    durationMinutes: management.durationMinutes,
+    durationMinutes,
 
-    highestUnrealizedPnl: management.highestUnrealizedPnl,
-    lowestUnrealizedPnl: management.lowestUnrealizedPnl,
+    highestUnrealizedPnl,
+    lowestUnrealizedPnl,
 
-highestUnrealizedPercent:
-  management.highestUnrealizedPercent,
+    highestUnrealizedPercent,
+    lowestUnrealizedPercent,
 
-lowestUnrealizedPercent:
-  management.lowestUnrealizedPercent,
+    exitPercent,
+    givebackPercent,
+    exitEfficiency,
 
-exitPercent:
-  management.exitPercent,
+    profitCapture,
+    drawdownControl,
+    managementQuality,
 
-givebackPercent:
-  management.givebackPercent,
-
-exitEfficiency:
-  management.exitEfficiency,
-
-profitCapture,
-drawdownControl,
-managementQuality,
-lesson,
-
+    lesson,
   };
 }

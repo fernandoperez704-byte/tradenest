@@ -6,164 +6,178 @@ import { buildEntryQualityAnalysis } from "./entryQualityAnalysis";
 import { buildTimeframeAnalysis } from "./timeframeAnalysis";
 import { buildLeverageAnalysis } from "./leverageAnalysis";
 import { buildOutcomeAnalysis } from "./outcomeAnalysis";
+import { buildExitManagementAnalysis } from "./exitManagementAnalysis";
 import { buildTraderInsights } from "./insightBuilder";
 
-
-
-import {
+import type {
   TraderDevelopmentInput,
   TraderDevelopmentReport,
+  TraderInsightInput,
 } from "./types";
 
 export function buildTraderDevelopment(
   input: TraderDevelopmentInput
 ): TraderDevelopmentReport {
+  const { reviews } = input;
 
-const minimumTrades = 1;
+  const minimumTrades = 20;
+  const totalTrades = reviews.length;
 
-if (input.reviews.length < minimumTrades) {
-  return {
-    enoughData: false,
+  if (totalTrades < minimumTrades) {
+    return {
+      enoughData: false,
+      currentTrades: totalTrades,
+      minimumTrades,
 
-    currentTrades: input.reviews.length,
+      totalTrades,
+      wins: 0,
+      losses: 0,
+      winRate: 0,
 
-    minimumTrades,
+      trendAnalysis: null,
+      riskAnalysis: null,
+      stopLossAnalysis: null,
+      takeProfitAnalysis: null,
+      entryQualityAnalysis: null,
+      timeframeAnalysis: null,
+      leverageAnalysis: null,
+      outcomeAnalysis: null,
+      exitManagementAnalysis: null,
 
-    totalTrades: input.reviews.length,
+      strengths: [],
+      weaknesses: [],
+      recommendations: [],
 
-    wins: 0,
+      confidence: "LOW",
 
-    losses: 0,
+      currentFocus: {
+        title: "Continue Building Trade History",
+        reason: `Complete at least ${minimumTrades} trades to unlock a reliable trader development report.`,
+      },
 
-    winRate: 0,
+      gabyAnalysisData: {
+        primaryStrength: null,
+        primaryWeakness: null,
+        highestImpactFocus:
+          "Continue completing trades so the report can identify meaningful patterns.",
+        summaryFacts: [
+          `Trades completed: ${totalTrades}`,
+          `Trades required: ${minimumTrades}`,
+        ],
+      },
+    };
+  }
 
-    trendAnalysis: null,
+  const outcomeAnalysis =
+    buildOutcomeAnalysis(reviews);
 
-    strengths: [],
+  const wins = outcomeAnalysis.wins;
+  const losses = outcomeAnalysis.losses;
 
-    weaknesses: [],
-
-    recommendations: [],
-  } as any;
-}
-
-  const totalTrades = input.reviews.length;
-
-  const wins =
-    input.reviews.filter(
-      (r) => r.result?.toUpperCase() === "PROFIT" || r.result?.toUpperCase() === "WIN"
-    ).length;
-
-  const losses =
-    input.reviews.filter(
-      (r) => r.result?.toUpperCase() === "LOSS"
-    ).length;
+  const completedOutcomes =
+    wins + losses;
 
   const winRate =
-    totalTrades === 0
+    completedOutcomes === 0
       ? 0
-      : (wins / totalTrades) * 100;
+      : Number(
+          (
+            (wins / completedOutcomes) *
+            100
+          ).toFixed(1)
+        );
 
-const trendAnalysis =
-  buildTrendAnalysis(input.reviews);
+  const trendAnalysis =
+    buildTrendAnalysis(reviews);
 
   const riskAnalysis =
-  buildRiskAnalysis(input.reviews);
+    buildRiskAnalysis(reviews);
 
-const stopLossAnalysis =
-  buildStopLossAnalysis(input.reviews);
+  const stopLossAnalysis =
+    buildStopLossAnalysis(reviews);
 
-const takeProfitAnalysis =
-  buildTakeProfitAnalysis(input.reviews);
+  const takeProfitAnalysis =
+    buildTakeProfitAnalysis(reviews);
 
-const entryQualityAnalysis =
-  buildEntryQualityAnalysis(input.reviews);
+  const entryQualityAnalysis =
+    buildEntryQualityAnalysis(reviews);
 
-const timeframeAnalysis =
-  buildTimeframeAnalysis(input.reviews);
+  const timeframeAnalysis =
+    buildTimeframeAnalysis(reviews);
 
-const leverageAnalysis =
-  buildLeverageAnalysis(input.reviews);
+  const leverageAnalysis =
+    buildLeverageAnalysis(reviews);
 
-const outcomeAnalysis =
-  buildOutcomeAnalysis(input.reviews);
+  const exitManagementAnalysis =
+    buildExitManagementAnalysis(reviews);
 
-const baseReport = {
-  totalTrades,
-  wins,
-  losses,
-  winRate,
-  trendAnalysis,
-  riskAnalysis,
-  stopLossAnalysis,
-  takeProfitAnalysis,
-  entryQualityAnalysis,
-  timeframeAnalysis,
-  leverageAnalysis,
-  outcomeAnalysis,
-};
+  const insightInput: TraderInsightInput = {
+    trendAnalysis,
+    riskAnalysis,
+    stopLossAnalysis,
+    entryQualityAnalysis,
+    timeframeAnalysis,
+    leverageAnalysis,
+  };
 
-const insights =
-  buildTraderInsights(baseReport);
+  const insights =
+    buildTraderInsights(insightInput);
 
-return {
-  totalTrades,
+  return {
+    enoughData: true,
+    currentTrades: totalTrades,
+    minimumTrades,
 
-  wins,
+    totalTrades,
+    wins,
+    losses,
+    winRate,
 
-  losses,
+    trendAnalysis,
+    riskAnalysis,
+    stopLossAnalysis,
+    takeProfitAnalysis,
+    entryQualityAnalysis,
+    timeframeAnalysis,
+    leverageAnalysis,
+    outcomeAnalysis,
+    exitManagementAnalysis,
 
-  winRate,
+    strengths: insights.strengths,
+    weaknesses: insights.weaknesses,
+    recommendations:
+      insights.recommendations,
 
-  trendAnalysis,
+    confidence:
+      totalTrades < 50
+        ? "MEDIUM"
+        : "HIGH",
 
-  riskAnalysis,
+    currentFocus: {
+      title:
+        insights.weaknesses[0] ??
+        "Continue Building Consistency",
 
-  stopLossAnalysis,
+      reason:
+        insights.recommendations[0] ??
+        "Continue completing trades to identify a stronger improvement focus.",
+    },
 
-takeProfitAnalysis,
+    gabyAnalysisData: {
+      primaryStrength:
+        insights.strengths[0] ?? null,
 
-entryQualityAnalysis,
+      primaryWeakness:
+        insights.weaknesses[0] ?? null,
 
-timeframeAnalysis,
+      highestImpactFocus:
+        insights.recommendations[0] ??
+        "Continue completing trades to identify stronger patterns.",
 
-leverageAnalysis,
-
-outcomeAnalysis,
-
-strengths: insights.strengths,
-
-weaknesses: insights.weaknesses,
-
-recommendations: insights.recommendations,
-
-confidence:
-  totalTrades < 20
-    ? "LOW"
-    : totalTrades < 50
-    ? "MEDIUM"
-    : "HIGH",
-
-currentFocus: {
-  title:
-    insights.weaknesses[0] || "Continue Building Consistency",
-  reason:
-    insights.recommendations[0] ||
-    "More completed trades are needed to identify a stronger improvement focus.",
-},
-
-gabyAnalysisData: {
-  primaryStrength: insights.strengths[0] || null,
-  primaryWeakness: insights.weaknesses[0] || null,
-  highestImpactFocus:
-    insights.recommendations[0] ||
-    "Continue completing trades so the report can identify stronger patterns.",
-  summaryFacts: [
-    `Trades analyzed: ${totalTrades}`,
-    `Win rate: ${winRate.toFixed(1)}%`,
-  ],
-},
-
-};
-
+      summaryFacts: [
+        `Trades analyzed: ${totalTrades}`,
+        `Win rate: ${winRate.toFixed(1)}%`,
+      ],
+    },
+  };
 }

@@ -124,7 +124,14 @@ How the simulator works   `);
       return "CONVERSATION_ACKNOWLEDGEMENT";
     }
 
-    const thankWords = ["thanks", "thank you", "ty", "thx"];
+    const thankWords = [
+  "thanks",
+  "thank you",
+  "thank",
+  "ty",
+  "thx",
+  "thk",
+];
 
     if (thankWords.includes(text)) {
       return "CONVERSATION_THANKS";
@@ -412,10 +419,7 @@ if (
 if (
   conversationState.awaitingFollowUp &&
   conversationState.intent &&
-  (
-    conversationIntent === "FOLLOW_UP" ||
-    conversationIntent === "GENERAL_QUESTION"
-  )
+  conversationIntent === "FOLLOW_UP"
 ) {
   conversationIntent = conversationState.intent;
 }
@@ -510,7 +514,17 @@ setLastTopic(currentTopic);
       });
     }
 
-if (isSnapshotComplete(reviewSnapshot)) {
+const isInitialTradeReviewRequest =
+  conversationIntent === "TRADE_REVIEW" &&
+  (
+    originalQuestion.includes("review") ||
+    originalQuestion.includes("last trade")
+  );
+
+if (
+  isInitialTradeReviewRequest &&
+  isSnapshotComplete(reviewSnapshot)
+) {
   const gabyAnswer = reviewSnapshot.gaby.explanation;
   setAnswer(gabyAnswer);
   

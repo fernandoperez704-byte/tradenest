@@ -3,217 +3,78 @@ import type { DetectedPattern } from "./types";
 
 import {
   buildCandlePath,
-  type CandlePathPoint,
 } from "./helpers/buildCandlePath";
 
 import {
-  detectDoubleBottom,
-} from "./detectors/detectDoubleBottom";
+  DETECTOR_REGISTRY,
+} from "./registry";
 
 import {
-  detectDoubleTop,
-} from "./detectors/detectDoubleTop";
-
-const PAT_LOOKBACK = 50;
-const MIN_MOVE_PERCENT = 0.75;
-const SHAPE_TOLERANCE_PERCENT = 3;
-const NECKLINE_THRESHOLD_PERCENT = 1.5;
-
-type ShapeType =
-  | "DOUBLE_BOTTOM"
-  | "DOUBLE_TOP";
-
-type ShapeMatcher = (
-  path: CandlePathPoint[]
-) => boolean;
-
-type PatternDetector = (
-  history: PricePoint[],
-  lookback: number
-) => DetectedPattern | null;
-
-function percentDifference(
-  first: number,
-  second: number
-): number {
-  const average =
-    (first + second) / 2;
-
-  if (average <= 0) {
-    return Infinity;
-  }
-
-  return (
-    Math.abs(first - second) /
-    average
-  ) * 100;
-}
-
-const SHAPE_MATCHERS: Record<
-  ShapeType,
-  ShapeMatcher
-> = {
-  DOUBLE_BOTTOM: (path) => {
-    if (path.length < 5) {
-      return false;
-    }
-
-    const [
-      first,
-      firstBottom,
-      neckline,
-      secondBottom,
-      current,
-    ] = path.slice(-5);
-
-    const formsW =
-      firstBottom.price < first.price &&
-      neckline.price > firstBottom.price &&
-      secondBottom.price < neckline.price &&
-      current.price > secondBottom.price;
-
-    if (!formsW) {
-      return false;
-    }
-
-    const bottomDifference =
-      percentDifference(
-        firstBottom.price,
-        secondBottom.price
-      );
-
-    const averageBottom =
-      (
-        firstBottom.price +
-        secondBottom.price
-      ) / 2;
-
-    if (averageBottom <= 0) {
-      return false;
-    }
-
-    const necklineRisePercent =
-      (
-        (neckline.price -
-          averageBottom) /
-        averageBottom
-      ) * 100;
-
-    return (
-      bottomDifference <=
-        SHAPE_TOLERANCE_PERCENT &&
-      necklineRisePercent >=
-        NECKLINE_THRESHOLD_PERCENT
-    );
-  },
-
-  DOUBLE_TOP: (path) => {
-    if (path.length < 5) {
-      return false;
-    }
-
-    const [
-      first,
-      firstTop,
-      neckline,
-      secondTop,
-      current,
-    ] = path.slice(-5);
-
-    const formsM =
-      firstTop.price > first.price &&
-      neckline.price < firstTop.price &&
-      secondTop.price > neckline.price &&
-      current.price < secondTop.price;
-
-    if (!formsM) {
-      return false;
-    }
-
-    const topDifference =
-      percentDifference(
-        firstTop.price,
-        secondTop.price
-      );
-
-    const averageTop =
-      (
-        firstTop.price +
-        secondTop.price
-      ) / 2;
-
-    if (averageTop <= 0) {
-      return false;
-    }
-
-    const necklineDropPercent =
-      (
-        (averageTop -
-          neckline.price) /
-        averageTop
-      ) * 100;
-
-    return (
-      topDifference <=
-        SHAPE_TOLERANCE_PERCENT &&
-      necklineDropPercent >=
-        NECKLINE_THRESHOLD_PERCENT
-    );
-  },
-};
-
-const DETECTOR_MAP: Record<
-  ShapeType,
-  PatternDetector
-> = {
-  DOUBLE_BOTTOM: detectDoubleBottom,
-  DOUBLE_TOP: detectDoubleTop,
-};
-
-const SHAPE_ORDER: ShapeType[] = [
-  "DOUBLE_BOTTOM",
-  "DOUBLE_TOP",
-];
+  PATTERN_CONFIG,
+} from "./constants";
 
 export function detectPatterns(
   history: PricePoint[]
 ): DetectedPattern[] {
   if (
     !Array.isArray(history) ||
-    history.length < PAT_LOOKBACK
+    history.length < PATTERN_CONFIG.LOOKBACK
   ) {
     return [];
   }
 
-  const candlePath =
+  const path =
     buildCandlePath(history, {
-      lookback: PAT_LOOKBACK,
+      lookback:
+        PATTERN_CONFIG.LOOKBACK,
+
       minimumMovePercent:
-        MIN_MOVE_PERCENT,
+        PATTERN_CONFIG.MIN_MOVE_PERCENT,
     });
 
-  if (candlePath.length < 5) {
+  if (path.length < 5) {
     return [];
   }
 
-  for (const shape of SHAPE_ORDER) {
-    const matches =
-      SHAPE_MATCHERS[shape];
+  const detectedPatterns =
+    DETECTOR_REGISTRY.flatMap(
+      (detector) => {
+        const result = detector(
+          history,
+          path
+        );
 
-    if (!matches(candlePath)) {
-      continue;
-    }
-
-    const detector =
-      DETECTOR_MAP[shape];
-
-    const result = detector(
-      history,
-      PAT_LOOKBACK
+        return result
+          ? [result]
+          : [];
+      }
     );
 
-    return result ? [result] : [];
-  }
+  detectedPatterns.sort((a, b) => {
+    const statusDifference =
+      Number(
+        b.status === "CONFIRMED"
+      ) -
+      Number(
+        a.status === "CONFIRMED"
+      );
 
-  return [];
+    if (statusDifference !== 0) {
+      return statusDifference;
+    }
+
+    const confidenceDifference =
+      b.confidence -
+      a.confidence;
+
+    if (confidenceDifference !== 0) {
+      return confidenceDifference;
+    }
+
+    return b.endTime - a.endTime;
+  });
+
+  return detectedPatterns.length > 0
+    ? [detectedPatterns[0]]
+    : [];
 }

@@ -1,37 +1,77 @@
-export function buildTimeframeAnalysis(reviews: any[]) {
-  const stats: Record<
-    string,
-    {
-      trades: number;
-      wins: number;
-      losses: number;
-    }
-  > = {};
+import type { TradeReview } from "./types";
 
-  reviews.forEach((review) => {
-    const timeframe = review.timeframe || "UNKNOWN";
+/**
+ * Statistics grouped by timeframe.
+ */
+export interface TimeframeStats {
+  trades: number;
+  wins: number;
+  losses: number;
+}
 
-    if (!stats[timeframe]) {
-      stats[timeframe] = {
-        trades: 0,
-        wins: 0,
-        losses: 0,
-      };
-    }
+export type TimeframeAnalysisResult =
+  Record<string, TimeframeStats>;
 
-    stats[timeframe].trades++;
+function extractTimeframe(
+  review: TradeReview
+): string {
+  const timeframe =
+    review.timeframe ??
+    review.tradeContext?.timeframe ??
+    review.automaticReview?.entryReview?.timeframe ??
+    "UNKNOWN";
 
-    // Normalize result comparison strings
-    const res = review.result?.toUpperCase();
+  return String(timeframe).toUpperCase();
+}
 
-    if (res === "PROFIT" || res === "WIN") {
-      stats[timeframe].wins++;
-    }
+function extractResult(
+  review: TradeReview
+): string | null {
+  const result =
+    review.result ??
+    review.outcome ??
+    review.automaticReview?.result ??
+    null;
 
-    if (res === "LOSS") {
-      stats[timeframe].losses++;
-    }
-  });
+  return typeof result === "string"
+    ? result.toUpperCase()
+    : null;
+}
 
-  return stats;
+export function buildTimeframeAnalysis(
+  reviews: TradeReview[]
+): TimeframeAnalysisResult {
+  return reviews.reduce<TimeframeAnalysisResult>(
+    (acc, review) => {
+      const timeframe =
+        extractTimeframe(review);
+
+      if (!acc[timeframe]) {
+        acc[timeframe] = {
+          trades: 0,
+          wins: 0,
+          losses: 0,
+        };
+      }
+
+      const stats = acc[timeframe];
+
+      stats.trades++;
+
+      const result =
+        extractResult(review);
+
+      if (
+        result === "PROFIT" ||
+        result === "WIN"
+      ) {
+        stats.wins++;
+      } else if (result === "LOSS") {
+        stats.losses++;
+      }
+
+      return acc;
+    },
+    {}
+  );
 }

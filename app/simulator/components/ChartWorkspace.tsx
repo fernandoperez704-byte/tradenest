@@ -224,6 +224,12 @@ function formatPatternName(
     case "DOUBLE_TOP":
       return "Double Top";
 
+    case "HEAD_AND_SHOULDERS":
+      return "Head and Shoulders";
+
+    case "INVERSE_HEAD_AND_SHOULDERS":
+      return "Inverse Head and Shoulders";
+
     case "BULL_FLAG":
       return "Bull Flag";
 

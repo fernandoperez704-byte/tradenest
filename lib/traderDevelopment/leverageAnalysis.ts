@@ -1,48 +1,125 @@
-export function buildLeverageAnalysis(reviews: any[]) {
-  const futuresReviews = reviews.filter(
-    (r) => r.mode === "FUTURES"
-  );
+import type {
+  LeverageAnalysisResult,
+  TradeReview,
+} from "./types";
 
-  const leverageValues = futuresReviews
-    .map((r) => r.leverage)
-    .filter((value) => typeof value === "number");
+type LeverageStats = {
+  count: number;
+  sumLeverage: number;
+  highLeverageTrades: number;
+  highLeverageLosses: number;
+};
 
-  const total = leverageValues.length;
+export function buildLeverageAnalysis(
+  reviews: TradeReview[]
+): LeverageAnalysisResult {
+  const stats =
+    reviews.reduce<LeverageStats>(
+      (acc, review) => {
+        const mode = String(
+          review.mode ??
+            review.tradeContext?.account
+              ?.marketMode ??
+            ""
+        ).toUpperCase();
 
-  const averageLeverage =
-    total === 0
-      ? 0
-      : Number(
-          (
-            leverageValues.reduce((sum, value) => sum + value, 0) / total
-          ).toFixed(2)
-        );
+        if (mode !== "FUTURES") {
+          return acc;
+        }
 
-  // 1. Find all trades with leverage >= 25
-  const highLeveragePositions = futuresReviews.filter(
-    (r) => typeof r.leverage === "number" && r.leverage >= 25
-  );
+        const rawLeverage =
+          review.leverage ??
+          review.tradeResult?.leverage ??
+          review.tradeContext?.leverage ??
+          review.engine?.risk?.leverage;
 
-  const highLeverageTrades = highLeveragePositions.length;
+if (
+  rawLeverage === null ||
+  rawLeverage === undefined
+) {
+  return acc;
+}
 
-  // 2. Out of those high leverage trades, count how many were losses
-  const highLeverageLosses = highLeveragePositions.filter(
-    (r) => r.result?.toUpperCase() === "LOSS"
-  ).length;
+        const leverage =
+          Number(rawLeverage);
 
-  // 3. Calculate the percentage of high leverage trades that fail
-  const highLeverageLossRate = highLeverageTrades === 0
-    ? 0
-    : Math.round((highLeverageLosses / highLeverageTrades) * 100);
+        if (
+          !Number.isFinite(leverage) ||
+          leverage <= 0
+        ) {
+          return acc;
+        }
+
+        acc.count++;
+        acc.sumLeverage += leverage;
+
+        if (leverage >= 25) {
+          acc.highLeverageTrades++;
+
+          const result = String(
+            review.result ??
+              review.outcome ??
+              review.automaticReview?.result ??
+              review.automaticReview?.outcome ??
+              review.engine?.result ??
+              review.engine?.outcome ??
+              ""
+          ).toUpperCase();
+
+          if (result === "LOSS") {
+            acc.highLeverageLosses++;
+          }
+        }
+
+        return acc;
+      },
+      {
+        count: 0,
+        sumLeverage: 0,
+        highLeverageTrades: 0,
+        highLeverageLosses: 0,
+      }
+    );
+
+  const {
+    count,
+    sumLeverage,
+    highLeverageTrades,
+    highLeverageLosses,
+  } = stats;
 
   return {
-    totalFuturesTrades: futuresReviews.length,
-    averageLeverage,
-    highLeverageTrades,
-    highLeverageLossRate, // New Metric!
-    highLeverageRate:
-      total === 0
+    totalFuturesTrades: count,
+
+    averageLeverage:
+      count === 0
         ? 0
-        : Math.round((highLeverageTrades / total) * 100),
+        : Number(
+            (
+              sumLeverage / count
+            ).toFixed(2)
+          ),
+
+    highLeverageTrades,
+
+    highLeverageLossRate:
+      highLeverageTrades === 0
+        ? 0
+        : Math.round(
+            (
+              highLeverageLosses /
+              highLeverageTrades
+            ) * 100
+          ),
+
+    highLeverageRate:
+      count === 0
+        ? 0
+        : Math.round(
+            (
+              highLeverageTrades /
+              count
+            ) * 100
+          ),
   };
 }

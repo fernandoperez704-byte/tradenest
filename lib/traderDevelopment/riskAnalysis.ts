@@ -1,105 +1,190 @@
-export function buildRiskAnalysis(reviews: any[]) {
-  let lowRisk = 0;
-  let mediumRisk = 0;
-  let highRisk = 0;
+import type {
+  TradeReview,
+} from "./types";
 
-  for (const review of reviews) {
-    const mode = String(
-      review?.mode ??
-      review?.tradeContext?.account?.marketMode ??
-      "SPOT"
-    ).toUpperCase();
+export interface RiskAnalysisResult {
+  lowRisk: number;
+  mediumRisk: number;
+  highRisk: number;
+  highRiskRate: number;
 
-    const leverage = Number(
-      review?.leverage ??
-      review?.tradeResult?.leverage ??
-      review?.engine?.risk?.leverage ??
-      1
-    );
+  status:
+    | "High Risk"
+    | "Moderate Risk"
+    | "Low Risk"
+    | "No Data";
+}
 
-    const balanceAtEntry = Number(
-      review?.balanceAtEntry ??
-      review?.tradeContext?.account?.balanceAtEntry ??
-      0
-    );
+type ExtractedRiskData = {
+  leverage: number | null;
+  exposureRate: number | null;
+};
 
-    const margin = Number(
-      review?.margin ??
-      review?.tradeResult?.margin ??
-      review?.engine?.risk?.margin ??
-      0
-    );
-
-    const positionSize = Number(
-      review?.positionSize ??
-      review?.tradeResult?.positionSize ??
-      review?.engine?.risk?.positionSize ??
-      0
-    );
-
-    const spotAmount = Number(
-      review?.amount ??
-      review?.tradeResult?.amount ??
-      review?.tradeResult?.entryValue ??
-      0
-    );
-
-
-    // Futures exposure should use margin committed against account balance.
-    // Spot exposure should use the amount committed against account balance.
-    const capitalCommitted =
-      mode === "FUTURES"
-        ? margin
-        : spotAmount > 0
-        ? spotAmount
-        : positionSize;
-
-    const exposureRate =
-      balanceAtEntry > 0
-        ? (capitalCommitted / balanceAtEntry) * 100
-        : 0;
-
-    let riskLevel: "LOW" | "MEDIUM" | "HIGH";
-
-    if (
-      exposureRate >= 50 ||
-      leverage >= 20
-    ) {
-      riskLevel = "HIGH";
-    } else if (
-      exposureRate >= 20 ||
-      leverage >= 5
-    ) {
-      riskLevel = "MEDIUM";
-    } else {
-      riskLevel = "LOW";
-    }
-
-    if (riskLevel === "LOW") lowRisk++;
-    else if (riskLevel === "MEDIUM") mediumRisk++;
-    else highRisk++;
+function toValidNumber(
+  value: unknown
+): number | null {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
   }
 
-  const total = lowRisk + mediumRisk + highRisk;
+  const number = Number(value);
 
-  const highRiskRate =
-    total === 0
-      ? 0
-      : Math.round((highRisk / total) * 100);
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
 
-  const status =
-    total === 0
-      ? "No Data"
-      : highRisk >= mediumRisk && highRisk >= lowRisk
-      ? "High Risk"
-      : mediumRisk >= lowRisk
-      ? "Moderate Risk"
-      : "Low Risk";
+function extractRiskData(
+  review: TradeReview
+): ExtractedRiskData {
+  const mode = String(
+    review.mode ??
+      review.tradeContext?.account
+        ?.marketMode ??
+      "SPOT"
+  ).toUpperCase();
+
+  const leverage = toValidNumber(
+    review.leverage ??
+      review.tradeResult?.leverage ??
+      review.engine?.risk?.leverage
+  );
+
+  const balanceAtEntry = toValidNumber(
+    review.balanceAtEntry ??
+      review.tradeContext?.account
+        ?.balanceAtEntry
+  );
+
+  const margin = toValidNumber(
+    review.margin ??
+      review.tradeResult?.margin ??
+      review.engine?.risk?.margin
+  );
+
+  const positionSize = toValidNumber(
+    review.positionSize ??
+      review.tradeResult?.positionSize ??
+      review.engine?.risk?.positionSize
+  );
+
+  const spotAmount = toValidNumber(
+    review.amount ??
+      review.tradeResult?.amount ??
+      review.tradeResult?.entryValue
+  );
+
+  const capitalCommitted =
+    mode === "FUTURES"
+      ? margin
+      : spotAmount !== null &&
+        spotAmount > 0
+      ? spotAmount
+      : positionSize;
+
+  const exposureRate =
+    balanceAtEntry !== null &&
+    balanceAtEntry > 0 &&
+    capitalCommitted !== null &&
+    capitalCommitted >= 0
+      ? (capitalCommitted /
+          balanceAtEntry) *
+        100
+      : null;
 
   return {
-    lowRisk,
-    mediumRisk,
-    highRisk,
+    leverage,
+    exposureRate,
+  };
+}
+
+export function buildRiskAnalysis(
+  reviews: TradeReview[]
+): RiskAnalysisResult {
+  const counts = {
+    lowRisk: 0,
+    mediumRisk: 0,
+    highRisk: 0,
+  };
+
+  for (const review of reviews) {
+    const {
+      leverage,
+      exposureRate,
+    } = extractRiskData(review);
+
+    const hasLeverage =
+      leverage !== null &&
+      leverage > 0;
+
+    const hasExposure =
+      exposureRate !== null;
+
+    if (!hasLeverage && !hasExposure) {
+      continue;
+    }
+
+    if (
+      (exposureRate !== null &&
+        exposureRate >= 50) ||
+      (leverage !== null &&
+        leverage >= 20)
+    ) {
+      counts.highRisk++;
+    } else if (
+      (exposureRate !== null &&
+        exposureRate >= 20) ||
+      (leverage !== null &&
+        leverage >= 5)
+    ) {
+      counts.mediumRisk++;
+    } else {
+      counts.lowRisk++;
+    }
+  }
+
+  const classifiedTotal =
+    counts.lowRisk +
+    counts.mediumRisk +
+    counts.highRisk;
+
+  if (classifiedTotal === 0) {
+    return {
+      lowRisk: 0,
+      mediumRisk: 0,
+      highRisk: 0,
+      highRiskRate: 0,
+      status: "No Data",
+    };
+  }
+
+  const highRiskRate = Math.round(
+    (counts.highRisk /
+      classifiedTotal) *
+      100
+  );
+
+  let status: RiskAnalysisResult["status"] =
+    "Low Risk";
+
+  if (
+    counts.highRisk >=
+      counts.mediumRisk &&
+    counts.highRisk >= counts.lowRisk
+  ) {
+    status = "High Risk";
+  } else if (
+    counts.mediumRisk >= counts.lowRisk
+  ) {
+    status = "Moderate Risk";
+  }
+
+  return {
+    ...counts,
     highRiskRate,
     status,
   };

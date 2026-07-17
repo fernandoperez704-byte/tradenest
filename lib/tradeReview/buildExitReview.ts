@@ -1,37 +1,121 @@
-export function buildExitReview(management: {
+export type ExitQuality =
+  | "EXCELLENT"
+  | "GOOD"
+  | "AVERAGE"
+  | "WEAK"
+  | "NEUTRAL"
+  | "UNKNOWN";
+
+export interface ExitManagementInput {
   available: boolean;
-  exitEfficiency?: number;
-  givebackPercent?: number;
-  highestUnrealizedPercent?: number;
-} | null) {
-  if (!management || !management.available) {
+  exitEfficiency?: number | null;
+  givebackPercent?: number | null;
+  highestUnrealizedPercent?: number | null;
+}
+
+export interface ExitReviewResult {
+  available: boolean;
+  exitQuality: ExitQuality;
+  lesson: string;
+}
+
+function toFiniteNumber(
+  value: unknown
+): number | null {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+export function buildExitReview(
+  management: ExitManagementInput | null
+): ExitReviewResult {
+  if (
+    !management ||
+    management.available === false
+  ) {
     return {
       available: false,
       exitQuality: "UNKNOWN",
-      lesson: "Exit analysis was not available.",
+      lesson:
+        "Exit analysis was not available.",
     };
   }
 
-  let exitQuality = "AVERAGE";
+  const exitEfficiency = toFiniteNumber(
+    management.exitEfficiency
+  );
+
+  const givebackPercent = toFiniteNumber(
+    management.givebackPercent
+  );
+
+  const highestUnrealizedPercent =
+    toFiniteNumber(
+      management.highestUnrealizedPercent
+    );
+
+  if (
+    exitEfficiency === null &&
+    givebackPercent === null &&
+    highestUnrealizedPercent === null
+  ) {
+    return {
+      available: false,
+      exitQuality: "UNKNOWN",
+      lesson:
+        "Exit analysis was not available because no valid management metrics were recorded.",
+    };
+  }
+
+  let exitQuality: ExitQuality =
+    "AVERAGE";
+
   let lesson =
     "The exit was acceptable based on the recorded management data.";
 
-  if ((management.exitEfficiency ?? 0) >= 90) {
+  if (
+    highestUnrealizedPercent !== null &&
+    highestUnrealizedPercent <= 1
+  ) {
+    exitQuality = "NEUTRAL";
+
+    lesson =
+      "The trade did not develop a meaningful unrealized profit before it was closed.";
+  } else if (
+    exitEfficiency !== null &&
+    exitEfficiency >= 90
+  ) {
     exitQuality = "EXCELLENT";
+
     lesson =
-      "The trade captured almost all of the available move before exiting.";
-  } else if ((management.exitEfficiency ?? 0) >= 75) {
+      "The exit captured almost all of the available move recorded while the trade was open.";
+  } else if (
+    exitEfficiency !== null &&
+    exitEfficiency >= 75
+  ) {
     exitQuality = "GOOD";
+
     lesson =
-      "Most of the available move was captured before exiting.";
-  } else if ((management.givebackPercent ?? 0) >= 5) {
+      "The exit captured most of the available move recorded while the trade was open.";
+  } else if (
+    givebackPercent !== null &&
+    givebackPercent >= 5
+  ) {
     exitQuality = "WEAK";
+
     lesson =
       "A significant portion of unrealized profit was given back before the trade was closed.";
-  } else if ((management.highestUnrealizedPercent ?? 0) <= 1) {
-    exitQuality = "NEUTRAL";
-    lesson =
-      "The trade never developed a meaningful unrealized profit before it was closed.";
   }
 
   return {

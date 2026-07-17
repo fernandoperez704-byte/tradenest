@@ -1,76 +1,119 @@
-import {
-  TraderProfileInput,
-  TraderProfileReport,
-} from "./types";
-
 import { buildSkillAnalysis } from "./skillAnalysis";
 import { buildProfileSummary } from "./profileBuilder";
+
+import type {
+  TraderProfileInput,
+  TraderProfileReport,
+  TraderSkill,
+} from "./types";
+
+const MINIMUM_TRADES = 20;
+
+function calculateOverallScore(
+  skills: TraderSkill[]
+): number {
+  if (skills.length === 0) {
+    return 0;
+  }
+
+  const totalScore = skills.reduce(
+    (sum, skill) => sum + skill.score,
+    0
+  );
+
+  return Math.round(
+    totalScore / skills.length
+  );
+}
+
+function buildInsufficientDataProfile(
+  currentTrades: number
+): TraderProfileReport {
+  return {
+    enoughData: false,
+    currentTrades,
+    minimumTrades: MINIMUM_TRADES,
+
+    overallScore: 0,
+    skills: [],
+
+    strongestSkill: null,
+    weakestSkill: null,
+
+    profileSummary:
+      `It is too early to build a reliable trader profile. You currently have ${currentTrades} reviewed trade${currentTrades === 1 ? "" : "s"}. Complete at least ${MINIMUM_TRADES} reviewed trades to generate a more meaningful profile.`,
+
+    confidence: "LOW",
+  };
+}
 
 export function buildTraderProfile(
   input: TraderProfileInput
 ): TraderProfileReport {
+  const {
+    developmentReport,
+    progressReport,
+  } = input;
 
-const minimumTrades = 1;
+  const currentTrades =
+    developmentReport.totalTrades;
 
-const currentTrades =
-  input.developmentReport?.totalTrades || 0;
-
-if (currentTrades < minimumTrades) {
-  return {
-    enoughData: false,
-
-    currentTrades,
-
-    minimumTrades,
-
-    overallScore: 0,
-
-    skills: [],
-
-    strongestSkill: "Not enough data",
-
-    weakestSkill: "Not enough data",
-
-    profileSummary:
-      `It's too early to build a reliable trader profile. You have ${currentTrades} reviewed trade${currentTrades === 1 ? "" : "s"} so far. A profile becomes more meaningful after around ${minimumTrades} reviewed trades.`,
-  } as any;
-}
+  if (
+    !developmentReport.enoughData ||
+    currentTrades < MINIMUM_TRADES
+  ) {
+    return buildInsufficientDataProfile(
+      currentTrades
+    );
+  }
 
   const skills = buildSkillAnalysis(
-    input.developmentReport,
-    input.progressReport
+    developmentReport,
+    progressReport
   );
 
+  if (skills.length === 0) {
+    return buildInsufficientDataProfile(
+      currentTrades
+    );
+  }
+
   const sortedSkills = [...skills].sort(
-    (a, b) => b.score - a.score
+    (first, second) =>
+      second.score - first.score
   );
 
   const strongestSkill =
-    sortedSkills[0]?.name || "Unknown";
+    sortedSkills[0] ?? null;
 
   const weakestSkill =
-    sortedSkills[sortedSkills.length - 1]?.name || "Unknown";
+    sortedSkills[
+      sortedSkills.length - 1
+    ] ?? null;
 
   const overallScore =
-    Math.round(
-      skills.reduce(
-        (sum, skill) => sum + skill.score,
-        0
-      ) / skills.length
-    );
+    calculateOverallScore(skills);
 
   return {
-    overallScore,
+    enoughData: true,
+    currentTrades,
+    minimumTrades: MINIMUM_TRADES,
 
+    overallScore,
     skills,
 
     strongestSkill,
-
     weakestSkill,
 
-    profileSummary: buildProfileSummary(
-      strongestSkill,
-      weakestSkill
-    ),
+    profileSummary:
+      buildProfileSummary(
+        strongestSkill,
+        weakestSkill
+      ),
+
+    confidence:
+      currentTrades < 50
+        ? "MEDIUM"
+        : "HIGH",
   };
 }

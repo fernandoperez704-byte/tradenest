@@ -1,34 +1,80 @@
-export function buildTrendAnalysis(reviews: any[]) {
-  if (reviews.length === 0) {
-    return { aligned: 0, against: 0, alignmentRate: 0, status: "Neutral" };
-  }
+import type {
+  TradeReview,
+  TrendAnalysisResult,
+} from "./types";
 
-  let aligned = 0;
-  let against = 0;
+type TrendCounts = {
+  aligned: number;
+  against: number;
+};
 
-// Single pass calculation
-for (const r of reviews) {
-  const trendAligned =
-    r?.trendAligned ??
-    r?.engine?.trendAligned ??
-    r?.engine?.market?.trendAligned ??
-    r?.marketReview?.trendAligned ??
+function extractTrendAligned(
+  review: TradeReview
+): boolean | null {
+  const value =
+    review.trendAligned ??
+    review.automaticReview?.trendAligned ??
+    review.tradeContext?.trendAligned ??
+    review.engine?.trendAligned ??
+    review.engine?.market?.trendAligned ??
+    review.marketReview?.trendAligned ??
     null;
 
-  if (trendAligned === true) aligned++;
-  else if (trendAligned === false) against++;
+  return typeof value === "boolean"
+    ? value
+    : null;
 }
 
-  const total = aligned + against;
-  const alignmentRate = total === 0 ? 0 : Math.round((aligned / total) * 100);
+export function buildTrendAnalysis(
+  reviews: TradeReview[]
+): TrendAnalysisResult {
+  const { aligned, against } =
+    reviews.reduce<TrendCounts>(
+      (acc, review) => {
+        const isAligned =
+          extractTrendAligned(review);
 
-  // Determine a status string for the badge
-  const status = alignmentRate >= 70 ? "Strong Trend" : alignmentRate >= 50 ? "Trending" : "Counter-Trend";
+        if (isAligned === true) {
+          acc.aligned++;
+        } else if (isAligned === false) {
+          acc.against++;
+        }
+
+        return acc;
+      },
+      {
+        aligned: 0,
+        against: 0,
+      }
+    );
+
+  const total =
+    aligned + against;
+
+  const alignmentRate =
+    total === 0
+      ? 0
+      : Math.round(
+          (aligned / total) * 100
+        );
+
+  let status: TrendAnalysisResult["status"] =
+    "Neutral";
+
+  if (total > 0) {
+    if (alignmentRate >= 70) {
+      status = "Strong Trend";
+    } else if (alignmentRate >= 50) {
+      status = "Trending";
+    } else {
+      status = "Counter-Trend";
+    }
+  }
 
   return {
     aligned,
     against,
     alignmentRate,
-    status
+    status,
   };
 }

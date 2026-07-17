@@ -1,22 +1,60 @@
-export function buildTakeProfitAnalysis(reviews: any[]) {
-  const used = reviews.filter(
-    (r) => r.usedTakeProfit === true
-  ).length;
+import type {
+  TradeReview,
+  UsageMetrics,
+} from "./types";
 
-  const notUsed = reviews.filter(
-    (r) => r.usedTakeProfit === false
-  ).length;
+type UsageCounts = {
+  used: number;
+  notUsed: number;
+};
 
-  const total = used + notUsed;
+function extractTakeProfitUsage(
+  review: TradeReview
+): boolean | null {
+  const value =
+    review.usedTakeProfit ??
+    review.automaticReview?.usedTakeProfit ??
+    null;
+
+  return typeof value === "boolean"
+    ? value
+    : null;
+}
+
+export function buildTakeProfitAnalysis(
+  reviews: TradeReview[]
+): UsageMetrics {
+  const stats =
+    reviews.reduce<UsageCounts>(
+      (acc, review) => {
+        const used =
+          extractTakeProfitUsage(review);
+
+        if (used === true) {
+          acc.used++;
+        } else if (used === false) {
+          acc.notUsed++;
+        }
+
+        return acc;
+      },
+      {
+        used: 0,
+        notUsed: 0,
+      }
+    );
+
+  const total =
+    stats.used + stats.notUsed;
 
   return {
-    used,
-
-    notUsed,
-
+    used: stats.used,
+    notUsed: stats.notUsed,
     usageRate:
       total === 0
         ? 0
-        : Math.round((used / total) * 100),
+        : Math.round(
+            (stats.used / total) * 100
+          ),
   };
 }

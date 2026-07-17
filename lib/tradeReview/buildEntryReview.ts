@@ -1,4 +1,88 @@
-import type { EntryQuality } from "../gabyMarketIntelligence";
+import type {
+  EntryQuality,
+} from "../gabyMarketIntelligence";
+
+export type TradeDirection =
+  | "BULLISH"
+  | "BEARISH";
+
+export type EntryReviewQuality =
+  | "EXCELLENT"
+  | "GOOD"
+  | "AVERAGE"
+  | "WEAK";
+
+export interface BuildEntryReviewInput {
+  direction: string | null;
+  tradeDirection: TradeDirection;
+  priceLocation: string | null;
+  entryQuality: EntryQuality | null;
+  momentum: string | null;
+  controlStrength: string | null;
+  marketState: string | null;
+}
+
+export interface EntryReviewResult {
+  score: number;
+  quality: EntryReviewQuality;
+  lesson: string;
+
+  strengths: string[];
+  weaknesses: string[];
+
+  direction: string | null;
+  tradeDirection: TradeDirection;
+  priceLocation: string | null;
+  oldEntryQuality: EntryQuality | null;
+  momentum: string | null;
+  controlStrength: string | null;
+  marketState: string | null;
+}
+
+function clampScore(
+  score: number
+): number {
+  return Math.max(
+    0,
+    Math.min(100, Math.round(score))
+  );
+}
+
+function determineQuality(
+  score: number
+): EntryReviewQuality {
+  if (score >= 85) {
+    return "EXCELLENT";
+  }
+
+  if (score >= 70) {
+    return "GOOD";
+  }
+
+  if (score >= 45) {
+    return "AVERAGE";
+  }
+
+  return "WEAK";
+}
+
+function buildLesson(
+  quality: EntryReviewQuality
+): string {
+  if (quality === "EXCELLENT") {
+    return "The entry had strong alignment across direction, location, momentum, and market control.";
+  }
+
+  if (quality === "GOOD") {
+    return "The entry had good alignment, although not every recorded condition was fully supportive.";
+  }
+
+  if (quality === "WEAK") {
+    return "The entry had weak alignment because one or more key market conditions did not support the trade.";
+  }
+
+  return "The entry had mixed alignment across direction, location, momentum, and market control.";
+}
 
 export function buildEntryReview({
   direction,
@@ -8,195 +92,140 @@ export function buildEntryReview({
   momentum,
   controlStrength,
   marketState,
-}: {
-  direction: string | null;
-  tradeDirection: string;
-  priceLocation: string | null;
-  entryQuality: EntryQuality | null;
-  momentum: string | null;
-  controlStrength: string | null;
-  marketState: string | null;
-}) {
+}: BuildEntryReviewInput): EntryReviewResult {
   let score = 50;
 
+  const strengths: string[] = [];
+  const weaknesses: string[] = [];
+
+  const hasDirectionalContext =
+    direction !== null &&
+    direction !== "TRANSITION";
+
+  // Direction alignment
   if (direction === tradeDirection) {
     score += 20;
-  }
 
-  if (
-    direction &&
-    direction !== "TRANSITION" &&
-    direction !== tradeDirection
-  ) {
+    strengths.push(
+      "The trade followed the recorded market direction."
+    );
+  } else if (hasDirectionalContext) {
     score -= 25;
+
+    weaknesses.push(
+      "The trade was opened against the recorded market direction."
+    );
   }
 
-  if (
-    tradeDirection === "BULLISH" &&
-    priceLocation === "NEAR_SUPPORT"
-  ) {
+  // Price location
+  const favorableLocation =
+    (tradeDirection === "BULLISH" &&
+      priceLocation === "NEAR_SUPPORT") ||
+    (tradeDirection === "BEARISH" &&
+      priceLocation === "NEAR_RESISTANCE");
+
+  const unfavorableLocation =
+    (tradeDirection === "BULLISH" &&
+      priceLocation === "NEAR_RESISTANCE") ||
+    (tradeDirection === "BEARISH" &&
+      priceLocation === "NEAR_SUPPORT");
+
+  if (favorableLocation) {
     score += 15;
-  }
 
-  if (
-    tradeDirection === "BEARISH" &&
-    priceLocation === "NEAR_RESISTANCE"
-  ) {
-    score += 15;
-  }
-
-  if (
-    tradeDirection === "BULLISH" &&
-    priceLocation === "NEAR_RESISTANCE"
-  ) {
+    strengths.push(
+      tradeDirection === "BULLISH"
+        ? "The long entry was near support."
+        : "The short entry was near resistance."
+    );
+  } else if (unfavorableLocation) {
     score -= 15;
+
+    weaknesses.push(
+      tradeDirection === "BULLISH"
+        ? "The long entry was close to resistance."
+        : "The short entry was close to support."
+    );
   }
 
-  if (
-    tradeDirection === "BEARISH" &&
-    priceLocation === "NEAR_SUPPORT"
-  ) {
-    score -= 15;
-  }
+  // Momentum alignment
+  const favorableMomentum =
+    (tradeDirection === "BULLISH" &&
+      momentum === "BULLISH_MOMENTUM") ||
+    (tradeDirection === "BEARISH" &&
+      momentum === "BEARISH_MOMENTUM");
 
-  if (
-    tradeDirection === "BULLISH" &&
-    momentum === "BULLISH_MOMENTUM"
-  ) {
+  const unfavorableMomentum =
+    (tradeDirection === "BULLISH" &&
+      momentum === "BEARISH_MOMENTUM") ||
+    (tradeDirection === "BEARISH" &&
+      momentum === "BULLISH_MOMENTUM");
+
+  if (favorableMomentum) {
     score += 10;
-  }
 
-  if (
-    tradeDirection === "BEARISH" &&
-    momentum === "BEARISH_MOMENTUM"
-  ) {
-    score += 10;
-  }
-
-  if (
-    tradeDirection === "BULLISH" &&
-    momentum === "BEARISH_MOMENTUM"
-  ) {
+    strengths.push(
+      "Momentum supported the trade direction."
+    );
+  } else if (unfavorableMomentum) {
     score -= 10;
+
+    weaknesses.push(
+      tradeDirection === "BULLISH"
+        ? "Momentum was bearish against the long position."
+        : "Momentum was bullish against the short position."
+    );
   }
 
-  if (
-    tradeDirection === "BEARISH" &&
-    momentum === "BULLISH_MOMENTUM"
-  ) {
-    score -= 10;
-  }
-
+  // Market control
   if (controlStrength === "STRENGTHENING") {
     score += 10;
-  }
 
-  if (controlStrength === "WEAKENING") {
+    strengths.push(
+      "Market control was strengthening."
+    );
+  } else if (
+    controlStrength === "WEAKENING"
+  ) {
     score -= 10;
+
+    weaknesses.push(
+      "Market control was weakening."
+    );
   }
 
-  if (marketState === "TRANSITION") {
+  // Transition conditions
+  if (
+    direction === "TRANSITION" ||
+    marketState === "TRANSITION"
+  ) {
     score -= 10;
+
+    weaknesses.push(
+      "The market was in transition, which reduced entry clarity."
+    );
   }
 
-  score = Math.max(0, Math.min(100, score));
+  const normalizedScore =
+    clampScore(score);
 
   const quality =
-    score >= 85
-      ? "EXCELLENT"
-      : score >= 70
-      ? "GOOD"
-      : score >= 45
-      ? "AVERAGE"
-      : "WEAK";
+    determineQuality(normalizedScore);
 
-  let lesson =
-    "The entry was average based on the recorded direction, location, momentum, and control.";
+  return {
+    score: normalizedScore,
+    quality,
+    lesson: buildLesson(quality),
 
-  if (quality === "EXCELLENT") {
-    lesson =
-      "The entry had strong alignment across direction, location, momentum, and control.";
-  }
+    strengths,
+    weaknesses,
 
-  if (quality === "GOOD") {
-    lesson =
-      "The entry had good alignment, but not every condition was fully supportive.";
-  }
-
-  if (quality === "WEAK") {
-    lesson =
-      "The entry had weak alignment because one or more key conditions did not support the trade.";
-  }
-
-const strengths: string[] = [];
-const weaknesses: string[] = [];
-
-if (direction === tradeDirection) {
-  strengths.push("The trade followed the market direction.");
-} else if (direction !== "TRANSITION") {
-  weaknesses.push("The trade was opened against the market direction.");
-}
-
-if (
-  tradeDirection === "BULLISH" &&
-  priceLocation === "NEAR_SUPPORT"
-) {
-  strengths.push("The entry was near support.");
-}
-
-if (
-  tradeDirection === "BEARISH" &&
-  priceLocation === "NEAR_RESISTANCE"
-) {
-  strengths.push("The entry was near resistance.");
-}
-
-if (
-  tradeDirection === "BULLISH" &&
-  priceLocation === "NEAR_RESISTANCE"
-) {
-  weaknesses.push("The long entry was close to resistance.");
-}
-
-if (
-  tradeDirection === "BEARISH" &&
-  priceLocation === "NEAR_SUPPORT"
-) {
-  weaknesses.push("The short entry was close to support.");
-}
-
-if (
-  tradeDirection === "BULLISH" &&
-  momentum === "BEARISH_MOMENTUM"
-) {
-  weaknesses.push("Momentum was bearish.");
-}
-
-if (
-  tradeDirection === "BEARISH" &&
-  momentum === "BULLISH_MOMENTUM"
-) {
-  weaknesses.push("Momentum was bullish.");
-}
-
-if (controlStrength === "WEAKENING") {
-  weaknesses.push("Market control was weakening.");
-}
-
-return {
-  score,
-  quality,
-  lesson,
-
-  strengths,
-  weaknesses,
-
-  direction,
-  tradeDirection,
-  priceLocation,
-  oldEntryQuality: entryQuality,
-  momentum,
-  controlStrength,
-  marketState,
-};
+    direction,
+    tradeDirection,
+    priceLocation,
+    oldEntryQuality: entryQuality,
+    momentum,
+    controlStrength,
+    marketState,
+  };
 }

@@ -1,5 +1,67 @@
-export function buildEntryQualityAnalysis(reviews: any[]) {
-  if (reviews.length === 0) {
+import type {
+  EntryAnalysis,
+  EntryQuality,
+  TradeReview,
+} from "./types";
+
+function extractEntryQuality(
+  review: TradeReview
+): EntryQuality | null {
+  const value =
+    review.entryQuality ??
+    review.tradeContext?.entryQuality ??
+    review.automaticReview?.entryReview
+      ?.entryQuality ??
+    null;
+
+  const normalized =
+    typeof value === "string"
+      ? value.toUpperCase()
+      : null;
+
+  if (
+    normalized === "GOOD" ||
+    normalized === "AVERAGE" ||
+    normalized === "POOR"
+  ) {
+    return normalized;
+  }
+
+  return null;
+}
+
+/**
+ * Analyzes entry-quality distribution and status.
+ */
+export function buildEntryQualityAnalysis(
+  reviews: TradeReview[]
+): EntryAnalysis {
+  const counts = reviews.reduce<
+    Record<EntryQuality, number>
+  >(
+    (acc, review) => {
+      const entryQuality =
+        extractEntryQuality(review);
+
+      if (entryQuality) {
+        acc[entryQuality]++;
+      }
+
+      return acc;
+    },
+    {
+      GOOD: 0,
+      AVERAGE: 0,
+      POOR: 0,
+    }
+  );
+
+  const totalClassified =
+    counts.GOOD +
+    counts.AVERAGE +
+    counts.POOR;
+
+  if (totalClassified === 0) {
     return {
       good: 0,
       average: 0,
@@ -10,25 +72,16 @@ export function buildEntryQualityAnalysis(reviews: any[]) {
     };
   }
 
-  let good = 0;
-  let average = 0;
-  let poor = 0;
+  const goodEntryRate = Math.round(
+    (counts.GOOD / totalClassified) * 100
+  );
 
-  for (const review of reviews) {
-    if (review.entryQuality === "GOOD") good++;
-    else if (review.entryQuality === "AVERAGE") average++;
-    else if (review.entryQuality === "POOR") poor++;
-  }
+  const poorEntryRate = Math.round(
+    (counts.POOR / totalClassified) * 100
+  );
 
-  const total = good + average + poor;
-
-  const goodEntryRate =
-    total === 0 ? 0 : Math.round((good / total) * 100);
-
-  const poorEntryRate =
-    total === 0 ? 0 : Math.round((poor / total) * 100);
-
-  let status = "Average Entries";
+  let status: EntryAnalysis["status"] =
+    "Average Entries";
 
   if (goodEntryRate >= 70) {
     status = "Excellent Entries";
@@ -39,9 +92,9 @@ export function buildEntryQualityAnalysis(reviews: any[]) {
   }
 
   return {
-    good,
-    average,
-    poor,
+    good: counts.GOOD,
+    average: counts.AVERAGE,
+    poor: counts.POOR,
     goodEntryRate,
     poorEntryRate,
     status,

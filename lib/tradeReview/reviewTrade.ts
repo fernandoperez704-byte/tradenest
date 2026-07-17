@@ -216,7 +216,7 @@ export function reviewTrade(input: TradeReviewInput) {
   const currentEntryQuality = entryReview.quality;
 
   if (result === "LOSS") {
-if (input.pnl < 0 && (input.grossPnl || 0) > 0) {
+if (input.pnl < 0 && (input.grossPnl ?? 0) > 0) {
   reviewExplanation =
     "The trade resulted in a small net loss. The market moved slightly in your favor, but the move wasn't large enough to overcome trading fees.";
   reviewContext =

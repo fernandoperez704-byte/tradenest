@@ -1,61 +1,130 @@
-export function buildExitManagementAnalysis(reviews: any[]) {
-  let strong = 0;
-  let good = 0;
-  let average = 0;
-  let weak = 0;
+import type {
+  ExitManagementResult,
+  TradeReview,
+} from "./types";
 
-  let totalEfficiency = 0;
-  let efficiencyCount = 0;
+type ExitManagementStats = {
+  strong: number;
+  good: number;
+  average: number;
+  weak: number;
+  totalEfficiency: number;
+  efficiencyCount: number;
+};
 
-  for (const review of reviews) {
-    const managementReview =
-      review.managementReview ??
-      review.management ??
-      null;
-
-    if (!managementReview || managementReview.available === false) {
-      continue;
-    }
-
-    const quality = String(
-      managementReview.managementQuality || ""
-    ).toUpperCase();
-
-    if (quality === "STRONG") strong++;
-    else if (quality === "GOOD") good++;
-    else if (quality === "AVERAGE") average++;
-    else if (quality === "WEAK") weak++;
-
-    const exitEfficiency = Number(
-      managementReview.exitEfficiency
-    );
-
-    if (Number.isFinite(exitEfficiency)) {
-      totalEfficiency += exitEfficiency;
-      efficiencyCount++;
-    }
+function toValidNumber(
+  value: unknown
+): number | null {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
   }
 
-  const total = strong + good + average + weak;
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+export function buildExitManagementAnalysis(
+  reviews: TradeReview[]
+): ExitManagementResult {
+  const stats =
+    reviews.reduce<ExitManagementStats>(
+      (acc, review) => {
+        const management =
+          review.managementReview ??
+          review.management ??
+          review.automaticReview
+            ?.managementReview ??
+          null;
+
+        if (
+          !management ||
+          management.available === false
+        ) {
+          return acc;
+        }
+
+        const quality = String(
+          management.managementQuality ?? ""
+        ).toUpperCase();
+
+        const efficiency = toValidNumber(
+          management.exitEfficiency
+        );
+
+        if (quality === "STRONG") {
+          acc.strong++;
+        } else if (quality === "GOOD") {
+          acc.good++;
+        } else if (
+          quality === "AVERAGE"
+        ) {
+          acc.average++;
+        } else if (quality === "WEAK") {
+          acc.weak++;
+        }
+
+        if (efficiency !== null) {
+          acc.totalEfficiency += efficiency;
+          acc.efficiencyCount++;
+        }
+
+        return acc;
+      },
+      {
+        strong: 0,
+        good: 0,
+        average: 0,
+        weak: 0,
+        totalEfficiency: 0,
+        efficiencyCount: 0,
+      }
+    );
+
+  const total =
+    stats.strong +
+    stats.good +
+    stats.average +
+    stats.weak;
 
   const averageExitEfficiency =
-    efficiencyCount === 0
+    stats.efficiencyCount === 0
       ? 0
-      : Math.round(totalEfficiency / efficiencyCount);
+      : Math.round(
+          stats.totalEfficiency /
+            stats.efficiencyCount
+        );
 
   const positiveManagementRate =
     total === 0
       ? 0
-      : Math.round(((strong + good) / total) * 100);
+      : Math.round(
+          ((stats.strong + stats.good) /
+            total) *
+            100
+        );
 
-  let status = "No Data";
+  let status: ExitManagementResult["status"] =
+    "No Data";
 
   if (total > 0) {
     if (positiveManagementRate >= 70) {
       status = "Strong Management";
-    } else if (positiveManagementRate >= 50) {
+    } else if (
+      positiveManagementRate >= 50
+    ) {
       status = "Good Management";
-    } else if (weak >= average && weak > strong + good) {
+    } else if (
+      stats.weak >= stats.average &&
+      stats.weak >
+        stats.strong + stats.good
+    ) {
       status = "Weak Management";
     } else {
       status = "Average Management";
@@ -63,10 +132,10 @@ export function buildExitManagementAnalysis(reviews: any[]) {
   }
 
   return {
-    strong,
-    good,
-    average,
-    weak,
+    strong: stats.strong,
+    good: stats.good,
+    average: stats.average,
+    weak: stats.weak,
     total,
     averageExitEfficiency,
     positiveManagementRate,

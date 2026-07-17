@@ -11,6 +11,8 @@ export type PatternStatus =
 export type PatternType =
   | "DOUBLE_TOP"
   | "DOUBLE_BOTTOM"
+  | "HEAD_AND_SHOULDERS"
+  | "INVERSE_HEAD_AND_SHOULDERS"
   | "BULL_FLAG"
   | "BEAR_FLAG";
 
@@ -42,6 +44,20 @@ export type DetectedPattern =
   | (
       BasePattern & {
         type: "DOUBLE_BOTTOM";
+        direction: "BULLISH";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "HEAD_AND_SHOULDERS";
+        direction: "BEARISH";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "INVERSE_HEAD_AND_SHOULDERS";
         direction: "BULLISH";
         status: PatternStatus;
       }

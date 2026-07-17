@@ -39,24 +39,11 @@ export async function POST(req: Request) {
 
     const normalizedQuestion = question?.trim().toLowerCase() || "";
 
-if (
-      normalizedQuestion.includes("good time to short") ||
-      normalizedQuestion.includes("good to short") ||
-      normalizedQuestion.includes("should i short") ||
-      normalizedQuestion.includes("when to short") ||
-      normalizedQuestion.includes("good time to buy") ||
-      normalizedQuestion.includes("good to buy") ||
-      normalizedQuestion.includes("should i buy") ||
-      normalizedQuestion.includes("when to buy") ||
-      normalizedQuestion.includes("should i long") ||
-      normalizedQuestion.includes("should i sell")
-    ) {
-      return Response.json({
-        answer: "I can't provide specific buy, sell, long, or short recommendations or financial advice. I can explain the technical factors—like how traders view a resistance zone or bearish momentum conceptually—but individual entry quality depends entirely on your own risk management and execution criteria.",
-      });
-    }
 
-const formattedHistory: any[] = [];
+const formattedHistory: {
+  role: "user" | "assistant";
+  content: string;
+}[] = [];
 if (Array.isArray(conversationHistory)) {
   conversationHistory.forEach((turn) => {
     if (turn.user) formattedHistory.push({ role: "user", content: turn.user });
@@ -76,10 +63,12 @@ if (Array.isArray(conversationHistory)) {
       "got it": "Perfect.",
       understood: "Excellent.",
       "makes sense": "I'm glad it makes sense.",
-      thanks: "You're welcome!",
-      "thank you": "You're very welcome!",
-      ty: "You're welcome!",
-      thx: "You're welcome!",
+thanks: "You're welcome!",
+thank: "You're welcome!",
+"thank you": "You're very welcome!",
+ty: "You're welcome!",
+thx: "You're welcome!",
+thk: "You're welcome!",
       hi: "Hi! What can I help you understand today?",
       hello: "Hello! What would you like to explore today?",
       hey: "Hey! What can I help you understand today?",
@@ -122,14 +111,18 @@ const {
 
     // 🛑 STRICTOR GUARDRAIL: Intercept bypass phrases that act like signals or predictions
     const lowerQuestion = normalizedQuestion.toLowerCase();
-    const isAskingForSignalOrAdvice = 
-      conversationIntent === "SIGNAL_REQUEST" || 
-      lowerQuestion.includes("good to short") ||
-      lowerQuestion.includes("good to buy") ||
-      lowerQuestion.includes("should i short") ||
-      lowerQuestion.includes("should i buy") ||
-      lowerQuestion.includes("when to short") ||
-      lowerQuestion.includes("when to buy");
+const isAskingForSignalOrAdvice =
+  conversationIntent === "SIGNAL_REQUEST" ||
+  lowerQuestion.includes("good time to short") ||
+  lowerQuestion.includes("good to short") ||
+  lowerQuestion.includes("should i short") ||
+  lowerQuestion.includes("when to short") ||
+  lowerQuestion.includes("good time to buy") ||
+  lowerQuestion.includes("good to buy") ||
+  lowerQuestion.includes("should i buy") ||
+  lowerQuestion.includes("when to buy") ||
+  lowerQuestion.includes("should i long") ||
+  lowerQuestion.includes("should i sell");
 
     if (conversationIntent === "PRICE_PREDICTION") {
       return Response.json({
@@ -181,6 +174,24 @@ if (!traderDevelopmentReport) {
   const development = traderDevelopmentReport.developmentReport;
   const profile = traderDevelopmentReport.profileReport;
 
+if ((development?.totalTrades ?? 0) < 20) {
+  const totalTrades = development?.totalTrades ?? 0;
+  const remainingTrades = 20 - totalTrades;
+
+  return Response.json({
+    answer: `Complete ${remainingTrades} more reviewed trades to unlock your full Trader Development Report.
+
+Once you've reached 20 reviewed trades, you'll receive:
+
+• Overall Performance Score
+• Strongest Skill
+• Weakest Skill
+• Personalized Strengths
+• Areas for Improvement
+• Trading Recommendations`,
+  });
+}
+
   return Response.json({
     answer: `**Development Report**
 
@@ -200,8 +211,8 @@ ${development?.recommendations
 
 Profile Summary:
 Overall Score: ${profile?.overallScore}
-Strongest Skill: ${profile?.strongestSkill}
-Weakest Skill: ${profile?.weakestSkill}`,
+Strongest Skill: ${profile?.strongestSkill?.name ?? "N/A"}
+Weakest Skill: ${profile?.weakestSkill?.name ?? "N/A"}`,
   });
 }
 
@@ -462,7 +473,10 @@ const isTradeReviewFollowUp =
   !!lastReviewData &&
   (
     conversationIntent === "TRADE_REVIEW" ||
-    conversationState?.intent === "TRADE_REVIEW"
+    (
+      conversationState?.intent === "TRADE_REVIEW" &&
+      conversationIntent === "FOLLOW_UP"
+    )
   );
 const systemPrompt = `
 ${GABY_CORE_PROMPT}
@@ -474,6 +488,7 @@ You explain TradeNestX engine facts only.
 Do not create new market analysis.
 Do not review trades yourself.
 If trade review facts are provided, explain those facts only.
+When explaining a reviewed trade, prioritize process over outcome, but diagnose only the execution facts explicitly produced by the TradeNestX engine.
 Always mention the selected timeframe when answering market levels, direction, support, resistance, RSI, momentum, or trade review.
 Keep direct questions short and focused.
 `;
@@ -508,41 +523,70 @@ const reviewPrompt = `
 User Question:
 ${question}
 
-TradeNestX Engine Review
+TradeNestX Engine Review Data
 
 Trading Timeframe:
 ${reviewTimeframe}
 
-Market Direction:
-${reviewEngine?.review?.marketDirection}
+Market Direction at Entry:
+${reviewEngine?.marketAtEntry?.marketDirection ?? "UNKNOWN"}
 
-Explanation:
-${reviewEngine?.review?.explanation}
+Entry Quality:
+${reviewEngine?.entryReview?.quality ?? "UNKNOWN"}
 
-Context:
-${reviewEngine?.review?.context}
+Entry Review:
+${reviewEngine?.entryReview?.review ?? "N/A"}
 
-Lesson:
-${reviewEngine?.review?.lesson}
+Entry Lesson:
+${reviewEngine?.entryReview?.lesson ?? "N/A"}
 
+Risk Review:
+${reviewEngine?.riskReview?.review ?? "N/A"}
+
+Management Review:
+${reviewEngine?.managementReview?.lesson ?? "N/A"}
+
+Exit Review:
+${reviewEngine?.exitReview?.explanation ?? "N/A"}
+
+Raw Review Explanation:
+${reviewEngine?.review?.explanation ?? "N/A"}
+
+Raw Review Context:
+${reviewEngine?.review?.context ?? "N/A"}
+
+Raw Review Lesson:
+${reviewEngine?.review?.lesson ?? "N/A"}
+
+CRITICAL INSTRUCTION:
+Perform a process-based critique of this reviewed trade using only the TradeNestX engine facts above.
+
+- Do not merely repeat whether the trade won or lost.
+- Explain what happened only briefly, then focus on why the process produced that result.
+- Separate the financial outcome from the quality of the trading process.
+- Identify the strongest part of the process when the facts support one.
+- Identify one main weakness supported by the facts.
+- End with one specific improvement supported by the facts.
+- If fees caused the loss, explain the break-even hurdle as an execution or trade-selection consideration.
+- Do not claim the entry was late, emotional, overextended, poorly timed, or misaligned unless the engine explicitly says so.
+- Do not claim the user violated a personal rule unless such a rule appears in the engine facts.
+- A losing trade may still have a sound process.
+- A profitable trade may still have weak execution.
 
 Rules:
-
-- Answer ONLY the user's question.
-- Explain the trade review naturally and ensure correct causal logic.
-- Use ONLY the Explanation, Context, Lesson, Market Direction, Entry Quality, Entry Review, and Entry Lesson provided.
+- Answer ONLY the user's question about the latest reviewed trade.
+- Explain the existing engine review; do not create a new trade review.
+- Use ONLY the supplied TradeNestX engine facts.
 - Treat follow-up questions as referring to the latest reviewed trade unless the user clearly asks about multiple trades or a trader report.
-- If the user asks about the entry, answer using ONLY the Entry Quality, Entry Review, and Entry Lesson.
-- Do NOT answer trade-review follow-up questions as general trading questions.
-- Treat the Explanation and Market Direction as authoritative facts.
-- If the trade was a loss but the market moved in the user's favor, explain that the loss occurred despite the favorable move because the move was too small to overcome fees or other stated costs. Never say the loss occurred because the market moved in the user's favor.
-- If the user asks about the market direction, explain it using ONLY the provided Market Direction. Do not infer or analyze beyond it.
-- Do NOT create a new trade review.
-- Do NOT invent new reasons or market conditions.
-- Do NOT explain support or resistance unless they are explicitly included in the review.
-- Do NOT explain RSI, momentum, patterns, or other indicators unless they are explicitly included in the review.
-- Keep the answer under 80 words.
+- If the user asks specifically about the entry, focus on Entry Quality, Entry Review, and Entry Lesson.
+- If the user asks specifically about risk, focus on Risk Review.
+- If the user asks specifically about management or exit, focus on Management Review and Exit Review.
+- If the supplied facts are insufficient for the requested diagnosis, clearly say so.
+- Do not invent emotions, volatility, support, resistance, indicators, strategy rules, or market conditions.
+- Do not provide buy, sell, long, or short advice.
+- Keep the answer under 100 words.
 `;
+
     // Standard comprehensive fallback layout
     const userPrompt = `
 User Question:
