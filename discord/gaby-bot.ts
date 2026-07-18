@@ -26,7 +26,6 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const MARKET_HEADLINE_CHANNEL_ID = "1507825415753039922";
-const COINDESK_RSS_URL = "https://www.coindesk.com/arc/outboundfeeds/rss/";
 
 
 const client = new Client({
@@ -685,255 +684,48 @@ Keep learning one concept at a time. Small lessons repeated over time build real
 );
 }
 
-type DailyMarketConcept = {
-  title: string;
-  explanation: string;
-};
 
-type DailyMarketHeadline = {
-  title: string;
-  source: string;
-};
-
-type DailyMarketBrief = {
-  breakdown: string;
-  concepts: DailyMarketConcept[];
-  categories: string[];
-};
-
-function decodeXmlText(value: string): string {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .trim();
-}
-
-async function fetchMarketHeadlines(
-  limit = 5
-): Promise<DailyMarketHeadline[]> {
-  const response = await fetch(COINDESK_RSS_URL);
-
-  if (!response.ok) {
-    throw new Error(
-      `CoinDesk RSS request failed with status ${response.status}.`
-    );
-  }
-
-  const xml = await response.text();
-
-  const items = [
-    ...xml.matchAll(
-      /<item\b[^>]*>([\s\S]*?)<\/item>/gi
-    ),
-  ];
-
-  const titles = items
-    .map((item) => {
-      const itemContent = item[1];
-
-      const titleMatch = itemContent.match(
-        /<title[^>]*>\s*(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))\s*<\/title>/i
-      );
-
-      const title =
-        titleMatch?.[1] ??
-        titleMatch?.[2] ??
-        "";
-
-      return decodeXmlText(title);
-    })
-    .filter(
-      (title): title is string =>
-        title.length > 0
-    );
-
-  const uniqueTitles = [...new Set(titles)];
-
-  return uniqueTitles
-    .slice(0, limit)
-    .map((title) => ({
-      title,
-      source: "CoinDesk",
-    }));
-}
-
-async function createDailyMarketBrief(
-  headlines: DailyMarketHeadline[]
-): Promise<DailyMarketBrief> {
-  const headlineList = headlines
-    .map(
-      (headline, index) =>
-        `${index + 1}. ${headline.title}`
-    )
-    .join("\n");
-
-  const completion =
-    await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "daily_market_brief",
-          strict: true,
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              breakdown: {
-                type: "string",
-              },
-              concepts: {
-                type: "array",
-                items: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    title: {
-                      type: "string",
-                    },
-                    explanation: {
-                      type: "string",
-                    },
-                  },
-                  required: [
-                    "title",
-                    "explanation",
-                  ],
-                },
-              },
-              categories: {
-                type: "array",
-                items: {
-                  type: "string",
-                },
-              },
-            },
-            required: [
-              "breakdown",
-              "concepts",
-              "categories",
-            ],
-          },
-        },
-      },
-
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Gaby, the TradeNestX educational trading coach.
-
-You are given several real crypto-market headlines from the same day.
-
-Create ONE combined daily market brief that connects the most important themes across the headlines.
-
-Return ONLY valid JSON.
-
-Rules:
-
-- Explain what the headlines collectively mean.
-- Focus on the shared market context.
-- Do not summarize every headline separately.
-- Educational only.
-- Never predict prices.
-- Never give buy or sell advice.
-- Never provide trading signals.
-- Never mention entries or exits.
-- Do not claim that every headline caused market movement.
-- Keep the breakdown between 3 and 5 concise sentences.
-- Create between 3 and 5 key concepts.
-- Keep each concept explanation concise and beginner-friendly.
-- Categories must be simple labels such as:
-  Bitcoin
-  Ethereum
-  Altcoins
-  ETFs
-  Institutions
-  Economy
-  Security
-  Regulations
-  Market Analysis
-`,
-        },
-        {
-          role: "user",
-          content: `
-Create today's combined market brief from these headlines:
-
-${headlineList}
-`,
-        },
-      ],
-    });
-
-  const content =
-    completion.choices[0]?.message?.content;
-
-  if (!content) {
-    throw new Error(
-      "No daily market brief was returned."
-    );
-  }
-
-  return JSON.parse(content) as DailyMarketBrief;
-}
-
-async function sendDailyMarketHeadline() {
+async function sendSavedDailyMarketBreakdown() {
   const now = new Date();
 
   const dateKey = now
     .toISOString()
     .slice(0, 10);
 
-  const displayDate =
-    now.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
   const briefRef = db
     .collection("dailyMarketBriefs")
     .doc(dateKey);
 
-  const briefSnap = await briefRef.get();
-
-  /*
-    Do not create another brief when today's document
-    already uses the new multi-headline format.
-
-    If today's document still uses the old single-headline
-    format, this allows the bot to replace it.
-  */
-  if (briefSnap.exists) {
-    const existingBrief = briefSnap.data();
-
-    if (
-      Array.isArray(existingBrief?.headlines) &&
-      existingBrief.headlines.length > 0
-    ) {
-      return;
-    }
-  }
-
   try {
-    const headlines =
-      await fetchMarketHeadlines(5);
+    const briefSnap =
+      await briefRef.get();
 
-    if (headlines.length === 0) {
-      console.error(
-        "No market headlines were found."
-      );
+    if (!briefSnap.exists) {
       return;
     }
 
-    const brief =
-      await createDailyMarketBrief(headlines);
+    const brief = briefSnap.data();
+
+    const breakdown =
+      typeof brief?.breakdown === "string"
+        ? brief.breakdown.trim()
+        : "";
+
+    /*
+      Vercel has not completed today's brief yet,
+      or the saved document is incomplete.
+    */
+    if (!breakdown) {
+      return;
+    }
+
+    /*
+      Discord already posted today's breakdown.
+      This prevents duplicate Discord messages.
+    */
+    if (brief?.sentAt) {
+      return;
+    }
 
     const channel =
       await client.channels.fetch(
@@ -946,75 +738,46 @@ async function sendDailyMarketHeadline() {
       !("send" in channel)
     ) {
       console.error(
-        "Market headline channel was not found."
+        "Market breakdown channel was not found."
       );
+
       return;
     }
 
-    const headlinesText = headlines
-      .map(
-        (headline, index) =>
-          `**${index + 1}.** ${headline.title}`
-      )
-      .join("\n");
+await channel.send(
+  [
+    "💡 **Gaby's Daily Market Breakdown**",
+    "",
+    "Today's educational market summary from TradeNestX.",
+    "",
+    breakdown,
+    "",
+    "📖 **Read today's complete market brief:**",
+    "https://tradenestx.vercel.app/news",
+    "",
+    "**The complete brief includes:**",
+    "• Today's latest headlines",
+    "• Gaby's combined market breakdown",
+    "• Beginner-friendly key concepts",
+    "",
+    "_Educational only. TradeNestX does not provide trading signals, investment recommendations, or buy and sell advice._",
+  ].join("\n")
+);
 
-    const conceptsText = brief.concepts
-      .map(
-        (concept) =>
-          `**${concept.title}:** ${concept.explanation}`
-      )
-      .join("\n");
+    /*
+      Only mark the brief as sent after Discord
+      successfully accepts the message.
+    */
+    await briefRef.update({
+      sentAt: new Date().toISOString(),
+    });
 
-await briefRef.set({
-  date: dateKey,
-  displayDate,
-
-  headlines,
-
-  breakdown: brief.breakdown,
-  concepts: brief.concepts,
-  categories: brief.categories,
-
-  source: {
-    name: "CoinDesk",
-    feedUrl: COINDESK_RSS_URL,
-  },
-
-  createdAt:
-    admin.firestore.FieldValue.serverTimestamp(),
-
-  sentAt: new Date().toISOString(),
-});
-
-const headlinesMessage = [
-  "📰 **Gaby's Daily Market Brief**",
-  "",
-  "**Today's Headlines**",
-  "",
-  headlinesText,
-].join("\n");
-
-const breakdownMessage = [
-  "💡 **Gaby's Market Breakdown**",
-  "",
-  brief.breakdown,
-].join("\n");
-
-const conceptsMessage = [
-  "📚 **Key Concepts**",
-  "",
-  conceptsText,
-  "",
-  "Educational purposes only. TradeNestX does not provide financial advice, investment recommendations, or trading signals.",
-].join("\n");
-
-await channel.send(headlinesMessage);
-await channel.send(breakdownMessage);
-await channel.send(conceptsMessage);
-
+    console.log(
+      `Daily market breakdown posted for ${dateKey}.`
+    );
   } catch (error) {
     console.error(
-      "Failed to create daily market brief:",
+      "Failed to post saved daily market breakdown:",
       error
     );
   }
@@ -1023,23 +786,15 @@ await channel.send(conceptsMessage);
 client.once("ready", async () => {
   console.log(`Gaby is online.`);
 
-  console.log("Running daily market brief on startup...");
+  console.log(
+    "Checking Firestore for today's saved market breakdown..."
+  );
 
-  await sendDailyMarketHeadline();
+  await sendSavedDailyMarketBreakdown();
 
-
-setInterval(async () => {
-  const now = new Date();
-
-  const isNineAM = now.getHours() === 9;
-  const isFirstMinute = now.getMinutes() === 0;
-
-if (isNineAM && isFirstMinute) {
-  await sendDailyMarketHeadline();
-  
-}
-
-}, 60 * 1000);
+  setInterval(async () => {
+    await sendSavedDailyMarketBreakdown();
+  }, 60 * 1000);
 
   setInterval(async () => {
     const snapshot = await db
@@ -1167,7 +922,7 @@ I'm Gaby, your TradeNestX community companion.
 Here's what I can help with:
 • 📚 Lesson reinforcement
 • 🧠 Trading insights
-• 📰 Daily market headlines
+• 💡 Daily market breakdown
 • 🔗 Link your TradeNestX account
 
 Use \`!gaby help\` to see the available Discord commands.
@@ -1250,7 +1005,7 @@ if (question === "help") {
 
 if (question === "status") {
   await message.reply(
-    "✅ TradeNestX Community is online. Lesson reinforcement, follow-up reminders, daily market headlines, and daily trading insights are active."
+    "✅ TradeNestX Community is online. Lesson reinforcement, follow-up reminders, daily market breakdown, and daily trading insights are active."
   );
 
   return;
