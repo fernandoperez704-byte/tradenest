@@ -690,216 +690,212 @@ type DailyMarketConcept = {
   explanation: string;
 };
 
+type DailyMarketHeadline = {
+  title: string;
+  source: string;
+};
+
 type DailyMarketBrief = {
   breakdown: string;
   concepts: DailyMarketConcept[];
   categories: string[];
 };
 
-async function fetchMarketHeadline() {
-  const response = await fetch(COINDESK_RSS_URL);
-  const xml = await response.text();
-
-  const titleMatch = xml.match(
-    /<item>[\s\S]*?<title><!\[CDATA\[(.*?)\]\]><\/title>/
-  );
-
-  if (!titleMatch) return null;
-
-  return titleMatch[1];
+function decodeXmlText(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .trim();
 }
 
-function getRelatedLesson(headline: string) {
-  const text = headline.toLowerCase();
+async function fetchMarketHeadlines(
+  limit = 5
+): Promise<DailyMarketHeadline[]> {
+  const response = await fetch(COINDESK_RSS_URL);
 
-  if (
-    text.includes("etf") ||
-    text.includes("inflow") ||
-    text.includes("demand")
-  ) {
-    return "Supply & Demand";
+  if (!response.ok) {
+    throw new Error(
+      `CoinDesk RSS request failed with status ${response.status}.`
+    );
   }
 
-  if (text.includes("volume")) {
-    return "Volume Basics";
-  }
+  const xml = await response.text();
 
-  if (
-    text.includes("volatility") ||
-    text.includes("fed") ||
-    text.includes("rates")
-  ) {
-    return "Trading Psychology";
-  }
+  const items = [
+    ...xml.matchAll(
+      /<item\b[^>]*>([\s\S]*?)<\/item>/gi
+    ),
+  ];
 
-  if (
-    text.includes("support") ||
-    text.includes("resistance")
-  ) {
-    return "Support & Resistance";
-  }
+  const titles = items
+    .map((item) => {
+      const itemContent = item[1];
 
-  return "How The Market Works";
+      const titleMatch = itemContent.match(
+        /<title[^>]*>\s*(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))\s*<\/title>/i
+      );
+
+      const title =
+        titleMatch?.[1] ??
+        titleMatch?.[2] ??
+        "";
+
+      return decodeXmlText(title);
+    })
+    .filter(
+      (title): title is string =>
+        title.length > 0
+    );
+
+  const uniqueTitles = [...new Set(titles)];
+
+  return uniqueTitles
+    .slice(0, limit)
+    .map((title) => ({
+      title,
+      source: "CoinDesk",
+    }));
 }
 
 async function createDailyMarketBrief(
-  headline: string
+  headlines: DailyMarketHeadline[]
 ): Promise<DailyMarketBrief> {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
+  const headlineList = headlines
+    .map(
+      (headline, index) =>
+        `${index + 1}. ${headline.title}`
+    )
+    .join("\n");
 
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "daily_market_brief",
-        strict: true,
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            breakdown: {
-              type: "string",
-            },
-            concepts: {
-              type: "array",
-              items: {
-                type: "object",
-                additionalProperties: false,
-                properties: {
-                  title: {
-                    type: "string",
-                  },
-                  explanation: {
-                    type: "string",
-                  },
-                },
-                required: [
-                  "title",
-                  "explanation",
-                ],
-              },
-            },
-            categories: {
-              type: "array",
-              items: {
+  const completion =
+    await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "daily_market_brief",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              breakdown: {
                 type: "string",
               },
+              concepts: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    title: {
+                      type: "string",
+                    },
+                    explanation: {
+                      type: "string",
+                    },
+                  },
+                  required: [
+                    "title",
+                    "explanation",
+                  ],
+                },
+              },
+              categories: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
             },
+            required: [
+              "breakdown",
+              "concepts",
+              "categories",
+            ],
           },
-          required: [
-            "breakdown",
-            "concepts",
-            "categories",
-          ],
         },
       },
-    },
 
-    messages: [
-      {
-        role: "system",
-        content: `
+      messages: [
+        {
+          role: "system",
+          content: `
 You are Gaby, the TradeNestX educational trading coach.
 
-You are given ONE real crypto news headline.
+You are given several real crypto-market headlines from the same day.
+
+Create ONE combined daily market brief that connects the most important themes across the headlines.
 
 Return ONLY valid JSON.
 
 Rules:
 
-- Explain why the headline matters.
+- Explain what the headlines collectively mean.
+- Focus on the shared market context.
+- Do not summarize every headline separately.
 - Educational only.
 - Never predict prices.
 - Never give buy or sell advice.
-- Never give signals.
+- Never provide trading signals.
 - Never mention entries or exits.
-- Breakdown should be 2-4 short sentences.
-- Create 2-4 key concepts.
-- Categories should be simple like:
-Bitcoin
-Ethereum
-Altcoins
-ETFs
-Institutions
-Economy
-Security
-Regulations
-Market Analysis
+- Do not claim that every headline caused market movement.
+- Keep the breakdown between 3 and 5 concise sentences.
+- Create between 3 and 5 key concepts.
+- Keep each concept explanation concise and beginner-friendly.
+- Categories must be simple labels such as:
+  Bitcoin
+  Ethereum
+  Altcoins
+  ETFs
+  Institutions
+  Economy
+  Security
+  Regulations
+  Market Analysis
 `,
-      },
-      {
-        role: "user",
-        content: headline,
-      },
-    ],
-  });
+        },
+        {
+          role: "user",
+          content: `
+Create today's combined market brief from these headlines:
 
-  const content = completion.choices[0].message.content;
+${headlineList}
+`,
+        },
+      ],
+    });
+
+  const content =
+    completion.choices[0]?.message?.content;
 
   if (!content) {
-    throw new Error("No response returned.");
+    throw new Error(
+      "No daily market brief was returned."
+    );
   }
 
-  return JSON.parse(content);
-}
-
-function getDailyTradingInsight() {
-  const insights = [
-    "A winning trade does not automatically mean it was a good trade. A good trade follows your plan.",
-    "Support is not guaranteed to hold. It only matters while buyers are stronger than sellers.",
-    "Risk management comes before profit. One bad trade should never damage your account.",
-    "Patience is a trading skill. Not every price move deserves your attention.",
-    "Volume helps show participation. Price tells what happened, volume helps show conviction.",
-    "A trade without a plan is just a guess. Know your reason, risk, and exit before entering.",
-    "Fear exits too early. Greed holds too long. Discipline follows the plan.",
-  ];
-
-  return insights[Math.floor(Math.random() * insights.length)];
-}
-
-async function sendDailyTradingInsight() {
-  const today = new Date().toDateString();
-
-  const insightRef = db
-    .collection("dailyTradingInsights")
-    .doc(today);
-
-  const insightSnap = await insightRef.get();
-
-  if (insightSnap.exists) return;
-
-  const channel = await client.channels.fetch(
-    MARKET_HEADLINE_CHANNEL_ID
-  );
-
-  if (!channel || !channel.isTextBased() || !("send" in channel)) return;
-
-  const insight = getDailyTradingInsight();
-
-  await channel.send(`
-🧠 **Gaby's Daily Trading Insight**
-
-${insight}
-
-Small lessons repeated over time build real understanding.
-`);
-
-  await insightRef.set({
-    insight,
-    sentAt: new Date().toISOString(),
-  });
+  return JSON.parse(content) as DailyMarketBrief;
 }
 
 async function sendDailyMarketHeadline() {
   const now = new Date();
 
-  const dateKey = now.toISOString().slice(0, 10);
+  const dateKey = now
+    .toISOString()
+    .slice(0, 10);
 
-  const displayDate = now.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const displayDate =
+    now.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
   const briefRef = db
     .collection("dailyMarketBriefs")
@@ -907,32 +903,60 @@ async function sendDailyMarketHeadline() {
 
   const briefSnap = await briefRef.get();
 
-  if (briefSnap.exists) return;
+  /*
+    Do not create another brief when today's document
+    already uses the new multi-headline format.
+
+    If today's document still uses the old single-headline
+    format, this allows the bot to replace it.
+  */
+  if (briefSnap.exists) {
+    const existingBrief = briefSnap.data();
+
+    if (
+      Array.isArray(existingBrief?.headlines) &&
+      existingBrief.headlines.length > 0
+    ) {
+      return;
+    }
+  }
 
   try {
-    const headline = await fetchMarketHeadline();
+    const headlines =
+      await fetchMarketHeadlines(5);
 
-    if (!headline) {
-      console.error("No market headline was found.");
+    if (headlines.length === 0) {
+      console.error(
+        "No market headlines were found."
+      );
       return;
     }
 
-    const lesson = getRelatedLesson(headline);
+    const brief =
+      await createDailyMarketBrief(headlines);
 
-    const brief = await createDailyMarketBrief(headline);
-
-    const channel = await client.channels.fetch(
-      MARKET_HEADLINE_CHANNEL_ID
-    );
+    const channel =
+      await client.channels.fetch(
+        MARKET_HEADLINE_CHANNEL_ID
+      );
 
     if (
       !channel ||
       !channel.isTextBased() ||
       !("send" in channel)
     ) {
-      console.error("Market headline channel was not found.");
+      console.error(
+        "Market headline channel was not found."
+      );
       return;
     }
+
+    const headlinesText = headlines
+      .map(
+        (headline, index) =>
+          `**${index + 1}.** ${headline.title}`
+      )
+      .join("\n");
 
     const conceptsText = brief.concepts
       .map(
@@ -944,16 +968,17 @@ async function sendDailyMarketHeadline() {
     await channel.send(`
 📰 **Gaby's Daily Market Brief**
 
-**${headline}**
+**Today's Headlines**
 
-💡 **Why it matters**
+${headlinesText}
+
+💡 **Gaby's Market Breakdown**
+
 ${brief.breakdown}
 
 📚 **Key Concepts**
-${conceptsText}
 
-🎓 **Related Lesson**
-${lesson}
+${conceptsText}
 
 Educational purposes only. TradeNestX does not provide financial advice, investment recommendations, or trading signals.
 `);
@@ -961,13 +986,12 @@ Educational purposes only. TradeNestX does not provide financial advice, investm
     await briefRef.set({
       date: dateKey,
       displayDate,
-      headline,
+
+      headlines,
 
       breakdown: brief.breakdown,
       concepts: brief.concepts,
       categories: brief.categories,
-
-      lesson,
 
       source: {
         name: "CoinDesk",
@@ -990,6 +1014,8 @@ Educational purposes only. TradeNestX does not provide financial advice, investm
 client.once("ready", async () => {
   console.log(`Gaby is online.`);
 
+  await sendDailyMarketHeadline();
+
 
 setInterval(async () => {
   const now = new Date();
@@ -997,9 +1023,9 @@ setInterval(async () => {
   const isNineAM = now.getHours() === 9;
   const isFirstMinute = now.getMinutes() === 0;
 
-if (true) {
+if (isNineAM && isFirstMinute) {
   await sendDailyMarketHeadline();
-  await sendDailyTradingInsight();
+  
 }
 
 }, 60 * 1000);
