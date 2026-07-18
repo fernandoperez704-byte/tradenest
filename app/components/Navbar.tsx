@@ -13,9 +13,20 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
   <>
     <nav className="sticky top-0 z-50 w-full border-b border-cyan-500/10 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
-      <div className="page-container flex h-[56px] items-center justify-between">
+      <div className="page-container relative flex h-[56px] items-center justify-between">
+
+<button
+  onClick={() => setMobileMenuOpen(true)}
+  className="flex h-10 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-[#18181b] text-3xl font-black text-white md:hidden"
+>
+  ☰
+</button>
+
         <div className="flex items-center gap-8 xl:gap-16">
-          <Link href="/" className="group flex items-center">
+          <Link
+  href="/"
+  className="group absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0"
+>
             <div className="relative flex items-center text-3xl font-black tracking-tight md:text-4xl">
               <span className="text-white transition-all duration-300 group-hover:text-zinc-100">
                 TradeNest
@@ -113,12 +124,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   )}
 </div>
 
-<button
-  onClick={() => setMobileMenuOpen(true)}
-  className="flex h-10 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-[#18181b] text-3xl font-black text-white md:hidden"
->
-  ☰
-</button>
+
 
       </div>
 
@@ -197,72 +203,99 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 )}
 
 {mobileMenuOpen && (
-  <div className="fixed inset-0 z-[9999] bg-[#000000] text-white md:hidden">
-    
-    <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-      <Link
-        href="/"
-        onClick={() => setMobileMenuOpen(false)}
-        className="text-3xl font-black"
-      >
-        TradeNest<span className="text-cyan-400">X</span>
-      </Link>
+  <div className="fixed inset-0 z-[9999] md:hidden">
+    {/* Dark backdrop */}
+    <button
+      type="button"
+      aria-label="Close navigation menu"
+      onClick={() => setMobileMenuOpen(false)}
+      className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+    />
 
-      <button
-        onClick={() => setMobileMenuOpen(false)}
-        className="text-4xl font-black text-white"
-      >
-        ×
-      </button>
-    </div>
-
-    <div className="flex flex-col">
-      {[
-        ["Learn", "/learn"],
-        ["Simulator", "/simulator"],
-        ["Leaderboard", "/leaderboard"],
-        ["News", "/news"],
-        ["Support", "/support"],
-      ].map(([label, href]) => (
+    {/* Slide-in menu */}
+    <div className="relative flex h-full w-[86%] max-w-[360px] flex-col border-r border-white/10 bg-[#050816] text-white shadow-[20px_0_60px_rgba(0,0,0,0.55)]">
+      {/* Header */}
+      <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
         <Link
-          key={href}
-          href={href}
+          href="/"
           onClick={() => setMobileMenuOpen(false)}
-          className="border-b border-white/10 px-6 py-6 text-3xl font-black"
+          className="text-2xl font-black tracking-tight"
         >
-          {label}
+          TradeNest<span className="text-cyan-400">X</span>
         </Link>
-      ))}
 
-      <button
-        onClick={() => {
-          setMobileMenuOpen(false);
-          setShowCommunity(true);
-        }}
-        className="border-b border-white/10 px-6 py-6 text-left text-3xl font-black"
-      >
-        Community
-      </button>
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-label="Close navigation menu"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl font-bold text-zinc-300 transition hover:border-cyan-400/40 hover:text-white"
+        >
+          ×
+        </button>
+      </div>
 
-      <div className="px-6 py-6">
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {[
+          ["Learn", "/learn"],
+          ["Simulator", "/simulator"],
+          ["Leaderboard", "/leaderboard"],
+          ["News", "/news"],
+          ["Support", "/support"],
+        ].map(([label, href]) => {
+          const active = pathname === href;
+
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`mb-2 flex h-14 items-center justify-between rounded-xl px-4 text-lg font-bold transition-all ${
+                active
+                  ? "border border-cyan-400/30 bg-cyan-500/10 text-cyan-400"
+                  : "border border-transparent text-zinc-200 hover:border-white/10 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span>{label}</span>
+              <span className="text-xl text-zinc-500">›</span>
+            </Link>
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={() => {
+            setMobileMenuOpen(false);
+            setShowCommunity(true);
+          }}
+          className="mb-2 flex h-14 w-full items-center justify-between rounded-xl border border-transparent px-4 text-left text-lg font-bold text-zinc-200 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white"
+        >
+          <span>Community</span>
+          <span className="text-xl text-zinc-500">›</span>
+        </button>
+      </div>
+
+      {/* Account section */}
+      <div className="border-t border-white/10 p-4">
         {!isLoaded ? (
-          <div className="h-14 w-full rounded-2xl bg-zinc-800" />
+          <div className="h-12 w-full animate-pulse rounded-xl bg-white/5" />
         ) : isSignedIn ? (
-          <div className="flex items-center gap-4">
+          <div className="flex h-14 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4">
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "h-14 w-14 border border-zinc-700",
+                  avatarBox: "h-10 w-10 border border-zinc-700",
                 },
               }}
             />
-            <span className="text-xl font-black text-zinc-300">
+
+            <span className="text-base font-bold text-zinc-200">
               Account
             </span>
           </div>
         ) : (
           <SignInButton mode="modal">
-            <button className="w-full rounded-2xl bg-cyan-500 px-6 py-5 text-2xl font-black text-black">
+            <button className="h-12 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/90 text-base font-black text-black shadow-[0_0_20px_rgba(6,182,212,0.18)] transition-all duration-200 hover:bg-cyan-400 active:scale-[0.98]">
               Sign In
             </button>
           </SignInButton>

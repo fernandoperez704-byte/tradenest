@@ -606,7 +606,7 @@ return (
       <Navbar />
 
 <main className="page-shell !pt-0 xl:h-[calc(100dvh-78px)] xl:overflow-hidden">
-  <div className="mx-auto h-full w-full max-w-[1780px] px-6">
+  <div className="mx-auto h-full w-full max-w-[1780px] px-1 xl:px-6">
     <div className="grid h-full min-h-0 grid-cols-1 gap-4 pt-2 xl:grid-cols-[220px_minmax(0,1fr)] xl:overflow-hidden">
 
 <div
@@ -788,7 +788,7 @@ window.scrollTo({
 
 <section
   id="lesson-content"
-  className={`min-h-0 min-w-0 overflow-y-auto pb-6 pr-2 scrollbar-hide ${
+  className={`min-h-0 min-w-0 overflow-y-auto px-3 pb-6 xl:px-0 xl:pr-2 scrollbar-hide ${
     mobileLearnView === "LESSON" ? "block" : "hidden xl:block"
   }`}
 >
@@ -824,17 +824,17 @@ window.scrollTo({
   <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Every trader starts by asking the same question:
     what am I actually buying?
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Before learning charts, indicators, or trading strategies, you need
     to understand the assets that make up the financial markets.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Stocks, crypto, forex, and futures all move for different reasons.
     Understanding those differences will help you make better decisions
     as you continue through TradeNestX.
@@ -944,18 +944,18 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Now that you understand what you're buying, it's time to understand
     why prices move.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Every market is driven by buyers and sellers competing for price.
     When demand becomes stronger than supply, prices can rise. When
     selling pressure takes over, prices can fall.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Understanding this concept will help you make sense of charts,
     trends, volatility, and market behavior throughout your trading
     journey.
@@ -1076,17 +1076,17 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now understand what you're buying and why prices move.
     The next step is learning how traders actually enter and exit the market.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Every trade begins with an order. The type of order you choose can
     affect your entry price, execution speed, and overall trade quality.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Market and limit orders are the most common tools traders use to
     enter positions. Learning when to use each one gives you more control
     over your trades.
@@ -1197,18 +1197,18 @@ onClick={completeLesson}
   <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now know what you're buying, why markets move, and how traders
     enter positions.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Before focusing on profits, it's important to learn how traders
     protect themselves from unnecessary losses. Every trade carries risk,
     and managing that risk is what keeps traders in the game.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     In this lesson, you'll learn why protecting your capital is more
     important than chasing quick gains and why discipline matters more
     than any strategy.
@@ -1321,18 +1321,18 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now know how to read individual candlesticks. The next step is
     understanding how those candles look across different timeframes.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     A 1-minute chart and a daily chart can show very different views of
     the same market. Traders use timeframes to match their strategy,
     risk tolerance, and trading goals.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Learning how timeframes work will help you avoid tunnel vision and
     better understand the bigger picture behind market movements.
   </p>
@@ -1444,17 +1444,17 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Now that you understand risk management, it's time to start reading
     the language of the market.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Every chart is made up of candlesticks. Each candle tells a story
     about what buyers and sellers were doing during a specific period of time.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Learning how to read candlesticks is one of the first steps toward
     understanding price action and making informed trading decisions.
   </p>
@@ -1566,18 +1566,18 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now understand candlesticks and timeframes. The next question is:
     how much participation is behind a price move?
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Volume measures how active the market is during a specific period.
     It helps traders understand whether buyers and sellers are truly
     supporting a move or if momentum may be weakening.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     By combining price action with volume, traders gain a deeper view of
     market strength and can better evaluate potential opportunities.
   </p>
@@ -1687,19 +1687,19 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You can now read candles, understand timeframes, and evaluate volume.
     The next step is learning where buyers and sellers have historically
     taken action.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Support and resistance are areas where price has previously reacted.
     These zones often become important decision points for traders looking
     for entries, exits, and potential reversals.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Learning to identify these levels will help you understand market
     structure and where risk and opportunity may exist.
   </p>
@@ -1808,18 +1808,18 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Support and resistance help identify important price levels. The next
     step is understanding why those levels exist in the first place.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Supply and demand zones form when large groups of buyers or sellers
     enter the market. These areas can influence future price movement and
     often attract trader attention.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Learning to recognize supply and demand can help you better understand
     where momentum may slow, reverse, or continue.
   </p>
@@ -1928,19 +1928,19 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now understand price action, volume, support and resistance, and
     supply and demand. The next step is learning how these pieces can
     combine to create recognizable market patterns.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Chart patterns are formations created by price movement over time.
     Traders use them to identify potential continuation and reversal
     opportunities within a trend.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     No pattern guarantees a result, but understanding them can help you
     better recognize market behavior and improve trade planning.
   </p>
@@ -2051,19 +2051,19 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now understand how markets move, how to read charts, and how to
     identify important levels and patterns. The next step is putting those
     skills together into a structured trading plan.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     A trade plan gives you a clear reason for entering a trade, managing
     risk, and deciding when to exit. It helps remove emotion and creates
     consistency in your decision making.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Professional traders don't rely on hope or guesswork. They follow a
     process before risking capital, and that process begins with a plan.
   </p>
@@ -2172,18 +2172,18 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You now have the tools to build a trade plan, but knowledge alone
     doesn't guarantee success.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Fear, greed, impatience, and overconfidence can cause traders to
     ignore their plan and make emotional decisions. Managing emotions is
     often harder than learning chart analysis.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Developing discipline and consistency will help you follow your
     strategy through both winning and losing periods.
   </p>
@@ -2293,19 +2293,19 @@ onClick={completeLesson}
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
 
 <div>
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     You've now learned the core foundations of trading. The final step
     before your checkpoint is becoming familiar with the language traders
     use every day.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Terms like bullish, bearish, support, resistance, leverage, and
     volatility appear constantly in trading discussions. Understanding
     them will help you communicate and learn more effectively.
   </p>
 
-  <p className="mt-5 text-white text-[17px] leading-8 max-w-[300px]">
+  <p className="mt-5 text-white text-[17px] leading-8 max-w-full xl:max-w-[300px]">
     Think of this lesson as building your trading vocabulary so you can
     confidently understand educational content, market analysis, and
     conversations with other traders.
