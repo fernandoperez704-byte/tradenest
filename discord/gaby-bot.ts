@@ -1014,6 +1014,8 @@ Educational purposes only. TradeNestX does not provide financial advice, investm
 client.once("ready", async () => {
   console.log(`Gaby is online.`);
 
+  console.log("Running daily market brief on startup...");
+
   await sendDailyMarketHeadline();
 
 

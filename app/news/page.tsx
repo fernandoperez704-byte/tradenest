@@ -80,7 +80,7 @@ export default async function NewsPage() {
                       </h1>
                     </div>
 
-                    {brief.headlines.length > 0 ? (
+                    {Array.isArray(brief.headlines) && brief.headlines.length > 0 ? (
                       <div className="mt-5 space-y-3">
                         {brief.headlines.map((headline, index) => (
                           <article
