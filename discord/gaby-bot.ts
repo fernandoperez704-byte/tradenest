@@ -685,6 +685,17 @@ Keep learning one concept at a time. Small lessons repeated over time build real
 );
 }
 
+type DailyMarketConcept = {
+  title: string;
+  explanation: string;
+};
+
+type DailyMarketBrief = {
+  breakdown: string;
+  concepts: DailyMarketConcept[];
+  categories: string[];
+};
+
 async function fetchMarketHeadline() {
   const response = await fetch(COINDESK_RSS_URL);
   const xml = await response.text();
@@ -731,25 +742,89 @@ function getRelatedLesson(headline: string) {
   return "How The Market Works";
 }
 
-async function createEducationalExplanation(headline: string) {
+async function createDailyMarketBrief(
+  headline: string
+): Promise<DailyMarketBrief> {
   const completion = await openai.chat.completions.create({
     model: "gpt-4.1-mini",
+
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "daily_market_brief",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            breakdown: {
+              type: "string",
+            },
+            concepts: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  title: {
+                    type: "string",
+                  },
+                  explanation: {
+                    type: "string",
+                  },
+                },
+                required: [
+                  "title",
+                  "explanation",
+                ],
+              },
+            },
+            categories: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+          },
+          required: [
+            "breakdown",
+            "concepts",
+            "categories",
+          ],
+        },
+      },
+    },
+
     messages: [
       {
         role: "system",
         content: `
 You are Gaby, the TradeNestX educational trading coach.
 
-Explain this real market headline for beginners.
+You are given ONE real crypto news headline.
+
+Return ONLY valid JSON.
 
 Rules:
-- Educational only
-- Do not say buy
-- Do not say sell
-- Do not predict price
-- Do not give signals
-- Do not give entry or exit levels
-- Keep it 2 short sentences
+
+- Explain why the headline matters.
+- Educational only.
+- Never predict prices.
+- Never give buy or sell advice.
+- Never give signals.
+- Never mention entries or exits.
+- Breakdown should be 2-4 short sentences.
+- Create 2-4 key concepts.
+- Categories should be simple like:
+Bitcoin
+Ethereum
+Altcoins
+ETFs
+Institutions
+Economy
+Security
+Regulations
+Market Analysis
 `,
       },
       {
@@ -759,10 +834,13 @@ Rules:
     ],
   });
 
-  return (
-    completion.choices[0].message.content ||
-    "This headline matters because market news can affect sentiment, volume, and volatility. Beginners should focus on understanding the concept, not predicting the next move."
-  );
+  const content = completion.choices[0].message.content;
+
+  if (!content) {
+    throw new Error("No response returned.");
+  }
+
+  return JSON.parse(content);
 }
 
 function getDailyTradingInsight() {
@@ -813,48 +891,100 @@ Small lessons repeated over time build real understanding.
 }
 
 async function sendDailyMarketHeadline() {
-  const today = new Date().toDateString();
+  const now = new Date();
 
-  const headlineRef = db
-    .collection("dailyMarketHeadlines")
-    .doc(today);
+  const dateKey = now.toISOString().slice(0, 10);
 
-  const headlineSnap = await headlineRef.get();
+  const displayDate = now.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
-  if (headlineSnap.exists) return;
+  const briefRef = db
+    .collection("dailyMarketBriefs")
+    .doc(dateKey);
 
-  const headline = await fetchMarketHeadline();
+  const briefSnap = await briefRef.get();
 
-  if (!headline) return;
+  if (briefSnap.exists) return;
 
-  const lesson = getRelatedLesson(headline);
-  const explanation = await createEducationalExplanation(headline);
+  try {
+    const headline = await fetchMarketHeadline();
 
-const channel = await client.channels.fetch(
-  MARKET_HEADLINE_CHANNEL_ID
-);
+    if (!headline) {
+      console.error("No market headline was found.");
+      return;
+    }
 
-if (!channel || !channel.isTextBased() || !("send" in channel)) return;
+    const lesson = getRelatedLesson(headline);
 
-await channel.send(`
-📰 **Gaby's Market Headline**
+    const brief = await createDailyMarketBrief(headline);
 
-${headline}
+    const channel = await client.channels.fetch(
+      MARKET_HEADLINE_CHANNEL_ID
+    );
 
-🎓 **Why it matters:**
-${explanation}
+    if (
+      !channel ||
+      !channel.isTextBased() ||
+      !("send" in channel)
+    ) {
+      console.error("Market headline channel was not found.");
+      return;
+    }
 
-📚 **Related Lesson:**
+    const conceptsText = brief.concepts
+      .map(
+        (concept) =>
+          `**${concept.title}:** ${concept.explanation}`
+      )
+      .join("\n");
+
+    await channel.send(`
+📰 **Gaby's Daily Market Brief**
+
+**${headline}**
+
+💡 **Why it matters**
+${brief.breakdown}
+
+📚 **Key Concepts**
+${conceptsText}
+
+🎓 **Related Lesson**
 ${lesson}
 
 Educational purposes only. TradeNestX does not provide financial advice, investment recommendations, or trading signals.
 `);
 
-  await headlineRef.set({
-    headline,
-    lesson,
-    sentAt: new Date().toISOString(),
-  });
+    await briefRef.set({
+      date: dateKey,
+      displayDate,
+      headline,
+
+      breakdown: brief.breakdown,
+      concepts: brief.concepts,
+      categories: brief.categories,
+
+      lesson,
+
+      source: {
+        name: "CoinDesk",
+        feedUrl: COINDESK_RSS_URL,
+      },
+
+      createdAt:
+        admin.firestore.FieldValue.serverTimestamp(),
+
+      sentAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error(
+      "Failed to create daily market brief:",
+      error
+    );
+  }
 }
 
 client.once("ready", async () => {
@@ -867,7 +997,7 @@ setInterval(async () => {
   const isNineAM = now.getHours() === 9;
   const isFirstMinute = now.getMinutes() === 0;
 
-if (isNineAM && isFirstMinute) {
+if (true) {
   await sendDailyMarketHeadline();
   await sendDailyTradingInsight();
 }
