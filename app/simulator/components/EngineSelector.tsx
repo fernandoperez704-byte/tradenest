@@ -70,13 +70,13 @@ export const EngineSelector: React.FC<EngineSelectorProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-slate-700"
+        className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-[11px] font-medium text-slate-200 transition-colors hover:bg-slate-700 sm:gap-2 sm:px-3 sm:text-xs"
       >
         <Sliders className="h-3.5 w-3.5" />
 
         <span>Engines</span>
 
-        <span className="ml-1 rounded-full bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold text-cyan-400">
+        <span className="ml-0.5 rounded-full bg-cyan-500/20 px-1 py-0.5 text-[9px] font-bold text-cyan-400 sm:ml-1 sm:px-1.5 sm:text-[10px]">
           {activeEngines.length}/{MAX_ENGINES}
         </span>
       </button>

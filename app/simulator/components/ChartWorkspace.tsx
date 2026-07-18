@@ -402,16 +402,18 @@ return (
   </div>
 )}
 
-          <button
-            onClick={() => setIndicatorPanel("VOLUME")}
-            className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black ${
-              indicatorPanel === "VOLUME"
-                ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-                : "border-zinc-700 bg-[#111827] text-zinc-400"
-            }`}
-          >
-            Volume
-          </button>
+<button
+  onClick={() => setIndicatorPanel("VOLUME")}
+  title="Volume"
+  className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black ${
+    indicatorPanel === "VOLUME"
+      ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+      : "border-zinc-700 bg-[#111827] text-zinc-400"
+  }`}
+>
+  <span className="sm:hidden">VOL</span>
+  <span className="hidden sm:inline">Volume</span>
+</button>
 
           <button
             onClick={() => setIndicatorPanel("RSI")}
