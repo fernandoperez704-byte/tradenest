@@ -243,7 +243,7 @@ function formatPatternName(
 
 return (
   <div
-    className={`min-w-0 w-full bg-[#0f172a] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
+    className={`min-w-0 w-full bg-[#0f172a] border border-zinc-700 rounded-xl p-2 xl:rounded-2xl xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
       mobileView === "TRADE" ? "flex" : "hidden xl:flex"
     } ${
       tourStep === 2
@@ -252,27 +252,29 @@ return (
     }`}
   >
 
-      <button
-        onClick={() => setMobileView("WATCHLIST")}
-        className="mb-4 block rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
-      >
-        ← Back to Coins
-      </button>
+<div className="mb-3 grid grid-cols-2 gap-2 xl:hidden">
+  <button
+    onClick={() => setMobileView("WATCHLIST")}
+    className="flex h-11 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 text-sm font-black text-cyan-300"
+  >
+    ← Back
+  </button>
 
-      <button
-        onClick={() => setShowSimulatorGaby(true)}
-        className="mb-4 flex w-full items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-4 text-lg font-black text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.12)] xl:hidden"
-      >
-        Ask Gaby
-      </button>
+  <button
+    onClick={() => setShowSimulatorGaby(true)}
+    className="flex h-11 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 text-sm font-black text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+  >
+    Ask Gaby
+  </button>
+</div>
 
-      <div className="mb-3 border-b border-zinc-800 pb-3">
-        <div className="flex items-end gap-4">
-          <h2 className="text-2xl xl:text-3xl font-black text-white">
+<div className="mb-2 border-b border-zinc-800 pb-2">
+  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
             {selectedCoin}/USD
           </h2>
 
-<p className="text-2xl xl:text-3xl font-black text-white">
+<p className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
   {formattedPrice}
 </p>
 
@@ -333,13 +335,13 @@ return (
         </div>
       </div>
 
-      <div className="mb-2 flex flex-col-reverse gap-2 xl:flex-row xl:items-center xl:justify-between">
+      <div className="mb-1.5 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap gap-2">
           {["1M", "5M", "15M", "1H", "4H", "1D"].map((timeframe) => (
             <button
               key={timeframe}
               onClick={() => setSelectedTimeframe(timeframe)}
-              className={`rounded-md border px-3 py-1.5 text-xs font-bold transition-all ${
+              className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-bold transition-all ${
                 selectedTimeframe === timeframe
                   ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                   : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
@@ -350,7 +352,7 @@ return (
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-1.5">
 
 <EngineSelector
   activeEngines={activeEngines}
@@ -365,7 +367,7 @@ return (
     )
   }
   title="Pattern Recognition (Beta)"
-  className={`rounded-md border px-3 py-1.5 text-xs font-black transition-all ${
+  className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black transition-all ${
     patternRecognitionEnabled
       ? "border-green-500 bg-green-500/15 text-green-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
@@ -402,7 +404,7 @@ return (
 
           <button
             onClick={() => setIndicatorPanel("VOLUME")}
-            className={`rounded-md border px-3 py-1.5 text-xs font-black ${
+            className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black ${
               indicatorPanel === "VOLUME"
                 ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                 : "border-zinc-700 bg-[#111827] text-zinc-400"
@@ -413,7 +415,7 @@ return (
 
           <button
             onClick={() => setIndicatorPanel("RSI")}
-            className={`rounded-md border px-3 py-1.5 text-xs font-black ${
+            className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black ${
               indicatorPanel === "RSI"
                 ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                 : "border-zinc-700 bg-[#111827] text-zinc-400"
@@ -426,7 +428,7 @@ return (
             onClick={() =>
               chartInstanceRef.current?.timeScale().scrollToRealTime()
             }
-            className="rounded-md border px-3 py-1.5 text-xs font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+            className="rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
           >
             Live
           </button>

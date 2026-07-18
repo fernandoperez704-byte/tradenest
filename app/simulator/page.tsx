@@ -2829,7 +2829,7 @@ const watchlist = WATCHLIST.map((coin) => ({
 
       <main className="page-shell selection:bg-cyan-500/30 !pt-0">
 
-<div className="mt-2 grid min-w-0 w-full grid-cols-1 gap-3 page-container xl:grid-cols-[220px_minmax(0,1fr)_270px]">
+<div className="mt-1 grid min-w-0 w-full grid-cols-1 gap-2 px-1 xl:mt-2 xl:gap-3 xl:px-6 xl:grid-cols-[220px_minmax(0,1fr)_270px]">
 
 <WatchlistPanel
   mobileView={mobileView}

@@ -82,7 +82,7 @@ export const EngineSelector: React.FC<EngineSelectorProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-slate-800 bg-slate-900 p-2 shadow-2xl">
+        <div className="fixed left-2 right-2 top-[320px] z-50 max-h-[60vh] overflow-y-auto scrollbar-hide rounded-xl border border-slate-800 bg-slate-900 p-2 shadow-2xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-72 md:max-h-none md:overflow-visible">
           {engines.map((engine) => {
             const isActive = activeEngines.includes(engine.id);
 
@@ -141,15 +141,15 @@ return (
       )}
     </button>
 
-    <div className="pointer-events-none absolute right-full top-1/2 z-50 mr-4 -translate-y-1/2 w-80 rounded-xl border border-cyan-500/20 bg-[#111827] p-5 opacity-0 shadow-2xl transition-opacity duration-200 group-hover:opacity-100">
-      <p className="text-sm font-bold text-cyan-400">
-        {engine.label}
-      </p>
+<div className="pointer-events-none absolute right-full top-1/2 z-[100] mr-4 hidden w-[320px] min-w-[320px] max-w-none -translate-y-1/2 whitespace-normal rounded-xl border border-cyan-500/20 bg-[#111827] p-5 opacity-0 shadow-2xl transition-opacity duration-200 lg:block lg:group-hover:opacity-100">
+  <p className="text-sm font-bold text-cyan-400">
+    {engine.label}
+  </p>
 
-      <p className="mt-2 text-sm leading-7 text-zinc-300">
-        {engine.description}
-      </p>
-    </div>
+  <p className="mt-2 text-sm leading-7 text-zinc-300">
+    {engine.description}
+  </p>
+</div>
   </div>
 );
           })}
