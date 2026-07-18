@@ -1,5 +1,5 @@
-export function completeSnapshot(
-  snapshot: any,
+export function completeSnapshot<T extends object>(
+  snapshot: T | null,
   explanation: string,
   model = "gpt-5.5"
 ) {
@@ -17,7 +17,14 @@ export function completeSnapshot(
   };
 }
 
-export function isSnapshotComplete(snapshot: any) {
+export function isSnapshotComplete<
+  T extends {
+    gaby?: {
+      generated?: boolean;
+      explanation?: string;
+    };
+  }
+>(snapshot: T | null) {
   return Boolean(
     snapshot?.gaby?.generated &&
     snapshot?.gaby?.explanation

@@ -30,12 +30,19 @@ export type AssetSymbol =
   | "SHIB"
   | "PEPE";
 
+export type PriceZone = {
+  low: number;
+  high: number;
+  strength: number;
+};
+
 export type Trade = {
   type: string;
   coin: AssetSymbol;
   price: number;
   amount: number;
   time: string;
+
   pnl?: number;
   entryFee?: number;
   exitFee?: number;
@@ -43,18 +50,23 @@ export type Trade = {
   grossPnl?: number;
 
   snapshotId?: string;
-  automaticReview?: any;
-  review?: any;
+
+  automaticReview?: unknown;
+  review?: unknown;
+
   closedReason?: "MANUAL" | "TP" | "SL";
   closedAt?: string;
-  tradeContext?: any;
+
+  tradeContext?: unknown;
+
   status?: string;
 
   entryQuality?: string | null;
   marketDirection?: string;
   marketStructure?: string;
-  nearestSupport?: any;
-  nearestResistance?: any;
+
+  nearestSupport?: PriceZone | null;
+  nearestResistance?: PriceZone | null;
 };
 
 export type FuturesCloseReason =

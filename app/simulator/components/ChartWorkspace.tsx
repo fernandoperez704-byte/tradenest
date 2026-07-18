@@ -364,14 +364,14 @@ return (
       !patternRecognitionEnabled
     )
   }
-  title="Pattern Recognition"
+  title="Pattern Recognition (Beta)"
   className={`rounded-md border px-3 py-1.5 text-xs font-black transition-all ${
     patternRecognitionEnabled
       ? "border-green-500 bg-green-500/15 text-green-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
   }`}
 >
-  PAT
+  PAT BETA
 </button>
 
 {patternRecognitionEnabled && strongestPattern && (

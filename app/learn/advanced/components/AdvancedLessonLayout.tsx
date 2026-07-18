@@ -104,9 +104,9 @@ async function askGaby(question?: string) {
 
   </div>
 
-  <div className="mt-6 flex flex-1 flex-col border-t border-white/10 pt-5">
+<div className="mt-5 flex min-h-0 flex-1 flex-col border-t border-white/10 pt-4">
 
-<div className="flex-1 min-h-0 overflow-y-auto rounded-2xl border border-white/10 bg-[#020617] px-5 py-6">
+  <div className="h-[290px] min-h-0 overflow-y-auto scrollbar-hide rounded-2xl border border-white/10 bg-[#020617] px-5 py-5">
 
 <p className="mb-4 text-base font-black text-cyan-300">
   Gaby

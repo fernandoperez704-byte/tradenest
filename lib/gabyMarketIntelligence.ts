@@ -170,6 +170,12 @@ export type MultiTimeframeAnalysis = {
   summary: string;
 };
 
+export type MultiTimeframeMarketData = {
+  direction: "BULLISH" | "BEARISH" | "TRANSITION";
+  momentum?: MomentumAnalysis["momentum"] | null;
+  conviction?: MarketConviction | null;
+};
+
 export type MovingAverageAnalysis = {
   ma7: number | null;
   ma25: number | null;
@@ -867,7 +873,7 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
 }
 
 export function getMultiTimeframeAnalysis(
-  timeframeData: Record<string, any>,
+  timeframeData: Record<string, MultiTimeframeMarketData>,
   selectedTimeframe: string
 ): MultiTimeframeAnalysis {
   const contextMap: Record<string, string[]> = {
@@ -991,7 +997,7 @@ const structure = getMarketStructure(
  * Now accepts optional timeframe and asset parameters to fit your UI dashboard layout context.
  */
 export function buildMarketAnalysisSummary(
-  intelligence: any,
+  intelligence: MarketIntelligence,
   selectedTimeframe?: string,
   selectedCoin?: string
 ): string {
