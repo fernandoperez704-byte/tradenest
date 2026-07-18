@@ -965,44 +965,53 @@ async function sendDailyMarketHeadline() {
       )
       .join("\n");
 
-    await channel.send(`
-📰 **Gaby's Daily Market Brief**
+await briefRef.set({
+  date: dateKey,
+  displayDate,
 
-**Today's Headlines**
+  headlines,
 
-${headlinesText}
+  breakdown: brief.breakdown,
+  concepts: brief.concepts,
+  categories: brief.categories,
 
-💡 **Gaby's Market Breakdown**
+  source: {
+    name: "CoinDesk",
+    feedUrl: COINDESK_RSS_URL,
+  },
 
-${brief.breakdown}
+  createdAt:
+    admin.firestore.FieldValue.serverTimestamp(),
 
-📚 **Key Concepts**
+  sentAt: new Date().toISOString(),
+});
 
-${conceptsText}
+const headlinesMessage = [
+  "📰 **Gaby's Daily Market Brief**",
+  "",
+  "**Today's Headlines**",
+  "",
+  headlinesText,
+].join("\n");
 
-Educational purposes only. TradeNestX does not provide financial advice, investment recommendations, or trading signals.
-`);
+const breakdownMessage = [
+  "💡 **Gaby's Market Breakdown**",
+  "",
+  brief.breakdown,
+].join("\n");
 
-    await briefRef.set({
-      date: dateKey,
-      displayDate,
+const conceptsMessage = [
+  "📚 **Key Concepts**",
+  "",
+  conceptsText,
+  "",
+  "Educational purposes only. TradeNestX does not provide financial advice, investment recommendations, or trading signals.",
+].join("\n");
 
-      headlines,
+await channel.send(headlinesMessage);
+await channel.send(breakdownMessage);
+await channel.send(conceptsMessage);
 
-      breakdown: brief.breakdown,
-      concepts: brief.concepts,
-      categories: brief.categories,
-
-      source: {
-        name: "CoinDesk",
-        feedUrl: COINDESK_RSS_URL,
-      },
-
-      createdAt:
-        admin.firestore.FieldValue.serverTimestamp(),
-
-      sentAt: new Date().toISOString(),
-    });
   } catch (error) {
     console.error(
       "Failed to create daily market brief:",
