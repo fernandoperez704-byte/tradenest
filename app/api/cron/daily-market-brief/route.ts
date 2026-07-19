@@ -501,11 +501,14 @@ if (existingSnapshot.exists) {
         headline.gabyInsight.trim().length > 0
     );
 
-  if (
-    hasCompleteHeadlines &&
-    typeof existingBrief?.breakdown ===
-      "string"
-  ) {
+const hasLookBack =
+  existingBrief?.lookBack != null;
+
+if (
+  hasCompleteHeadlines &&
+  typeof existingBrief?.breakdown === "string" &&
+  hasLookBack
+) {
     return NextResponse.json({
       success: true,
       created: false,

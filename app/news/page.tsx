@@ -402,7 +402,7 @@ export default async function NewsPage() {
               </section>
 
 <footer className="border-t border-zinc-800 py-8">
-  <p className="text-base font-medium text-zinc-200 whitespace-nowrap">
+  <p className="mx-auto max-w-3xl text-center text-sm leading-7 text-zinc-300 sm:text-base">
                   Market updates are provided
                   for educational purposes only
                   and do not represent financial
