@@ -11,8 +11,12 @@ const COINDESK_RSS_URL =
 type MarketHeadline = {
   title: string;
   source: string;
-  url: string;
   publishedAt: string;
+};
+
+type GeneratedHeadlineInsight = {
+  title: string;
+  gabyInsight: string;
 };
 
 type MarketConcept = {
@@ -21,6 +25,7 @@ type MarketConcept = {
 };
 
 type GeneratedMarketBrief = {
+  headlineInsights: GeneratedHeadlineInsight[];
   breakdown: string;
   concepts: MarketConcept[];
   categories: string[];
@@ -158,27 +163,26 @@ async function fetchMarketHeadlines(
       const publishedAt =
         extractXmlValue(item, "pubDate");
 
-      if (!title || !url) {
-        return null;
-      }
+if (!title) {
+  return null;
+}
 
       const parsedPublishedDate =
         publishedAt
           ? new Date(publishedAt)
           : null;
 
-      return {
-        title,
-        source: "CoinDesk",
-        url,
-        publishedAt:
-          parsedPublishedDate &&
-          !Number.isNaN(
-            parsedPublishedDate.getTime()
-          )
-            ? parsedPublishedDate.toISOString()
-            : "",
-      };
+return {
+  title,
+  source: "CoinDesk",
+  publishedAt:
+    parsedPublishedDate &&
+    !Number.isNaN(
+      parsedPublishedDate.getTime()
+    )
+      ? parsedPublishedDate.toISOString()
+      : "",
+};
     })
     .filter(
       (
@@ -187,14 +191,14 @@ async function fetchMarketHeadlines(
         headline !== null
     );
 
-  const uniqueHeadlines =
-    headlines.filter(
-      (headline, index, all) =>
-        all.findIndex(
-          (candidate) =>
-            candidate.url === headline.url
-        ) === index
-    );
+const uniqueHeadlines =
+  headlines.filter(
+    (headline, index, all) =>
+      all.findIndex(
+        (candidate) =>
+          candidate.title === headline.title
+      ) === index
+  );
 
   return uniqueHeadlines.slice(0, limit);
 }
@@ -225,6 +229,33 @@ async function createDailyMarketBrief(
             additionalProperties: false,
 
             properties: {
+
+headlineInsights: {
+  type: "array",
+  minItems: 1,
+  maxItems: 5,
+
+  items: {
+    type: "object",
+    additionalProperties: false,
+
+    properties: {
+      title: {
+        type: "string",
+      },
+
+      gabyInsight: {
+        type: "string",
+      },
+    },
+
+    required: [
+      "title",
+      "gabyInsight",
+    ],
+  },
+},
+
               breakdown: {
                 type: "string",
               },
@@ -264,50 +295,96 @@ async function createDailyMarketBrief(
               },
             },
 
-            required: [
-              "breakdown",
-              "concepts",
-              "categories",
-            ],
+required: [
+  "headlineInsights",
+  "breakdown",
+  "concepts",
+  "categories",
+],
           },
         },
       },
 
-      messages: [
-        {
-          role: "system",
-          content: `
+messages: [
+  {
+    role: "system",
+    content: `
 You are Gaby, the TradeNestX educational trading coach.
 
 You are given several real cryptocurrency and financial-market headlines from the same day.
 
-Create ONE combined educational market breakdown connecting the most important themes across all headlines.
+Create:
+
+1. One educational insight for every supplied headline.
+2. One combined daily market breakdown connecting the main themes across all headlines.
+3. Between 3 and 5 beginner-friendly key concepts.
+4. Simple market categories.
 
 Return only valid JSON matching the required schema.
 
-Rules:
+HEADLINE INSIGHT RULES
 
+For every supplied headline, create exactly one matching headlineInsights entry.
+
+Each headlineInsights entry must contain:
+
+- title: Copy the supplied headline title exactly.
+- gabyInsight: Explain what the headline means and why it matters in beginner-friendly language.
+
+Each gabyInsight must:
+
+- Be 2 to 3 short sentences.
+- Stay under approximately 65 words.
+- Use only facts that can reasonably be understood from the supplied headline.
+- Never invent article details, market reactions, numbers, causes, quotes, or outcomes.
+- Never claim to have read the full article.
+- Never copy or closely imitate the publisher's wording beyond the original headline.
+- Never predict prices or future market direction.
+- Never provide trading signals.
+- Never recommend buying or selling.
+- Never suggest entries, exits, targets, or stop losses.
+- Remain educational and neutral.
+
+COMBINED MARKET BREAKDOWN RULES
+
+- Create one combined breakdown connecting the most important themes across all supplied headlines.
+- Do not summarize every headline separately.
 - Explain what the headlines collectively show about the current market environment.
-- Connect related themes across the headlines.
-- Do not summarize each headline separately.
 - Use only information supported by the supplied headlines.
 - Do not invent market facts.
-- Never predict future prices.
+- Do not claim that every headline caused market movement.
+- Keep the breakdown between 3 and 5 concise sentences.
+- Keep the language beginner-friendly.
+- Never predict prices.
 - Never provide buy or sell recommendations.
 - Never provide trading signals.
 - Never recommend entries or exits.
-- Never tell users what asset to trade.
-- Do not claim a headline caused a market move unless the headline explicitly supports that connection.
-- Keep the breakdown between 3 and 5 concise sentences.
-- Make the explanation beginner-friendly.
-- Create between 3 and 5 key concepts.
-- Keep each concept explanation concise and educational.
-- Categories should be simple labels such as Bitcoin, Ethereum, Altcoins, ETFs, Institutions, Economy, Security, Regulations, or Market Analysis.
+
+KEY CONCEPT RULES
+
+- Create between 3 and 5 concepts.
+- Each concept must have a short title and concise beginner-friendly explanation.
+- Concepts should help users understand ideas mentioned across the headlines.
+- Do not provide predictions or trading instructions.
+
+CATEGORY RULES
+
+Use simple labels such as:
+
+Bitcoin
+Ethereum
+Altcoins
+ETFs
+Institutions
+Economy
+Security
+Regulations
+Market Analysis
 
 Engine = Facts.
 Gaby = Explains the facts.
 `,
-        },
+  },
 
         {
           role: "user",
@@ -405,31 +482,37 @@ export async function GET(
       )
       .doc(dateKey);
 
-    const existingSnapshot =
-      await briefRef.get();
+const existingSnapshot =
+  await briefRef.get();
 
-    if (existingSnapshot.exists) {
-      const existingBrief =
-        existingSnapshot.data();
+if (existingSnapshot.exists) {
+  const existingBrief =
+    existingSnapshot.data();
 
-      if (
-        Array.isArray(
-          existingBrief?.headlines
-        ) &&
-        existingBrief.headlines
-          .length > 0 &&
-        typeof existingBrief
-          .breakdown === "string"
-      ) {
-        return NextResponse.json({
-          success: true,
-          created: false,
-          message:
-            "Today's market brief already exists.",
-          date: dateKey,
-        });
-      }
-    }
+  const hasCompleteHeadlines =
+    Array.isArray(existingBrief?.headlines) &&
+    existingBrief.headlines.length > 0 &&
+    existingBrief.headlines.every(
+      (headline: any) =>
+        typeof headline?.title === "string" &&
+        typeof headline?.gabyInsight === "string" &&
+        headline.gabyInsight.trim().length > 0
+    );
+
+  if (
+    hasCompleteHeadlines &&
+    typeof existingBrief?.breakdown ===
+      "string"
+  ) {
+    return NextResponse.json({
+      success: true,
+      created: false,
+      message:
+        "Today's market brief already exists.",
+      date: dateKey,
+    });
+  }
+}
 
     const headlines =
       await fetchMarketHeadlines(5);
@@ -445,11 +528,29 @@ export async function GET(
         headlines
       );
 
+const headlinesWithInsights =
+  headlines.map((headline) => {
+    const matchingInsight =
+      generatedBrief.headlineInsights.find(
+        (item) =>
+          item.title.trim() ===
+          headline.title.trim()
+      );
+
+    return {
+      ...headline,
+
+      gabyInsight:
+        matchingInsight?.gabyInsight?.trim() ||
+        "This headline highlights a current market development. Traders can use it to understand the broader environment without treating it as a prediction or trading signal.",
+    };
+  });
+
     await briefRef.set({
       date: dateKey,
       displayDate,
 
-      headlines,
+      headlines: headlinesWithInsights,
 
       breakdown:
         generatedBrief.breakdown,
@@ -466,11 +567,12 @@ export async function GET(
           COINDESK_RSS_URL,
       },
 
-      createdAt:
-        admin.firestore.FieldValue.serverTimestamp(),
+createdAt:
+  admin.firestore.FieldValue.serverTimestamp(),
 
-      sentAt: null,
-    });
+discordPostedAt: null,
+
+});
 
     return NextResponse.json({
       success: true,
