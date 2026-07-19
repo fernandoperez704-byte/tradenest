@@ -5,6 +5,9 @@ import {
   getDailyMarketBrief,
 } from "@/lib/news/getDailyMarketBrief";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Daily Market Brief | TradeNestX",
   description:
