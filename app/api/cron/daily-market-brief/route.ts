@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import admin from "firebase-admin";
 
+import { getDailyLookBack } from "@/lib/news/getDailyLookBack";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -528,6 +530,9 @@ if (existingSnapshot.exists) {
         headlines
       );
 
+const lookBack =
+  await getDailyLookBack(now);
+
 const headlinesWithInsights =
   headlines.map((headline) => {
     const matchingInsight =
@@ -560,6 +565,8 @@ const headlinesWithInsights =
 
       categories:
         generatedBrief.categories,
+        
+lookBack,
 
       source: {
         name: "CoinDesk",

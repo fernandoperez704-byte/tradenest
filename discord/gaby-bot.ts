@@ -723,9 +723,9 @@ async function sendSavedDailyMarketBreakdown() {
       Discord already posted today's breakdown.
       This prevents duplicate Discord messages.
     */
-    if (brief?.sentAt) {
-      return;
-    }
+if (brief?.discordPostedAt) {
+  return;
+}
 
     const channel =
       await client.channels.fetch(
@@ -768,9 +768,9 @@ await channel.send(
       Only mark the brief as sent after Discord
       successfully accepts the message.
     */
-    await briefRef.update({
-      sentAt: new Date().toISOString(),
-    });
+await briefRef.update({
+  discordPostedAt: new Date().toISOString(),
+});
 
     console.log(
       `Daily market breakdown posted for ${dateKey}.`

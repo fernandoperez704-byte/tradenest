@@ -2,6 +2,8 @@ import "server-only";
 
 import { adminDb } from "@/lib/firebaseAdmin";
 
+import type { DailyLookBack } from "./types";
+
 export type DailyMarketConcept = {
   title: string;
   explanation: string;
@@ -10,6 +12,8 @@ export type DailyMarketConcept = {
 export type DailyMarketHeadline = {
   title: string;
   source: string;
+  publishedAt: string;
+  gabyInsight: string;
 };
 
 export type DailyMarketBrief = {
@@ -19,10 +23,14 @@ export type DailyMarketBrief = {
   breakdown: string;
   concepts: DailyMarketConcept[];
   categories: string[];
+
+  lookBack: DailyLookBack | null;
 };
 
 export async function getDailyMarketBrief(): Promise<DailyMarketBrief | null> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date()
+    .toISOString()
+    .slice(0, 10);
 
   const snapshot = await adminDb
     .collection("dailyMarketBriefs")
