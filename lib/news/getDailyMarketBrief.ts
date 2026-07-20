@@ -28,18 +28,17 @@ export type DailyMarketBrief = {
 };
 
 export async function getDailyMarketBrief(): Promise<DailyMarketBrief | null> {
-  const today = new Date()
-    .toISOString()
-    .slice(0, 10);
-
   const snapshot = await adminDb
     .collection("dailyMarketBriefs")
-    .doc(today)
+    .orderBy("date", "desc")
+    .limit(1)
     .get();
 
-  if (!snapshot.exists) {
+  if (snapshot.empty) {
     return null;
   }
 
-  return snapshot.data() as DailyMarketBrief;
+  const document = snapshot.docs[0];
+
+  return document.data() as DailyMarketBrief;
 }
