@@ -1,37 +1,8 @@
 import { adminDb } from "../lib/firebaseAdmin";
 
-type CryptoHistorySeedEvent = {
-  id: string;
-  month: number;
-  day: number;
-  year: number;
-  title: string;
-  whatHappened: string;
-  whyItMatters: string;
-  sources: {
-    name: string;
-    url: string;
-  }[];
-  verified: boolean;
-  status: "PUBLISHED";
-};
-
-const cryptoHistoryEvents: CryptoHistorySeedEvent[] = [
-  {
-    id: "bitcoin-pizza-day",
-    month: 5,
-    day: 22,
-    year: 2010,
-    title: "Bitcoin Pizza Day",
-    whatHappened:
-      "A Bitcoin user paid 10,000 BTC for two pizzas in one of the earliest widely recognized purchases of physical goods using Bitcoin.",
-    whyItMatters:
-      "The transaction demonstrated that Bitcoin could function as a medium of exchange rather than existing only as an experimental digital asset.",
-    sources: [],
-    verified: true,
-    status: "PUBLISHED",
-  },
-];
+import {
+  cryptoHistoryEvents,
+} from "../lib/news/data/cryptoHistory";
 
 async function seedCryptoHistory() {
   console.log(
