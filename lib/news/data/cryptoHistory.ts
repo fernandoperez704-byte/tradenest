@@ -915,6 +915,305 @@ export const cryptoHistoryEvents: CryptoHistorySeedEvent[] = [
   status: "PUBLISHED",
 },
 
+{
+  id: "ripple-sec-lawsuit",
+  month: 12,
+  day: 22,
+  year: 2020,
+  title: "SEC Files Lawsuit Against Ripple",
+  whatHappened:
+    "The SEC filed a lawsuit alleging Ripple conducted an unregistered securities offering through XRP.",
+  whyItMatters:
+    "The case became one of the most influential legal battles shaping cryptocurrency regulation in the United States.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "ripple-summary-judgment",
+  month: 7,
+  day: 13,
+  year: 2023,
+  title: "Ripple Wins Partial Court Ruling",
+  whatHappened:
+    "A federal court ruled that certain XRP sales on public exchanges were not securities transactions.",
+  whyItMatters:
+    "The decision became a landmark moment for how digital assets may be treated under U.S. securities laws.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "mica-approved",
+  month: 5,
+  day: 16,
+  year: 2023,
+  title: "European Union Approves MiCA",
+  whatHappened:
+    "The European Union adopted the Markets in Crypto-Assets (MiCA) regulatory framework.",
+  whyItMatters:
+    "MiCA established one of the world's first comprehensive regulatory frameworks for crypto assets.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "irs-crypto-guidance",
+  month: 10,
+  day: 9,
+  year: 2019,
+  title: "IRS Issues Cryptocurrency Tax Guidance",
+  whatHappened:
+    "The IRS released updated guidance explaining how cryptocurrency transactions should be reported for tax purposes.",
+  whyItMatters:
+    "The guidance reinforced that digital assets are treated as property for U.S. tax reporting.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "china-mining-ban",
+  month: 5,
+  day: 21,
+  year: 2021,
+  title: "China Announces Bitcoin Mining Crackdown",
+  whatHappened:
+    "Chinese authorities announced measures targeting cryptocurrency mining operations.",
+  whyItMatters:
+    "The crackdown accelerated the migration of miners to countries around the world.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "bitcoin-2013-bull-market",
+  month: 11,
+  day: 30,
+  year: 2013,
+  title: "Bitcoin Completes 2013 Bull Market",
+  whatHappened:
+    "Bitcoin experienced one of its first major global bull markets before entering a prolonged correction.",
+  whyItMatters:
+    "The cycle demonstrated that crypto markets can experience rapid expansions followed by significant declines.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "crypto-winter-2018",
+  month: 12,
+  day: 15,
+  year: 2018,
+  title: "2018 Crypto Winter",
+  whatHappened:
+    "Digital asset prices declined sharply throughout 2018 following the previous year's bull market.",
+  whyItMatters:
+    "The bear market emphasized the cyclical nature of cryptocurrency investing.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "covid-market-crash",
+  month: 12,
+  day: 12,
+  year: 2020,
+  title: "COVID-19 Market Crash",
+  whatHappened:
+    "Global financial markets, including cryptocurrencies, experienced a rapid selloff during the COVID-19 pandemic.",
+  whyItMatters:
+    "The event demonstrated how crypto markets can react to major global economic shocks.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "crypto-bear-market-2022",
+  month: 6,
+  day: 18,
+  year: 2022,
+  title: "2022 Crypto Bear Market",
+  whatHappened:
+    "The cryptocurrency market experienced widespread declines as macroeconomic uncertainty and major industry failures affected investor confidence.",
+  whyItMatters:
+    "The bear market reinforced the importance of risk management and long-term market cycles.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "etf-driven-rally",
+  month: 1,
+  day: 11,
+  year: 2024,
+  title: "ETF Era Begins",
+  whatHappened:
+    "Spot Bitcoin ETF approvals marked the beginning of a new phase of institutional participation in cryptocurrency markets.",
+  whyItMatters:
+    "The event highlighted how new financial products can influence long-term market trends.",
+  sources: [],
+ verified: true,
+ status: "PUBLISHED",
+},
+
+{
+  id: "paypal-crypto",
+  month: 10,
+  day: 21,
+  year: 2020,
+  title: "PayPal Adds Cryptocurrency Support",
+  whatHappened:
+    "PayPal announced that customers could buy, hold, and sell select cryptocurrencies through its platform.",
+  whyItMatters:
+    "The announcement exposed millions of users to digital assets through a familiar financial service.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "visa-usdc",
+  month: 3,
+  day: 29,
+  year: 2021,
+  title: "Visa Announces USDC Settlement",
+  whatHappened:
+    "Visa announced support for settling certain payment transactions using the USDC stablecoin.",
+  whyItMatters:
+    "The announcement demonstrated growing interest in blockchain technology from global payment companies.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "mastercard-crypto",
+  month: 2,
+  day: 10,
+  year: 2021,
+  title: "Mastercard Expands Cryptocurrency Support",
+  whatHappened:
+    "Mastercard announced plans to support select cryptocurrencies across its payment network.",
+  whyItMatters:
+    "The move reflected increasing interest from traditional financial institutions in digital assets.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "fidelity-bitcoin",
+  month: 11,
+  day: 3,
+  year: 2021,
+  title: "Fidelity Expands Digital Asset Services",
+  whatHappened:
+    "Fidelity continued expanding institutional cryptocurrency services through Fidelity Digital Assets.",
+  whyItMatters:
+    "The expansion reflected increasing demand for digital asset services from institutional investors.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "blackrock-bitcoin-etf-launch",
+  month: 1,
+  day: 11,
+  year: 2024,
+  title: "BlackRock Spot Bitcoin ETF Begins Trading",
+  whatHappened:
+    "BlackRock's spot Bitcoin ETF began trading following SEC approval.",
+  whyItMatters:
+    "The launch represented one of the largest institutional entries into the cryptocurrency market.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "lightning-el-salvador",
+  month: 9,
+  day: 7,
+  year: 2021,
+  title: "El Salvador Launches Chivo Wallet",
+  whatHappened:
+    "El Salvador launched the Chivo wallet alongside Bitcoin becoming legal tender, using the Lightning Network for many transactions.",
+  whyItMatters:
+    "The rollout demonstrated how Layer 2 technology could support faster and lower-cost Bitcoin payments.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "cash-app-bitcoin",
+  month: 1,
+  day: 31,
+  year: 2018,
+  title: "Cash App Adds Bitcoin Trading",
+  whatHappened:
+    "Cash App expanded Bitcoin buying and selling to customers across the United States.",
+  whyItMatters:
+    "The feature made Bitcoin more accessible to millions of retail users.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "square-bitcoin-treasury",
+  month: 10,
+  day: 8,
+  year: 2020,
+  title: "Square Adds Bitcoin to Treasury",
+  whatHappened:
+    "Square announced a significant Bitcoin purchase for its corporate treasury.",
+  whyItMatters:
+    "The purchase reinforced growing corporate confidence in Bitcoin as a treasury asset.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "telegram-ton-open",
+  month: 9,
+  day: 13,
+  year: 2023,
+  title: "Telegram Expands TON Integration",
+  whatHappened:
+    "Telegram expanded its support for The Open Network (TON), bringing blockchain features closer to its global user base.",
+  whyItMatters:
+    "The integration highlighted how messaging platforms can accelerate blockchain adoption.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
+
+{
+  id: "paypal-stablecoin",
+  month: 8,
+  day: 7,
+  year: 2023,
+  title: "PayPal Launches PYUSD",
+  whatHappened:
+    "PayPal introduced PYUSD, its U.S. dollar-backed stablecoin.",
+  whyItMatters:
+    "The launch represented one of the first major global payment companies issuing its own stablecoin.",
+  sources: [],
+  verified: true,
+  status: "PUBLISHED",
+},
 
 
 

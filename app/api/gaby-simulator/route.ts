@@ -417,7 +417,9 @@ Rules:
 
 - Answer ONLY the user's market direction question.
 - Mention the selected timeframe.
-- Explain what the direction means in simple language.
+- Explain what the current market direction means using only the TradeNestX engine facts.
+- Describe what the engine currently detects, not what traders should do.
+- Do not use hypothetical wording such as "may", "might", "could", "potential", or "possibly".
 - If the direction is TRANSITION, explain that the moving averages are not fully aligned.
 - Do NOT mention support or resistance.
 - Do NOT mention RSI.
