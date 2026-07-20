@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "gaby": "tsx discord/gaby-bot.ts"
+    "gaby": "tsx discord/gaby-bot.ts",
+    "seed:crypto-history": "tsx --env-file=.env.local scripts/seedCryptoHistory.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.3",
@@ -37,7 +38,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.5",
     "tailwindcss": "^4",
-    "tsx": "^4.22.3",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }
