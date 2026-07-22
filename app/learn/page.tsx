@@ -16,11 +16,24 @@ import { db } from "../firebase";
 import { useUser } from "@clerk/nextjs";
 import Navbar from "../components/Navbar";
 import GabyCoach from "../components/GabyCoach";
-import GabyIntro from "../components/GabyIntro";
+import GabyIntro, {
+  type PersonalizedLearningPath,
+} from "../components/GabyIntro";
 export default function LearnPage() {
   const { user } = useUser();
 
   const [activeLesson, setActiveLesson] = useState("roadmap");
+
+  const [onboardingCompleted, setOnboardingCompleted] =
+  useState(false);
+
+const [learningMode, setLearningMode] = useState<
+  "GUIDED" | "PERSONALIZED" | null
+>(null);
+
+const [personalizedLearningPath, setPersonalizedLearningPath] =
+  useState<PersonalizedLearningPath | null>(null);
+
   const [mobileLearnView, setMobileLearnView] = useState<"LESSONS" | "LESSON">("LESSONS");
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
@@ -142,6 +155,18 @@ if (progressSnap.exists()) {
     data.lessonCompletionDates || {}
   );
 
+  setOnboardingCompleted(
+    data.onboardingCompleted === true
+  );
+
+  setLearningMode(
+    data.learningMode ?? null
+  );
+
+  setPersonalizedLearningPath(
+    data.personalizedLearningPath ?? null
+  );
+
   if (data.currentLesson) {
     setActiveLesson(data.currentLesson);
   }
@@ -205,6 +230,10 @@ async function saveProgress() {
 lastCompletedLesson:
   completedLessons[completedLessons.length - 1] || "",
 
+onboardingCompleted,
+learningMode,
+personalizedLearningPath,
+
 updatedAt: new Date().toISOString(),
 },
 { merge: true }
@@ -216,6 +245,9 @@ updatedAt: new Date().toISOString(),
   completedLessons,
   lessonCompletionDates,
   activeLesson,
+  onboardingCompleted,
+  learningMode,
+  personalizedLearningPath,
   progressLoaded,
   user,
 ]);
@@ -710,8 +742,12 @@ const isNextLesson =
 const vocabularyCompleted =
   completedLessons.includes("vocabulary");
 
+const isPersonalizedLearning =
+  learningMode === "PERSONALIZED";
+
 const isUnlocked =
   lesson.id === "roadmap" ||
+  isPersonalizedLearning ||
   isDayOneLesson ||
   isCompleted ||
   (lesson.id === "quiz" && vocabularyCompleted) ||
@@ -772,10 +808,10 @@ window.scrollTo({
   <span className="shrink-0 text-emerald-400 font-black">
     ✓
   </span>
-) : !isUnlocked ? (
-<span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-zinc-500">
-  Tomorrow
-</span>
+) : learningMode === "GUIDED" && !isUnlocked ? (
+  <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-zinc-500">
+    Tomorrow
+  </span>
 ) : null}
 </div>
       </button>
@@ -800,9 +836,30 @@ window.scrollTo({
   ← Back to Lessons
 </button>
 
-      {activeLesson === "roadmap" && (
+{activeLesson === "roadmap" && (
   <GabyIntro
     onStartLesson={() => {
+      setLearningMode("GUIDED");
+      setPersonalizedLearningPath(null);
+      setOnboardingCompleted(true);
+      setActiveLesson("buying");
+
+      setTimeout(() => {
+        document.getElementById("lesson-content")?.scrollTo({
+          top: 0,
+          behavior: "auto",
+        });
+
+        window.scrollTo({
+          top: 0,
+          behavior: "auto",
+        });
+      }, 0);
+    }}
+    onContinuePersonalized={(learningPath) => {
+      setLearningMode("PERSONALIZED");
+      setPersonalizedLearningPath(learningPath);
+      setOnboardingCompleted(true);
       setActiveLesson("buying");
 
       setTimeout(() => {
@@ -818,7 +875,7 @@ window.scrollTo({
       }, 0);
     }}
   />
-)}
+)}      
 
 {activeLesson === "buying" && (
   <div className="rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0f1a] p-3 md:p-4 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">

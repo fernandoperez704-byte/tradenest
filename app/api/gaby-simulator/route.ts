@@ -369,7 +369,6 @@ return Response.json({
 });
 }
 
-
 // Handle overall market direction with focused GPT explanation
 if (
   normalizedQuestion.includes("overall market direction") ||
@@ -379,29 +378,42 @@ if (
   const direction = marketFacts.marketDirection;
   const structure = marketFacts.structure;
   const conviction = marketFacts.marketConviction;
+const patternAnalysis = marketFacts.patternAnalysis;
+const marketState = marketFacts.marketState;
+const controlStrength = marketFacts.controlStrength;
+const moveCondition = marketFacts.moveCondition;
+const momentumStage = marketFacts.momentumStage;
+const momentumAnalysis = marketFacts.momentumAnalysis;
+const nearestSupport = marketFacts.nearestSupport;
+const nearestResistance = marketFacts.nearestResistance;
+const currentPrice = marketFacts.currentPrice;
+
+
   const timeframe =
-  marketFacts.selectedTimeframe === "1M"
-    ? "1 Minute"
-    : marketFacts.selectedTimeframe === "5M"
-    ? "5 Minutes"
-    : marketFacts.selectedTimeframe === "15M"
-    ? "15 Minutes"
-    : marketFacts.selectedTimeframe === "1H"
-    ? "1 Hour"
-    : marketFacts.selectedTimeframe === "4H"
-    ? "4 Hours"
-    : marketFacts.selectedTimeframe === "1D"
-    ? "1 Day"
-    : marketFacts.selectedTimeframe || "Selected";
-  const coin = marketFacts.selectedCoin || "the selected market";
+    marketFacts.selectedTimeframe === "1M"
+      ? "1 Minute"
+      : marketFacts.selectedTimeframe === "5M"
+      ? "5 Minutes"
+      : marketFacts.selectedTimeframe === "15M"
+      ? "15 Minutes"
+      : marketFacts.selectedTimeframe === "1H"
+      ? "1 Hour"
+      : marketFacts.selectedTimeframe === "4H"
+      ? "4 Hours"
+      : marketFacts.selectedTimeframe === "1D"
+      ? "1 Day"
+      : marketFacts.selectedTimeframe || "Selected";
+
+  const coin =
+    marketFacts.selectedCoin || "the selected market";
 
   if (!direction) {
     return Response.json({
-      answer: `I don't have enough moving average data to determine the market direction on the selected **${timeframe}** timeframe.`,
+      answer: `I don't have enough market data to determine the overall direction on the selected **${timeframe}** timeframe.`,
     });
   }
 
-  const directionPrompt = `
+const directionPrompt = `
 User Question:
 ${question}
 
@@ -409,45 +421,78 @@ TradeNestX Engine Facts:
 
 Coin: ${coin}
 Selected Timeframe: ${timeframe}
+Current Price: $${formatPrice(currentPrice)}
+
 Market Direction: ${direction}
-Market Structure: ${structure}
-Market Conviction: ${conviction}
+Market Structure: ${structure || "UNKNOWN"}
+Market State: ${marketState || "UNKNOWN"}
+Market Conviction: ${conviction || "UNKNOWN"}
+Control Strength: ${controlStrength || "UNKNOWN"}
+Move Condition: ${moveCondition || "UNKNOWN"}
+Momentum Stage: ${momentumStage || "UNKNOWN"}
+
+Pattern Analysis:
+${patternAnalysis ? JSON.stringify(patternAnalysis, null, 2) : "NONE"}
+
+Momentum Analysis:
+${momentumAnalysis ? JSON.stringify(momentumAnalysis, null, 2) : "NONE"}
+
+Nearest Support:
+${
+  nearestSupport
+    ? nearestSupport.low === nearestSupport.high
+      ? `$${formatPrice(nearestSupport.low)}`
+      : `$${formatPrice(nearestSupport.low)} - $${formatPrice(nearestSupport.high)}`
+    : "NONE"
+}
+
+Nearest Resistance:
+${
+  nearestResistance
+    ? nearestResistance.low === nearestResistance.high
+      ? `$${formatPrice(nearestResistance.low)}`
+      : `$${formatPrice(nearestResistance.low)} - $${formatPrice(nearestResistance.high)}`
+    : "NONE"
+}
 
 Rules:
 
-- Answer ONLY the user's market direction question.
-- Mention the selected timeframe.
-- Explain what the current market direction means using only the TradeNestX engine facts.
-- Describe what the engine currently detects, not what traders should do.
-- Do not use hypothetical wording such as "may", "might", "could", "potential", or "possibly".
-- If the direction is TRANSITION, explain that the moving averages are not fully aligned.
-- Do NOT mention support or resistance.
-- Do NOT mention RSI.
-- Do NOT mention momentum.
-- Do NOT give trade advice.
-- Keep the answer under 90 words.
-- Use ONLY the engine facts above.
+- Answer only the user's overall market direction question.
+- Mention the coin and selected timeframe.
+- Explain the current chart condition using natural trading language.
+- Do not rely only on the internal Market Direction label.
+- If Market Structure says RANGING, describe the market as consolidating or ranging.
+- If Market Structure says BULLISH_PULLBACK or BEARISH_PULLBACK, describe the pullback clearly.
+- If Pattern Analysis shows a breakout, retest, support hold, resistance hold, support break, or resistance break, explain that first.
+- Mention the most important nearby level only when it is directly connected to the supplied pattern or current structure.
+- Explain what holding above or falling below that level would mean for the current structure.
+- Use conditional educational wording, not predictions.
+- Do not tell the user to buy, sell, long, short, enter, exit, or wait.
+- Do not give trade advice.
+- Use only the TradeNestX engine facts above.
+- Keep the answer under 110 words.
 `;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: GABY_CORE_PROMPT,
-      },
-      ...formattedHistory,
-      {
-        role: "user",
-        content: directionPrompt,
-      },
-    ],
-  });
+  const completion =
+    await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: GABY_CORE_PROMPT,
+        },
+        ...formattedHistory,
+        {
+          role: "user",
+          content: directionPrompt,
+        },
+      ],
+    });
 
   return Response.json({
     answer:
       completion.choices[0].message.content ||
-      `On the selected **${timeframe}** timeframe, the overall market direction is **${direction}**.`,
+      `The overall market direction for **${coin}** on the selected **${timeframe}** timeframe is **${direction}**.`,
   });
 }
 
