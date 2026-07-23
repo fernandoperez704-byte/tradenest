@@ -1,53 +1,211 @@
+import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { adminDb } from "@/lib/firebaseAdmin";
 
-export default function DashboardPage() {
-  /*
-    Temporary demo values.
+type LearningMode =
+  | "GUIDED"
+  | "PERSONALIZED";
 
-    Later these will come from:
-    - Clerk
-    - Firestore lesson progress
-    - Onboarding mode
-    - Trader Development Engine
-  */
+type PersonalizedLearningPath =
+  | "READING_MARKET"
+  | "RISK_MANAGEMENT"
+  | "TRADE_EXECUTION"
+  | "TRADING_PSYCHOLOGY"
+  | "COMPLETE_TRADER";
 
-  const firstName = "Fernando";
+type LessonProgressData = {
+  learningMode?: LearningMode;
+  personalizedLearningPath?:
+    | PersonalizedLearningPath
+    | null;
+  completedLessons?: string[];
+  currentLesson?: string;
+  onboardingCompleted?: boolean;
+};
 
-  const learningMode: "GUIDED" | "PERSONALIZED" = "GUIDED";
+const academyLessons = [
+  {
+    id: "buying",
+    label: "What Are You Buying?",
+  },
+  {
+    id: "market",
+    label: "How The Market Works",
+  },
+  {
+    id: "orders",
+    label: "Market vs Limit Orders",
+  },
+  {
+    id: "risk",
+    label: "Protecting Your Capital",
+  },
+  {
+    id: "candlesticks",
+    label: "Candlestick Basics",
+  },
+  {
+    id: "timeframes",
+    label: "Trading Timeframes",
+  },
+  {
+    id: "volume",
+    label: "Volume Basics",
+  },
+  {
+    id: "support",
+    label: "Support & Resistance",
+  },
+  {
+    id: "supplydemand",
+    label: "Supply & Demand",
+  },
+  {
+    id: "patterns",
+    label: "Chart Patterns",
+  },
+  {
+    id: "setups",
+    label: "Building A Trade Plan",
+  },
+  {
+    id: "psychology",
+    label: "Trading Psychology",
+  },
+  {
+    id: "vocabulary",
+    label: "Essential Trading Terms",
+  },
+  {
+    id: "quiz",
+    label: "Trader Checkpoint",
+  },
+];
 
-  const currentLesson = 4;
-  const totalLessons = 15;
+const personalizedFocusLabels: Record<
+  PersonalizedLearningPath,
+  string
+> = {
+  READING_MARKET: "Reading the Market",
+  RISK_MANAGEMENT: "Risk Management",
+  TRADE_EXECUTION: "Trade Execution",
+  TRADING_PSYCHOLOGY:
+    "Trading Psychology",
+  COMPLETE_TRADER:
+    "Complete Trader Development",
+};
 
-  const personalizedFocus = "Risk Management";
+export default async function DashboardPage() {
+  const user = await currentUser();
 
-  const completedTrades = 7;
-  const requiredTrades = 20;
+  const firstName =
+    user?.firstName ||
+    user?.username ||
+    "Trader";
 
-  const enoughPerformanceData =
-    completedTrades >= requiredTrades;
+  let learningMode: LearningMode = "GUIDED";
 
-  const lessonProgress =
-    totalLessons > 0
-      ? Math.round(
-          (currentLesson / totalLessons) * 100
-        )
-      : 0;
+  let personalizedLearningPath:
+    | PersonalizedLearningPath
+    | null = null;
 
-  const isGuided =
-    learningMode === "GUIDED";
+  let completedLessons: string[] = [];
+  let completedTrades = 0;
 
-  const continueHref = isGuided
-    ? "/learn"
-    : "/simulator";
+  if (user) {
+    const [
+      progressSnapshot,
+      reviewsSnapshot,
+    ] = await Promise.all([
+      adminDb
+        .collection("lessonProgress")
+        .doc(user.id)
+        .get(),
 
-  const continueLabel = isGuided
-    ? "Continue Learning"
-    : "Continue Trading";
+      adminDb
+        .collection("tradeReviews")
+        .where("userId", "==", user.id)
+        .get(),
+    ]);
+
+    if (progressSnapshot.exists) {
+      const progressData =
+        progressSnapshot.data() as LessonProgressData;
+
+      learningMode =
+        progressData.learningMode ?? "GUIDED";
+
+      personalizedLearningPath =
+        progressData.personalizedLearningPath ??
+        null;
+
+      completedLessons = Array.isArray(
+        progressData.completedLessons
+      )
+        ? progressData.completedLessons
+        : [];
+    }
+
+    completedTrades = reviewsSnapshot.size;
+  }
+
+  const totalLessons =
+    academyLessons.length;
+
+  const completedLessonCount =
+    academyLessons.filter((lesson) =>
+      completedLessons.includes(lesson.id)
+    ).length;
+
+  const nextLesson =
+    academyLessons.find(
+      (lesson) =>
+        !completedLessons.includes(lesson.id)
+    ) ?? null;
+
+  const academyCompleted =
+    completedLessonCount >= totalLessons;
+
+  const learningModeLabel =
+    learningMode === "GUIDED"
+      ? "Guided Learning"
+      : "Personalized Learning";
+
+  const personalizedFocus =
+    personalizedLearningPath
+      ? personalizedFocusLabels[
+          personalizedLearningPath
+        ]
+      : "Complete Trader Development";
+
+  const continueHref =
+    learningMode === "PERSONALIZED"
+      ? "/simulator"
+      : academyCompleted
+        ? "/learn/advanced"
+        : "/learn";
+
+  const continueLabel =
+    learningMode === "PERSONALIZED"
+      ? "Open Simulator"
+      : academyCompleted
+        ? "Start Advanced Academy"
+        : "Continue Beginner Academy";
+
+  const gabyMessage = buildGabyMessage({
+    learningMode,
+    completedLessonCount,
+    totalLessons,
+    academyCompleted,
+    nextLessonLabel:
+      nextLesson?.label ?? null,
+    completedTrades,
+    personalizedFocus,
+  });
 
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 lg:py-12">
-        {/* Welcome */}
         <header className="mb-7 sm:mb-9">
           <p className="text-[11px] font-black uppercase tracking-[0.22em] sm:text-xs">
             <span className="text-white">
@@ -69,172 +227,62 @@ export default function DashboardPage() {
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
-            Let&apos;s continue building your
-            trading skills.
+            Here&apos;s where you are and what
+            to focus on next.
           </p>
         </header>
 
         <div className="space-y-4 sm:space-y-5">
-          {/* Current progress or focus */}
-          <section className="rounded-2xl border border-white/5 bg-zinc-900/60 p-4 backdrop-blur-xl sm:p-6">
-            {isGuided ? (
-              <>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500 sm:text-xs">
-                      Progress
-                    </p>
-
-                    <h2 className="mt-2 text-xl font-black text-white sm:text-2xl">
-                      Beginner Academy
-                    </h2>
-
-                    <p className="mt-1.5 text-sm text-zinc-400">
-                      Lesson {currentLesson} of{" "}
-                      {totalLessons}
-                    </p>
-                  </div>
-
-                  <div className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1.5 text-sm font-black text-cyan-400">
-                    {lessonProgress}%
-                  </div>
-                </div>
-
-                <div className="mt-5 sm:mt-6">
-                  <div className="h-2.5 overflow-hidden rounded-full bg-zinc-800 sm:h-3">
-                    <div
-                      className="h-full rounded-full bg-cyan-500 transition-all duration-500"
-                      style={{
-                        width: `${lessonProgress}%`,
-                      }}
-                    />
-                  </div>
-
-                  <p className="mt-3 text-sm leading-6 text-zinc-500">
-                    Continue with Market vs Limit
-                    Orders.
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500 sm:text-xs">
-                  Current Focus
-                </p>
-
-                <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                  {personalizedFocus}
-                </h2>
-
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base sm:leading-7">
-                  Gaby will prioritize this area
-                  during your simulator sessions,
-                  trade reviews, and performance
-                  analysis.
-                </p>
-              </>
-            )}
-          </section>
-
-          {/* Gaby */}
+          {/* Gaby progress briefing */}
           <section className="rounded-2xl border border-white/5 bg-zinc-900/60 p-4 backdrop-blur-xl sm:p-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-sm font-black text-cyan-400 sm:h-11 sm:w-11">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-sm font-black text-cyan-400">
                 G
               </div>
 
-              <h2 className="text-lg font-black text-white sm:text-xl">
-                Gaby
-              </h2>
+              <div>
+                <h2 className="text-lg font-black text-white sm:text-xl">
+                  Gaby
+                </h2>
+
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+                  Your progress update
+                </p>
+              </div>
             </div>
 
-            <div className="mt-4 rounded-xl border border-white/5 bg-zinc-950/50 p-4 sm:mt-5 sm:p-5">
-              <p className="text-sm leading-6 text-zinc-300 sm:text-base sm:leading-7">
-                {isGuided
-                  ? "You’re learning how trades are executed. Next, we’ll focus on the difference between market and limit orders and why the order you choose matters."
-                  : "Your recent activity will help me identify what is improving and where you need more consistency. I’ll prioritize feedback related to your current focus."}
+            <div className="mt-5 rounded-xl border border-white/5 bg-zinc-950/50 p-4 sm:p-5">
+              <p className="whitespace-pre-line text-sm leading-7 text-zinc-300 sm:text-base sm:leading-8">
+                {gabyMessage}
               </p>
             </div>
           </section>
 
-          {/* Performance progress */}
+          {/* Quick snapshot */}
           <section className="rounded-2xl border border-white/5 bg-zinc-900/60 p-4 backdrop-blur-xl sm:p-6">
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500 sm:text-xs">
-              Your Progress
+              Quick Snapshot
             </p>
 
-            {enoughPerformanceData ? (
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <ProgressMetric
-                  label="Risk"
-                  value={72}
-                />
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <SnapshotItem
+                label="Beginner Lessons"
+                value={`${completedLessonCount} / ${totalLessons}`}
+              />
 
-                <ProgressMetric
-                  label="Discipline"
-                  value={68}
-                />
+              <SnapshotItem
+                label="Completed Trades"
+                value={String(completedTrades)}
+              />
 
-                <ProgressMetric
-                  label="Consistency"
-                  value={61}
-                />
-
-                <ProgressMetric
-                  label="Entry Quality"
-                  value={74}
-                />
-
-                <ProgressMetric
-                  label="Exit Management"
-                  value={59}
-                />
-              </div>
-            ) : (
-              <div className="mt-4 rounded-xl border border-white/5 bg-zinc-950/50 p-4 sm:mt-5 sm:p-5">
-                <h2 className="text-base font-black text-white sm:text-lg">
-                  Performance report locked
-                </h2>
-
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
-                  Complete more trades to unlock
-                  your personalized performance
-                  report.
-                </p>
-
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-4 text-sm">
-                    <span className="font-bold text-zinc-400">
-                      Trade progress
-                    </span>
-
-                    <span className="font-black text-cyan-400">
-                      {completedTrades} /{" "}
-                      {requiredTrades}
-                    </span>
-                  </div>
-
-                  <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-zinc-800">
-                    <div
-                      className="h-full rounded-full bg-cyan-500"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.round(
-                            (completedTrades /
-                              requiredTrades) *
-                              100
-                          )
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+              <SnapshotItem
+                label="Learning Mode"
+                value={learningModeLabel}
+              />
+            </div>
           </section>
 
-          {/* Continue */}
+          {/* Primary next action */}
           <Link
             href={continueHref}
             className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 px-5 py-4 text-sm font-black text-black transition-all duration-300 hover:bg-cyan-400 sm:text-base"
@@ -247,35 +295,134 @@ export default function DashboardPage() {
   );
 }
 
-type ProgressMetricProps = {
-  label: string;
-  value: number;
+type BuildGabyMessageInput = {
+  learningMode: LearningMode;
+  completedLessonCount: number;
+  totalLessons: number;
+  academyCompleted: boolean;
+  nextLessonLabel: string | null;
+  completedTrades: number;
+  personalizedFocus: string;
 };
 
-function ProgressMetric({
+function buildGabyMessage({
+  learningMode,
+  completedLessonCount,
+  totalLessons,
+  academyCompleted,
+  nextLessonLabel,
+  completedTrades,
+  personalizedFocus,
+}: BuildGabyMessageInput) {
+  if (learningMode === "PERSONALIZED") {
+    if (completedTrades === 0) {
+      return (
+        `Your personalized focus is ${personalizedFocus}. ` +
+        "Start practicing in the simulator so I can begin understanding your trading decisions. " +
+        "After each completed trade, I’ll explain what you handled well and what to focus on next."
+      );
+    }
+
+    if (completedTrades < 20) {
+      const remainingTrades =
+        20 - completedTrades;
+
+      return (
+        `Your personalized focus is ${personalizedFocus}, and you’ve completed ${completedTrades} practice ${
+          completedTrades === 1
+            ? "trade"
+            : "trades"
+        }. ` +
+        `Continue practicing until you complete ${remainingTrades} more ${
+          remainingTrades === 1
+            ? "trade"
+            : "trades"
+        }. ` +
+        "After each trade, review the result with me so we can improve one decision at a time."
+      );
+    }
+
+    return (
+      `Your personalized focus is ${personalizedFocus}, and you’ve completed ${completedTrades} practice trades. ` +
+      "I now have enough trading history to follow your habits and progress. " +
+      "Continue practicing, and I’ll guide you toward the skill that needs the most attention next."
+    );
+  }
+
+  if (completedLessonCount === 0) {
+    return (
+      "You’re at the beginning of your trading journey. " +
+      "Start with the first Beginner Academy lesson to understand what you’re buying when you trade. " +
+      "Once you finish it, I’ll guide you to the next lesson and help you connect what you learned to the simulator."
+    );
+  }
+
+  if (!academyCompleted && nextLessonLabel) {
+    return (
+      `You’ve completed ${completedLessonCount} of ${totalLessons} Beginner Academy lessons. ` +
+      `Your next step is ${nextLessonLabel}. ` +
+      "Finish that lesson before moving forward, and I’ll help you understand how to apply it in practice."
+    );
+  }
+
+  if (
+    academyCompleted &&
+    completedTrades === 0
+  ) {
+    return (
+      "You completed the Beginner Academy and now have a strong foundation in trading fundamentals. " +
+      "Your next step is to begin the Advanced Academy and start practicing in the simulator. " +
+      "As you complete trades, I’ll review your decisions and guide you through what to improve next."
+    );
+  }
+
+  if (
+    academyCompleted &&
+    completedTrades < 20
+  ) {
+    const remainingTrades =
+      20 - completedTrades;
+
+    return (
+      `You completed the Beginner Academy and ${completedTrades} practice ${
+        completedTrades === 1
+          ? "trade"
+          : "trades"
+      }. ` +
+      `Continue through the Advanced Academy and complete ${remainingTrades} more practice ${
+        remainingTrades === 1
+          ? "trade"
+          : "trades"
+      }. ` +
+      "After each trade, review your result with me so I can begin identifying the habits we should work on."
+    );
+  }
+
+  return (
+    `You completed the Beginner Academy and ${completedTrades} practice trades. ` +
+    "Your next step is to begin the Advanced Academy and apply each lesson in the simulator. " +
+    "After every completed trade, review it with me, and I’ll guide you toward the next skill you should improve."
+  );
+}
+
+type SnapshotItemProps = {
+  label: string;
+  value: string;
+};
+
+function SnapshotItem({
   label,
   value,
-}: ProgressMetricProps) {
+}: SnapshotItemProps) {
   return (
     <div className="rounded-xl border border-white/5 bg-zinc-950/50 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-bold leading-5 text-zinc-400">
-          {label}
-        </p>
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">
+        {label}
+      </p>
 
-        <span className="shrink-0 text-sm font-black text-white">
-          {value}%
-        </span>
-      </div>
-
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800">
-        <div
-          className="h-full rounded-full bg-cyan-500"
-          style={{
-            width: `${value}%`,
-          }}
-        />
-      </div>
+      <p className="mt-2 text-lg font-black text-white">
+        {value}
+      </p>
     </div>
   );
 }

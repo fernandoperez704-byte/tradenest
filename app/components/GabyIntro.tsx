@@ -186,103 +186,105 @@ export default function GabyIntro({
             </p>
           </div>
 
-          {step === "EXPERIENCE" && (
-            <div className="mt-3 rounded-2xl border border-cyan-400/20 bg-[#0f172a]/80 p-5">
-<div>
+{step === "EXPERIENCE" && (
+  <div className="mt-3 rounded-2xl border border-cyan-400/20 bg-[#0f172a]/80 p-5">
+    <div>
+      <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-400">
+        Choose the option that best describes your current trading experience.
+      </p>
+    </div>
 
-  <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-400">
-    Choose the option that best describes your current trading experience.
-  </p>
-</div>
+    <div className="mt-5 grid gap-4 xl:grid-cols-2">
+      <button
+        type="button"
+        onClick={chooseBeginner}
+        className="group relative overflow-hidden rounded-2xl border border-cyan-400/25 bg-gradient-to-br from-[#10283a] via-[#0b1b2c] to-[#08111f] p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/70 hover:shadow-[0_0_40px_rgba(34,211,238,0.18)]"
+      >
+        <div className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-cyan-400/15 blur-[75px]" />
 
-              <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={chooseBeginner}
-                  className="group rounded-2xl border border-cyan-400/20 bg-[#08111f] p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/60 hover:bg-cyan-500/5 hover:shadow-[0_0_35px_rgba(34,211,238,0.14)]"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/10 text-xl">
-                        🌱
-                      </div>
+        <div className="pointer-events-none absolute -bottom-20 -right-16 h-56 w-56 rounded-full bg-blue-500/10 blur-[80px]" />
 
-                      <p className="mt-4 text-sm font-black uppercase tracking-[0.14em] text-cyan-300">
-                        Guided Learning
-                      </p>
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),transparent_45%)]" />
 
-                      <h3 className="mt-1 text-xl font-black text-white group-hover:text-cyan-300">
-                        I&apos;m New to Trading
-                      </h3>
+        <div className="relative flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.14em] text-cyan-300">
+              Guided Learning
+            </p>
 
-                      <p className="mt-2 leading-6 text-zinc-400">
-                        Follow a structured learning path from the
-                        foundations to confident simulator practice.
-                      </p>
-                    </div>
+            <h3 className="mt-1 text-xl font-black text-white transition-colors group-hover:text-cyan-300">
+              I&apos;m New to Trading
+            </h3>
 
-                    <span className="text-xl text-cyan-400 transition-transform group-hover:translate-x-1">
-                      →
-                    </span>
-                  </div>
+            <p className="mt-2 leading-6 text-zinc-400">
+              Follow a structured learning path from the foundations to
+              confident simulator practice.
+            </p>
+          </div>
 
-                  <div className="mt-5 space-y-3 border-t border-white/5 pt-4 text-sm text-zinc-300">
-                    <p>✓ Step-by-step lessons</p>
-                    <p>✓ Practice after each lesson</p>
-                    <p>✓ Gaby guides your progress</p>
-                    <p>✓ Always know what comes next</p>
-                  </div>
+          <span className="text-xl text-cyan-400 transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </div>
 
-                  <div className="mt-5 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-center font-black text-cyan-300">
-                    Choose Guided Learning
-                  </div>
-                </button>
+        <div className="relative mt-5 space-y-3 border-t border-cyan-400/10 pt-4 text-sm text-zinc-300">
+          <p>✓ Step-by-step lessons</p>
+          <p>✓ Practice after each lesson</p>
+          <p>✓ Gaby guides your progress</p>
+          <p>✓ Always know what comes next</p>
+        </div>
 
-                <button
-                  type="button"
-                  onClick={chooseExperienced}
-                  className="group rounded-2xl border border-violet-400/20 bg-[#08111f] p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-violet-300/60 hover:bg-violet-500/5 hover:shadow-[0_0_35px_rgba(139,92,246,0.14)]"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-500/10 text-xl">
-                        🎯
-                      </div>
+        <div className="relative mt-5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-center font-black text-cyan-300 transition-all group-hover:border-cyan-300/60 group-hover:bg-cyan-400/15">
+          Choose Guided Learning
+        </div>
+      </button>
 
-                      <p className="mt-4 text-sm font-black uppercase tracking-[0.14em] text-violet-300">
-                        Personalized Learning
-                      </p>
+      <button
+        type="button"
+        onClick={chooseExperienced}
+        className="group relative overflow-hidden rounded-2xl border border-violet-400/25 bg-gradient-to-br from-[#211b3f] via-[#15162d] to-[#08111f] p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-violet-300/70 hover:shadow-[0_0_40px_rgba(139,92,246,0.18)]"
+      >
+        <div className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-violet-400/15 blur-[75px]" />
 
-                      <h3 className="mt-1 text-xl font-black text-white group-hover:text-violet-300">
-                        I Have Trading Experience
-                      </h3>
+        <div className="pointer-events-none absolute -bottom-20 -right-16 h-56 w-56 rounded-full bg-fuchsia-500/10 blur-[80px]" />
 
-                      <p className="mt-2 leading-6 text-zinc-400">
-                        Learn at your own pace with recommendations
-                        tailored to the area you want to improve
-                        first.
-                      </p>
-                    </div>
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),transparent_45%)]" />
 
-                    <span className="text-xl text-violet-400 transition-transform group-hover:translate-x-1">
-                      →
-                    </span>
-                  </div>
+        <div className="relative flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.14em] text-violet-300">
+              Personalized Learning
+            </p>
 
-                  <div className="mt-5 space-y-3 border-t border-white/5 pt-4 text-sm text-zinc-300">
-                    <p>✓ All lessons unlocked</p>
-                    <p>✓ Personalized recommendations</p>
-                    <p>✓ Relevant simulator exercises</p>
-                    <p>✓ Coaching focused on improvement</p>
-                  </div>
+            <h3 className="mt-1 text-xl font-black text-white transition-colors group-hover:text-violet-300">
+              I Have Trading Experience
+            </h3>
 
-                  <div className="mt-5 rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-3 text-center font-black text-violet-300">
-                    Choose Personalized Learning
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
+            <p className="mt-2 leading-6 text-zinc-400">
+              Learn at your own pace with recommendations tailored to the
+              area you want to improve first.
+            </p>
+          </div>
+
+          <span className="text-xl text-violet-400 transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </div>
+
+        <div className="relative mt-5 space-y-3 border-t border-violet-400/10 pt-4 text-sm text-zinc-300">
+          <p>✓ All Basic &amp; Advanced lessons unlocked</p>
+          <p>✓ Personalized lesson recommendations</p>
+          <p>✓ Relevant simulator exercises</p>
+          <p>✓ Coaching focused on your improvement</p>
+        </div>
+
+        <div className="relative mt-5 rounded-xl border border-violet-400/30 bg-violet-400/10 px-4 py-3 text-center font-black text-violet-200 transition-all group-hover:border-violet-300/60 group-hover:bg-violet-400/15">
+          Choose Personalized Learning
+        </div>
+      </button>
+    </div>
+  </div>
+)}
 
           {step === "BEGINNER_READY" &&
             experienceLevel === "BEGINNER" && (

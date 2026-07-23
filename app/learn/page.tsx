@@ -38,7 +38,10 @@ const [personalizedLearningPath, setPersonalizedLearningPath] =
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
 const quizCompleted = completedLessons.includes("quiz");
-const isAdvancedUnlocked = quizCompleted;
+
+const isAdvancedUnlocked =
+  learningMode === "PERSONALIZED" ||
+  quizCompleted;
 
   const [lessonCompletionDates, setLessonCompletionDates] = useState<{
   [key: string]: string;
