@@ -4,20 +4,10 @@ import { adminDb } from "@/lib/firebaseAdmin";
 
 type LearningMode =
   | "GUIDED"
-  | "PERSONALIZED";
-
-type PersonalizedLearningPath =
-  | "READING_MARKET"
-  | "RISK_MANAGEMENT"
-  | "TRADE_EXECUTION"
-  | "TRADING_PSYCHOLOGY"
-  | "COMPLETE_TRADER";
+  | "FULL_ACCESS";
 
 type LessonProgressData = {
-  learningMode?: LearningMode;
-  personalizedLearningPath?:
-    | PersonalizedLearningPath
-    | null;
+  learningMode?: LearningMode | "PERSONALIZED";
   completedLessons?: string[];
   currentLesson?: string;
   onboardingCompleted?: boolean;
@@ -82,19 +72,6 @@ const academyLessons = [
   },
 ];
 
-const personalizedFocusLabels: Record<
-  PersonalizedLearningPath,
-  string
-> = {
-  READING_MARKET: "Reading the Market",
-  RISK_MANAGEMENT: "Risk Management",
-  TRADE_EXECUTION: "Trade Execution",
-  TRADING_PSYCHOLOGY:
-    "Trading Psychology",
-  COMPLETE_TRADER:
-    "Complete Trader Development",
-};
-
 export default async function DashboardPage() {
   const user = await currentUser();
 
@@ -105,9 +82,6 @@ export default async function DashboardPage() {
 
   let learningMode: LearningMode = "GUIDED";
 
-  let personalizedLearningPath:
-    | PersonalizedLearningPath
-    | null = null;
 
   let completedLessons: string[] = [];
   let completedTrades = 0;
@@ -132,12 +106,15 @@ export default async function DashboardPage() {
       const progressData =
         progressSnapshot.data() as LessonProgressData;
 
-      learningMode =
-        progressData.learningMode ?? "GUIDED";
+      const savedLearningMode =
+        progressData.learningMode;
 
-      personalizedLearningPath =
-        progressData.personalizedLearningPath ??
-        null;
+      learningMode =
+        savedLearningMode === "PERSONALIZED"
+          ? "FULL_ACCESS"
+          : savedLearningMode === "FULL_ACCESS"
+            ? "FULL_ACCESS"
+            : "GUIDED";
 
       completedLessons = Array.isArray(
         progressData.completedLessons
@@ -169,27 +146,19 @@ export default async function DashboardPage() {
   const learningModeLabel =
     learningMode === "GUIDED"
       ? "Guided Learning"
-      : "Personalized Learning";
+      : "Full Academy Access";
 
-  const personalizedFocus =
-    personalizedLearningPath
-      ? personalizedFocusLabels[
-          personalizedLearningPath
-        ]
-      : "Complete Trader Development";
 
   const continueHref =
-    learningMode === "PERSONALIZED"
-      ? "/simulator"
-      : academyCompleted
-        ? "/learn/advanced"
-        : "/learn";
+    academyCompleted
+      ? "/learn/advanced"
+      : "/learn";
 
   const continueLabel =
-    learningMode === "PERSONALIZED"
-      ? "Open Simulator"
-      : academyCompleted
-        ? "Start Advanced Academy"
+    academyCompleted
+      ? "Start Advanced Academy"
+      : learningMode === "FULL_ACCESS"
+        ? "Continue Learning"
         : "Continue Beginner Academy";
 
   const gabyMessage = buildGabyMessage({
@@ -200,7 +169,6 @@ export default async function DashboardPage() {
     nextLessonLabel:
       nextLesson?.label ?? null,
     completedTrades,
-    personalizedFocus,
   });
 
   return (
@@ -302,7 +270,6 @@ type BuildGabyMessageInput = {
   academyCompleted: boolean;
   nextLessonLabel: string | null;
   completedTrades: number;
-  personalizedFocus: string;
 };
 
 function buildGabyMessage({
@@ -312,40 +279,20 @@ function buildGabyMessage({
   academyCompleted,
   nextLessonLabel,
   completedTrades,
-  personalizedFocus,
 }: BuildGabyMessageInput) {
-  if (learningMode === "PERSONALIZED") {
+  if (learningMode === "FULL_ACCESS") {
     if (completedTrades === 0) {
       return (
-        `Your personalized focus is ${personalizedFocus}. ` +
-        "Start practicing in the simulator so I can begin understanding your trading decisions. " +
-        "After each completed trade, I’ll explain what you handled well and what to focus on next."
-      );
-    }
-
-    if (completedTrades < 20) {
-      const remainingTrades =
-        20 - completedTrades;
-
-      return (
-        `Your personalized focus is ${personalizedFocus}, and you’ve completed ${completedTrades} practice ${
-          completedTrades === 1
-            ? "trade"
-            : "trades"
-        }. ` +
-        `Continue practicing until you complete ${remainingTrades} more ${
-          remainingTrades === 1
-            ? "trade"
-            : "trades"
-        }. ` +
-        "After each trade, review the result with me so we can improve one decision at a time."
+        "You chose Full Academy Access, so every Beginner and Advanced lesson is available to you. " +
+        "Choose the lessons most relevant to your goals, practice the concepts in the simulator, and review your completed trades with me so I can help you improve your decision-making."
       );
     }
 
     return (
-      `Your personalized focus is ${personalizedFocus}, and you’ve completed ${completedTrades} practice trades. ` +
-      "I now have enough trading history to follow your habits and progress. " +
-      "Continue practicing, and I’ll guide you toward the skill that needs the most attention next."
+      `You chose Full Academy Access and have completed ${completedTrades} practice ${
+        completedTrades === 1 ? "trade" : "trades"
+      }. ` +
+      "Continue studying the lessons most relevant to you, apply them in the simulator, and review each completed trade with me so we can improve one decision at a time."
     );
   }
 

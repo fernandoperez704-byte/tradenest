@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { db } from "@/app/firebase";
 import {
   collection,
@@ -70,6 +71,26 @@ export default function GabySimulatorCoach({
   currentPrice,
   priceLocation,
 }: GabySimulatorCoachProps) {
+  const { user } = useUser();
+  const { openSignIn } = useClerk();
+
+function requireSignIn() {
+  if (user) {
+    return true;
+  }
+
+  const currentPage =
+    window.location.pathname +
+    window.location.search +
+    window.location.hash;
+
+  openSignIn({
+    forceRedirectUrl: currentPage,
+  });
+
+  return false;
+}
+
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState(`Not sure what to ask? Ask me about:
 
@@ -817,15 +838,23 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") askGaby();
-          }}
+onKeyDown={(e) => {
+  if (e.key !== "Enter") return;
+
+  if (!requireSignIn()) return;
+
+  askGaby();
+}}
           placeholder="Ask me about the simulator or review a practice trade."
           className="h-14 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
         />
 
         <button
-          onClick={() => askGaby()}
+          onClick={() => {
+  if (!requireSignIn()) return;
+
+  askGaby();
+}}
           disabled={loading}
           className="h-11 w-full sm:w-auto rounded-xl bg-cyan-500 px-4 text-sm font-black text-black hover:bg-cyan-400 disabled:opacity-50"
         >

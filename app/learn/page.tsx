@@ -16,9 +16,7 @@ import { db } from "../firebase";
 import { useUser } from "@clerk/nextjs";
 import Navbar from "../components/Navbar";
 import GabyCoach from "../components/GabyCoach";
-import GabyIntro, {
-  type PersonalizedLearningPath,
-} from "../components/GabyIntro";
+import GabyIntro from "../components/GabyIntro";
 export default function LearnPage() {
   const { user } = useUser();
 
@@ -28,11 +26,8 @@ export default function LearnPage() {
   useState(false);
 
 const [learningMode, setLearningMode] = useState<
-  "GUIDED" | "PERSONALIZED" | null
+  "GUIDED" | "FULL_ACCESS" | null
 >(null);
-
-const [personalizedLearningPath, setPersonalizedLearningPath] =
-  useState<PersonalizedLearningPath | null>(null);
 
   const [mobileLearnView, setMobileLearnView] = useState<"LESSONS" | "LESSON">("LESSONS");
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
@@ -40,7 +35,7 @@ const [personalizedLearningPath, setPersonalizedLearningPath] =
 const quizCompleted = completedLessons.includes("quiz");
 
 const isAdvancedUnlocked =
-  learningMode === "PERSONALIZED" ||
+  learningMode === "FULL_ACCESS" ||
   quizCompleted;
 
   const [lessonCompletionDates, setLessonCompletionDates] = useState<{
@@ -117,27 +112,15 @@ useEffect(() => {
 }, []);
 useEffect(() => {
   async function loadProgress() {
-    if (!user) {
-  const savedProgress = localStorage.getItem(
-    "tradenestxLearnProgress"
-  );
-
-  if (savedProgress) {
-    setCompletedLessons(JSON.parse(savedProgress));
-  }
-
-  const savedDates = localStorage.getItem(
-    "tradenestxLessonDates"
-  );
-
-  if (savedDates) {
-    setLessonCompletionDates(JSON.parse(savedDates));
-  }
-
+    
+if (!user) {
+  setCompletedLessons([]);
+  setLessonCompletionDates({});
+  setLearningMode(null);
+  setOnboardingCompleted(false);
   setProgressLoaded(true);
   return;
 }
-
     try {
       const progressRef = doc(
         db,
@@ -158,42 +141,33 @@ if (progressSnap.exists()) {
     data.lessonCompletionDates || {}
   );
 
-  setOnboardingCompleted(
-    data.onboardingCompleted === true
-  );
+setOnboardingCompleted(
+  data.onboardingCompleted === true
+);
 
-  setLearningMode(
-    data.learningMode ?? null
-  );
+const savedLearningMode =
+  data.learningMode === "PERSONALIZED"
+    ? "FULL_ACCESS"
+    : data.learningMode;
 
-  setPersonalizedLearningPath(
-    data.personalizedLearningPath ?? null
-  );
-
-  if (data.currentLesson) {
-    setActiveLesson(data.currentLesson);
-  }
+if (
+  savedLearningMode === "GUIDED" ||
+  savedLearningMode === "FULL_ACCESS"
+) {
+  setLearningMode(savedLearningMode);
 } else {
-        const savedProgress = localStorage.getItem(
-          "tradenestxLearnProgress"
-        );
+  setLearningMode(null);
+}
 
-        if (savedProgress) {
-          setCompletedLessons(
-            JSON.parse(savedProgress)
-          );
-        }
-
-        const savedDates = localStorage.getItem(
-          "tradenestxLessonDates"
-        );
-
-        if (savedDates) {
-          setLessonCompletionDates(
-            JSON.parse(savedDates)
-          );
-        }
-      }
+if (data.currentLesson) {
+  setActiveLesson(data.currentLesson);
+}
+} else {
+  setCompletedLessons([]);
+  setLessonCompletionDates({});
+  setLearningMode(null);
+  setOnboardingCompleted(false);
+}
 
       setProgressLoaded(true);
     } catch (error) {
@@ -235,7 +209,6 @@ lastCompletedLesson:
 
 onboardingCompleted,
 learningMode,
-personalizedLearningPath,
 
 updatedAt: new Date().toISOString(),
 },
@@ -249,9 +222,8 @@ updatedAt: new Date().toISOString(),
   lessonCompletionDates,
   activeLesson,
   onboardingCompleted,
-  learningMode,
-  personalizedLearningPath,
-  progressLoaded,
+learningMode,
+progressLoaded,
   user,
 ]);
 
@@ -601,11 +573,11 @@ async function askGaby(customQuestion?: string) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        message: question,
-        lesson: activeLesson,
-        conversationHistory: previousHistory,
-      }),
+body: JSON.stringify({
+  message: question,
+  lesson: activeLesson,
+  conversationHistory: previousHistory,
+}),
     });
 
     const data = await response.json();
@@ -745,16 +717,26 @@ const isNextLesson =
 const vocabularyCompleted =
   completedLessons.includes("vocabulary");
 
-const isPersonalizedLearning =
-  learningMode === "PERSONALIZED";
+const hasSelectedLearningPath =
+  onboardingCompleted &&
+  learningMode !== null;
+
+const hasFullAcademyAccess =
+  hasSelectedLearningPath &&
+  learningMode === "FULL_ACCESS";
 
 const isUnlocked =
   lesson.id === "roadmap" ||
-  isPersonalizedLearning ||
-  isDayOneLesson ||
-  isCompleted ||
-  (lesson.id === "quiz" && vocabularyCompleted) ||
-  (isNextLesson && !completedToday);
+  (
+    hasSelectedLearningPath &&
+    (
+      hasFullAcademyAccess ||
+      isDayOneLesson ||
+      isCompleted ||
+      (lesson.id === "quiz" && vocabularyCompleted) ||
+      (isNextLesson && !completedToday)
+    )
+  );
 
   return (
     <button
@@ -840,44 +822,49 @@ window.scrollTo({
 </button>
 
 {activeLesson === "roadmap" && (
-  <GabyIntro
-    onStartLesson={() => {
-      setLearningMode("GUIDED");
-      setPersonalizedLearningPath(null);
-      setOnboardingCompleted(true);
-      setActiveLesson("buying");
+<GabyIntro
+  learningMode={learningMode}
+  onboardingCompleted={onboardingCompleted}
+  onStartLesson={() => {
+    setLearningMode("GUIDED");
+    setOnboardingCompleted(true);
+    setActiveLesson("buying");
 
-      setTimeout(() => {
-        document.getElementById("lesson-content")?.scrollTo({
+    setTimeout(() => {
+      document
+        .getElementById("lesson-content")
+        ?.scrollTo({
           top: 0,
           behavior: "auto",
         });
 
-        window.scrollTo({
-          top: 0,
-          behavior: "auto",
-        });
-      }, 0);
-    }}
-    onContinuePersonalized={(learningPath) => {
-      setLearningMode("PERSONALIZED");
-      setPersonalizedLearningPath(learningPath);
-      setOnboardingCompleted(true);
-      setActiveLesson("buying");
+      window.scrollTo({
+        top: 0,
+        behavior: "auto",
+      });
+    }, 0);
+  }}
 
-      setTimeout(() => {
-        document.getElementById("lesson-content")?.scrollTo({
+  onUnlockAllLessons={() => {
+    setLearningMode("FULL_ACCESS");
+    setOnboardingCompleted(true);
+    setActiveLesson("buying");
+
+    setTimeout(() => {
+      document
+        .getElementById("lesson-content")
+        ?.scrollTo({
           top: 0,
           behavior: "auto",
         });
 
-        window.scrollTo({
-          top: 0,
-          behavior: "auto",
-        });
-      }, 0);
-    }}
-  />
+      window.scrollTo({
+        top: 0,
+        behavior: "auto",
+      });
+    }, 0);
+  }}
+/>
 )}      
 
 {activeLesson === "buying" && (

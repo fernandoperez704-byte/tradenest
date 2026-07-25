@@ -378,7 +378,7 @@ if (
   const direction = marketFacts.marketDirection;
   const structure = marketFacts.structure;
   const conviction = marketFacts.marketConviction;
-const patternAnalysis = marketFacts.patternAnalysis;
+
 const marketState = marketFacts.marketState;
 const controlStrength = marketFacts.controlStrength;
 const moveCondition = marketFacts.moveCondition;
@@ -429,13 +429,7 @@ Market State: ${marketState || "UNKNOWN"}
 Market Conviction: ${conviction || "UNKNOWN"}
 Control Strength: ${controlStrength || "UNKNOWN"}
 Move Condition: ${moveCondition || "UNKNOWN"}
-Momentum Stage: ${momentumStage || "UNKNOWN"}
 
-Pattern Analysis:
-${patternAnalysis ? JSON.stringify(patternAnalysis, null, 2) : "NONE"}
-
-Momentum Analysis:
-${momentumAnalysis ? JSON.stringify(momentumAnalysis, null, 2) : "NONE"}
 
 Nearest Support:
 ${
@@ -459,18 +453,25 @@ Rules:
 
 - Answer only the user's overall market direction question.
 - Mention the coin and selected timeframe.
-- Explain the current chart condition using natural trading language.
-- Do not rely only on the internal Market Direction label.
-- If Market Structure says RANGING, describe the market as consolidating or ranging.
-- If Market Structure says BULLISH_PULLBACK or BEARISH_PULLBACK, describe the pullback clearly.
-- If Pattern Analysis shows a breakout, retest, support hold, resistance hold, support break, or resistance break, explain that first.
-- Mention the most important nearby level only when it is directly connected to the supplied pattern or current structure.
-- Explain what holding above or falling below that level would mean for the current structure.
-- Use conditional educational wording, not predictions.
-- Do not tell the user to buy, sell, long, short, enter, exit, or wait.
-- Do not give trade advice.
-- Use only the TradeNestX engine facts above.
-- Keep the answer under 110 words.
+- Use ONLY the supplied TradeNestX engine facts.
+- Explain the Market Direction.
+- Explain the Market Structure.
+- Mention the nearest Support and Resistance when available.
+- Use support and resistance correctly:
+  - Support is the lower market level.
+  - Resistance is the upper market level.
+  - A break below support may reinforce bearish conditions.
+  - A break above resistance may reinforce bullish conditions.
+  - Holding above support may help preserve the current structure.
+  - Holding below resistance may help preserve the current structure.
+- Do not discuss Momentum unless the user specifically asks about Momentum.
+- Do not discuss Volume, RSI, or other indicators unless the user specifically asks about them.
+- Never identify, infer, or describe chart patterns.
+- Never invent technical observations that are not provided by the TradeNestX engines.
+- Do not infer information from the chart.
+- Do not predict future prices.
+- Do not provide buy, sell, long, or short recommendations.
+- Keep the answer under 100 words.
 `;
 
   const completion =
@@ -537,6 +538,7 @@ Do not review trades yourself.
 If trade review facts are provided, explain those facts only.
 When explaining a reviewed trade, prioritize process over outcome, but diagnose only the execution facts explicitly produced by the TradeNestX engine.
 Always mention the selected timeframe when answering market levels, direction, support, resistance, RSI, momentum, or trade review.
+Never identify or infer chart patterns unless they come from a completed deterministic TradeNestX Pattern Engine. If no Pattern Engine facts are supplied, do not mention or imply any chart pattern.
 Keep direct questions short and focused.
 `;
     

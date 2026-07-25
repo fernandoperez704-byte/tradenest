@@ -21,7 +21,7 @@ import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagem
 
 
 
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
@@ -100,7 +100,26 @@ const emptyPositions: Record<AssetSymbol, number> = {
 
 
 export default function SimulatorPage() {
-const { user } = useUser();
+  const { user } = useUser();
+  const { openSignIn } = useClerk();
+
+function requireSignIn() {
+  if (user) {
+    return true;
+  }
+
+  const currentPage =
+    window.location.pathname +
+    window.location.search +
+    window.location.hash;
+
+  openSignIn({
+    forceRedirectUrl: currentPage,
+  });
+
+  return false;
+}
+
 
 useEffect(() => {
   window.scrollTo(0, 0);
@@ -2405,6 +2424,7 @@ if (
 }
 
 function buyCoin() {
+  if (!requireSignIn()) return;
 
   if (!currentPrice) {
     setMessage("Loading real market price...");
@@ -2556,7 +2576,11 @@ tradeContext,
 }
   }
 
-  function openFuturesPosition(side: "LONG" | "SHORT", orderLeverage = leverage) {
+function openFuturesPosition(
+  side: "LONG" | "SHORT",
+  orderLeverage = leverage
+) {
+  if (!requireSignIn()) return;
 
   if (!currentPrice) {
     setMessage("Loading real market price...");
@@ -2701,6 +2725,8 @@ tradeContext,
 }
 
 function sellCoin() {
+  if (!requireSignIn()) return;
+
   if (!currentPrice) {
     setMessage("Loading real market price...");
     return;

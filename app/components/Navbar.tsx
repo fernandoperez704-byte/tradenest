@@ -2,14 +2,40 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import {
+  SignInButton,
+  UserButton,
+  useClerk,
+  useUser,
+} from "@clerk/nextjs";
 import { useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { isSignedIn, isLoaded } = useUser();
+const { openSignIn } = useClerk();
+
 const [showCommunity, setShowCommunity] = useState(false);
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+function handleProtectedLink(
+  event: React.MouseEvent<HTMLAnchorElement>,
+  destination: string
+) {
+  if (!isLoaded) {
+    event.preventDefault();
+    return;
+  }
+
+  if (!isSignedIn) {
+    event.preventDefault();
+
+openSignIn({
+  forceRedirectUrl: destination,
+});
+  }
+}
+
   return (
   <>
     <nav className="sticky top-0 z-50 w-full border-b border-cyan-500/10 bg-[#050816]/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
@@ -39,19 +65,21 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
           </Link>
 
           <div className="hidden items-center gap-4 md:flex">
-            <Link
-              href="/learn"
-              className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
-                pathname === "/learn"
-                  ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
-                  : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
-              }`}
-            >
-              Learn
-            </Link>
+<Link
+  href="/learn"
+  
+  className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
+    pathname === "/learn"
+      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
+      : "border-zinc-800 bg-[#18181b] text-zinc-200 hover:border-cyan-500/40 hover:text-cyan-400"
+  }`}
+>
+  Learn
+</Link>
 
             <Link
               href="/simulator"
+              
               className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/simulator"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
@@ -63,6 +91,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
             <Link
               href="/leaderboard"
+              onClick={(event) => handleProtectedLink(event, "/leaderboard")}
               className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/leaderboard"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
@@ -74,6 +103,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
             <Link
               href="/news"
+              
               className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/news"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
@@ -85,6 +115,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 <Link
   href="/support"
+  
   className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
     pathname === "/support"
       ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
@@ -93,9 +124,26 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 >
   Support
 </Link>
-            <button
-  onClick={() => setShowCommunity(true)}
- className="flex h-10 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
+<button
+  onClick={() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      const currentPage =
+        window.location.pathname +
+        window.location.search +
+        window.location.hash;
+
+      openSignIn({
+        forceRedirectUrl: currentPage,
+      });
+
+      return;
+    }
+
+    setShowCommunity(true);
+  }}
+  className="flex h-10 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
 >
   Community
 </button>
@@ -236,38 +284,85 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {[
-          ["Learn", "/learn"],
-          ["Simulator", "/simulator"],
-          ["Leaderboard", "/leaderboard"],
-          ["News", "/news"],
-          ["Support", "/support"],
-        ].map(([label, href]) => {
-          const active = pathname === href;
+{[
+  {
+    label: "Learn",
+    href: "/learn",
+    requiresSignIn: false,
+  },
+  {
+    label: "Simulator",
+    href: "/simulator",
+    requiresSignIn: false,
+  },
+  {
+    label: "Leaderboard",
+    href: "/leaderboard",
+    requiresSignIn: true,
+  },
+  {
+    label: "News",
+    href: "/news",
+    requiresSignIn: false,
+  },
+  {
+    label: "Support",
+    href: "/support",
+    requiresSignIn: false,
+  },
+].map(({ label, href, requiresSignIn }) => {
+  const active = pathname === href;
 
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={`mb-2 flex h-14 items-center justify-between rounded-xl px-4 text-lg font-bold transition-all ${
-                active
-                  ? "border border-cyan-400/30 bg-cyan-500/10 text-cyan-400"
-                  : "border border-transparent text-zinc-200 hover:border-white/10 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <span>{label}</span>
-              <span className="text-xl text-zinc-500">›</span>
-            </Link>
-          );
-        })}
+  return (
+    <Link
+      key={href}
+      href={href}
+      onClick={(event) => {
+        if (requiresSignIn) {
+          handleProtectedLink(event, href);
+
+          if (!isLoaded || !isSignedIn) {
+            setMobileMenuOpen(false);
+            return;
+          }
+        }
+
+        setMobileMenuOpen(false);
+      }}
+      className={`mb-2 flex h-14 items-center justify-between rounded-xl px-4 text-lg font-bold transition-all ${
+        active
+          ? "border border-cyan-400/30 bg-cyan-500/10 text-cyan-400"
+          : "border border-transparent text-zinc-200 hover:border-white/10 hover:bg-white/5 hover:text-white"
+      }`}
+    >
+      <span>{label}</span>
+      <span className="text-xl text-zinc-500">›</span>
+    </Link>
+  );
+})}
 
         <button
           type="button"
-          onClick={() => {
-            setMobileMenuOpen(false);
-            setShowCommunity(true);
-          }}
+onClick={() => {
+  setMobileMenuOpen(false);
+
+  if (!isLoaded) return;
+
+  if (!isSignedIn) {
+    const currentPage =
+      window.location.pathname +
+      window.location.search +
+      window.location.hash;
+
+    openSignIn({
+      forceRedirectUrl: currentPage,
+    });
+
+    return;
+  }
+
+  setShowCommunity(true);
+}}
           className="mb-2 flex h-14 w-full items-center justify-between rounded-xl border border-transparent px-4 text-left text-lg font-bold text-zinc-200 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white"
         >
           <span>Community</span>
