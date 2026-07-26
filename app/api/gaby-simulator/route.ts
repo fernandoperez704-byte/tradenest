@@ -370,11 +370,20 @@ return Response.json({
 }
 
 // Handle overall market direction with focused GPT explanation
-if (
+const isMarketAnalysisQuestion =
+  conversationIntent === "MARKET_ANALYSIS" ||
   normalizedQuestion.includes("overall market direction") ||
   normalizedQuestion.includes("market direction") ||
-  normalizedQuestion.includes("overall direction")
-) {
+  normalizedQuestion.includes("overall direction") ||
+  normalizedQuestion.includes("market condition") ||
+  normalizedQuestion.includes("market outlook") ||
+  normalizedQuestion.includes("current market") ||
+  normalizedQuestion.includes("current trend") ||
+  normalizedQuestion.includes("what is the market doing") ||
+  normalizedQuestion.includes("analyze btc") ||
+  normalizedQuestion.includes("analyze bitcoin");
+
+if (isMarketAnalysisQuestion) {
   const direction = marketFacts.marketDirection;
   const structure = marketFacts.structure;
   const conviction = marketFacts.marketConviction;
@@ -500,18 +509,6 @@ Rules:
 
     // 3. Fallback Short-circuit for Direct Market Updates
     // Expanded match strings to be slightly more forgiving
-    const marketAnalysisKeywords = ["btc", "bitcoin", "market condition", "market outlook", "analyze"];
-    const isDirectMarketAnalysisQuestion = marketAnalysisKeywords.some((keyword) =>
-      normalizedQuestion.includes(keyword)
-    );
-
-    if (
-      conversationIntent === "MARKET_ANALYSIS" &&
-      marketAnalysisSummary &&
-      isDirectMarketAnalysisQuestion
-    ) {
-      return Response.json({ answer: marketAnalysisSummary });
-    }
 
 const isTradeReviewFollowUp =
   conversationState?.intent === "TRADE_REVIEW";

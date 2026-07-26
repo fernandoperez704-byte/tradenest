@@ -18,7 +18,7 @@ import Navbar from "../components/Navbar";
 import GabyCoach from "../components/GabyCoach";
 import GabyIntro from "../components/GabyIntro";
 export default function LearnPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
   const [activeLesson, setActiveLesson] = useState("roadmap");
 
@@ -110,17 +110,23 @@ useEffect(() => {
   setIsGabyTyping(false);
   setLastQuestion("");
 }, []);
+
 useEffect(() => {
+  if (!isLoaded) return;
+
   async function loadProgress() {
-    
-if (!user) {
-  setCompletedLessons([]);
-  setLessonCompletionDates({});
-  setLearningMode(null);
-  setOnboardingCompleted(false);
-  setProgressLoaded(true);
-  return;
-}
+    setProgressLoaded(false);
+
+    if (!user) {
+      setCompletedLessons([]);
+      setLessonCompletionDates({});
+      setLearningMode(null);
+      setOnboardingCompleted(false);
+      setActiveLesson("roadmap");
+      setProgressLoaded(true);
+      return;
+    }
+
     try {
       const progressRef = doc(
         db,
@@ -130,57 +136,62 @@ if (!user) {
 
       const progressSnap = await getDoc(progressRef);
 
-if (progressSnap.exists()) {
-  const data = progressSnap.data();
+      if (progressSnap.exists()) {
+        const data = progressSnap.data();
 
-  setCompletedLessons(
-    data.completedLessons || []
-  );
+        setCompletedLessons(
+          data.completedLessons || []
+        );
 
-  setLessonCompletionDates(
-    data.lessonCompletionDates || {}
-  );
+        setLessonCompletionDates(
+          data.lessonCompletionDates || {}
+        );
 
-setOnboardingCompleted(
-  data.onboardingCompleted === true
-);
+        setOnboardingCompleted(
+          data.onboardingCompleted === true
+        );
 
-const savedLearningMode =
-  data.learningMode === "PERSONALIZED"
-    ? "FULL_ACCESS"
-    : data.learningMode;
+        const savedLearningMode =
+          data.learningMode === "PERSONALIZED"
+            ? "FULL_ACCESS"
+            : data.learningMode;
 
-if (
-  savedLearningMode === "GUIDED" ||
-  savedLearningMode === "FULL_ACCESS"
-) {
-  setLearningMode(savedLearningMode);
-} else {
-  setLearningMode(null);
-}
+        if (
+          savedLearningMode === "GUIDED" ||
+          savedLearningMode === "FULL_ACCESS"
+        ) {
+          setLearningMode(savedLearningMode);
+        } else {
+          setLearningMode(null);
+        }
 
-if (data.currentLesson) {
-  setActiveLesson(data.currentLesson);
-}
-} else {
-  setCompletedLessons([]);
-  setLessonCompletionDates({});
-  setLearningMode(null);
-  setOnboardingCompleted(false);
-}
-
-      setProgressLoaded(true);
+        setActiveLesson(
+          data.currentLesson || "roadmap"
+        );
+      } else {
+        setCompletedLessons([]);
+        setLessonCompletionDates({});
+        setLearningMode(null);
+        setOnboardingCompleted(false);
+        setActiveLesson("roadmap");
+      }
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Failed to load lesson progress:",
+        error
+      );
+    } finally {
       setProgressLoaded(true);
     }
   }
 
   loadProgress();
-}, [user]);
+}, [isLoaded, user?.id]);
 
 useEffect(() => {
-  if (!progressLoaded || !user) return;
+  if (!isLoaded || !progressLoaded || !user) {
+    return;
+  }
 
 async function saveProgress() {
   if (!user) return;
@@ -222,8 +233,9 @@ updatedAt: new Date().toISOString(),
   lessonCompletionDates,
   activeLesson,
   onboardingCompleted,
-learningMode,
-progressLoaded,
+  learningMode,
+  progressLoaded,
+  isLoaded,
   user,
 ]);
 
@@ -821,8 +833,16 @@ window.scrollTo({
   ← Back to Lessons
 </button>
 
-{activeLesson === "roadmap" && (
-<GabyIntro
+{activeLesson === "roadmap" && !progressLoaded && (
+  <div className="flex min-h-[500px] items-center justify-center rounded-[24px] border border-white/10 bg-[#0b0f1a]">
+    <p className="text-sm font-black uppercase tracking-wider text-cyan-300">
+      Loading your learning path...
+    </p>
+  </div>
+)}
+
+{activeLesson === "roadmap" && progressLoaded && (
+  <GabyIntro
   learningMode={learningMode}
   onboardingCompleted={onboardingCompleted}
   onStartLesson={() => {
