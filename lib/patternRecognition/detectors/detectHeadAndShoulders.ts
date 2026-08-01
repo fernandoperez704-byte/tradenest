@@ -225,17 +225,57 @@ export function detectHeadAndShoulders(
       endTime: Number(
         history[endIndex].time
       ),
+highPrice:
+  head.price,
 
-      highPrice:
-        head.price,
+lowPrice:
+  Math.min(
+    necklineLowOne.price,
+    necklineLowTwo.price
+  ),
 
-      lowPrice:
-        Math.min(
-          necklineLowOne.price,
-          necklineLowTwo.price
-        ),
+keyPoints: [
+  {
+    time: start.time,
+    price: start.price,
+    label: "Start",
+  },
+  {
+    time: leftShoulder.time,
+    price: leftShoulder.price,
+    label: "Left Shoulder",
+  },
+  {
+    time: necklineLowOne.time,
+    price: necklineLowOne.price,
+    label: "Neckline 1",
+  },
+  {
+    time: head.time,
+    price: head.price,
+    label: "Head",
+  },
+  {
+    time: necklineLowTwo.time,
+    price: necklineLowTwo.price,
+    label: "Neckline 2",
+  },
+  {
+    time: rightShoulder.time,
+    price: rightShoulder.price,
+    label: "Right Shoulder",
+  },
+  {
+    time: current.time,
+    price: current.price,
+    label: confirmed
+      ? "Breakdown"
+      : "Current",
+  },
+],
 
-      evidence: [
+evidence: [
+
         "The candle path formed a left shoulder, head, and right shoulder.",
         `The shoulders are ${shoulderDifferencePercent.toFixed(
           2

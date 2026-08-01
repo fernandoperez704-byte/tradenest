@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const productMap: Record<string, string> = {
   BTC: "BTC-USD",
   ETH: "ETH-USD",
@@ -24,16 +26,23 @@ const productMap: Record<string, string> = {
   PEPE: "PEPE-USD",
 };
 
-const granularityMap: Record<string, number> = {
+const granularityMap: Record<string, string> = {
+  "1M": "ONE_MINUTE",
+  "5M": "FIVE_MINUTE",
+  "15M": "FIFTEEN_MINUTE",
+  "1H": "ONE_HOUR",
+  "4H": "FOUR_HOUR",
+  "1D": "ONE_DAY",
+};
+
+const timeframeSecondsMap: Record<string, number> = {
   "1M": 60,
   "5M": 300,
   "15M": 900,
   "1H": 3600,
-  "4H": 21600,
+  "4H": 14400,
   "1D": 86400,
 };
-
-
 
 export async function GET(request: Request) {
   try {
@@ -43,35 +52,60 @@ export async function GET(request: Request) {
     const timeframe = searchParams.get("timeframe") || "1M";
 
     const productId = productMap[symbol] || "BTC-USD";
-    const granularity = granularityMap[timeframe] || 60;
+    const granularity =
+  granularityMap[timeframe] || "ONE_MINUTE";
 
-    const response = await fetch(
-      `https://api.exchange.coinbase.com/products/${productId}/candles?granularity=${granularity}`,
-      {
-        next: { revalidate: 60 },
-        headers: {
-          "User-Agent": "TradeNestX",
-        },
-      }
-    );
+const timeframeSeconds =
+  timeframeSecondsMap[timeframe] || 60;
 
-    const data = await response.json();
+const endTime =
+  Math.floor(Date.now() / 1000);
 
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid candle data");
-    }
+const startTime =
+  endTime - timeframeSeconds * 299;
 
-    let candles = data
-      .map((item: any[]) => ({
-        time: String(item[0] * 1000),
-        price: Number(item[4]),
-        low: Number(item[1]),
-        high: Number(item[2]),
-        open: Number(item[3]),
-        close: Number(item[4]),
-        volume: Number(item[5]),
-      }))
-      .reverse();
+const candleUrl =
+  `https://api.coinbase.com/api/v3/brokerage/market/products/${productId}/candles` +
+  `?start=${startTime}` +
+  `&end=${endTime}` +
+  `&granularity=${granularity}` +
+  `&limit=300`;
+
+const response = await fetch(candleUrl, {
+  cache: "no-store",
+  headers: {
+    "User-Agent": "TradeNestX",
+  },
+});
+
+if (!response.ok) {
+  throw new Error(
+    `Coinbase candles failed: ${response.status}`
+  );
+}
+
+const data = await response.json();
+
+if (!Array.isArray(data?.candles)) {
+  throw new Error(
+    "Invalid candle data"
+  );
+}
+
+const candles = data.candles
+  .map((item: any) => ({
+    time: String(Number(item.start) * 1000),
+    price: Number(item.close),
+    low: Number(item.low),
+    high: Number(item.high),
+    open: Number(item.open),
+    close: Number(item.close),
+    volume: Number(item.volume),
+  }))
+  .sort(
+    (a: { time: string }, b: { time: string }) =>
+      Number(a.time) - Number(b.time)
+  );
 
 
 

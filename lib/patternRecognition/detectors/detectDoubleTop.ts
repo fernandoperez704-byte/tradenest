@@ -222,13 +222,43 @@ export function detectDoubleTop(
         history[endIndex].time
       ),
 
-      highPrice:
-        topResistance,
+highPrice:
+  topResistance,
 
-      lowPrice:
-        neckline.price,
+lowPrice:
+  neckline.price,
 
-      evidence: [
+keyPoints: [
+  {
+    time: start.time,
+    price: start.price,
+    label: "Start",
+  },
+  {
+    time: firstTop.time,
+    price: firstTop.price,
+    label: "Peak 1",
+  },
+  {
+    time: neckline.time,
+    price: neckline.price,
+    label: "Neckline",
+  },
+  {
+    time: secondTop.time,
+    price: secondTop.price,
+    label: "Peak 2",
+  },
+  {
+    time: current.time,
+    price: current.price,
+    label: confirmed
+      ? "Breakdown"
+      : "Current",
+  },
+],
+
+evidence: [
         "The candle path formed an M shape.",
         `The tops are ${topDifferencePercent.toFixed(
           2

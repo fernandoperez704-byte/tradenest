@@ -74,6 +74,29 @@ import type {
 const startingBalance = 10000;
 const feeRate = 0.006;
 
+const COINBASE_PRODUCT_IDS: Record<AssetSymbol, string> = {
+  BTC: "BTC-USD",
+  ETH: "ETH-USD",
+  SOL: "SOL-USD",
+  XRP: "XRP-USD",
+  DOGE: "DOGE-USD",
+  ADA: "ADA-USD",
+  BNB: "BNB-USD",
+  LINK: "LINK-USD",
+  AVAX: "AVAX-USD",
+  SUI: "SUI-USD",
+  HBAR: "HBAR-USD",
+  LTC: "LTC-USD",
+  BCH: "BCH-USD",
+  DOT: "DOT-USD",
+  UNI: "UNI-USD",
+  AAVE: "AAVE-USD",
+  ATOM: "ATOM-USD",
+  NEAR: "NEAR-USD",
+  SHIB: "SHIB-USD",
+  PEPE: "PEPE-USD",
+};
+
 const emptyPositions: Record<AssetSymbol, number> = {
   BTC: 0,
   ETH: 0,
@@ -512,7 +535,9 @@ if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
   if (data.orderType) setOrderType(data.orderType);
   if (data.leverage) setLeverage(data.leverage);
   if (data.marketMode) setMarketMode(data.marketMode);
-  
+  if (data.selectedTimeframe) {
+  setSelectedTimeframe(data.selectedTimeframe);
+}
   
   if (data.activeBottomTab) setActiveBottomTab(data.activeBottomTab);
   setSessionLoaded(true);
@@ -542,10 +567,9 @@ futuresHistory,
       limitPrice,
       orderType,
       leverage,
-      marketMode,
-      
-      
-      activeBottomTab,
+marketMode,
+selectedTimeframe,
+activeBottomTab,
     })
   );
 }, [
@@ -566,10 +590,10 @@ futuresHistory,
   limitPrice,
   orderType,
   leverage,
-  marketMode,
-  
-  activeBottomTab,
-  sessionLoaded,
+marketMode,
+selectedTimeframe,
+activeBottomTab,
+sessionLoaded,
 ]);
 
 useEffect(() => {
@@ -857,44 +881,7 @@ async function updatePrices() {
       {}
     );
 
-const livePrice = realPrices[selectedCoin];
-const activeCandleKey = `${selectedCoin}-${selectedTimeframe}`;
 
-if (livePrice && candlesReadyFor === activeCandleKey) {
-  setHistory((prevHistory) => {
-    if (prevHistory.length === 0) return prevHistory;
-
-    const updatedHistory = [...prevHistory];
-    const lastCandle = updatedHistory[updatedHistory.length - 1];
-
-    const currentCandleStart = getCurrentCandleStart(selectedTimeframe);
-    const lastCandleTime = Number(lastCandle.time);
-
-    if (currentCandleStart > lastCandleTime) {
-      updatedHistory.push({
-        time: String(currentCandleStart),
-        price: livePrice,
-        open: livePrice,
-        high: livePrice,
-        low: livePrice,
-        close: livePrice,
-        volume: 0,
-      });
-
-      return updatedHistory;
-    }
-
-    updatedHistory[updatedHistory.length - 1] = {
-      ...lastCandle,
-      close: livePrice,
-      high: Math.max(lastCandle.high, livePrice),
-      low: Math.min(lastCandle.low, livePrice),
-      price: livePrice,
-    };
-
-    return updatedHistory;
-  });
-}
 
 setPrices((prev) => {
   setPreviousPrices(prev);
@@ -1213,6 +1200,195 @@ setCandlesReadyFor(candleKey);
     cancelled = true;
   };
 }, [selectedCoin, selectedTimeframe, simulatorReady]);
+
+useEffect(() => {
+  if (!simulatorReady) {
+    return;
+  }
+
+  const productId =
+    COINBASE_PRODUCT_IDS[selectedCoin];
+
+  if (!productId) {
+    return;
+  }
+
+  const socket = new WebSocket(
+    "wss://advanced-trade-ws.coinbase.com"
+  );
+
+  socket.onopen = () => {
+    socket.send(
+      JSON.stringify({
+        type: "subscribe",
+        product_ids: [productId],
+        channel: "market_trades",
+      })
+    );
+
+    socket.send(
+      JSON.stringify({
+        type: "subscribe",
+        channel: "heartbeats",
+      })
+    );
+  };
+
+  socket.onmessage = (event) => {
+    try {
+      const message = JSON.parse(event.data);
+
+      if (message.channel !== "market_trades") {
+        return;
+      }
+
+      const events = Array.isArray(message.events)
+        ? message.events
+        : [];
+
+      const trades = events.flatMap(
+        (marketEvent: any) =>
+          Array.isArray(marketEvent.trades)
+            ? marketEvent.trades
+            : []
+      );
+
+      if (trades.length === 0) {
+        return;
+      }
+
+      setHistory((previousHistory) => {
+        if (previousHistory.length === 0) {
+          return previousHistory;
+        }
+
+        const updatedHistory = [
+          ...previousHistory,
+        ];
+
+        const timeframeMs =
+          getTimeframeMs(selectedTimeframe);
+
+        for (const trade of trades) {
+          if (trade.product_id !== productId) {
+            continue;
+          }
+
+          const tradePrice = Number(
+            trade.price
+          );
+
+          const tradeSize = Number(
+            trade.size
+          );
+
+          const tradeTime = new Date(
+            trade.time
+          ).getTime();
+
+          if (
+            !Number.isFinite(tradePrice) ||
+            !Number.isFinite(tradeSize) ||
+            !Number.isFinite(tradeTime)
+          ) {
+            continue;
+          }
+
+          const candleStart =
+            Math.floor(
+              tradeTime / timeframeMs
+            ) * timeframeMs;
+
+          const lastCandle =
+            updatedHistory[
+              updatedHistory.length - 1
+            ];
+
+          const lastCandleTime =
+            Number(lastCandle.time);
+
+          if (candleStart > lastCandleTime) {
+            updatedHistory.push({
+              time: String(candleStart),
+              price: tradePrice,
+              open: tradePrice,
+              high: tradePrice,
+              low: tradePrice,
+              close: tradePrice,
+              volume: tradeSize,
+            });
+
+            continue;
+          }
+
+          if (candleStart === lastCandleTime) {
+            updatedHistory[
+              updatedHistory.length - 1
+            ] = {
+              ...lastCandle,
+              price: tradePrice,
+              close: tradePrice,
+              high: Math.max(
+                lastCandle.high,
+                tradePrice
+              ),
+              low: Math.min(
+                lastCandle.low,
+                tradePrice
+              ),
+              volume:
+                Number(
+                  lastCandle.volume ?? 0
+                ) + tradeSize,
+            };
+          }
+        }
+
+        return updatedHistory;
+      });
+
+      const latestTrade =
+        trades[trades.length - 1];
+
+      const latestPrice = Number(
+        latestTrade?.price
+      );
+
+      if (Number.isFinite(latestPrice)) {
+        setPrices((previousPrices) => ({
+          ...previousPrices,
+          [selectedCoin]: latestPrice,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        "Coinbase WebSocket message failed:",
+        error
+      );
+    }
+  };
+
+  socket.onerror = (error) => {
+    console.error(
+      "Coinbase WebSocket error:",
+      error
+    );
+  };
+
+  socket.onclose = () => {
+    console.log(
+      `Coinbase WebSocket closed for ${productId}`
+    );
+  };
+
+  return () => {
+    socket.close();
+  };
+}, [
+  selectedCoin,
+  selectedTimeframe,
+  simulatorReady,
+]);
 
 useEffect(() => {
   if (!patternRecognitionEnabled) {

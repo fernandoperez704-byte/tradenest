@@ -567,9 +567,32 @@ export function getBouncePressure(
   return "LOW";
 }
 
-export function getControlStrength(mom: MomentumAnalysis | null, vol: VolumeAnalysis | null, fall: FallForce): ControlStrength {
-  if (mom?.momentum === "WEAK_MOMENTUM" || fall === "WEAK") return "WEAKENING";
-  if (vol?.volume === "VOLUME_SPIKE" || vol?.volume === "RISING_VOLUME") return "STRENGTHENING";
+export function getControlStrength(
+  mom: MomentumAnalysis | null,
+  vol: VolumeAnalysis | null
+): ControlStrength {
+  const hasStrongVolume =
+    vol?.volume === "VOLUME_SPIKE" ||
+    vol?.volume === "RISING_VOLUME";
+
+  const hasDirectionalMomentum =
+    mom?.momentum === "BULLISH_MOMENTUM" ||
+    mom?.momentum === "BEARISH_MOMENTUM";
+
+  if (
+    hasStrongVolume &&
+    hasDirectionalMomentum
+  ) {
+    return "STRENGTHENING";
+  }
+
+  if (
+    mom?.momentum === "WEAK_MOMENTUM" &&
+    !hasStrongVolume
+  ) {
+    return "WEAKENING";
+  }
+
   return "STABLE";
 }
 
@@ -845,7 +868,11 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
   const momentumStage = getMomentumStage(momentumAnalysis, patternAnalysis, nearestSupport, nearestResistance, currentPrice, maStructureExtension, bouncePressure);
   
   const marketState = getMarketState(direction, structure);
-  const controlStrength = getControlStrength(momentumAnalysis, volumeAnalysis, fallForce);
+ const controlStrength =
+  getControlStrength(
+    momentumAnalysis,
+    volumeAnalysis
+  );
   const moveCondition = getMoveCondition(maStructureExtension, bouncePressure, momentumStage);
 
   return {

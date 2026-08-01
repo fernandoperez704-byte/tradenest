@@ -217,13 +217,43 @@ export function detectDoubleBottom(
         history[endIndex].time
       ),
 
-      highPrice:
-        neckline.price,
+highPrice:
+  neckline.price,
 
-      lowPrice:
-        bottomSupport,
+lowPrice:
+  bottomSupport,
 
-      evidence: [
+keyPoints: [
+  {
+    time: start.time,
+    price: start.price,
+    label: "Start",
+  },
+  {
+    time: firstBottom.time,
+    price: firstBottom.price,
+    label: "Bottom 1",
+  },
+  {
+    time: neckline.time,
+    price: neckline.price,
+    label: "Neckline",
+  },
+  {
+    time: secondBottom.time,
+    price: secondBottom.price,
+    label: "Bottom 2",
+  },
+  {
+    time: current.time,
+    price: current.price,
+    label: confirmed
+      ? "Breakout"
+      : "Current",
+  },
+],
+
+evidence: [
         "The candle path formed a W shape.",
         `The bottoms are ${bottomDifferencePercent.toFixed(
           2

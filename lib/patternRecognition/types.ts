@@ -16,6 +16,12 @@ export type PatternType =
   | "BULL_FLAG"
   | "BEAR_FLAG";
 
+export type PatternPoint = {
+  time: number;
+  price: number;
+  label?: string;
+};
+
 export interface BasePattern {
   id: string;
   confidence: number;
@@ -28,6 +34,8 @@ export interface BasePattern {
 
   highPrice: number;
   lowPrice: number;
+
+keyPoints?: PatternPoint[];
 
   evidence: string[];
   cautions: string[];
