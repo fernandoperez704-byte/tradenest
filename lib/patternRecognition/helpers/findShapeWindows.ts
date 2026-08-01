@@ -22,12 +22,34 @@ export function findShapeWindows(
       path.length - windowSize;
     startIndex++
   ) {
-    windows.push(
+    const windowSlice =
       path.slice(
         startIndex,
         startIndex + windowSize
-      )
-    );
+      );
+
+    const isStrictlySequential =
+      windowSlice.every(
+        (point, index) => {
+          if (
+            index ===
+            windowSlice.length - 1
+          ) {
+            return true;
+          }
+
+          return (
+            point.index <
+            windowSlice[index + 1].index
+          );
+        }
+      );
+
+    if (!isStrictlySequential) {
+      continue;
+    }
+
+    windows.push(windowSlice);
   }
 
   return windows;

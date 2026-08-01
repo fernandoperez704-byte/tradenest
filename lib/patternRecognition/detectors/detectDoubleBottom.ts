@@ -2,17 +2,9 @@ import type { PricePoint } from "@/app/simulator/types/simulator";
 import type { DetectedPattern } from "../types";
 import type { CandlePathPoint } from "../helpers/buildCandlePath";
 
-import {
-  PATTERN_CONFIG,
-} from "../constants";
-
-import {
-  findShapeWindows,
-} from "../helpers/findShapeWindows";
-
-import {
-  calculatePatternConfidence,
-} from "../confidence/calculatePatternConfidence";
+import { PATTERN_CONFIG } from "../constants";
+import { findShapeWindows } from "../helpers/findShapeWindows";
+import { calculatePatternConfidence } from "../confidence/calculatePatternConfidence";
 
 function percentDifference(
   first: number,
@@ -37,13 +29,14 @@ export function detectDoubleBottom(
   if (
     !Array.isArray(history) ||
     history.length === 0 ||
+    !Array.isArray(path) ||
     path.length < 5
   ) {
     return null;
   }
 
   const latestClose = Number(
-    history[history.length - 1].close
+    history[history.length - 1]?.close
   );
 
   if (
@@ -53,13 +46,16 @@ export function detectDoubleBottom(
     return null;
   }
 
-  const windows =
-    findShapeWindows(path, 5);
+  const windows = findShapeWindows(path, 5);
 
-  let bestPattern:
-    DetectedPattern | null = null;
+  let bestPattern: DetectedPattern | null =
+    null;
 
   for (const window of windows) {
+    if (!window || window.length < 5) {
+      continue;
+    }
+
     const [
       start,
       firstBottom,
@@ -67,6 +63,16 @@ export function detectDoubleBottom(
       secondBottom,
       current,
     ] = window;
+
+    const hasCorrectOrder =
+      start.index < firstBottom.index &&
+      firstBottom.index < neckline.index &&
+      neckline.index < secondBottom.index &&
+      secondBottom.index <= current.index;
+
+    if (!hasCorrectOrder) {
+      continue;
+    }
 
     const formsW =
       firstBottom.price < start.price &&
@@ -84,11 +90,12 @@ export function detectDoubleBottom(
         secondBottom.price
       );
 
+    const maxBottomDifferencePercent =
+      0.75;
+
     if (
       bottomDifferencePercent >
-      PATTERN_CONFIG
-        .DOUBLE_BOTTOM
-        .MAX_DIFFERENCE_PERCENT
+      maxBottomDifferencePercent
     ) {
       continue;
     }
@@ -103,10 +110,48 @@ export function detectDoubleBottom(
       continue;
     }
 
+    /*
+     * Build one shared support zone around
+     * the average price of both bottoms.
+     */
+    const supportZoneHalfPercent =
+      maxBottomDifferencePercent / 2;
+
+    const supportZoneLow =
+      averageBottomPrice *
+      (
+        1 -
+        supportZoneHalfPercent / 100
+      );
+
+    const supportZoneHigh =
+      averageBottomPrice *
+      (
+        1 +
+        supportZoneHalfPercent / 100
+      );
+
+    const firstBottomInsideZone =
+      firstBottom.price >= supportZoneLow &&
+      firstBottom.price <= supportZoneHigh;
+
+    const secondBottomInsideZone =
+      secondBottom.price >= supportZoneLow &&
+      secondBottom.price <= supportZoneHigh;
+
+    if (
+      !firstBottomInsideZone ||
+      !secondBottomInsideZone
+    ) {
+      continue;
+    }
+
     const necklineRisePercent =
       (
-        (neckline.price -
-          averageBottomPrice) /
+        (
+          neckline.price -
+          averageBottomPrice
+        ) /
         averageBottomPrice
       ) * 100;
 
@@ -159,6 +204,10 @@ export function detectDoubleBottom(
         secondBottom.price
       );
 
+    /*
+     * A historical Double Bottom is invalid
+     * if price later closes below both bottoms.
+     */
     if (latestClose < bottomSupport) {
       continue;
     }
@@ -193,6 +242,10 @@ export function detectDoubleBottom(
         ? secondBottom.index
         : history.length - 1;
 
+    const safeHistoryItem =
+      history[endIndex] ??
+      history[history.length - 1];
+
     const candidate: DetectedPattern = {
       id: `double-bottom-${firstBottom.time}-${secondBottom.time}`,
 
@@ -205,59 +258,66 @@ export function detectDoubleBottom(
 
       confidence,
 
-      startIndex:
-        firstBottom.index,
-
+      startIndex: start.index,
       endIndex,
 
-      startTime:
-        firstBottom.time,
+      startTime: start.time,
 
       endTime: Number(
-        history[endIndex].time
+        safeHistoryItem.time
       ),
 
-highPrice:
-  neckline.price,
+      highPrice: neckline.price,
+      lowPrice: bottomSupport,
 
-lowPrice:
-  bottomSupport,
+      keyPoints: [
+        {
+          time: start.time,
+          price: start.price,
+          label: "Start",
+        },
+        {
+          time: firstBottom.time,
+          price: firstBottom.price,
+          label: "Bottom 1",
+        },
+        {
+          time: neckline.time,
+          price: neckline.price,
+          label: "Neckline",
+        },
+        {
+          time: secondBottom.time,
+          price: secondBottom.price,
+          label: "Bottom 2",
+        },
+        {
+          time: current.time,
+          price: current.price,
+          label: confirmed
+            ? "Breakout"
+            : "Current",
+        },
+      ],
 
-keyPoints: [
-  {
-    time: start.time,
-    price: start.price,
-    label: "Start",
-  },
-  {
-    time: firstBottom.time,
-    price: firstBottom.price,
-    label: "Bottom 1",
-  },
-  {
-    time: neckline.time,
-    price: neckline.price,
-    label: "Neckline",
-  },
-  {
-    time: secondBottom.time,
-    price: secondBottom.price,
-    label: "Bottom 2",
-  },
-  {
-    time: current.time,
-    price: current.price,
-    label: confirmed
-      ? "Breakout"
-      : "Current",
-  },
-],
+      supportZone: {
+        low: supportZoneLow,
+        high: supportZoneHigh,
+      },
 
-evidence: [
+      evidence: [
         "The candle path formed a W shape.",
+
         `The bottoms are ${bottomDifferencePercent.toFixed(
           2
         )}% apart.`,
+
+        `Both bottoms tested the same support zone between ${supportZoneLow.toFixed(
+          8
+        )} and ${supportZoneHigh.toFixed(
+          8
+        )}.`,
+
         `The neckline is ${necklineRisePercent.toFixed(
           2
         )}% above the bottoms.`,

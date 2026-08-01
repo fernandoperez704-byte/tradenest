@@ -18,7 +18,8 @@ export function detectPatterns(
 ): DetectedPattern[] {
   if (
     !Array.isArray(history) ||
-    history.length < PATTERN_CONFIG.LOOKBACK
+    history.length <
+      PATTERN_CONFIG.LOOKBACK
   ) {
     return [];
   }
@@ -32,25 +33,56 @@ export function detectPatterns(
         PATTERN_CONFIG.MIN_MOVE_PERCENT,
     });
 
-  if (path.length < 5) {
+  if (
+    !Array.isArray(path) ||
+    path.length < 5
+  ) {
     return [];
   }
 
   const detectedPatterns =
     DETECTOR_REGISTRY.flatMap(
       (detector) => {
-        const result = detector(
-          history,
-          path
-        );
+        if (
+          typeof detector !== "function"
+        ) {
+          return [];
+        }
 
-        return result
-          ? [result]
-          : [];
+        try {
+          const result =
+            detector(
+              history,
+              path
+            );
+
+          return result
+            ? [result]
+            : [];
+        } catch (error) {
+          console.error(
+            "PAT detector failed:",
+            error
+          );
+
+          return [];
+        }
       }
     );
 
-  detectedPatterns.sort((a, b) => {
+  const uniquePatterns =
+    Array.from(
+      new Map(
+        detectedPatterns.map(
+          (pattern) => [
+            pattern.id,
+            pattern,
+          ]
+        )
+      ).values()
+    );
+
+  uniquePatterns.sort((a, b) => {
     const statusDifference =
       Number(
         b.status === "CONFIRMED"
@@ -59,7 +91,9 @@ export function detectPatterns(
         a.status === "CONFIRMED"
       );
 
-    if (statusDifference !== 0) {
+    if (
+      statusDifference !== 0
+    ) {
       return statusDifference;
     }
 
@@ -67,14 +101,19 @@ export function detectPatterns(
       b.confidence -
       a.confidence;
 
-    if (confidenceDifference !== 0) {
+    if (
+      confidenceDifference !== 0
+    ) {
       return confidenceDifference;
     }
 
-    return b.endTime - a.endTime;
+    return (
+      b.endTime -
+      a.endTime
+    );
   });
 
-  return detectedPatterns.length > 0
-    ? [detectedPatterns[0]]
+  return uniquePatterns.length > 0
+    ? [uniquePatterns[0]]
     : [];
 }

@@ -14,12 +14,22 @@ export type PatternType =
   | "HEAD_AND_SHOULDERS"
   | "INVERSE_HEAD_AND_SHOULDERS"
   | "BULL_FLAG"
-  | "BEAR_FLAG";
+  | "BEAR_FLAG"
+  | "ASCENDING_TRIANGLE"
+  | "DESCENDING_TRIANGLE"
+  | "SYMMETRICAL_TRIANGLE"
+  | "RISING_WEDGE"
+  | "FALLING_WEDGE";
 
 export type PatternPoint = {
   time: number;
   price: number;
   label?: string;
+};
+
+export type PatternZone = {
+  low: number;
+  high: number;
 };
 
 export interface BasePattern {
@@ -35,7 +45,9 @@ export interface BasePattern {
   highPrice: number;
   lowPrice: number;
 
-keyPoints?: PatternPoint[];
+  keyPoints?: PatternPoint[];
+  resistanceZone?: PatternZone;
+  supportZone?: PatternZone;
 
   evidence: string[];
   cautions: string[];
@@ -81,6 +93,41 @@ export type DetectedPattern =
       BasePattern & {
         type: "BEAR_FLAG";
         direction: "BEARISH";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "ASCENDING_TRIANGLE";
+        direction: "BULLISH";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "DESCENDING_TRIANGLE";
+        direction: "BEARISH";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "SYMMETRICAL_TRIANGLE";
+        direction: "NEUTRAL";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "RISING_WEDGE";
+        direction: "BEARISH";
+        status: PatternStatus;
+      }
+    )
+  | (
+      BasePattern & {
+        type: "FALLING_WEDGE";
+        direction: "BULLISH";
         status: PatternStatus;
       }
     );

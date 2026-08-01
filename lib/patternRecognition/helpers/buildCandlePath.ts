@@ -51,6 +51,10 @@ export function buildCandlePath(
   const data =
     history.slice(startIndex);
 
+  if (data.length === 0) {
+    return [];
+  }
+
   const path:
     CandlePathPoint[] = [];
 
@@ -216,6 +220,7 @@ export function buildCandlePath(
 
   if (
     isValid(finalPrice) &&
+    last &&
     last.index !==
       finalGlobalIndex
   ) {
@@ -255,9 +260,21 @@ function addPoint(
     return;
   }
 
+  const globalIndex =
+    offset + index;
+
+  const lastPoint =
+    path[path.length - 1];
+
+  if (
+    lastPoint &&
+    lastPoint.index >= globalIndex
+  ) {
+    return;
+  }
+
   path.push({
-    index:
-      offset + index,
+    index: globalIndex,
 
     time: Number(
       data[index].time

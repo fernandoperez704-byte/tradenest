@@ -23,30 +23,6 @@ type Props = {
   chartContainerRef: any;
 };
 
-function formatPatternName(
-  type: DetectedPattern["type"]
-) {
-  switch (type) {
-    case "DOUBLE_BOTTOM":
-      return "Double Bottom";
-
-    case "DOUBLE_TOP":
-      return "Double Top";
-
-    case "HEAD_AND_SHOULDERS":
-      return "Head and Shoulders";
-
-    case "INVERSE_HEAD_AND_SHOULDERS":
-      return "Inverse Head and Shoulders";
-
-    case "BULL_FLAG":
-      return "Bull Flag";
-
-    case "BEAR_FLAG":
-      return "Bear Flag";
-  }
-}
-
 export default function PatternOverlay({
   pattern,
   chartInstanceRef,
@@ -56,50 +32,74 @@ export default function PatternOverlay({
   const [position, setPosition] =
     useState<OverlayPosition | null>(null);
 
-   const [overlayPoints, setOverlayPoints] =
-  useState<OverlayPoint[]>([]); 
+  const [overlayPoints, setOverlayPoints] =
+    useState<OverlayPoint[]>([]);
 
   useEffect(() => {
-    const chart = chartInstanceRef.current;
-    const candleSeries = candleSeriesRef.current;
-    const container = chartContainerRef.current;
+    const chart =
+      chartInstanceRef.current;
 
-if (
-  !pattern ||
-  !chart ||
-  !candleSeries ||
-  !container
-) {
-  setPosition(null);
-  setOverlayPoints([]);
-  return;
-}
+    const candleSeries =
+      candleSeriesRef.current;
+
+    const container =
+      chartContainerRef.current;
+
+    if (
+      !pattern ||
+      !chart ||
+      !candleSeries ||
+      !container
+    ) {
+      setPosition(null);
+      setOverlayPoints([]);
+      return;
+    }
 
     function updatePosition() {
-      const currentChart = chartInstanceRef.current;
-      const currentSeries = candleSeriesRef.current;
+      const currentChart =
+        chartInstanceRef.current;
 
-if (!currentChart || !currentSeries || !pattern) {
-  setPosition(null);
-  setOverlayPoints([]);
-  return;
-}
+      const currentSeries =
+        candleSeriesRef.current;
+
+      const currentContainer =
+        chartContainerRef.current;
+
+      if (
+        !currentChart ||
+        !currentSeries ||
+        !currentContainer ||
+        !pattern
+      ) {
+        setPosition(null);
+        setOverlayPoints([]);
+        return;
+      }
 
       const startTimeSeconds =
-        Math.floor(Number(pattern.startTime) / 1000);
+        Math.floor(
+          Number(pattern.startTime) / 1000
+        );
 
       const endTimeSeconds =
-        Math.floor(Number(pattern.endTime) / 1000);
+        Math.floor(
+          Number(pattern.endTime) / 1000
+        );
 
       const startX =
         currentChart
           .timeScale()
-          .timeToCoordinate(startTimeSeconds as any);
+          .timeToCoordinate(
+            startTimeSeconds as any
+          );
 
       const endX =
         currentChart
           .timeScale()
-          .timeToCoordinate(endTimeSeconds as any);
+          .timeToCoordinate(
+            endTimeSeconds as any
+          );
 
       const highY =
         currentSeries.priceToCoordinate(
@@ -118,83 +118,110 @@ if (!currentChart || !currentSeries || !pattern) {
         lowY == null
       ) {
         setPosition(null);
+        setOverlayPoints([]);
         return;
       }
 
-      const horizontalPadding = 8;
-      const verticalPadding = 8;
+      const horizontalPadding = 16;
+      const verticalPadding = 16;
 
-      const left =
+      const rawLeft =
         Math.min(startX, endX) -
         horizontalPadding;
 
-      const right =
+      const rawRight =
         Math.max(startX, endX) +
         horizontalPadding;
 
-      const top =
+      const rawTop =
         Math.min(highY, lowY) -
         verticalPadding;
 
-      const bottom =
+      const rawBottom =
         Math.max(highY, lowY) +
         verticalPadding;
 
-const nextPosition = {
-  left,
-  top,
-  width: Math.max(20, right - left),
-  height: Math.max(20, bottom - top),
-};
+      const width =
+        Math.max(
+          40,
+          rawRight - rawLeft
+        );
 
-setPosition(nextPosition);
+      const height =
+        Math.max(
+          40,
+          rawBottom - rawTop
+        );
 
-const nextOverlayPoints: OverlayPoint[] = [];
+      const nextPosition: OverlayPosition = {
+        left: rawLeft,
+        top: rawTop,
+        width,
+        height,
+      };
 
-for (const point of pattern.keyPoints ?? []) {
-  const pointTimeSeconds =
-    Math.floor(Number(point.time) / 1000);
+      setPosition(nextPosition);
 
-  const x =
-    currentChart
-      .timeScale()
-      .timeToCoordinate(
-        pointTimeSeconds as any
+      const nextOverlayPoints:
+        OverlayPoint[] = [];
+
+      for (
+        const point of
+        pattern.keyPoints ?? []
+      ) {
+        const pointTimeSeconds =
+          Math.floor(
+            Number(point.time) / 1000
+          );
+
+        const pointX =
+          currentChart
+            .timeScale()
+            .timeToCoordinate(
+              pointTimeSeconds as any
+            );
+
+        const pointY =
+          currentSeries.priceToCoordinate(
+            point.price
+          );
+
+        if (
+          pointX == null ||
+          pointY == null
+        ) {
+          continue;
+        }
+
+        nextOverlayPoints.push({
+          x: pointX - rawLeft,
+          y: pointY - rawTop,
+          label: point.label,
+        });
+      }
+
+      setOverlayPoints(
+        nextOverlayPoints
       );
-
-  const y =
-    currentSeries.priceToCoordinate(
-      point.price
-    );
-
-  if (x == null || y == null) {
-    continue;
-  }
-
-  nextOverlayPoints.push({
-    x: x - nextPosition.left,
-    y: y - nextPosition.top,
-    label: point.label,
-  });
-}
-
-setOverlayPoints(nextOverlayPoints);
-
     }
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(updatePosition);
+      requestAnimationFrame(
+        updatePosition
+      );
     });
 
-    const timeScale = chart.timeScale();
+    const timeScale =
+      chart.timeScale();
 
     timeScale.subscribeVisibleLogicalRangeChange(
       updatePosition
     );
 
-    const resizeObserver = new ResizeObserver(() => {
-      updatePosition();
-    });
+    const resizeObserver =
+      new ResizeObserver(() => {
+        updatePosition();
+      });
 
     resizeObserver.observe(container);
 
@@ -212,150 +239,233 @@ setOverlayPoints(nextOverlayPoints);
     chartContainerRef,
   ]);
 
-  if (!pattern || !position) {
+  if (
+    !pattern ||
+    !position ||
+    overlayPoints.length === 0
+  ) {
     return null;
   }
 
-return (
-  <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
-<div
-  className="absolute text-white"
-  style={{
-    left: `${position.left}px`,
-    top: `${position.top}px`,
-    width: `${position.width}px`,
-    height: `${position.height}px`,
-  }}
->
-{overlayPoints.length >= 5 && (
-  <svg
-    className="absolute inset-0 h-full w-full overflow-visible"
-    viewBox={`0 0 ${position.width} ${position.height}`}
-    preserveAspectRatio="none"
-  >
-{(
-  pattern.type === "DOUBLE_TOP" ||
-  pattern.type === "DOUBLE_BOTTOM"
-) && (
-  <line
-    x1={overlayPoints[1].x}
-    y1={overlayPoints[1].y}
-    x2={overlayPoints[3].x}
-    y2={overlayPoints[3].y}
-    stroke="rgba(255,255,255,0.75)"
-    strokeWidth="1"
-    strokeDasharray="5 4"
-    vectorEffect="non-scaling-stroke"
-  />
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+      <div
+        className="absolute text-white"
+        style={{
+          left: `${position.left}px`,
+          top: `${position.top}px`,
+          width: `${position.width}px`,
+          height: `${position.height}px`,
+        }}
+      >
+        <svg
+          className="absolute inset-0 h-full w-full overflow-visible"
+          viewBox={`0 0 ${position.width} ${position.height}`}
+          preserveAspectRatio="none"
+        >
+          {(
+            pattern.type ===
+              "DOUBLE_TOP" ||
+            pattern.type ===
+              "DOUBLE_BOTTOM"
+          ) &&
+            overlayPoints.length >= 5 && (
+              <line
+                x1={overlayPoints[1].x}
+                y1={overlayPoints[1].y}
+                x2={overlayPoints[3].x}
+                y2={overlayPoints[3].y}
+                stroke="rgba(255,255,255,0.75)"
+                strokeWidth="1"
+                strokeDasharray="5 4"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+
+          {pattern.type ===
+            "HEAD_AND_SHOULDERS" &&
+            overlayPoints.length >= 7 && (
+              <line
+                x1={overlayPoints[2].x}
+                y1={overlayPoints[2].y}
+                x2={overlayPoints[4].x}
+                y2={overlayPoints[4].y}
+                stroke="rgba(255,255,255,0.75)"
+                strokeWidth="1"
+                strokeDasharray="5 4"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+
+          {pattern.type ===
+            "INVERSE_HEAD_AND_SHOULDERS" &&
+            overlayPoints.length >= 7 && (
+              <line
+                x1={overlayPoints[2].x}
+                y1={overlayPoints[2].y}
+                x2={overlayPoints[4].x}
+                y2={overlayPoints[4].y}
+                stroke="rgba(255,255,255,0.75)"
+                strokeWidth="1"
+                strokeDasharray="5 4"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+
+{pattern.type === "ASCENDING_TRIANGLE" &&
+  overlayPoints.length >= 6 && (
+    <>
+      {/* Horizontal resistance */}
+      <line
+        x1={overlayPoints[1].x}
+        y1={overlayPoints[1].y}
+        x2={overlayPoints[3].x}
+        y2={overlayPoints[3].y}
+        stroke="rgba(255,255,255,0.75)"
+        strokeWidth="1"
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+
+      {/* Rising support */}
+      <line
+        x1={overlayPoints[0].x}
+        y1={overlayPoints[0].y}
+        x2={overlayPoints[4].x}
+        y2={overlayPoints[4].y}
+        stroke="rgba(255,255,255,0.75)"
+        strokeWidth="1"
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+    </>
 )}
 
-{pattern.type === "HEAD_AND_SHOULDERS" &&
-  overlayPoints.length >= 7 && (
-    <line
-      x1={overlayPoints[2].x}
-      y1={overlayPoints[2].y}
-      x2={overlayPoints[4].x}
-      y2={overlayPoints[4].y}
-      stroke="rgba(255,255,255,0.75)"
-      strokeWidth="1"
-      strokeDasharray="5 4"
-      vectorEffect="non-scaling-stroke"
-    />
-  )}
-
-    {/* Main Double Top path */}
-    <polyline
-      points={overlayPoints
-        .map((point) => `${point.x},${point.y}`)
-        .join(" ")}
-      fill="none"
-      stroke="white"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      vectorEffect="non-scaling-stroke"
-    />
-
-{overlayPoints.map((point, index) => {
-
-const labelOffsets =
-  pattern.type === "HEAD_AND_SHOULDERS"
-    ? [
-        { x: 0, y: 0 },      // Start
-        { x: -8, y: -18 },   // Left Shoulder
-        { x: 8, y: 18 },     // Neckline 1
-        { x: 0, y: -18 },    // Head
-        { x: 8, y: 18 },     // Neckline 2
-        { x: 8, y: -18 },    // Right Shoulder
-        { x: 8, y: 18 },     // Breakdown
-      ]
-    : [
-        { x: 0, y: 0 },      // Start
-        { x: -4, y: -18 },   // Peak/Bottom 1
-        { x: 10, y: 18 },    // Neckline
-        { x: 8, y: -18 },    // Peak/Bottom 2
-        { x: 10, y: 18 },    // Breakout/Breakdown
-      ];
-
-  const offset = labelOffsets[index] ?? {
-    x: 0,
-    y: 0,
-  };
-
-  return (
-    <g key={`${point.x}-${point.y}-${index}`}>
-      {index > 0 && (
-        <>
-          <circle
-            cx={point.x}
-            cy={point.y}
-            r="6"
-            fill="white"
-            stroke="#0f172a"
-            strokeWidth="2"
+          <polyline
+            points={overlayPoints
+              .map(
+                (point) =>
+                  `${point.x},${point.y}`
+              )
+              .join(" ")}
+            fill="none"
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
 
-          <text
-            x={point.x}
-            y={point.y + 3}
-            textAnchor="middle"
-            fill="#0f172a"
-            fontSize="8"
-            fontWeight="900"
-          >
-            {index}
-          </text>
+          {overlayPoints.map(
+            (point, index) => {
+const shouldHideFirstPoint =
+  index === 0 &&
+  point.label === "Start";
 
-          {point.label && (
-            <text
-              x={point.x + offset.x}
-              y={point.y + offset.y}
-              textAnchor={
-                index === 1
-                  ? "middle"
-                  : "start"
-              }
-              fill="white"
-              fontSize="9"
-              fontWeight="700"
-              stroke="#0f172a"
-              strokeWidth="3"
-              paintOrder="stroke"
-              vectorEffect="non-scaling-stroke"
->
-  {point.label}
-</text>
+if (shouldHideFirstPoint) {
+  return null;
+}
+
+const labelOffsets =
+  pattern.type === "HEAD_AND_SHOULDERS" ||
+  pattern.type === "INVERSE_HEAD_AND_SHOULDERS"
+    ? [
+        { x: 0, y: 0 },
+        { x: -12, y: -12 },
+        { x: 8, y: 16 },
+        { x: 0, y: -14 },
+        { x: 8, y: 16 },
+        { x: 8, y: -12 },
+        { x: 8, y: 16 },
+      ]
+    : pattern.type === "ASCENDING_TRIANGLE"
+    ? [
+        { x: -8, y: 16 },  // Low 1
+        { x: 8, y: -12 },  // Resistance 1
+        { x: 8, y: 16 },   // Low 2
+        { x: 8, y: -12 },  // Resistance 2
+        { x: 8, y: 16 },   // Low 3
+        { x: 8, y: -12 },  // Breakout / Current
+      ]
+    : pattern.type === "DESCENDING_TRIANGLE"
+    ? [
+        { x: -8, y: -12 }, // High 1
+        { x: 8, y: 16 },   // Support 1
+        { x: 8, y: -12 },  // High 2
+        { x: 8, y: 16 },   // Support 2
+        { x: 8, y: -12 },  // High 3
+        { x: 8, y: 16 },   // Breakdown / Current
+      ]
+    : [
+        { x: 0, y: 0 },
+        { x: -8, y: -12 },
+        { x: 8, y: 16 },
+        { x: 8, y: -12 },
+        { x: 8, y: 16 },
+      ];
+              const offset =
+                labelOffsets[index] ?? {
+                  x: 6,
+                  y: -8,
+                };
+
+              return (
+                <g
+                  key={`${point.x}-${point.y}-${index}`}
+                >
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r="5"
+                    fill="white"
+                    stroke="#0f172a"
+                    strokeWidth="1.5"
+                    vectorEffect="non-scaling-stroke"
+                  />
+
+                  <text
+                    x={point.x}
+                    y={point.y + 2.5}
+                    textAnchor="middle"
+                    fill="#0f172a"
+                    fontSize="7"
+                    fontWeight="900"
+                  >
+                    {index}
+                  </text>
+
+                  {point.label && (
+                    <text
+                      x={
+                        point.x +
+                        offset.x
+                      }
+                      y={
+                        point.y +
+                        offset.y
+                      }
+                      textAnchor={
+                        index === 1
+                          ? "middle"
+                          : "start"
+                      }
+                      fill="white"
+                      fontSize="9"
+                      fontWeight="700"
+                      stroke="#0f172a"
+                      strokeWidth="3"
+                      paintOrder="stroke"
+                      vectorEffect="non-scaling-stroke"
+                    >
+                      {point.label}
+                    </text>
+                  )}
+                </g>
+              );
+            }
           )}
-        </>
-      )}
-    </g>
-  );
-})}
-  </svg>
-)}
-
+        </svg>
+      </div>
     </div>
-  </div>
-);
+  );
 }
