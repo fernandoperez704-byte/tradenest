@@ -33,12 +33,9 @@ export function detectPatterns(
         PATTERN_CONFIG.MIN_MOVE_PERCENT,
     });
 
-  if (
-    !Array.isArray(path) ||
-    path.length < 5
-  ) {
-    return [];
-  }
+if (!Array.isArray(path)) {
+  return [];
+}
 
   const detectedPatterns =
     DETECTOR_REGISTRY.flatMap(
@@ -82,36 +79,39 @@ export function detectPatterns(
       ).values()
     );
 
-  uniquePatterns.sort((a, b) => {
-    const statusDifference =
-      Number(
-        b.status === "CONFIRMED"
-      ) -
-      Number(
-        a.status === "CONFIRMED"
-      );
-
-    if (
-      statusDifference !== 0
-    ) {
-      return statusDifference;
-    }
-
-    const confidenceDifference =
-      b.confidence -
-      a.confidence;
-
-    if (
-      confidenceDifference !== 0
-    ) {
-      return confidenceDifference;
-    }
-
-    return (
-      b.endTime -
-      a.endTime
+uniquePatterns.sort((a, b) => {
+  // 1. Confirmed patterns always win
+  const statusDifference =
+    Number(
+      b.status === "CONFIRMED"
+    ) -
+    Number(
+      a.status === "CONFIRMED"
     );
-  });
+
+  if (
+    statusDifference !== 0
+  ) {
+    return statusDifference;
+  }
+
+  // 2. Prefer the newest pattern
+  const recencyDifference =
+    b.endTime -
+    a.endTime;
+
+  if (
+    recencyDifference !== 0
+  ) {
+    return recencyDifference;
+  }
+
+  // 3. Confidence is only a tiebreaker
+  return (
+    b.confidence -
+    a.confidence
+  );
+});
 
   return uniquePatterns.length > 0
     ? [uniquePatterns[0]]

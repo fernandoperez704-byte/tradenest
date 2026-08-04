@@ -212,8 +212,8 @@ export function detectDoubleBottom(
       continue;
     }
 
-    const confirmed =
-      latestClose > neckline.price;
+const confirmed =
+  latestClose > neckline.price;
 
     let confidence =
       calculatePatternConfidence({
@@ -237,10 +237,10 @@ export function detectDoubleBottom(
       confidence
     );
 
-    const endIndex =
-      confirmed
-        ? secondBottom.index
-        : history.length - 1;
+const endIndex =
+  confirmed
+    ? secondBottom.index
+    : history.length - 1;
 
     const safeHistoryItem =
       history[endIndex] ??

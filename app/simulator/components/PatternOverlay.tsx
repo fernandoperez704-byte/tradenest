@@ -16,6 +16,11 @@ type OverlayPoint = {
   label?: string;
 };
 
+type OverlayZone = {
+  top: number;
+  height: number;
+};
+
 type Props = {
   pattern: DetectedPattern | null;
   chartInstanceRef: any;
@@ -35,6 +40,9 @@ export default function PatternOverlay({
   const [overlayPoints, setOverlayPoints] =
     useState<OverlayPoint[]>([]);
 
+const [overlayZone, setOverlayZone] =
+  useState<OverlayZone | null>(null);
+
   useEffect(() => {
     const chart =
       chartInstanceRef.current;
@@ -51,9 +59,10 @@ export default function PatternOverlay({
       !candleSeries ||
       !container
     ) {
-      setPosition(null);
-      setOverlayPoints([]);
-      return;
+setPosition(null);
+setOverlayPoints([]);
+setOverlayZone(null);
+return;
     }
 
     function updatePosition() {
@@ -72,9 +81,10 @@ export default function PatternOverlay({
         !currentContainer ||
         !pattern
       ) {
-        setPosition(null);
-        setOverlayPoints([]);
-        return;
+setPosition(null);
+setOverlayPoints([]);
+setOverlayZone(null);
+return;
       }
 
       const startTimeSeconds =
@@ -111,16 +121,17 @@ export default function PatternOverlay({
           pattern.lowPrice
         );
 
-      if (
-        startX == null ||
-        endX == null ||
-        highY == null ||
-        lowY == null
-      ) {
-        setPosition(null);
-        setOverlayPoints([]);
-        return;
-      }
+if (
+  startX == null ||
+  endX == null ||
+  highY == null ||
+  lowY == null
+) {
+  setPosition(null);
+  setOverlayPoints([]);
+  setOverlayZone(null);
+  return;
+}
 
       const horizontalPadding = 16;
       const verticalPadding = 16;
@@ -203,6 +214,53 @@ export default function PatternOverlay({
       setOverlayPoints(
         nextOverlayPoints
       );
+
+const patternZone =
+  pattern.type === "DOUBLE_TOP"
+    ? pattern.resistanceZone
+    : pattern.type === "DOUBLE_BOTTOM"
+    ? pattern.supportZone
+    : null;
+
+if (!patternZone) {
+  setOverlayZone(null);
+  return;
+}
+
+const zoneHighY =
+  currentSeries.priceToCoordinate(
+    patternZone.high
+  );
+
+const zoneLowY =
+  currentSeries.priceToCoordinate(
+    patternZone.low
+  );
+
+if (
+  zoneHighY == null ||
+  zoneLowY == null
+) {
+  setOverlayZone(null);
+  return;
+}
+
+setOverlayZone({
+  top:
+    Math.min(
+      zoneHighY,
+      zoneLowY
+    ) - rawTop,
+
+  height: Math.max(
+    2,
+    Math.abs(
+      zoneLowY -
+      zoneHighY
+    )
+  ),
+});
+
     }
 
     requestAnimationFrame(() => {
@@ -263,24 +321,85 @@ export default function PatternOverlay({
           viewBox={`0 0 ${position.width} ${position.height}`}
           preserveAspectRatio="none"
         >
-          {(
-            pattern.type ===
-              "DOUBLE_TOP" ||
-            pattern.type ===
-              "DOUBLE_BOTTOM"
-          ) &&
-            overlayPoints.length >= 5 && (
-              <line
-                x1={overlayPoints[1].x}
-                y1={overlayPoints[1].y}
-                x2={overlayPoints[3].x}
-                y2={overlayPoints[3].y}
-                stroke="rgba(255,255,255,0.75)"
-                strokeWidth="1"
-                strokeDasharray="5 4"
-                vectorEffect="non-scaling-stroke"
-              />
-            )}
+
+{overlayZone &&
+  overlayPoints.length >= 2 &&
+  (
+    pattern.type === "DOUBLE_TOP" ||
+    pattern.type === "DOUBLE_BOTTOM"
+  ) && (
+    <rect
+      x={overlayPoints[1].x}
+      y={overlayZone.top}
+      width={Math.max(
+        0,
+        position.width -
+          overlayPoints[1].x
+      )}
+      height={overlayZone.height}
+      fill={
+        pattern.type === "DOUBLE_TOP"
+          ? "rgba(239,68,68,0.10)"
+          : "rgba(34,197,94,0.10)"
+      }
+    />
+  )}
+
+{/* Double Top: resistance and neckline */}
+{pattern.type === "DOUBLE_TOP" &&
+  overlayPoints.length >= 5 && (
+    <>
+      <line
+        x1={overlayPoints[1].x}
+        y1={overlayPoints[1].y}
+        x2={position.width}
+        y2={overlayPoints[1].y}
+        stroke="rgba(255,255,255,0.75)"
+        strokeWidth="1"
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+
+      <line
+        x1={overlayPoints[2].x}
+        y1={overlayPoints[2].y}
+        x2={position.width}
+        y2={overlayPoints[2].y}
+        stroke="rgba(255,255,255,0.55)"
+        strokeWidth="1"
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+    </>
+  )}
+
+{/* Double Bottom: support and neckline */}
+{pattern.type === "DOUBLE_BOTTOM" &&
+  overlayPoints.length >= 5 && (
+    <>
+      <line
+        x1={overlayPoints[1].x}
+        y1={overlayPoints[1].y}
+        x2={position.width}
+        y2={overlayPoints[1].y}
+        stroke="rgba(255,255,255,0.55)"
+        strokeWidth="1"
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+
+      <line
+        x1={overlayPoints[2].x}
+        y1={overlayPoints[2].y}
+        x2={position.width}
+        y2={overlayPoints[2].y}
+        stroke="rgba(255,255,255,0.75)"
+        strokeWidth="1"
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+    </>
+  )}
 
           {pattern.type ===
             "HEAD_AND_SHOULDERS" &&

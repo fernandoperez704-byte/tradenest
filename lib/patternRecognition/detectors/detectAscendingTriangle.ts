@@ -1,6 +1,9 @@
 import type { PricePoint } from "@/app/simulator/types/simulator";
 import type { DetectedPattern } from "../types";
-import type { CandlePathPoint } from "../helpers/buildCandlePath";
+import {
+  buildCandlePath,
+  type CandlePathPoint,
+} from "../helpers/buildCandlePath";
 
 import { findShapeWindows } from "../helpers/findShapeWindows";
 import { calculatePatternConfidence } from "../confidence/calculatePatternConfidence";
@@ -9,7 +12,8 @@ function percentDifference(
   first: number,
   second: number
 ): number {
-  const average = (first + second) / 2;
+  const average =
+    (first + second) / 2;
 
   if (average <= 0) {
     return Infinity;
@@ -23,55 +27,131 @@ function percentDifference(
 
 export function detectAscendingTriangle(
   history: PricePoint[],
-  path: CandlePathPoint[]
+  _path: CandlePathPoint[]
 ): DetectedPattern | null {
-  if (
-    !Array.isArray(history) ||
-    history.length === 0 ||
-    !Array.isArray(path) ||
-    path.length < 6
+
+if (
+  !Array.isArray(history) ||
+  history.length < 20
+) {
+  return null;
+}
+
+/*
+ * Triangles usually develop over more candles
+ * and contain smaller internal swings than
+ * reversal patterns.
+ */
+const trianglePath =
+  buildCandlePath(history, {
+    lookback: 120,
+    minimumMovePercent: 0.35,
+  });
+
+if (trianglePath.length < 7) {
+  return null;
+}
+
+const windows =
+  findShapeWindows(
+    trianglePath,
+    7
+  );
+
+  let bestPattern:
+    DetectedPattern | null = null;
+
+  for (
+    const [
+      windowIndex,
+      window,
+    ] of windows.entries()
   ) {
-    return null;
-  }
-
-  const windows = findShapeWindows(path, 6);
-
-  let bestPattern: DetectedPattern | null =
-    null;
-
-  for (const window of windows) {
-    if (!window || window.length < 6) {
+    if (
+      !window ||
+      window.length < 6
+    ) {
       continue;
     }
 
-    const [
-      firstLow,
-      firstHigh,
-      secondLow,
-      secondHigh,
-      thirdLow,
-      current,
-    ] = window;
+const [
+  start,
+  firstLow,
+  firstHigh,
+  secondLow,
+  secondHigh,
+  thirdLow,
+  current,
+] = window;
 
-    const hasCorrectOrder =
-      firstLow.index < firstHigh.index &&
-      firstHigh.index < secondLow.index &&
-      secondLow.index < secondHigh.index &&
-      secondHigh.index < thirdLow.index &&
-      thirdLow.index <= current.index;
+    const debugWindow = {
+      windowIndex,
+
+      indexes: [
+        firstLow.index,
+        firstHigh.index,
+        secondLow.index,
+        secondHigh.index,
+        thirdLow.index,
+        current.index,
+      ],
+
+      prices: {
+        firstLow:
+          firstLow.price,
+
+        firstHigh:
+          firstHigh.price,
+
+        secondLow:
+          secondLow.price,
+
+        secondHigh:
+          secondHigh.price,
+
+        thirdLow:
+          thirdLow.price,
+
+        current:
+          current.price,
+      },
+    };
+
+const hasCorrectOrder =
+  start.index < firstLow.index &&
+  firstLow.index < firstHigh.index &&
+  firstHigh.index < secondLow.index &&
+  secondLow.index < secondHigh.index &&
+  secondHigh.index < thirdLow.index &&
+  thirdLow.index <= current.index;
 
     if (!hasCorrectOrder) {
+      console.log(
+        "ASC REJECTED: ORDER",
+        debugWindow
+      );
+
       continue;
     }
 
     const formsAscendingTriangle =
-      firstHigh.price > firstLow.price &&
-      secondLow.price < firstHigh.price &&
-      secondHigh.price > secondLow.price &&
-      thirdLow.price < secondHigh.price &&
-      current.price > thirdLow.price;
+      firstHigh.price >
+        firstLow.price &&
+      secondLow.price <
+        firstHigh.price &&
+      secondHigh.price >
+        secondLow.price &&
+      thirdLow.price <
+        secondHigh.price &&
+      current.price >
+        thirdLow.price;
 
     if (!formsAscendingTriangle) {
+      console.log(
+        "ASC REJECTED: SHAPE",
+        debugWindow
+      );
+
       continue;
     }
 
@@ -82,20 +162,36 @@ export function detectAscendingTriangle(
       );
 
     const maxResistanceDifferencePercent =
-      0.75;
+      1.25;
 
     if (
       resistanceDifferencePercent >
       maxResistanceDifferencePercent
     ) {
+      console.log(
+        "ASC REJECTED: RESISTANCE",
+        {
+          ...debugWindow,
+          resistanceDifferencePercent,
+          maxResistanceDifferencePercent,
+        }
+      );
+
       continue;
     }
 
     const hasRisingLows =
-      secondLow.price > firstLow.price &&
-      thirdLow.price > secondLow.price;
+      secondLow.price >
+        firstLow.price &&
+      thirdLow.price >
+        secondLow.price;
 
     if (!hasRisingLows) {
+      console.log(
+        "ASC REJECTED: LOWS",
+        debugWindow
+      );
+
       continue;
     }
 
@@ -104,6 +200,54 @@ export function detectAscendingTriangle(
         firstHigh.price +
         secondHigh.price
       ) / 2;
+
+    const resistanceZoneHalfPercent =
+      maxResistanceDifferencePercent /
+      2;
+
+    const resistanceZoneLow =
+      resistancePrice *
+      (
+        1 -
+        resistanceZoneHalfPercent /
+          100
+      );
+
+    const resistanceZoneHigh =
+      resistancePrice *
+      (
+        1 +
+        resistanceZoneHalfPercent /
+          100
+      );
+
+    const confirmed =
+      current.price >
+      resistanceZoneHigh;
+
+    const stillForming =
+      current.price >=
+        thirdLow.price &&
+      current.price <=
+        resistanceZoneHigh;
+
+    if (
+      !confirmed &&
+      !stillForming
+    ) {
+      console.log(
+        "ASC REJECTED: STATUS",
+        {
+          ...debugWindow,
+          resistanceZoneLow,
+          resistanceZoneHigh,
+          confirmed,
+          stillForming,
+        }
+      );
+
+      continue;
+    }
 
     const firstRange =
       firstHigh.price -
@@ -117,6 +261,15 @@ export function detectAscendingTriangle(
       firstRange <= 0 ||
       latestRange <= 0
     ) {
+      console.log(
+        "ASC REJECTED: RANGE",
+        {
+          ...debugWindow,
+          firstRange,
+          latestRange,
+        }
+      );
+
       continue;
     }
 
@@ -129,12 +282,22 @@ export function detectAscendingTriangle(
         firstRange
       ) * 100;
 
-    const minimumContractionPercent = 20;
+    const minimumContractionPercent =
+      20;
 
     if (
       contractionPercent <
       minimumContractionPercent
     ) {
+      console.log(
+        "ASC REJECTED: CONTRACTION",
+        {
+          ...debugWindow,
+          contractionPercent,
+          minimumContractionPercent,
+        }
+      );
+
       continue;
     }
 
@@ -142,24 +305,22 @@ export function detectAscendingTriangle(
       thirdLow.index -
       firstLow.index;
 
-    const minimumPatternWidth = 6;
+    const minimumPatternWidth =
+      6;
 
     if (
       patternWidth <
       minimumPatternWidth
     ) {
-      continue;
-    }
+      console.log(
+        "ASC REJECTED: WIDTH",
+        {
+          ...debugWindow,
+          patternWidth,
+          minimumPatternWidth,
+        }
+      );
 
-    const confirmed =
-      current.price >
-      resistancePrice;
-
-    const invalidated =
-      current.price <
-      thirdLow.price;
-
-    if (invalidated) {
       continue;
     }
 
@@ -189,13 +350,30 @@ export function detectAscendingTriangle(
 
     const safeHistoryItem =
       history[endIndex] ??
-      history[history.length - 1];
+      history[
+        history.length - 1
+      ];
 
-    const candidate: DetectedPattern = {
+    console.log(
+      "ASC ACCEPTED",
+      {
+        ...debugWindow,
+        resistanceDifferencePercent,
+        contractionPercent,
+        patternWidth,
+        confirmed,
+      }
+    );
+
+    const candidate:
+      DetectedPattern = {
       id: `ascending-triangle-${firstLow.time}-${secondHigh.time}`,
 
-      type: "ASCENDING_TRIANGLE",
-      direction: "BULLISH",
+      type:
+        "ASCENDING_TRIANGLE",
+
+      direction:
+        "BULLISH",
 
       status: confirmed
         ? "CONFIRMED"
@@ -203,64 +381,75 @@ export function detectAscendingTriangle(
 
       confidence,
 
-      startIndex: firstLow.index,
+startIndex:
+  start.index,
+
       endIndex,
 
-      startTime: firstLow.time,
+startTime:
+  start.time,
       endTime: Number(
         safeHistoryItem.time
       ),
 
-      highPrice: Math.max(
-        firstHigh.price,
-        secondHigh.price
-      ),
+      highPrice:
+        Math.max(
+          firstHigh.price,
+          secondHigh.price
+        ),
 
-      lowPrice: firstLow.price,
+lowPrice:
+  Math.min(
+    start.price,
+    firstLow.price
+  ),
 
-      keyPoints: [
-        {
-          time: firstLow.time,
-          price: firstLow.price,
-          label: "Low 1",
-        },
-        {
-          time: firstHigh.time,
-          price: firstHigh.price,
-          label: "Resistance 1",
-        },
-        {
-          time: secondLow.time,
-          price: secondLow.price,
-          label: "Low 2",
-        },
-        {
-          time: secondHigh.time,
-          price: secondHigh.price,
-          label: "Resistance 2",
-        },
-        {
-          time: thirdLow.time,
-          price: thirdLow.price,
-          label: "Low 3",
-        },
-        {
-          time: current.time,
-          price: current.price,
-          label: confirmed
-            ? "Breakout"
-            : "Current",
-        },
-      ],
+keyPoints: [
+  {
+    time: start.time,
+    price: start.price,
+    label: "Start",
+  },
+  {
+    time: firstLow.time,
+    price: firstLow.price,
+    label: "Low 1",
+  },
+  {
+    time: firstHigh.time,
+    price: firstHigh.price,
+    label: "Resistance 1",
+  },
+  {
+    time: secondLow.time,
+    price: secondLow.price,
+    label: "Low 2",
+  },
+  {
+    time: secondHigh.time,
+    price: secondHigh.price,
+    label: "Resistance 2",
+  },
+  {
+    time: thirdLow.time,
+    price: thirdLow.price,
+    label: "Low 3",
+  },
+  {
+    time: current.time,
+    price: current.price,
+    label: confirmed
+      ? "Breakout"
+      : "Current",
+  },
+],
 
       resistanceZone: {
         low:
-          resistancePrice *
-          (1 - 0.375 / 100),
+          resistanceZoneLow,
 
         high:
-          resistancePrice *
-          (1 + 0.375 / 100),
+          resistanceZoneHigh,
       },
 
       evidence: [
@@ -295,9 +484,15 @@ export function detectAscendingTriangle(
           bestPattern.endIndex
       )
     ) {
-      bestPattern = candidate;
+      bestPattern =
+        candidate;
     }
   }
+
+  console.log(
+    "ASC FINAL RESULT",
+    bestPattern
+  );
 
   return bestPattern;
 }
