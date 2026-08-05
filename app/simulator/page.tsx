@@ -1368,22 +1368,34 @@ useEffect(() => {
     }
   };
 
-  socket.onerror = (error) => {
-    console.error(
-      "Coinbase WebSocket error:",
-      error
-    );
-  };
+socket.onerror = () => {
+  console.warn(
+    `Coinbase WebSocket connection error for ${productId}. Ready state: ${socket.readyState}`
+  );
+};
 
-  socket.onclose = () => {
-    console.log(
-      `Coinbase WebSocket closed for ${productId}`
-    );
-  };
+socket.onclose = (event) => {
+  console.warn(`Coinbase WebSocket closed for ${productId}`, {
+    code: event.code,
+    reason: event.reason || "No reason provided",
+    wasClean: event.wasClean,
+  });
+};
 
-  return () => {
-    socket.close();
-  };
+return () => {
+  socket.onopen = null;
+  socket.onmessage = null;
+  socket.onerror = null;
+  socket.onclose = null;
+
+  if (
+    socket.readyState === WebSocket.OPEN ||
+    socket.readyState === WebSocket.CONNECTING
+  ) {
+    socket.close(1000, "Component cleanup");
+  }
+};
+
 }, [
   selectedCoin,
   selectedTimeframe,
