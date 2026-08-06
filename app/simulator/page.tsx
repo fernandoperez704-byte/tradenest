@@ -70,6 +70,7 @@ import type {
   FuturesCloseReason,
 } from "./types/simulator";
 
+import type { GabyChartHighlight } from "./types/gabyChartHighlight";
 
 const startingBalance = 10000;
 const feeRate = 0.006;
@@ -151,11 +152,19 @@ useEffect(() => {
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
   const [autoGabyQuestion, setAutoGabyQuestion] = useState<string | null>(null);
   const [showGabyHint, setShowGabyHint] = useState(true);
+  const [gabyChartHighlights, setGabyChartHighlights] =
+  useState<GabyChartHighlight[]>([]);
+  
+
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
+
+useEffect(() => {
+  setGabyChartHighlights([]);
+}, [selectedCoin, selectedTimeframe]);
 
 const [patternRecognitionEnabled, setPatternRecognitionEnabled] =
   useState(false);
@@ -800,6 +809,37 @@ const currentEntryQuality =
       )
     : null;
 
+function showGabyMarketHighlights() {
+  const support = Number(marketIntelligence?.nearestSupport);
+  const resistance = Number(marketIntelligence?.nearestResistance);
+
+  const highlights: GabyChartHighlight[] = [];
+
+  if (Number.isFinite(support) && support > 0) {
+    const padding = support * 0.0015;
+
+    highlights.push({
+      id: `support-${selectedCoin}-${selectedTimeframe}-${support}`,
+      type: "SUPPORT",
+      low: support - padding,
+      high: support + padding,
+    });
+  }
+
+  if (Number.isFinite(resistance) && resistance > 0) {
+    const padding = resistance * 0.0015;
+
+    highlights.push({
+      id: `resistance-${selectedCoin}-${selectedTimeframe}-${resistance}`,
+      type: "RESISTANCE",
+      low: resistance - padding,
+      high: resistance + padding,
+    });
+  }
+
+  setGabyChartHighlights(highlights);
+} 
+    
   const maintenanceBuffer = 0.005;
 
 const estimatedLongLiquidation =
@@ -3087,6 +3127,7 @@ strongestPattern={strongestPattern}
   candleSeriesRef={candleSeriesRef}
   chartRef={chartRef}
   setShowSimulatorGaby={setShowSimulatorGaby}
+  gabyChartHighlights={gabyChartHighlights}
   tourStep={tourStep}
 />
 
@@ -3229,13 +3270,19 @@ strongestPattern={strongestPattern}
 {showSimulatorGaby && (
   <>
 <div
-  onClick={() => setShowSimulatorGaby(false)}
+  onClick={() => {
+  setShowSimulatorGaby(false);
+  setGabyChartHighlights([]);
+}}
   className="fixed inset-0 z-40 bg-black/10"
  />
 
     <div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[255px] xl:w-[500px]">
       <button
-        onClick={() => setShowSimulatorGaby(false)}
+        onClick={() => {
+  setShowSimulatorGaby(false);
+  setGabyChartHighlights([]);
+}}
         className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"
       >
         ✕ Close
@@ -3264,6 +3311,7 @@ setTrades={setTrades}
   selectedTimeframe={selectedTimeframe}
   currentPrice={currentPrice}
   priceLocation={priceLocation}
+  onAnalysisComplete={showGabyMarketHighlights}
 />
     </div>
   </>

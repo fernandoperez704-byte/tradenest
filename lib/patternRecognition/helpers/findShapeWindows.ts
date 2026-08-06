@@ -1,6 +1,4 @@
-import type {
-  CandlePathPoint,
-} from "./buildCandlePath";
+import type { CandlePathPoint } from "./buildCandlePath";
 
 export function findShapeWindows(
   path: CandlePathPoint[],
@@ -18,38 +16,23 @@ export function findShapeWindows(
 
   for (
     let startIndex = 0;
-    startIndex <=
-      path.length - windowSize;
+    startIndex <= path.length - windowSize;
     startIndex++
   ) {
-    const windowSlice =
-      path.slice(
-        startIndex,
-        startIndex + windowSize
-      );
+    const window = path.slice(
+      startIndex,
+      startIndex + windowSize
+    );
 
-    const isStrictlySequential =
-      windowSlice.every(
-        (point, index) => {
-          if (
-            index ===
-            windowSlice.length - 1
-          ) {
-            return true;
-          }
+    const isStrictlySequential = window.every(
+      (point, index) =>
+        index === window.length - 1 ||
+        point.index < window[index + 1].index
+    );
 
-          return (
-            point.index <
-            windowSlice[index + 1].index
-          );
-        }
-      );
-
-    if (!isStrictlySequential) {
-      continue;
+    if (isStrictlySequential) {
+      windows.push(window);
     }
-
-    windows.push(windowSlice);
   }
 
   return windows;

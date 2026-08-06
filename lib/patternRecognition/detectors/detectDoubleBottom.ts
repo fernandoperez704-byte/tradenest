@@ -6,20 +6,11 @@ import { PATTERN_CONFIG } from "../constants";
 import { findShapeWindows } from "../helpers/findShapeWindows";
 import { calculatePatternConfidence } from "../confidence/calculatePatternConfidence";
 
-function percentDifference(
-  first: number,
-  second: number
-): number {
+function percentDifference(first: number, second: number): number {
   const average = (first + second) / 2;
+  if (average <= 0) return Infinity;
 
-  if (average <= 0) {
-    return Infinity;
-  }
-
-  return (
-    Math.abs(first - second) /
-    average
-  ) * 100;
+  return (Math.abs(first - second) / average) * 100;
 }
 
 export function detectDoubleBottom(
@@ -35,34 +26,13 @@ export function detectDoubleBottom(
     return null;
   }
 
-  const latestClose = Number(
-    history[history.length - 1]?.close
-  );
-
-  if (
-    !Number.isFinite(latestClose) ||
-    latestClose <= 0
-  ) {
-    return null;
-  }
-
   const windows = findShapeWindows(path, 5);
-
-  let bestPattern: DetectedPattern | null =
-    null;
+  let bestPattern: DetectedPattern | null = null;
 
   for (const window of windows) {
-    if (!window || window.length < 5) {
-      continue;
-    }
+    if (!window || window.length < 5) continue;
 
-    const [
-      start,
-      firstBottom,
-      neckline,
-      secondBottom,
-      current,
-    ] = window;
+    const [start, firstBottom, neckline, secondBottom, current] = window;
 
     const hasCorrectOrder =
       start.index < firstBottom.index &&
@@ -70,9 +40,7 @@ export function detectDoubleBottom(
       neckline.index < secondBottom.index &&
       secondBottom.index <= current.index;
 
-    if (!hasCorrectOrder) {
-      continue;
-    }
+    if (!hasCorrectOrder) continue;
 
     const formsW =
       firstBottom.price < start.price &&
@@ -80,56 +48,31 @@ export function detectDoubleBottom(
       secondBottom.price < neckline.price &&
       current.price > secondBottom.price;
 
-    if (!formsW) {
-      continue;
-    }
+    if (!formsW) continue;
 
-    const bottomDifferencePercent =
-      percentDifference(
-        firstBottom.price,
-        secondBottom.price
-      );
+    const bottomDifferencePercent = percentDifference(
+      firstBottom.price,
+      secondBottom.price
+    );
 
-    const maxBottomDifferencePercent =
-      0.75;
+    const maxBottomDifferencePercent = 0.75;
 
-    if (
-      bottomDifferencePercent >
-      maxBottomDifferencePercent
-    ) {
+    if (bottomDifferencePercent > maxBottomDifferencePercent) {
       continue;
     }
 
     const averageBottomPrice =
-      (
-        firstBottom.price +
-        secondBottom.price
-      ) / 2;
+      (firstBottom.price + secondBottom.price) / 2;
 
-    if (averageBottomPrice <= 0) {
-      continue;
-    }
+    if (averageBottomPrice <= 0) continue;
 
-    /*
-     * Build one shared support zone around
-     * the average price of both bottoms.
-     */
-    const supportZoneHalfPercent =
-      maxBottomDifferencePercent / 2;
+    const supportZoneHalfPercent = maxBottomDifferencePercent / 2;
 
     const supportZoneLow =
-      averageBottomPrice *
-      (
-        1 -
-        supportZoneHalfPercent / 100
-      );
+      averageBottomPrice * (1 - supportZoneHalfPercent / 100);
 
     const supportZoneHigh =
-      averageBottomPrice *
-      (
-        1 +
-        supportZoneHalfPercent / 100
-      );
+      averageBottomPrice * (1 + supportZoneHalfPercent / 100);
 
     const firstBottomInsideZone =
       firstBottom.price >= supportZoneLow &&
@@ -139,133 +82,72 @@ export function detectDoubleBottom(
       secondBottom.price >= supportZoneLow &&
       secondBottom.price <= supportZoneHigh;
 
-    if (
-      !firstBottomInsideZone ||
-      !secondBottomInsideZone
-    ) {
+    if (!firstBottomInsideZone || !secondBottomInsideZone) {
       continue;
     }
 
     const necklineRisePercent =
-      (
-        (
-          neckline.price -
-          averageBottomPrice
-        ) /
-        averageBottomPrice
-      ) * 100;
+      ((neckline.price - averageBottomPrice) / averageBottomPrice) * 100;
 
     if (
       necklineRisePercent <
-      PATTERN_CONFIG
-        .DOUBLE_BOTTOM
-        .MIN_NECKLINE_PERCENT
+      PATTERN_CONFIG.DOUBLE_BOTTOM.MIN_NECKLINE_PERCENT
     ) {
       continue;
     }
 
-    const firstLeg =
-      neckline.index -
-      firstBottom.index;
+    const firstLeg = neckline.index - firstBottom.index;
+    const secondLeg = secondBottom.index - neckline.index;
+    const shorterLeg = Math.min(firstLeg, secondLeg);
+    const longerLeg = Math.max(firstLeg, secondLeg);
+    const legBalance = longerLeg > 0 ? shorterLeg / longerLeg : 0;
 
-    const secondLeg =
-      secondBottom.index -
-      neckline.index;
-
-    const shorterLeg =
-      Math.min(
-        firstLeg,
-        secondLeg
-      );
-
-    const longerLeg =
-      Math.max(
-        firstLeg,
-        secondLeg
-      );
-
-    const legBalance =
-      longerLeg > 0
-        ? shorterLeg / longerLeg
-        : 0;
-
-    if (
-      legBalance <
-      PATTERN_CONFIG
-        .DOUBLE_BOTTOM
-        .MIN_LEG_BALANCE
-    ) {
+    if (legBalance < PATTERN_CONFIG.DOUBLE_BOTTOM.MIN_LEG_BALANCE) {
       continue;
     }
 
-    const bottomSupport =
-      Math.min(
-        firstBottom.price,
-        secondBottom.price
-      );
-
-    /*
-     * A historical Double Bottom is invalid
-     * if price later closes below both bottoms.
-     */
-    if (latestClose < bottomSupport) {
-      continue;
-    }
-
-const confirmed =
-  latestClose > neckline.price;
-
-    let confidence =
-      calculatePatternConfidence({
-        patternSimilarity:
-          bottomDifferencePercent,
-
-        breakoutStrength:
-          necklineRisePercent,
-      });
-
-    confidence += Math.round(
-      legBalance * 5
+    const bottomSupport = Math.min(
+      firstBottom.price,
+      secondBottom.price
     );
 
-    if (confirmed) {
-      confidence += 10;
-    }
+    const invalidated = current.price < bottomSupport;
+
+    if (invalidated) continue;
+
+    const confirmed = current.price > neckline.price;
+
+    let confidence = calculatePatternConfidence({
+      patternSimilarity: bottomDifferencePercent,
+      breakoutStrength: necklineRisePercent,
+    });
+
+    confidence += Math.round(legBalance * 5);
+
+    if (confirmed) confidence += 10;
 
     confidence = Math.min(
       confirmed ? 100 : 79,
       confidence
     );
 
-const endIndex =
-  confirmed
-    ? secondBottom.index
-    : history.length - 1;
-
-    const safeHistoryItem =
-      history[endIndex] ??
-      history[history.length - 1];
+    const endIndex = Math.min(
+      current.index,
+      history.length - 1
+    );
 
     const candidate: DetectedPattern = {
       id: `double-bottom-${firstBottom.time}-${secondBottom.time}`,
-
       type: "DOUBLE_BOTTOM",
       direction: "BULLISH",
-
-      status: confirmed
-        ? "CONFIRMED"
-        : "FORMING",
-
+      status: confirmed ? "CONFIRMED" : "FORMING",
       confidence,
 
       startIndex: start.index,
       endIndex,
 
       startTime: start.time,
-
-      endTime: Number(
-        safeHistoryItem.time
-      ),
+      endTime: current.time,
 
       highPrice: neckline.price,
       lowPrice: bottomSupport,
@@ -294,9 +176,7 @@ const endIndex =
         {
           time: current.time,
           price: current.price,
-          label: confirmed
-            ? "Breakout"
-            : "Current",
+          label: confirmed ? "Breakout" : "Current",
         },
       ],
 
@@ -307,17 +187,10 @@ const endIndex =
 
       evidence: [
         "The candle path formed a W shape.",
-
-        `The bottoms are ${bottomDifferencePercent.toFixed(
-          2
-        )}% apart.`,
-
+        `The bottoms are ${bottomDifferencePercent.toFixed(2)}% apart.`,
         `Both bottoms tested the same support zone between ${supportZoneLow.toFixed(
           8
-        )} and ${supportZoneHigh.toFixed(
-          8
-        )}.`,
-
+        )} and ${supportZoneHigh.toFixed(8)}.`,
         `The neckline is ${necklineRisePercent.toFixed(
           2
         )}% above the bottoms.`,
@@ -325,21 +198,31 @@ const endIndex =
 
       cautions: confirmed
         ? []
-        : [
-            "Price has not closed above the neckline.",
-          ],
+        : ["Price has not closed above the neckline."],
     };
 
+    if (!bestPattern) {
+      bestPattern = candidate;
+      continue;
+    }
+
+    const candidateIsNewer =
+      candidate.endIndex > bestPattern.endIndex;
+
+    const sameEndButConfirmed =
+      candidate.endIndex === bestPattern.endIndex &&
+      candidate.status === "CONFIRMED" &&
+      bestPattern.status !== "CONFIRMED";
+
+    const sameEndAndStatusButHigherConfidence =
+      candidate.endIndex === bestPattern.endIndex &&
+      candidate.status === bestPattern.status &&
+      candidate.confidence > bestPattern.confidence;
+
     if (
-      !bestPattern ||
-      candidate.confidence >
-        bestPattern.confidence ||
-      (
-        candidate.confidence ===
-          bestPattern.confidence &&
-        candidate.endIndex >
-          bestPattern.endIndex
-      )
+      candidateIsNewer ||
+      sameEndButConfirmed ||
+      sameEndAndStatusButHigherConfidence
     ) {
       bestPattern = candidate;
     }

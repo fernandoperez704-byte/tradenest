@@ -2,7 +2,7 @@ import type { PricePoint } from "@/app/simulator/types/simulator";
 import type { DetectedPattern } from "./types";
 import type { CandlePathPoint } from "./helpers/buildCandlePath";
 import { detectAscendingTriangle } from "./detectors/detectAscendingTriangle";
-
+import { detectDescendingTriangle } from "./detectors/detectDescendingTriangle";
 
 
 import {
@@ -26,6 +26,6 @@ export const DETECTOR_REGISTRY: readonly PatternDetector[] = [
   detectDoubleTop,
   detectDoubleBottom,
   detectAscendingTriangle,
+  detectDescendingTriangle,
   detectHeadAndShoulders,
-
 ];

@@ -6,8 +6,9 @@ import { buildRiskAnalysis } from "../../../lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "../../../lib/traderDevelopment/entryQualityAnalysis";
 import { buildExitManagementAnalysis } from "../../../lib/traderDevelopment/exitManagementAnalysis";
 import type { DetectedPattern } from "@/lib/patternRecognition";
+import type { GabyChartHighlight } from "../types/gabyChartHighlight";
 import PatternOverlay from "./PatternOverlay";
-
+import GabyChartOverlay from "./GabyChartOverlay";
 
 type ChartWorkspaceProps = {
   reviews: any[];
@@ -29,8 +30,9 @@ strongestPattern: DetectedPattern | null;
 chartInstanceRef: any;
 candleSeriesRef: any;
 chartRef: any;
-  setShowSimulatorGaby: (value: boolean) => void;
-  tourStep: number | null;
+setShowSimulatorGaby: (value: boolean) => void;
+gabyChartHighlights: GabyChartHighlight[];
+tourStep: number | null;
 };
 
 export default function ChartWorkspace({
@@ -51,8 +53,9 @@ strongestPattern,
 chartInstanceRef,
 candleSeriesRef,
 chartRef,
-  setShowSimulatorGaby,
-  tourStep,
+setShowSimulatorGaby,
+gabyChartHighlights,
+tourStep,
 }: ChartWorkspaceProps) {
 
 const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
@@ -439,21 +442,28 @@ return (
 
 <div className="relative mt-2 flex-1 rounded-xl overflow-hidden">
 
-    <div
-        ref={chartRef}
-        className="h-[420px] w-full xl:h-[470px]"
-    />
+  <div
+    ref={chartRef}
+    className="h-[420px] w-full xl:h-[470px]"
+  />
 
-<PatternOverlay
-  pattern={
-    patternRecognitionEnabled
-      ? strongestPattern
-      : null
-  }
+<GabyChartOverlay
+  highlights={gabyChartHighlights}
   chartInstanceRef={chartInstanceRef}
   candleSeriesRef={candleSeriesRef}
   chartContainerRef={chartRef}
 />
+
+  <PatternOverlay
+    pattern={
+      patternRecognitionEnabled
+        ? strongestPattern
+        : null
+    }
+    chartInstanceRef={chartInstanceRef}
+    candleSeriesRef={candleSeriesRef}
+    chartContainerRef={chartRef}
+  />
 
 </div>
 

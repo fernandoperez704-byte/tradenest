@@ -31,7 +31,7 @@ function isLocalLow(
   return current.price < previous.price && current.price < next.price;
 }
 
-export function detectAscendingTriangle(
+export function detectDescendingTriangle(
   history: PricePoint[],
   _path: CandlePathPoint[]
 ): DetectedPattern | null {
@@ -71,8 +71,8 @@ export function detectAscendingTriangle(
     const localHighs: CandlePathPoint[] = [];
     const localLows: CandlePathPoint[] = [];
 
-    if (segment[0].price < segment[1].price) {
-      localLows.push(segment[0]);
+    if (segment[0].price > segment[1].price) {
+      localHighs.push(segment[0]);
     }
 
     for (let index = 1; index < segment.length - 1; index++) {
@@ -93,98 +93,126 @@ export function detectAscendingTriangle(
       continue;
     }
 
-    const maxResistanceDifferencePercent = 1.25;
-    let resistanceTouches: CandlePathPoint[] = [];
+    const maxSupportDifferencePercent = 1.25;
+    let supportTouches: CandlePathPoint[] = [];
 
-    for (const anchorHigh of localHighs) {
-      const matchingHighs = localHighs.filter(
-        (high) =>
-          percentDifference(anchorHigh.price, high.price) <=
-          maxResistanceDifferencePercent
+    for (const anchorLow of localLows) {
+      const matchingLows = localLows.filter(
+        (low) =>
+          percentDifference(anchorLow.price, low.price) <=
+          maxSupportDifferencePercent
       );
 
-      if (matchingHighs.length > resistanceTouches.length) {
-        resistanceTouches = matchingHighs;
+      if (matchingLows.length > supportTouches.length) {
+        supportTouches = matchingLows;
       }
     }
 
-    if (resistanceTouches.length < 2) continue;
+    if (supportTouches.length < 2) continue;
 
-    resistanceTouches.sort((first, second) => first.index - second.index);
+    supportTouches.sort((first, second) => first.index - second.index);
 
-    const firstResistance = resistanceTouches[0];
-    const secondResistance = resistanceTouches[1];
+    const firstSupport = supportTouches[0];
+    const secondSupport = supportTouches[1];
 
-    const startSearchIndex = Math.max(0, firstResistance.index - 36);
+    const startSearchIndex = Math.max(0, firstSupport.index - 36);
 
     const startCandidates = trianglePath.filter(
       (point) =>
         point.index >= startSearchIndex &&
-        point.index < firstResistance.index
+        point.index < firstSupport.index
     );
 
     if (startCandidates.length === 0) continue;
 
-    const patternStart = startCandidates.reduce((lowest, point) =>
-      point.price < lowest.price ? point : lowest
+    const patternStart = startCandidates.reduce((highest, point) =>
+      point.price > highest.price ? point : highest
     );
 
-    const resistancePrice =
-      resistanceTouches.reduce((total, high) => total + high.price, 0) /
-      resistanceTouches.length;
+const supportPrice =
+  (firstSupport.price + secondSupport.price) / 2;
 
-    const resistanceZoneHalfPercent =
-      maxResistanceDifferencePercent / 2;
+    const supportZoneHalfPercent = maxSupportDifferencePercent / 2;
 
-    const resistanceZoneLow =
-      resistancePrice * (1 - resistanceZoneHalfPercent / 100);
+    const supportZoneLow =
+      supportPrice * (1 - supportZoneHalfPercent / 100);
 
-    const resistanceZoneHigh =
-      resistancePrice * (1 + resistanceZoneHalfPercent / 100);
+    const supportZoneHigh =
+      supportPrice * (1 + supportZoneHalfPercent / 100);
 
-    /*
-     * Calculate confirmation and the formation
-     * endpoint before using formationEndPoint.
-     */
-    const breakoutIndex = history.findIndex(
-      (candle, index) =>
-        index > secondResistance.index &&
-        Number(candle.close) > resistanceZoneHigh
-    );
+const breakdownLevel =
+  supportPrice * 0.998;
 
-    const confirmed = breakoutIndex !== -1;
+let breakdownIndex = -1;
+let closesBelow = 0;
 
-    const breakoutPathPoint = confirmed
-      ? trianglePath.find((point) => point.index >= breakoutIndex) ??
+for (
+  let index = secondSupport.index + 1;
+  index < history.length;
+  index++
+) {
+  const { open, close } = history[index];
+
+  const bearish =
+    close < open;
+
+  const belowSupport =
+    close < breakdownLevel;
+
+  const strongBreak =
+    bearish &&
+    belowSupport &&
+    ((open - close) / open) * 100 >= 0.6;
+
+  if (strongBreak) {
+    breakdownIndex = index;
+    break;
+  }
+
+  closesBelow =
+    belowSupport
+      ? closesBelow + 1
+      : 0;
+
+  if (closesBelow >= 2) {
+    breakdownIndex = index - 1;
+    break;
+  }
+}
+
+const confirmed =
+  breakdownIndex !== -1;
+
+  
+    const breakdownPathPoint = confirmed
+      ? trianglePath.find((point) => point.index >= breakdownIndex) ??
         latestPathPoint
       : null;
 
-    const formationEndPoint = breakoutPathPoint ?? latestPathPoint;
+    const formationEndPoint = breakdownPathPoint ?? latestPathPoint;
 
-    /*
-     * Only use reaction lows occurring before
-     * the formation ends.
-     */
-    const risingLows = localLows
+    const descendingHighs = localHighs
       .filter(
-        (low) =>
-          low.index >= patternStart.index &&
-          low.index < formationEndPoint.index
+        (high) =>
+          high.index >= patternStart.index &&
+          high.index < formationEndPoint.index
       )
       .sort((first, second) => first.index - second.index);
 
-    if (risingLows.length < 2) continue;
+    if (descendingHighs.length < 2) continue;
 
-    const hasRisingLows = risingLows.every((low, index) => {
+    const hasDescendingHighs = descendingHighs.every((high, index) => {
       if (index === 0) return true;
-      return low.price > risingLows[index - 1].price;
+      return high.price < descendingHighs[index - 1].price;
     });
 
-    if (!hasRisingLows) continue;
+    if (!hasDescendingHighs) continue;
 
-    const lastRisingLow = risingLows[risingLows.length - 1];
-    const firstRange = resistancePrice - patternStart.price;
-    const latestRange = resistancePrice - lastRisingLow.price;
+    const lastDescendingHigh =
+      descendingHighs[descendingHighs.length - 1];
+
+    const firstRange = patternStart.price - supportPrice;
+    const latestRange = lastDescendingHigh.price - supportPrice;
 
     if (firstRange <= 0 || latestRange <= 0) {
       continue;
@@ -200,27 +228,24 @@ export function detectAscendingTriangle(
 
     if (patternWidth < 8) continue;
 
-    if (!confirmed && latestClose < lastRisingLow.price) {
+    if (!confirmed && latestClose > lastDescendingHigh.price) {
       continue;
     }
 
     let confidence = calculatePatternConfidence({
       patternSimilarity: percentDifference(
-        firstResistance.price,
-        secondResistance.price
+        firstSupport.price,
+        secondSupport.price
       ),
       breakoutStrength: contractionPercent,
     });
 
-    confidence += Math.min(9, resistanceTouches.length * 3);
-    confidence += Math.min(8, risingLows.length * 2);
+    confidence += Math.min(9, supportTouches.length * 3);
+    confidence += Math.min(8, descendingHighs.length * 2);
 
     if (confirmed) confidence += 10;
 
-    confidence = Math.min(
-      confirmed ? 100 : 79,
-      confidence
-    );
+    confidence = Math.min(confirmed ? 100 : 79, confidence);
 
     const formationPoints = trianglePath.filter(
       (point) =>
@@ -231,22 +256,22 @@ export function detectAscendingTriangle(
     const labels = new Map<number, string>();
 
     labels.set(patternStart.index, "Start");
-    labels.set(firstResistance.index, "Resistance 1");
-    labels.set(secondResistance.index, "Resistance 2");
+    labels.set(firstSupport.index, "Support 1");
+    labels.set(secondSupport.index, "Support 2");
 
-    risingLows.slice(1, 4).forEach((low, index) => {
-      labels.set(low.index, `Low ${index + 1}`);
+    descendingHighs.slice(1, 4).forEach((high, index) => {
+      labels.set(high.index, `High ${index + 1}`);
     });
 
     labels.set(
       formationEndPoint.index,
-      confirmed ? "Breakout" : "Current"
+      confirmed ? "Breakdown" : "Current"
     );
 
     const candidate: DetectedPattern = {
-      id: `ascending-triangle-${patternStart.time}-${firstResistance.time}-${secondResistance.time}`,
-      type: "ASCENDING_TRIANGLE",
-      direction: "BULLISH",
+      id: `descending-triangle-${patternStart.time}-${firstSupport.time}-${secondSupport.time}`,
+      type: "DESCENDING_TRIANGLE",
+      direction: "BEARISH",
       status: confirmed ? "CONFIRMED" : "FORMING",
       confidence,
 
@@ -259,11 +284,11 @@ export function detectAscendingTriangle(
       startTime: patternStart.time,
       endTime: formationEndPoint.time,
 
-      highPrice: Math.max(
-        resistanceZoneHigh,
+      highPrice: patternStart.price,
+      lowPrice: Math.min(
+        supportZoneLow,
         formationEndPoint.price
       ),
-      lowPrice: patternStart.price,
 
       keyPoints: formationPoints.map((point) => ({
         time: point.time,
@@ -271,23 +296,23 @@ export function detectAscendingTriangle(
         label: labels.get(point.index),
       })),
 
-      resistanceZone: {
-        low: resistanceZoneLow,
-        high: resistanceZoneHigh,
+      supportZone: {
+        low: supportZoneLow,
+        high: supportZoneHigh,
       },
 
       evidence: [
-        `Price tested the same resistance area ${resistanceTouches.length} times.`,
-        `The formation contains ${risingLows.length} rising structural lows.`,
+        `Price tested the same support area ${supportTouches.length} times.`,
+        `The formation contains ${descendingHighs.length} descending structural highs.`,
         `The price range contracted by ${contractionPercent.toFixed(2)}%.`,
         confirmed
-          ? "Price closed above the resistance zone."
-          : "Price remains inside the ascending structure.",
+          ? "Price closed below the support zone."
+          : "Price remains inside the descending structure.",
       ],
 
       cautions: confirmed
         ? []
-        : ["Price has not closed above the resistance zone."],
+        : ["Price has not closed below the support zone."],
     };
 
     if (!bestPattern) {

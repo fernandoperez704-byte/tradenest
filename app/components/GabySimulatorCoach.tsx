@@ -45,6 +45,7 @@ type GabySimulatorCoachProps = {
   selectedTimeframe?: string;
   currentPrice?: number;
   priceLocation?: string | null;
+  onAnalysisComplete?: () => void;
 };
 
 export default function GabySimulatorCoach({
@@ -68,8 +69,9 @@ export default function GabySimulatorCoach({
   movingAverageAnalysis,
   currentEntryQuality,
   selectedTimeframe,
-  currentPrice,
-  priceLocation,
+currentPrice,
+priceLocation,
+onAnalysisComplete,
 }: GabySimulatorCoachProps) {
   const { user } = useUser();
   const { openSignIn } = useClerk();
@@ -636,6 +638,8 @@ simulatorContext: {
       const gabyAnswer = data.answer || "Gaby could not respond right now.";
 
       setAnswer(gabyAnswer);
+
+      onAnalysisComplete?.();
 
       if (
         reviewSnapshot &&

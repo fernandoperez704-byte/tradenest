@@ -6,20 +6,11 @@ import { PATTERN_CONFIG } from "../constants";
 import { findShapeWindows } from "../helpers/findShapeWindows";
 import { calculatePatternConfidence } from "../confidence/calculatePatternConfidence";
 
-function percentDifference(
-  first: number,
-  second: number
-): number {
+function percentDifference(first: number, second: number): number {
   const average = (first + second) / 2;
+  if (average <= 0) return Infinity;
 
-  if (average <= 0) {
-    return Infinity;
-  }
-
-  return (
-    Math.abs(first - second) /
-    average
-  ) * 100;
+  return (Math.abs(first - second) / average) * 100;
 }
 
 export function detectHeadAndShoulders(
@@ -35,30 +26,11 @@ export function detectHeadAndShoulders(
     return null;
   }
 
-  const latestClose = Number(
-    history[history.length - 1]?.close
-  );
-
-  if (
-    !Number.isFinite(latestClose) ||
-    latestClose <= 0
-  ) {
-    return null;
-  }
-
-  const windows =
-    findShapeWindows(path, 7);
-
-  let bestPattern:
-    DetectedPattern | null = null;
+  const windows = findShapeWindows(path, 7);
+  let bestPattern: DetectedPattern | null = null;
 
   for (const window of windows) {
-    if (
-      !window ||
-      window.length < 7
-    ) {
-      continue;
-    }
+    if (!window || window.length < 7) continue;
 
     const [
       start,
@@ -71,70 +43,34 @@ export function detectHeadAndShoulders(
     ] = window;
 
     const hasCorrectOrder =
-      start.index <
-        leftShoulder.index &&
-      leftShoulder.index <
-        necklineLowOne.index &&
-      necklineLowOne.index <
-        head.index &&
-      head.index <
-        necklineLowTwo.index &&
-      necklineLowTwo.index <
-        rightShoulder.index &&
-      rightShoulder.index <=
-        current.index;
+      start.index < leftShoulder.index &&
+      leftShoulder.index < necklineLowOne.index &&
+      necklineLowOne.index < head.index &&
+      head.index < necklineLowTwo.index &&
+      necklineLowTwo.index < rightShoulder.index &&
+      rightShoulder.index <= current.index;
 
-    if (!hasCorrectOrder) {
-      continue;
-    }
+    if (!hasCorrectOrder) continue;
 
-    /*
-     * A bearish Head and Shoulders should
-     * form after a meaningful upward move.
-     *
-     * Check the candles before the pattern
-     * start instead of using only the local
-     * Start-to-Left-Shoulder move.
-     */
     const priorTrendLookback = 12;
+    const priorTrendStartIndex = Math.max(
+      0,
+      start.index - priorTrendLookback
+    );
 
-    const priorTrendStartIndex =
-      Math.max(
-        0,
-        start.index -
-          priorTrendLookback
-      );
+    if (priorTrendStartIndex === start.index) continue;
 
-    /*
-     * Require enough earlier candles to
-     * evaluate the prior trend properly.
-     */
-    if (
-      priorTrendStartIndex ===
-      start.index
-    ) {
-      continue;
-    }
+    const priorTrendStartClose = Number(
+      history[priorTrendStartIndex]?.close
+    );
 
-    const priorTrendStartClose =
-      Number(
-        history[
-          priorTrendStartIndex
-        ]?.close
-      );
-
-    const patternStartClose =
-      Number(
-        history[start.index]?.close
-      );
+    const patternStartClose = Number(
+      history[start.index]?.close
+    );
 
     if (
-      !Number.isFinite(
-        priorTrendStartClose
-      ) ||
-      !Number.isFinite(
-        patternStartClose
-      ) ||
+      !Number.isFinite(priorTrendStartClose) ||
+      !Number.isFinite(patternStartClose) ||
       priorTrendStartClose <= 0 ||
       patternStartClose <= 0
     ) {
@@ -142,64 +78,38 @@ export function detectHeadAndShoulders(
     }
 
     const priorMovePercent =
-      (
-        (
-          patternStartClose -
-          priorTrendStartClose
-        ) /
-        priorTrendStartClose
-      ) * 100;
+      ((patternStartClose - priorTrendStartClose) /
+        priorTrendStartClose) *
+      100;
 
-    const minimumPriorUptrendPercent =
-      2;
+    const minimumPriorUptrendPercent = 2;
 
-    if (
-      priorMovePercent <
-      minimumPriorUptrendPercent
-    ) {
+    if (priorMovePercent < minimumPriorUptrendPercent) {
       continue;
     }
 
     const hasCorrectDirection =
-      leftShoulder.price >
-        start.price &&
-      necklineLowOne.price <
-        leftShoulder.price &&
-      head.price >
-        necklineLowOne.price &&
-      necklineLowTwo.price <
-        head.price &&
-      rightShoulder.price >
-        necklineLowTwo.price &&
-      current.price <
-        rightShoulder.price;
+      leftShoulder.price > start.price &&
+      necklineLowOne.price < leftShoulder.price &&
+      head.price > necklineLowOne.price &&
+      necklineLowTwo.price < head.price &&
+      rightShoulder.price > necklineLowTwo.price &&
+      current.price < rightShoulder.price;
 
-    if (!hasCorrectDirection) {
-      continue;
-    }
+    if (!hasCorrectDirection) continue;
 
     const headIsHighest =
-      head.price >
-        leftShoulder.price &&
-      head.price >
-        rightShoulder.price;
+      head.price > leftShoulder.price &&
+      head.price > rightShoulder.price;
 
-    if (!headIsHighest) {
-      continue;
-    }
+    if (!headIsHighest) continue;
 
-    /*
-     * Both shoulders must be close to the
-     * same price level.
-     */
-    const shoulderDifferencePercent =
-      percentDifference(
-        leftShoulder.price,
-        rightShoulder.price
-      );
+    const shoulderDifferencePercent = percentDifference(
+      leftShoulder.price,
+      rightShoulder.price
+    );
 
-    const maxShoulderDifferencePercent =
-      1;
+    const maxShoulderDifferencePercent = 1;
 
     if (
       shoulderDifferencePercent >
@@ -208,18 +118,12 @@ export function detectHeadAndShoulders(
       continue;
     }
 
-    /*
-     * Both neckline lows must also be close
-     * to the same price level.
-     */
-    const necklineDifferencePercent =
-      percentDifference(
-        necklineLowOne.price,
-        necklineLowTwo.price
-      );
+    const necklineDifferencePercent = percentDifference(
+      necklineLowOne.price,
+      necklineLowTwo.price
+    );
 
-    const maxNecklineDifferencePercent =
-      1;
+    const maxNecklineDifferencePercent = 1;
 
     if (
       necklineDifferencePercent >
@@ -228,200 +132,110 @@ export function detectHeadAndShoulders(
       continue;
     }
 
-    /*
-     * The left and right halves of the
-     * pattern should have balanced timing.
-     */
     const leftPatternLength =
-      head.index -
-      leftShoulder.index;
+      head.index - leftShoulder.index;
 
     const rightPatternLength =
-      rightShoulder.index -
-      head.index;
+      rightShoulder.index - head.index;
 
-    const shorterSide =
-      Math.min(
-        leftPatternLength,
-        rightPatternLength
-      );
+    const shorterSide = Math.min(
+      leftPatternLength,
+      rightPatternLength
+    );
 
-    const longerSide =
-      Math.max(
-        leftPatternLength,
-        rightPatternLength
-      );
+    const longerSide = Math.max(
+      leftPatternLength,
+      rightPatternLength
+    );
 
     const sideBalance =
       longerSide > 0
         ? shorterSide / longerSide
         : 0;
 
-    const minimumSideBalance =
-      0.5;
+    const minimumSideBalance = 0.5;
 
-    if (
-      sideBalance <
-      minimumSideBalance
-    ) {
+    if (sideBalance < minimumSideBalance) {
       continue;
     }
 
     const averageShoulderPrice =
-      (
-        leftShoulder.price +
-        rightShoulder.price
-      ) / 2;
+      (leftShoulder.price + rightShoulder.price) / 2;
 
-    if (
-      averageShoulderPrice <= 0
-    ) {
-      continue;
-    }
+    if (averageShoulderPrice <= 0) continue;
 
-    /*
-     * The head must rise meaningfully above
-     * the average shoulder level.
-     */
     const headHeightPercent =
-      (
-        (
-          head.price -
-          averageShoulderPrice
-        ) /
-        averageShoulderPrice
-      ) * 100;
+      ((head.price - averageShoulderPrice) /
+        averageShoulderPrice) *
+      100;
 
     if (
       headHeightPercent <
-      PATTERN_CONFIG
-        .HEAD_AND_SHOULDERS
-        .MIN_HEAD_HEIGHT_PERCENT
+      PATTERN_CONFIG.HEAD_AND_SHOULDERS.MIN_HEAD_HEIGHT_PERCENT
     ) {
       continue;
     }
 
     const necklinePrice =
-      (
-        necklineLowOne.price +
-        necklineLowTwo.price
-      ) / 2;
+      (necklineLowOne.price + necklineLowTwo.price) / 2;
 
-    /*
-     * Reject an old bearish pattern if the
-     * latest market close moved above the head.
-     */
-    if (
-      latestClose >
-      head.price
-    ) {
-      continue;
-    }
+    const invalidated =
+      current.price > head.price;
 
-    /*
-     * Confirm this specific window using
-     * its final point.
-     */
+    if (invalidated) continue;
+
     const confirmed =
-      current.price <
-      necklinePrice;
+      current.price < necklinePrice;
 
-    let confidence =
-      calculatePatternConfidence({
-        patternSimilarity:
-          shoulderDifferencePercent,
+    let confidence = calculatePatternConfidence({
+      patternSimilarity: shoulderDifferencePercent,
+      breakoutStrength: headHeightPercent,
+    });
 
-        breakoutStrength:
-          headHeightPercent,
-      });
-
-    /*
-     * Reward a cleaner neckline.
-     */
-    if (
-      necklineDifferencePercent <=
-      0.5
-    ) {
+    if (necklineDifferencePercent <= 0.5) {
       confidence += 5;
-    } else if (
-      necklineDifferencePercent <=
-      1
-    ) {
+    } else if (necklineDifferencePercent <= 1) {
       confidence += 3;
     }
 
-    confidence += Math.round(
-      sideBalance * 5
+    confidence += Math.round(sideBalance * 5);
+
+    if (priorMovePercent >= 5) {
+      confidence += 5;
+    } else if (priorMovePercent >= 3) {
+      confidence += 3;
+    }
+
+    if (confirmed) confidence += 10;
+
+    confidence = Math.min(
+      confirmed ? 100 : 79,
+      confidence
     );
 
-    if (
-      priorMovePercent >= 5
-    ) {
-      confidence += 5;
-    } else if (
-      priorMovePercent >= 3
-    ) {
-      confidence += 3;
-    }
+    const endIndex = Math.min(
+      current.index,
+      history.length - 1
+    );
 
-    if (confirmed) {
-      confidence += 10;
-    }
-
-    confidence =
-      Math.min(
-        confirmed ? 100 : 79,
-        confidence
-      );
-
-    const endIndex =
-      Math.min(
-        current.index,
-        history.length - 1
-      );
-
-    const safeHistoryItem =
-      history[endIndex] ??
-      history[
-        history.length - 1
-      ];
-
-    const candidate:
-      DetectedPattern = {
+    const candidate: DetectedPattern = {
       id: `head-and-shoulders-${leftShoulder.time}-${head.time}-${rightShoulder.time}`,
-
-      type:
-        "HEAD_AND_SHOULDERS",
-
-      direction:
-        "BEARISH",
-
-      status: confirmed
-        ? "CONFIRMED"
-        : "FORMING",
-
+      type: "HEAD_AND_SHOULDERS",
+      direction: "BEARISH",
+      status: confirmed ? "CONFIRMED" : "FORMING",
       confidence,
 
-      startIndex:
-        start.index,
-
+      startIndex: start.index,
       endIndex,
 
-      startTime:
-        start.time,
+      startTime: start.time,
+      endTime: current.time,
 
-      endTime: Number(
-        safeHistoryItem.time
+      highPrice: head.price,
+      lowPrice: Math.min(
+        necklineLowOne.price,
+        necklineLowTwo.price
       ),
-
-      highPrice:
-        head.price,
-
-      lowPrice:
-        Math.min(
-          necklineLowOne.price,
-          necklineLowTwo.price
-        ),
 
       keyPoints: [
         {
@@ -431,18 +245,13 @@ export function detectHeadAndShoulders(
         },
         {
           time: leftShoulder.time,
-          price:
-            leftShoulder.price,
-          label:
-            "Left Shoulder",
+          price: leftShoulder.price,
+          label: "Left Shoulder",
         },
         {
-          time:
-            necklineLowOne.time,
-          price:
-            necklineLowOne.price,
-          label:
-            "Neckline 1",
+          time: necklineLowOne.time,
+          price: necklineLowOne.price,
+          label: "Neckline 1",
         },
         {
           time: head.time,
@@ -450,74 +259,60 @@ export function detectHeadAndShoulders(
           label: "Head",
         },
         {
-          time:
-            necklineLowTwo.time,
-          price:
-            necklineLowTwo.price,
-          label:
-            "Neckline 2",
+          time: necklineLowTwo.time,
+          price: necklineLowTwo.price,
+          label: "Neckline 2",
         },
         {
-          time:
-            rightShoulder.time,
-          price:
-            rightShoulder.price,
-          label:
-            "Right Shoulder",
+          time: rightShoulder.time,
+          price: rightShoulder.price,
+          label: "Right Shoulder",
         },
         {
           time: current.time,
           price: current.price,
-          label: confirmed
-            ? "Breakdown"
-            : "Current",
+          label: confirmed ? "Breakdown" : "Current",
         },
       ],
 
       evidence: [
         "The candle path formed a left shoulder, head, and right shoulder.",
-
-        `Price rose ${priorMovePercent.toFixed(
-          2
-        )}% before the pattern began.`,
-
-        `The shoulders are ${shoulderDifferencePercent.toFixed(
-          2
-        )}% apart.`,
-
-        `The head is ${headHeightPercent.toFixed(
-          2
-        )}% above the average shoulder height.`,
-
-        `The neckline points are ${necklineDifferencePercent.toFixed(
-          2
-        )}% apart.`,
-
-        `The pattern timing balance is ${(
-          sideBalance * 100
-        ).toFixed(0)}%.`,
+        `Price rose ${priorMovePercent.toFixed(2)}% before the pattern began.`,
+        `The shoulders are ${shoulderDifferencePercent.toFixed(2)}% apart.`,
+        `The head is ${headHeightPercent.toFixed(2)}% above the average shoulder height.`,
+        `The neckline points are ${necklineDifferencePercent.toFixed(2)}% apart.`,
+        `The pattern timing balance is ${(sideBalance * 100).toFixed(0)}%.`,
       ],
 
       cautions: confirmed
         ? []
-        : [
-            "Price has not closed below the neckline.",
-          ],
+        : ["Price has not closed below the neckline."],
     };
 
+    if (!bestPattern) {
+      bestPattern = candidate;
+      continue;
+    }
+
+    const candidateIsNewer =
+      candidate.endIndex > bestPattern.endIndex;
+
+    const sameEndButConfirmed =
+      candidate.endIndex === bestPattern.endIndex &&
+      candidate.status === "CONFIRMED" &&
+      bestPattern.status !== "CONFIRMED";
+
+    const sameEndAndStatusButHigherConfidence =
+      candidate.endIndex === bestPattern.endIndex &&
+      candidate.status === bestPattern.status &&
+      candidate.confidence > bestPattern.confidence;
+
     if (
-      !bestPattern ||
-      candidate.confidence >
-        bestPattern.confidence ||
-      (
-        candidate.confidence ===
-          bestPattern.confidence &&
-        candidate.endIndex >
-          bestPattern.endIndex
-      )
+      candidateIsNewer ||
+      sameEndButConfirmed ||
+      sameEndAndStatusButHigherConfidence
     ) {
-      bestPattern =
-        candidate;
+      bestPattern = candidate;
     }
   }
 

@@ -1,9 +1,6 @@
 import type { PricePoint } from "@/app/simulator/types/simulator";
 
-export type CandlePathDirection =
-  | "UP"
-  | "DOWN"
-  | "FLAT";
+export type CandlePathDirection = "UP" | "DOWN" | "FLAT";
 
 export type CandlePathPoint = {
   index: number;
@@ -17,15 +14,10 @@ type BuildCandlePathOptions = {
   minimumMovePercent?: number;
 };
 
-const getPrice = (
-  point: PricePoint
-) => Number(point.close);
+const getPrice = (point: PricePoint) => Number(point.close);
 
-const isValid = (
-  price: number
-) =>
-  Number.isFinite(price) &&
-  price > 0;
+const isValid = (price: number) =>
+  Number.isFinite(price) && price > 0;
 
 export function buildCandlePath(
   history: PricePoint[],
@@ -36,134 +28,71 @@ export function buildCandlePath(
     minimumMovePercent = 0.75,
   } = options;
 
-  if (
-    !Array.isArray(history) ||
-    history.length < 3
-  ) {
+  if (!Array.isArray(history) || history.length < 3) {
     return [];
   }
 
-  const startIndex = Math.max(
-    0,
-    history.length - lookback
-  );
+  const startIndex = Math.max(0, history.length - lookback);
+  const data = history.slice(startIndex);
 
-  const data =
-    history.slice(startIndex);
+  if (data.length === 0) return [];
 
-  if (data.length === 0) {
-    return [];
-  }
+  const firstPrice = getPrice(data[0]);
 
-  const path:
-    CandlePathPoint[] = [];
+  if (!isValid(firstPrice)) return [];
 
-  const firstPrice =
-    getPrice(data[0]);
-
-  if (!isValid(firstPrice)) {
-    return [];
-  }
+  const path: CandlePathPoint[] = [
+    {
+      index: startIndex,
+      time: Number(data[0].time),
+      price: firstPrice,
+      direction: "FLAT",
+    },
+  ];
 
   let anchorIndex = 0;
   let extremeIndex = 0;
+  let activeDirection: "UP" | "DOWN" | null = null;
 
-  let activeDirection:
-    | "UP"
-    | "DOWN"
-    | null = null;
+  for (let index = 1; index < data.length; index++) {
+    const price = getPrice(data[index]);
 
-  path.push({
-    index: startIndex,
-    time: Number(data[0].time),
-    price: firstPrice,
-    direction: "FLAT",
-  });
+    if (!isValid(price)) continue;
 
-  for (
-    let index = 1;
-    index < data.length;
-    index++
-  ) {
-    const price =
-      getPrice(data[index]);
+    const anchorPrice = getPrice(data[anchorIndex]);
 
-    if (!isValid(price)) {
-      continue;
-    }
-
-    const anchorPrice =
-      getPrice(
-        data[anchorIndex]
-      );
-
-    if (!isValid(anchorPrice)) {
-      continue;
-    }
+    if (!isValid(anchorPrice)) continue;
 
     const movePercent =
-      (
-        (price - anchorPrice) /
-        anchorPrice
-      ) * 100;
+      ((price - anchorPrice) / anchorPrice) * 100;
 
     if (!activeDirection) {
-      if (
-        Math.abs(movePercent) >=
-        minimumMovePercent
-      ) {
-        activeDirection =
-          movePercent > 0
-            ? "UP"
-            : "DOWN";
-
+      if (Math.abs(movePercent) >= minimumMovePercent) {
+        activeDirection = movePercent > 0 ? "UP" : "DOWN";
         extremeIndex = index;
       }
 
       continue;
     }
 
-    const extremePrice =
-      getPrice(
-        data[extremeIndex]
-      );
+    const extremePrice = getPrice(data[extremeIndex]);
 
-    if (!isValid(extremePrice)) {
-      continue;
-    }
+    if (!isValid(extremePrice)) continue;
 
-    if (
-      activeDirection === "UP"
-    ) {
+    if (activeDirection === "UP") {
       if (price >= extremePrice) {
         extremeIndex = index;
         continue;
       }
 
       const reversalPercent =
-        (
-          (price - extremePrice) /
-          extremePrice
-        ) * 100;
+        ((price - extremePrice) / extremePrice) * 100;
 
-      if (
-        reversalPercent <=
-        -minimumMovePercent
-      ) {
-        addPoint(
-          path,
-          data,
-          startIndex,
-          extremeIndex,
-          "UP"
-        );
+      if (reversalPercent <= -minimumMovePercent) {
+        addPoint(path, data, startIndex, extremeIndex, "UP");
 
-        anchorIndex =
-          extremeIndex;
-
-        activeDirection =
-          "DOWN";
-
+        anchorIndex = extremeIndex;
+        activeDirection = "DOWN";
         extremeIndex = index;
       }
 
@@ -176,70 +105,31 @@ export function buildCandlePath(
     }
 
     const reversalPercent =
-      (
-        (price - extremePrice) /
-        extremePrice
-      ) * 100;
+      ((price - extremePrice) / extremePrice) * 100;
 
-    if (
-      reversalPercent >=
-      minimumMovePercent
-    ) {
-      addPoint(
-        path,
-        data,
-        startIndex,
-        extremeIndex,
-        "DOWN"
-      );
+    if (reversalPercent >= minimumMovePercent) {
+      addPoint(path, data, startIndex, extremeIndex, "DOWN");
 
-      anchorIndex =
-        extremeIndex;
-
-      activeDirection =
-        "UP";
-
+      anchorIndex = extremeIndex;
+      activeDirection = "UP";
       extremeIndex = index;
     }
   }
 
-  const finalLocalIndex =
-    data.length - 1;
-
-  const finalGlobalIndex =
-    startIndex +
-    finalLocalIndex;
-
-  const finalPrice =
-    getPrice(
-      data[finalLocalIndex]
-    );
-
-  const last =
-    path[path.length - 1];
+  const finalLocalIndex = data.length - 1;
+  const finalGlobalIndex = startIndex + finalLocalIndex;
+  const finalPrice = getPrice(data[finalLocalIndex]);
+  const lastPoint = path[path.length - 1];
 
   if (
     isValid(finalPrice) &&
-    last &&
-    last.index !==
-      finalGlobalIndex
+    lastPoint.index !== finalGlobalIndex
   ) {
     path.push({
-      index:
-        finalGlobalIndex,
-
-      time: Number(
-        data[
-          finalLocalIndex
-        ].time
-      ),
-
-      price:
-        finalPrice,
-
-      direction:
-        activeDirection ??
-        "FLAT",
+      index: finalGlobalIndex,
+      time: Number(data[finalLocalIndex].time),
+      price: finalPrice,
+      direction: activeDirection ?? "FLAT",
     });
   }
 
@@ -252,36 +142,22 @@ function addPoint(
   offset: number,
   index: number,
   direction: CandlePathDirection
-) {
-  const price =
-    getPrice(data[index]);
+): void {
+  const price = getPrice(data[index]);
 
-  if (!isValid(price)) {
-    return;
-  }
+  if (!isValid(price)) return;
 
-  const globalIndex =
-    offset + index;
+  const globalIndex = offset + index;
+  const lastPoint = path[path.length - 1];
 
-  const lastPoint =
-    path[path.length - 1];
-
-  if (
-    lastPoint &&
-    lastPoint.index >= globalIndex
-  ) {
+  if (lastPoint && lastPoint.index >= globalIndex) {
     return;
   }
 
   path.push({
     index: globalIndex,
-
-    time: Number(
-      data[index].time
-    ),
-
+    time: Number(data[index].time),
     price,
-
     direction,
   });
 }

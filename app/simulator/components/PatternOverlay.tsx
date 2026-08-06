@@ -62,10 +62,11 @@ export default function PatternOverlay({
         return;
       }
 
-      const startTimeSeconds = Math.floor(Number(pattern.startTime) / 1000);
-      const endTimeSeconds = Math.floor(Number(pattern.endTime) / 1000);
-      const startX = currentChart.timeScale().timeToCoordinate(startTimeSeconds as any);
-      const endX = currentChart.timeScale().timeToCoordinate(endTimeSeconds as any);
+      const startTime = Math.floor(Number(pattern.startTime) / 1000);
+      const endTime = Math.floor(Number(pattern.endTime) / 1000);
+
+      const startX = currentChart.timeScale().timeToCoordinate(startTime as any);
+      const endX = currentChart.timeScale().timeToCoordinate(endTime as any);
       const highY = currentSeries.priceToCoordinate(pattern.highPrice);
       const lowY = currentSeries.priceToCoordinate(pattern.lowPrice);
 
@@ -95,8 +96,8 @@ export default function PatternOverlay({
       const nextOverlayPoints: OverlayPoint[] = [];
 
       for (const point of pattern.keyPoints ?? []) {
-        const pointTimeSeconds = Math.floor(Number(point.time) / 1000);
-        const pointX = currentChart.timeScale().timeToCoordinate(pointTimeSeconds as any);
+        const pointTime = Math.floor(Number(point.time) / 1000);
+        const pointX = currentChart.timeScale().timeToCoordinate(pointTime as any);
         const pointY = currentSeries.priceToCoordinate(point.price);
 
         if (pointX == null || pointY == null) continue;
@@ -159,13 +160,14 @@ export default function PatternOverlay({
   const ascendingResistanceTwo = overlayPoints.find(
     (point) => point.label === "Resistance 2"
   );
-  const ascendingCurrent = overlayPoints.find(
+  const ascendingEnd = overlayPoints.find(
     (point) => point.label === "Current" || point.label === "Breakout"
   );
   const ascendingLows = overlayPoints.filter((point) =>
     point.label?.startsWith("Low ")
   );
   const ascendingLastLow = ascendingLows[ascendingLows.length - 1];
+
   const ascendingResistanceY =
     ascendingResistanceOne && ascendingResistanceTwo
       ? (ascendingResistanceOne.y + ascendingResistanceTwo.y) / 2
@@ -173,16 +175,45 @@ export default function PatternOverlay({
 
   let ascendingSupportEndY: number | null = null;
 
-  if (ascendingStart && ascendingLastLow && ascendingCurrent) {
-    const supportDistance = ascendingLastLow.x - ascendingStart.x;
+  if (ascendingStart && ascendingLastLow && ascendingEnd) {
+    const distance = ascendingLastLow.x - ascendingStart.x;
 
-    if (supportDistance > 0) {
-      const supportSlope =
-        (ascendingLastLow.y - ascendingStart.y) / supportDistance;
-
+    if (distance > 0) {
+      const slope = (ascendingLastLow.y - ascendingStart.y) / distance;
       ascendingSupportEndY =
-        ascendingStart.y +
-        supportSlope * (ascendingCurrent.x - ascendingStart.x);
+        ascendingStart.y + slope * (ascendingEnd.x - ascendingStart.x);
+    }
+  }
+
+  const descendingStart = overlayPoints.find((point) => point.label === "Start");
+  const descendingSupportOne = overlayPoints.find(
+    (point) => point.label === "Support 1"
+  );
+  const descendingSupportTwo = overlayPoints.find(
+    (point) => point.label === "Support 2"
+  );
+  const descendingEnd = overlayPoints.find(
+    (point) => point.label === "Current" || point.label === "Breakdown"
+  );
+  const descendingHighs = overlayPoints.filter((point) =>
+    point.label?.startsWith("High ")
+  );
+  const descendingLastHigh = descendingHighs[descendingHighs.length - 1];
+
+  const descendingSupportY =
+    descendingSupportOne && descendingSupportTwo
+      ? (descendingSupportOne.y + descendingSupportTwo.y) / 2
+      : null;
+
+  let descendingResistanceEndY: number | null = null;
+
+  if (descendingStart && descendingLastHigh && descendingEnd) {
+    const distance = descendingLastHigh.x - descendingStart.x;
+
+    if (distance > 0) {
+      const slope = (descendingLastHigh.y - descendingStart.y) / distance;
+      descendingResistanceEndY =
+        descendingStart.y + slope * (descendingEnd.x - descendingStart.x);
     }
   }
 
@@ -204,7 +235,8 @@ export default function PatternOverlay({
         >
           {overlayZone &&
             overlayPoints.length >= 2 &&
-            (pattern.type === "DOUBLE_TOP" || pattern.type === "DOUBLE_BOTTOM") && (
+            (pattern.type === "DOUBLE_TOP" ||
+              pattern.type === "DOUBLE_BOTTOM") && (
               <rect
                 x={overlayPoints[1].x}
                 y={overlayZone.top}
@@ -268,18 +300,19 @@ export default function PatternOverlay({
             </>
           )}
 
-          {pattern.type === "HEAD_AND_SHOULDERS" && overlayPoints.length >= 7 && (
-            <line
-              x1={overlayPoints[2].x}
-              y1={overlayPoints[2].y}
-              x2={overlayPoints[4].x}
-              y2={overlayPoints[4].y}
-              stroke="rgba(255,255,255,0.95)"
-              strokeWidth="1"
-              strokeDasharray="5 4"
-              vectorEffect="non-scaling-stroke"
-            />
-          )}
+          {pattern.type === "HEAD_AND_SHOULDERS" &&
+            overlayPoints.length >= 7 && (
+              <line
+                x1={overlayPoints[2].x}
+                y1={overlayPoints[2].y}
+                x2={overlayPoints[4].x}
+                y2={overlayPoints[4].y}
+                stroke="rgba(255,255,255,0.95)"
+                strokeWidth="1"
+                strokeDasharray="5 4"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
 
           {pattern.type === "INVERSE_HEAD_AND_SHOULDERS" &&
             overlayPoints.length >= 7 && (
@@ -299,16 +332,16 @@ export default function PatternOverlay({
             ascendingStart &&
             ascendingResistanceOne &&
             ascendingResistanceTwo &&
-            ascendingCurrent &&
+            ascendingEnd &&
             ascendingResistanceY != null &&
             ascendingSupportEndY != null && (
               <>
                 <line
                   x1={ascendingResistanceOne.x}
                   y1={ascendingResistanceY}
-                  x2={ascendingCurrent.x}
+                  x2={ascendingEnd.x}
                   y2={ascendingResistanceY}
-                  stroke="rgba(255,255,255,0.80)"
+                  stroke="rgba(255,255,255,0.95)"
                   strokeWidth="1"
                   strokeDasharray="5 4"
                   vectorEffect="non-scaling-stroke"
@@ -316,9 +349,40 @@ export default function PatternOverlay({
                 <line
                   x1={ascendingStart.x}
                   y1={ascendingStart.y}
-                  x2={ascendingCurrent.x}
+                  x2={ascendingEnd.x}
                   y2={ascendingSupportEndY}
-                  stroke="rgba(255,255,255,0.80)"
+                  stroke="rgba(255,255,255,0.95)"
+                  strokeWidth="1"
+                  strokeDasharray="5 4"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </>
+            )}
+
+          {pattern.type === "DESCENDING_TRIANGLE" &&
+            descendingStart &&
+            descendingSupportOne &&
+            descendingSupportTwo &&
+            descendingEnd &&
+            descendingSupportY != null &&
+            descendingResistanceEndY != null && (
+              <>
+                <line
+                  x1={descendingSupportOne.x}
+                  y1={descendingSupportY}
+                  x2={descendingEnd.x}
+                  y2={descendingSupportY}
+                  stroke="rgba(255,255,255,0.95)"
+                  strokeWidth="1"
+                  strokeDasharray="5 4"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={descendingStart.x}
+                  y1={descendingStart.y}
+                  x2={descendingEnd.x}
+                  y2={descendingResistanceEndY}
+                  stroke="rgba(255,255,255,0.95)"
                   strokeWidth="1"
                   strokeDasharray="5 4"
                   vectorEffect="non-scaling-stroke"
@@ -335,8 +399,6 @@ export default function PatternOverlay({
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
-
-
         </svg>
       </div>
     </div>
