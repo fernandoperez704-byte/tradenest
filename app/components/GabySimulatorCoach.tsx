@@ -618,7 +618,7 @@ simulatorContext: {
             momentumAnalysis: marketIntelligence?.momentumAnalysis,
             volumeAnalysis: marketIntelligence?.volumeAnalysis,
             rsiAnalysis: marketIntelligence?.rsiAnalysis,
-            marketConviction: marketIntelligence?.marketConviction,
+            
             marketAnalysisSummary,
             marketState: marketIntelligence?.marketState,
             controlStrength: marketIntelligence?.controlStrength,

@@ -384,9 +384,8 @@ const isMarketAnalysisQuestion =
   normalizedQuestion.includes("analyze bitcoin");
 
 if (isMarketAnalysisQuestion) {
-  const direction = marketFacts.marketDirection;
-  const structure = marketFacts.structure;
-  const conviction = marketFacts.marketConviction;
+const direction = marketFacts.marketDirection;
+const structure = marketFacts.structure;
 
 const marketState = marketFacts.marketState;
 const controlStrength = marketFacts.controlStrength;
@@ -435,7 +434,7 @@ Current Price: $${formatPrice(currentPrice)}
 Market Direction: ${direction}
 Market Structure: ${structure || "UNKNOWN"}
 Market State: ${marketState || "UNKNOWN"}
-Market Conviction: ${conviction || "UNKNOWN"}
+
 Control Strength: ${controlStrength || "UNKNOWN"}
 Move Condition: ${moveCondition || "UNKNOWN"}
 

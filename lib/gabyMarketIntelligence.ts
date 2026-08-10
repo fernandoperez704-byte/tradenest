@@ -267,105 +267,35 @@ export function isPriceNearZone(price: number, zone: PriceZone | null, tolerance
 // CORE TRADING CORE ENGINE LOGIC
 // ==========================================
 
-function getMarketStructure(
-  candles: Candle[],
-  direction: "BULLISH" | "BEARISH" | "TRANSITION"
-): MarketStructure {
-  const recentCandles = candles.slice(-80);
+function getMarketStructure(candles: Candle[]): MarketStructure {
+  const highs = getSwingHighs(candles, 5);
+  const lows = getSwingLows(candles, 5);
 
-  if (recentCandles.length < 30) {
-    return "RANGING";
-  }
+  if (highs.length < 2 || lows.length < 2) return "RANGING";
 
-  const half = Math.floor(recentCandles.length / 2);
+  const currentPrice = candles[candles.length - 1].close;
 
-  const firstHalf = recentCandles.slice(0, half);
-  const secondHalf = recentCandles.slice(half);
+  const lastHigh = highs[highs.length - 1];
+  const previousHigh = highs[highs.length - 2];
+  const lastLow = lows[lows.length - 1];
+  const previousLow = lows[lows.length - 2];
 
-  const firstHigh = Math.max(...firstHalf.map((c) => c.high));
-  const firstLow = Math.min(...firstHalf.map((c) => c.low));
+  const higherHigh = lastHigh > previousHigh;
+  const higherLow = lastLow > previousLow;
+  const lowerHigh = lastHigh < previousHigh;
+  const lowerLow = lastLow < previousLow;
 
-  const secondHigh = Math.max(...secondHalf.map((c) => c.high));
-  const secondLow = Math.min(...secondHalf.map((c) => c.low));
-
-  const makingHigherHighs = secondHigh > firstHigh;
-  const makingHigherLows = secondLow > firstLow;
-
-  const makingLowerHighs = secondHigh < firstHigh;
-  const makingLowerLows = secondLow < firstLow;
-
-  const last10 = recentCandles.slice(-10);
-
-  const lastClose = last10[last10.length - 1].close;
-  const recentHigh = Math.max(...last10.map((c) => c.high));
-  const recentLow = Math.min(...last10.map((c) => c.low));
-
-  const rangePercent =
-    lastClose > 0
-      ? ((recentHigh - recentLow) / lastClose) * 100
-      : 0;
-
-  const closeNearHigh =
-    recentHigh > 0 &&
-    Math.abs(lastClose - recentHigh) / recentHigh <= 0.01;
-
-  const closeNearLow =
-    recentLow > 0 &&
-    Math.abs(lastClose - recentLow) / recentLow <= 0.01;
-
-  // Clear bullish structure
-  if (
-    direction === "BULLISH" &&
-    makingHigherHighs &&
-    makingHigherLows
-  ) {
+  if (higherHigh && higherLow) {
+    if (currentPrice < lastLow) return "TRANSITION";
     return "BULLISH";
   }
 
-  // Clear bearish structure
-  if (
-    direction === "BEARISH" &&
-    makingLowerHighs &&
-    makingLowerLows
-  ) {
+  if (lowerHigh && lowerLow) {
+    if (currentPrice > lastHigh) return "TRANSITION";
     return "BEARISH";
   }
 
-  // Bullish direction temporarily moving sideways near recent highs
-  if (
-    direction === "BULLISH" &&
-    rangePercent <= 2 &&
-    closeNearHigh
-  ) {
-    return "BULLISH_CONSOLIDATION";
-  }
-
-  // Bearish direction temporarily moving sideways near recent lows
-  if (
-    direction === "BEARISH" &&
-    rangePercent <= 2 &&
-    closeNearLow
-  ) {
-    return "BEARISH_CONSOLIDATION";
-  }
-
-  // Bullish direction with structure temporarily pulling back
-  if (
-    direction === "BULLISH" &&
-    !makingHigherHighs
-  ) {
-    return "BULLISH_PULLBACK";
-  }
-
-  // Bearish direction with structure temporarily bouncing
-  if (
-    direction === "BEARISH" &&
-    !makingLowerLows
-  ) {
-    return "BEARISH_PULLBACK";
-  }
-
-  return "RANGING";
+  return "TRANSITION";
 }
 
 export function getDominantStructure(structures: (MarketStructure | undefined)[]): MarketStructure {
@@ -486,25 +416,87 @@ function getRSIAnalysis(candles: Candle[]): RSIAnalysis | null {
   return { rsi: "RSI_NEUTRAL", value, summary: "RSI is neutral and does not show strong pressure right now." };
 }
 
-export function getMovingAverageAnalysis(candles: Candle[]): MovingAverageAnalysis {
+export function getMovingAverageAnalysis(
+  candles: Candle[]
+): MovingAverageAnalysis {
   const ma7 = calculateSMA(candles, 7);
   const ma25 = calculateSMA(candles, 25);
   const ma99 = calculateSMA(candles, 99);
 
+  const currentPrice = candles[candles.length - 1]?.close;
+
   let direction: MovingAverageAnalysis["direction"] = "TRANSITION";
-  if (ma7 && ma25 && ma99) {
-    if (ma7 > ma25 && ma25 > ma99) direction = "BULLISH";
-    else if (ma7 < ma25 && ma25 < ma99) direction = "BEARISH";
+
+  if (ma7 && ma25 && ma99 && currentPrice) {
+    const bullishStack = ma7 > ma25 && ma25 > ma99;
+    const bearishStack = ma7 < ma25 && ma25 < ma99;
+
+    const recentHighs = getSwingHighs(candles, 5);
+    const recentLows = getSwingLows(candles, 5);
+
+    const lastHigh = recentHighs.at(-1);
+    const lastLow = recentLows.at(-1);
+
+    const brokeSupport =
+      lastLow !== undefined && currentPrice < lastLow;
+
+    const brokeResistance =
+      lastHigh !== undefined && currentPrice > lastHigh;
+
+    const recent = candles.slice(-4);
+    const startPrice = recent[0]?.close ?? currentPrice;
+
+    const displacement =
+      ((currentPrice - startPrice) / startPrice) * 100;
+
+    const strongBearishMove = displacement <= -0.75;
+    const strongBullishMove = displacement >= 0.75;
+
+    if (
+      bearishStack &&
+      currentPrice < ma25
+    ) {
+      direction = "BEARISH";
+    } else if (
+      bullishStack &&
+      currentPrice > ma25
+    ) {
+      direction = "BULLISH";
+    } else if (
+      brokeSupport &&
+      currentPrice < ma7 &&
+      currentPrice < ma25 &&
+      strongBearishMove
+    ) {
+      direction = "BEARISH";
+    } else if (
+      brokeResistance &&
+      currentPrice > ma7 &&
+      currentPrice > ma25 &&
+      strongBullishMove
+    ) {
+      direction = "BULLISH";
+    }
   }
 
-  let summary = "The moving averages are not fully aligned right now.";
+  let summary =
+    "Market direction is in transition.";
+
   if (direction === "BULLISH") {
-    summary = "The 7 MA is above the 25 MA, and the 25 MA is above the 99 MA. Direction is bullish.";
+    summary =
+      "Price action and moving-average conditions support a bullish direction.";
   } else if (direction === "BEARISH") {
-    summary = "The 7 MA is below the 25 MA, and the 25 MA is below the 99 MA. Direction is bearish.";
+    summary =
+      "Price action and moving-average conditions support a bearish direction.";
   }
 
-  return { ma7, ma25, ma99, direction, summary };
+  return {
+    ma7,
+    ma25,
+    ma99,
+    direction,
+    summary,
+  };
 }
 
 export function getMAStructureExtension(price: number, ma7: number, ma25: number, ma99: number): MAStructureExtension {
@@ -855,10 +847,8 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
   const nearestResistance = resistanceLevels[0] ?? null;
   const nextResistance = resistanceLevels[1] ?? null;
 
-  const structure = getMarketStructure(
-  recentCandles,
-  direction
-);
+const structure = getMarketStructure(recentCandles);
+  
   const patternAnalysis = getPatternAnalysis(recentCandles, nearestSupport, nearestResistance);
   const momentumAnalysis = getMomentumAnalysis(recentCandles);
   const volumeAnalysis = getVolumeAnalysis(recentCandles);
@@ -989,13 +979,9 @@ export function getEntryQuality(
  * to satisfy the getStructureAnalysis import.
  */
 export function getStructureAnalysis(candles: Candle[]): StructureAnalysis {
-  const direction =
-  getMovingAverageAnalysis(candles).direction;
 
-const structure = getMarketStructure(
-  candles,
-  direction
-);
+ const structure = getMarketStructure(candles); 
+
   const recentHighs = getSwingHighs(candles, 5);
   const recentLows = getSwingLows(candles, 5);
 
@@ -1039,7 +1025,7 @@ export function buildMarketAnalysisSummary(
   lines.push(`* **Market Structure:** ${intelligence.structure}`);
   lines.push(`* **State:** ${intelligence.marketState?.replace(/_/g, " ") || "UNKNOWN"} (${intelligence.controlStrength?.toLowerCase() || "neutral"})`);
   lines.push(`* **Move Condition:** ${intelligence.moveCondition}`);
-  lines.push(`* **Conviction Level:** ${intelligence.marketConviction?.replace(/_/g, " ") || "NORMAL"}`);
+  
   
   if (intelligence.patternAnalysis) {
     lines.push(`* **Pattern Detected:** ${intelligence.patternAnalysis.pattern} — ${intelligence.patternAnalysis.summary}`);
