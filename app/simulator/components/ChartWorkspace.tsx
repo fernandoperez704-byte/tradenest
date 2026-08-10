@@ -449,7 +449,6 @@ return (
 
 <GabyChartOverlay
   highlights={gabyChartHighlights}
-  chartInstanceRef={chartInstanceRef}
   candleSeriesRef={candleSeriesRef}
   chartContainerRef={chartRef}
 />

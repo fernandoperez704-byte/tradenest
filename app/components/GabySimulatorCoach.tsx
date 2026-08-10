@@ -45,7 +45,9 @@ type GabySimulatorCoachProps = {
   selectedTimeframe?: string;
   currentPrice?: number;
   priceLocation?: string | null;
-  onAnalysisComplete?: () => void;
+  onAnalysisComplete?: (
+  subject: string | null
+) => void;
 };
 
 export default function GabySimulatorCoach({
@@ -639,7 +641,9 @@ simulatorContext: {
 
       setAnswer(gabyAnswer);
 
-      onAnalysisComplete?.();
+      onAnalysisComplete?.(
+  conversationSubject
+);
 
       if (
         reviewSnapshot &&

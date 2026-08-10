@@ -155,6 +155,11 @@ useEffect(() => {
   const [gabyChartHighlights, setGabyChartHighlights] =
   useState<GabyChartHighlight[]>([]);
   
+const [showGabyChartHighlights, setShowGabyChartHighlights] =
+  useState(false);
+
+const [gabyHighlightTarget, setGabyHighlightTarget] =
+  useState<"SUPPORT" | "RESISTANCE" | null>(null);
 
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
@@ -163,6 +168,8 @@ useEffect(() => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
 useEffect(() => {
+  setShowGabyChartHighlights(false);
+  setGabyHighlightTarget(null);
   setGabyChartHighlights([]);
 }, [selectedCoin, selectedTimeframe]);
 
@@ -192,10 +199,75 @@ const [previousPrices, setPreviousPrices] = useState<
   const [candlesReadyFor, setCandlesReadyFor] = useState("");
 const [timeframeStructures, setTimeframeStructures] =
   useState<Record<string, any>>({});
-const marketIntelligence =
-  history.length > 20
-    ? getMarketIntelligence(history)
-    : null;
+const marketIntelligence = useMemo(
+  () =>
+    history.length > 20
+      ? getMarketIntelligence(history)
+      : null,
+  [history]
+);
+
+useEffect(() => {
+if (!showGabyChartHighlights) {
+  setGabyChartHighlights([]);
+  return;
+}
+
+  const support = marketIntelligence?.nearestSupport;
+  const resistance = marketIntelligence?.nearestResistance;
+  const highlights: GabyChartHighlight[] = [];
+
+if (
+  gabyHighlightTarget === "SUPPORT" &&
+  support &&
+  Number.isFinite(support.low) &&
+  Number.isFinite(support.high)
+) {
+    highlights.push({
+      id: `support-${selectedCoin}-${selectedTimeframe}`,
+      type: "SUPPORT",
+      low: support.low,
+      high: support.high,
+    });
+  }
+
+if (
+  gabyHighlightTarget === "RESISTANCE" &&
+  resistance &&
+  Number.isFinite(resistance.low) &&
+  Number.isFinite(resistance.high)
+) {
+    highlights.push({
+      id: `resistance-${selectedCoin}-${selectedTimeframe}`,
+      type: "RESISTANCE",
+      low: resistance.low,
+      high: resistance.high,
+    });
+  }
+
+  setGabyChartHighlights((previous) => {
+    const unchanged =
+      previous.length === highlights.length &&
+      previous.every(
+        (item, index) =>
+          item.id === highlights[index]?.id &&
+          item.low === highlights[index]?.low &&
+          item.high === highlights[index]?.high
+      );
+
+    return unchanged ? previous : highlights;
+  });
+}, [
+
+  showGabyChartHighlights,
+  gabyHighlightTarget,
+  marketIntelligence?.nearestSupport?.low,
+  marketIntelligence?.nearestSupport?.high,
+  marketIntelligence?.nearestResistance?.low,
+  marketIntelligence?.nearestResistance?.high,
+  selectedCoin,
+  selectedTimeframe,
+]);
 
 const marketAnalysisSummary =
   marketIntelligence
@@ -808,37 +880,6 @@ const currentEntryQuality =
         movingAverageAnalysis.direction
       )
     : null;
-
-function showGabyMarketHighlights() {
-  const support = Number(marketIntelligence?.nearestSupport);
-  const resistance = Number(marketIntelligence?.nearestResistance);
-
-  const highlights: GabyChartHighlight[] = [];
-
-  if (Number.isFinite(support) && support > 0) {
-    const padding = support * 0.0015;
-
-    highlights.push({
-      id: `support-${selectedCoin}-${selectedTimeframe}-${support}`,
-      type: "SUPPORT",
-      low: support - padding,
-      high: support + padding,
-    });
-  }
-
-  if (Number.isFinite(resistance) && resistance > 0) {
-    const padding = resistance * 0.0015;
-
-    highlights.push({
-      id: `resistance-${selectedCoin}-${selectedTimeframe}-${resistance}`,
-      type: "RESISTANCE",
-      low: resistance - padding,
-      high: resistance + padding,
-    });
-  }
-
-  setGabyChartHighlights(highlights);
-} 
     
   const maintenanceBuffer = 0.005;
 
@@ -3271,8 +3312,10 @@ strongestPattern={strongestPattern}
   <>
 <div
   onClick={() => {
-  setShowSimulatorGaby(false);
-  setGabyChartHighlights([]);
+setShowSimulatorGaby(false);
+setShowGabyChartHighlights(false);
+setGabyHighlightTarget(null);
+setGabyChartHighlights([]);
 }}
   className="fixed inset-0 z-40 bg-black/10"
  />
@@ -3280,8 +3323,10 @@ strongestPattern={strongestPattern}
     <div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[255px] xl:w-[500px]">
       <button
         onClick={() => {
-  setShowSimulatorGaby(false);
-  setGabyChartHighlights([]);
+setShowSimulatorGaby(false);
+setShowGabyChartHighlights(false);
+setGabyHighlightTarget(null);
+setGabyChartHighlights([]);
 }}
         className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"
       >
@@ -3311,7 +3356,21 @@ setTrades={setTrades}
   selectedTimeframe={selectedTimeframe}
   currentPrice={currentPrice}
   priceLocation={priceLocation}
-  onAnalysisComplete={showGabyMarketHighlights}
+onAnalysisComplete={(subject) => {
+  if (
+    subject !== "SUPPORT" &&
+    subject !== "RESISTANCE"
+  ) {
+    setShowGabyChartHighlights(false);
+    setGabyHighlightTarget(null);
+    return;
+  }
+
+  setGabyHighlightTarget(subject);
+  setShowGabyChartHighlights(true);
+}}
+
+  
 />
     </div>
   </>
