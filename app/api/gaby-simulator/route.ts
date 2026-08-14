@@ -287,6 +287,12 @@ return Response.json({
   answer:
     completion.choices[0].message.content ||
     `The nearest support on the selected **${timeframe}** timeframe is between **$${formatPrice(support.low)}** and **$${formatPrice(support.high)}**.`,
+
+  chartCommand: {
+    action: "SHOW",
+    target: "SUPPORT",
+    count: 1,
+  },
 });
 }
 
@@ -366,12 +372,18 @@ return Response.json({
   answer:
     completion.choices[0].message.content ||
     `The nearest resistance on the selected **${timeframe}** timeframe is between **$${formatPrice(resistance.low)}** and **$${formatPrice(resistance.high)}**.`,
+
+  chartCommand: {
+    action: "SHOW",
+    target: "RESISTANCE",
+    count: 1,
+  },
 });
 }
 
 // Handle overall market direction with focused GPT explanation
 const isMarketAnalysisQuestion =
-  conversationIntent === "MARKET_ANALYSIS" ||
+  
   normalizedQuestion.includes("overall market direction") ||
   normalizedQuestion.includes("market direction") ||
   normalizedQuestion.includes("overall direction") ||
@@ -522,6 +534,7 @@ const isTradeReviewFollowUp =
       conversationIntent === "FOLLOW_UP"
     )
   );
+
 const systemPrompt = `
 ${GABY_CORE_PROMPT}
 
@@ -534,9 +547,38 @@ Do not review trades yourself.
 If trade review facts are provided, explain those facts only.
 When explaining a reviewed trade, prioritize process over outcome, but diagnose only the execution facts explicitly produced by the TradeNestX engine.
 Always mention the selected timeframe when answering market levels, direction, support, resistance, RSI, momentum, or trade review.
-Never identify or infer chart patterns unless they come from a completed deterministic TradeNestX Pattern Engine. If no Pattern Engine facts are supplied, do not mention or imply any chart pattern.
+Never identify or infer chart patterns unless they come from a completed deterministic TradeNestX Pattern Engine.
 Keep direct questions short and focused.
-`;
+
+CHART CONTROL:
+You may interpret natural-language requests to visually control the simulator chart.
+
+Allowed actions:
+SHOW
+PIN
+REMOVE
+CLEAR
+NONE
+
+Allowed targets:
+SUPPORT
+RESISTANCE
+BOTH
+TRENDLINE
+
+Examples:
+"Show support" = SHOW SUPPORT count 1
+"Show the next 2 supports" = SHOW SUPPORT count 2
+"Show support and resistance" = SHOW BOTH count 1
+"Keep these levels on the chart" = PIN BOTH count 1
+"Remove support" = REMOVE SUPPORT count 1
+"Clear the chart" = CLEAR with no target
+
+If the user is not asking to change the chart, use action NONE.
+
+Never invent support, resistance, or trendline prices.
+The frontend will use TradeNestX engine facts to execute the command.
+`;  
     
     const reviewEngine = lastReviewData?.engine ?? null;
     
@@ -726,28 +768,77 @@ ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
 
 Last Topic:
 ${lastTopic || "NONE"}
+
+OUTPUT FORMAT:
+
+Return ONLY valid JSON:
+
+{
+  "answer": "your natural response to the user",
+  "chartCommand": {
+    "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
+    "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
+    "count": 1
+  }
+}
+
+Rules:
+- count must be between 1 and 3.
+- Use null target for NONE or CLEAR when no specific target is needed.
+- Do not include markdown fences around the JSON.
 `;
 
     // 5. Query LLM Instance Engine
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Fixed target ID from non-existent gpt-4.1-mini
-messages: [
-  {
-    role: "system",
-    content: systemPrompt,
-  },
-  ...formattedHistory, // ✨ Splice the conversation thread into the middle here
-  {
-    role: "user",
-    content: isTradeReviewMode ? reviewPrompt : userPrompt,
-  },
-],
-      
-    });
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
 
-    return Response.json({
-      answer: completion.choices[0].message.content || "Gaby could not respond right now.",
-    });
+  response_format: {
+    type: "json_object",
+  },
+
+  messages: [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    ...formattedHistory,
+    {
+      role: "user",
+      content: isTradeReviewMode ? reviewPrompt : userPrompt,
+    },
+  ],
+});
+
+const raw =
+  completion.choices[0].message.content || "{}";
+
+let parsed: any;
+
+try {
+  parsed = JSON.parse(raw);
+} catch {
+  parsed = {
+    answer: raw,
+    chartCommand: {
+      action: "NONE",
+      target: null,
+      count: 1,
+    },
+  };
+}
+
+return Response.json({
+  answer:
+    parsed.answer ||
+    "Gaby could not respond right now.",
+
+  chartCommand:
+    parsed.chartCommand || {
+      action: "NONE",
+      target: null,
+      count: 1,
+    },
+});
 
   } catch (error) {
     console.error("Post Route Processing Failure:", error);

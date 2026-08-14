@@ -48,6 +48,9 @@ type GabySimulatorCoachProps = {
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
+
+
+onChartCommand?: (command: any) => void;
 };
 
 export default function GabySimulatorCoach({
@@ -74,6 +77,8 @@ export default function GabySimulatorCoach({
 currentPrice,
 priceLocation,
 onAnalysisComplete,
+
+onChartCommand,
 }: GabySimulatorCoachProps) {
   const { user } = useUser();
   const { openSignIn } = useClerk();
@@ -352,9 +357,19 @@ if (
 
     if (text.includes("volume")) return "VOLUME";
     if (text.includes("momentum")) return "MOMENTUM";
-    if (text.includes("support")) return "SUPPORT";
-    if (text.includes("resistance")) return "RESISTANCE";
-    if (text.includes("pattern")) return "PATTERN";
+if (text.includes("support")) return "SUPPORT";
+if (text.includes("resistance")) return "RESISTANCE";
+
+if (
+  text.includes("direction") ||
+  text.includes("bullish") ||
+  text.includes("bearish") ||
+  text.includes("transition")
+) {
+  return "DIRECTION";
+}
+
+if (text.includes("pattern")) return "PATTERN";
     if (text.includes("bounce pressure")) return "BOUNCE_PRESSURE";
     if (text.includes("fall force")) return "FALL_FORCE";
     if (text.includes("move condition")) return "MOVE_CONDITION";
@@ -475,9 +490,9 @@ const wantsMultiTradeReview =
         null;
     }
     
-    let conversationSubject = getConversationSubject(finalQuestion);
+let conversationSubject = getConversationSubject(finalQuestion);
 
-// Continue the previous subject if we're still talking about the same topic.
+
 if (
   conversationState.awaitingFollowUp &&
   conversationState.subject &&
@@ -487,7 +502,7 @@ if (
   )
 ) {
   conversationSubject = conversationState.subject;
-}
+}   
 
 // Give GPT explicit context.
 if (conversationSubject) {
@@ -636,14 +651,20 @@ simulatorContext: {
         }),
       });
 
-      const data = await res.json();
-      const gabyAnswer = data.answer || "Gaby could not respond right now.";
+const data = await res.json();
+const gabyAnswer =
+  data.answer || "Gaby could not respond right now.";
 
-      setAnswer(gabyAnswer);
+setAnswer(gabyAnswer);
 
-      onAnalysisComplete?.(
-  conversationSubject
-);
+if (
+  data.chartCommand &&
+  data.chartCommand.action !== "NONE"
+) {
+  onChartCommand?.(data.chartCommand);
+} else {
+  onAnalysisComplete?.(conversationSubject);
+}
 
       if (
         reviewSnapshot &&
@@ -687,7 +708,32 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
     } finally {
       setLoading(false);
     }
-  }, [question, lastReferencedLevel, conversationHistory, userId, conversationState, lastTopic, mode, selectedCoin, balance, marginUsed, selectedTimeframe, currentPrice, priceLocation, movingAverageAnalysis, marketIntelligence, marketAnalysisSummary, trades, futuresHistory, positions, futuresPositions, futuresPositionManagement, getLatestReviewedTrade]);
+  }, [
+  question,
+  lastReferencedLevel,
+  conversationHistory,
+  userId,
+  conversationState,
+  lastTopic,
+  mode,
+  selectedCoin,
+  balance,
+  marginUsed,
+  selectedTimeframe,
+  currentPrice,
+  priceLocation,
+  movingAverageAnalysis,
+  marketIntelligence,
+  marketAnalysisSummary,
+  trades,
+  futuresHistory,
+positions,
+futuresPositions,
+futuresPositionManagement,
+getLatestReviewedTrade,
+
+onChartCommand,
+]);
 
   useEffect(() => {
     if (!autoQuestion) return;
@@ -810,7 +856,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
       } else if (prompt.includes("support") || prompt.includes("resistance") || prompt.includes("direction")) {
         setConversationState({
           intent: "MARKET_ANALYSIS",
-          subject: prompt.includes("support") ? "SUPPORT" : prompt.includes("resistance") ? "RESISTANCE" : "MARKET_STATE",
+          subject: prompt.includes("support") ? "SUPPORT" : prompt.includes("resistance") ? "RESISTANCE" :"DIRECTION",
           mode: "ANALYSIS",
           awaitingFollowUp: true,
         });

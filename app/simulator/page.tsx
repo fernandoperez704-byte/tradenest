@@ -155,11 +155,20 @@ useEffect(() => {
   const [gabyChartHighlights, setGabyChartHighlights] =
   useState<GabyChartHighlight[]>([]);
   
-const [showGabyChartHighlights, setShowGabyChartHighlights] =
-  useState(false);
 
-const [gabyHighlightTarget, setGabyHighlightTarget] =
-  useState<"SUPPORT" | "RESISTANCE" | null>(null);
+
+type GabyAnnotationKey =
+  | "SUPPORT"
+  | "RESISTANCE";
+
+const [gabyAnnotations, setGabyAnnotations] =
+  useState<GabyAnnotationKey[]>([]);
+
+ const [pinnedGabyAnnotations, setPinnedGabyAnnotations] =
+  useState<GabyAnnotationKey[]>([]); 
+
+  const [gabyAnnotationCount, setGabyAnnotationCount] =
+  useState(1);
 
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
@@ -167,11 +176,6 @@ const [gabyHighlightTarget, setGabyHighlightTarget] =
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
-useEffect(() => {
-  setShowGabyChartHighlights(false);
-  setGabyHighlightTarget(null);
-  setGabyChartHighlights([]);
-}, [selectedCoin, selectedTimeframe]);
 
 const [patternRecognitionEnabled, setPatternRecognitionEnabled] =
   useState(false);
@@ -208,63 +212,48 @@ const marketIntelligence = useMemo(
 );
 
 useEffect(() => {
-if (!showGabyChartHighlights) {
-  setGabyChartHighlights([]);
-  return;
-}
-
-  const support = marketIntelligence?.nearestSupport;
-  const resistance = marketIntelligence?.nearestResistance;
   const highlights: GabyChartHighlight[] = [];
 
-if (
-  gabyHighlightTarget === "SUPPORT" &&
-  support &&
-  Number.isFinite(support.low) &&
-  Number.isFinite(support.high)
-) {
-    highlights.push({
-      id: `support-${selectedCoin}-${selectedTimeframe}`,
-      type: "SUPPORT",
-      low: support.low,
-      high: support.high,
+  const supports =
+    marketIntelligence?.supportLevels?.slice(
+      0,
+      gabyAnnotationCount
+    ) ?? [];
+
+  const resistances =
+    marketIntelligence?.resistanceLevels?.slice(
+      0,
+      gabyAnnotationCount
+    ) ?? [];
+
+  if (gabyAnnotations.includes("SUPPORT")) {
+    supports.forEach((zone: any, index: number) => {
+      highlights.push({
+        id: `support-${selectedCoin}-${selectedTimeframe}-${index}`,
+        type: "SUPPORT",
+        low: zone.low,
+        high: zone.high,
+      });
     });
   }
 
-if (
-  gabyHighlightTarget === "RESISTANCE" &&
-  resistance &&
-  Number.isFinite(resistance.low) &&
-  Number.isFinite(resistance.high)
-) {
-    highlights.push({
-      id: `resistance-${selectedCoin}-${selectedTimeframe}`,
-      type: "RESISTANCE",
-      low: resistance.low,
-      high: resistance.high,
+  if (gabyAnnotations.includes("RESISTANCE")) {
+    resistances.forEach((zone: any, index: number) => {
+      highlights.push({
+        id: `resistance-${selectedCoin}-${selectedTimeframe}-${index}`,
+        type: "RESISTANCE",
+        low: zone.low,
+        high: zone.high,
+      });
     });
   }
 
-  setGabyChartHighlights((previous) => {
-    const unchanged =
-      previous.length === highlights.length &&
-      previous.every(
-        (item, index) =>
-          item.id === highlights[index]?.id &&
-          item.low === highlights[index]?.low &&
-          item.high === highlights[index]?.high
-      );
-
-    return unchanged ? previous : highlights;
-  });
+  setGabyChartHighlights(highlights);
 }, [
-
-  showGabyChartHighlights,
-  gabyHighlightTarget,
-  marketIntelligence?.nearestSupport?.low,
-  marketIntelligence?.nearestSupport?.high,
-  marketIntelligence?.nearestResistance?.low,
-  marketIntelligence?.nearestResistance?.high,
+  gabyAnnotations,
+  gabyAnnotationCount,
+  marketIntelligence?.supportLevels,
+  marketIntelligence?.resistanceLevels,
   selectedCoin,
   selectedTimeframe,
 ]);
@@ -3312,22 +3301,18 @@ strongestPattern={strongestPattern}
   <>
 <div
   onClick={() => {
-setShowSimulatorGaby(false);
-setShowGabyChartHighlights(false);
-setGabyHighlightTarget(null);
-setGabyChartHighlights([]);
-}}
+    setShowSimulatorGaby(false);
+    setGabyAnnotations(pinnedGabyAnnotations);
+  }}
   className="fixed inset-0 z-40 bg-black/10"
- />
+/>
 
-    <div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[255px] xl:w-[500px]">
-      <button
-        onClick={() => {
-setShowSimulatorGaby(false);
-setShowGabyChartHighlights(false);
-setGabyHighlightTarget(null);
-setGabyChartHighlights([]);
-}}
+<div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[255px] xl:w-[500px]">
+  <button
+    onClick={() => {
+      setShowSimulatorGaby(false);
+      setGabyAnnotations(pinnedGabyAnnotations);
+    }}
         className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"
       >
         ✕ Close
@@ -3356,22 +3341,69 @@ setTrades={setTrades}
   selectedTimeframe={selectedTimeframe}
   currentPrice={currentPrice}
   priceLocation={priceLocation}
+
 onAnalysisComplete={(subject) => {
-  if (
-    subject !== "SUPPORT" &&
-    subject !== "RESISTANCE"
-  ) {
-    setShowGabyChartHighlights(false);
-    setGabyHighlightTarget(null);
+  if (subject === "DIRECTION") {
+    setGabyAnnotations(["SUPPORT", "RESISTANCE"]);
+  } else if (subject === "SUPPORT" || subject === "RESISTANCE") {
+    setGabyAnnotations([subject]);
+  }
+}}
+
+
+onChartCommand={(command) => {
+  const action = command?.action;
+  const target = command?.target;
+  const count = Math.max(
+    1,
+    Math.min(Number(command?.count) || 1, 3)
+  );
+
+  const targets: GabyAnnotationKey[] =
+    target === "BOTH"
+      ? ["SUPPORT", "RESISTANCE"]
+      : target === "SUPPORT" || target === "RESISTANCE"
+      ? [target]
+      : [];
+
+  if (action === "CLEAR") {
+    setGabyAnnotations([]);
+    setPinnedGabyAnnotations([]);
     return;
   }
 
-  setGabyHighlightTarget(subject);
-  setShowGabyChartHighlights(true);
+  if (action === "REMOVE") {
+    setGabyAnnotations((prev) =>
+      prev.filter((item) => !targets.includes(item))
+    );
+
+    setPinnedGabyAnnotations((prev) =>
+      prev.filter((item) => !targets.includes(item))
+    );
+
+    return;
+  }
+
+  if (action === "PIN") {
+    setGabyAnnotations((prev) => [
+      ...new Set([...prev, ...targets]),
+    ]);
+
+    setPinnedGabyAnnotations((prev) => [
+      ...new Set([...prev, ...targets]),
+    ]);
+
+    return;
+  }
+
+if (action === "SHOW") {
+  setGabyAnnotationCount(count);
+  setGabyAnnotations(targets);
+}
 }}
 
-  
 />
+
     </div>
   </>
 )}
