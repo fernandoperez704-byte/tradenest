@@ -2876,6 +2876,27 @@ setPendingFuturesLimitOrder({
 
 const quantity = positionSize / currentPrice;
 
+const estimatedExitFee =
+  positionSize * feeRate;
+
+const estimatedRoundTripFees =
+  entryFee + estimatedExitFee;
+
+const requiredPriceMove =
+  quantity > 0
+    ? estimatedRoundTripFees / quantity
+    : 0;
+
+const breakEvenPrice =
+  side === "LONG"
+    ? currentPrice + requiredPriceMove
+    : currentPrice - requiredPriceMove;
+
+const requiredMovePercent =
+  currentPrice > 0
+    ? (requiredPriceMove / currentPrice) * 100
+    : 0;
+
 const positionId = crypto.randomUUID();
 
 const tradeContext = buildTradeContext();
@@ -2900,13 +2921,18 @@ setFuturesPositions((prev) => [
     margin,
     leverage: orderLeverage,
 entryFee,
-    positionSize,
+estimatedExitFee,
+estimatedRoundTripFees,
 
-    quantity,
+positionSize,
+quantity,
 
-    entryPrice: currentPrice,
+entryPrice: currentPrice,
+breakEvenPrice,
+requiredPriceMove,
+requiredMovePercent,
 
-    liquidationPrice: liquidation,
+liquidationPrice: liquidation,
 
     balanceAtEntry: balance,
 
@@ -2979,7 +3005,31 @@ tradeContext,
   ...prev,
 ]);
 
-  setMessage(`${side} ${selectedCoin} opened with ${orderLeverage}x leverage`);
+  setMessage(
+  `${side} ${selectedCoin} opened with ${orderLeverage}x leverage`
+);
+
+setShowSimulatorGaby(true);
+
+setAutoGabyQuestion(
+  `Give me a quick educational summary of my newly opened ${side} ${selectedCoin} futures position.
+
+Use only the actual TradeNestX position facts.
+
+Keep the entire response under 70 words.
+
+Prioritize:
+- entry and break-even
+- required move to break-even
+- fees
+- leverage and liquidation risk
+
+Do not explain every field separately.
+Combine related facts naturally.
+Do not use headings, bullet points, or markdown.
+Do not repeat definitions unless they are important to understanding this specific position.
+Do not give trading advice or predict future price movement.`
+);
 }
 
 function sellCoin() {

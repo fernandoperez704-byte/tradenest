@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { db } from "@/app/firebase";
 import {
@@ -117,8 +117,15 @@ Leverage & liquidation
 Stop losses
 How the simulator works   `);
 
-  const [loading, setLoading] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+const [loading, setLoading] = useState(false);
+
+const [listening, setListening] = useState(false);
+const [voiceMode, setVoiceMode] = useState(false);
+
+const recognitionRef = useRef<any>(null);
+const voiceModeRef = useRef(false);
+
+const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
   const [lastTopic, setLastTopic] = useState<string | null>(null);
 
@@ -192,6 +199,32 @@ How the simulator works   `);
       return "CONVERSATION_FAREWELL";
     }
 
+    if (
+  text.includes("open position") ||
+  text.includes("current position") ||
+  text.includes("my position") ||
+  text.includes("this position") ||
+  text.includes("active position") ||
+  text.includes("position am i in") ||
+  text.includes("position do i have") ||
+  text.includes("open trade") ||
+  text.includes("current trade") ||
+  text.includes("how is my position") ||
+  text.includes("how's my position") ||
+  text.includes("break-even") ||
+  text.includes("break even") ||
+  text.includes("break even price") ||
+  text.includes("breakeven") ||
+  (
+    text.includes("profitable") &&
+    (
+      text.includes("position") ||
+      text.includes("trade")
+    )
+  )
+) {
+  return "CURRENT_POSITION";
+}
 
     if (
       text.includes("what is") ||
@@ -374,12 +407,20 @@ if (text.includes("pattern")) return "PATTERN";
     if (text.includes("fall force")) return "FALL_FORCE";
     if (text.includes("move condition")) return "MOVE_CONDITION";
     if (text.includes("market state")) return "MARKET_STATE";
-    if (text.includes("leverage")) return "LEVERAGE";
-    if (text.includes("liquidation")) return "LIQUIDATION";
-    if (text.includes("margin")) return "MARGIN";
-    if (text.includes("review")) return "TRADE_REVIEW";
+if (text.includes("leverage")) return "LEVERAGE";
+if (text.includes("liquidation")) return "LIQUIDATION";
+if (text.includes("margin")) return "MARGIN";
+if (text.includes("review")) return "TRADE_REVIEW";
 
-    return null;
+if (
+  text.includes("position") ||
+  text.includes("open trade") ||
+  text.includes("current trade")
+) {
+  return "CURRENT_POSITION";
+}
+
+return null;
   }
 
   // Shared single-source filtering method for extracting the target trade context
@@ -735,6 +776,135 @@ getLatestReviewedTrade,
 onChartCommand,
 ]);
 
+function toggleVoiceMode() {
+  if (!requireSignIn()) return;
+
+  // TURN OFF
+  if (voiceModeRef.current) {
+    voiceModeRef.current = false;
+    setVoiceMode(false);
+    setListening(false);
+
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+
+    recognitionRef.current = null;
+    return;
+  }
+
+  const SpeechRecognition =
+    (window as any).SpeechRecognition ||
+    (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    setAnswer(
+      "Voice recognition is not supported in this browser."
+    );
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang =
+    navigator.language || "en-US";
+
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    setListening(true);
+    setVoiceMode(true);
+  };
+
+recognition.onresult = (event: any) => {
+  const text =
+    event.results[
+      event.results.length - 1
+    ][0].transcript.trim();
+
+  
+
+  const wakeWord =
+    /\b(?:gaby|gabby|gabi|gabbi)\b/i;
+
+  const wakeMatch = text.match(wakeWord);
+
+  if (!wakeMatch) {
+    
+    return;
+  }
+
+  const command = text
+    .slice(
+      (wakeMatch.index ?? 0) +
+        wakeMatch[0].length
+    )
+    .replace(/^[,\s.!?-]+/, "")
+    .trim();
+
+  
+
+if (!command) {
+  const firstName = user?.firstName?.trim();
+
+  setAnswer(
+    firstName
+      ? `Hi ${firstName}! What can I help you with?`
+      : "Hi! What can I help you with?"
+  );
+
+  return;
+}
+
+  setQuestion(command);
+  askGaby(command);
+};
+
+  recognition.onerror = (event: any) => {
+    if (event.error === "no-speech") return;
+
+    console.warn(
+      "Gaby voice recognition:",
+      event.error
+    );
+  };
+
+  recognition.onend = () => {
+    setListening(false);
+
+    if (!voiceModeRef.current) return;
+
+    try {
+      recognition.start();
+    } catch {}
+  };
+
+  recognitionRef.current = recognition;
+  voiceModeRef.current = true;
+
+  try {
+    recognition.start();
+  } catch {
+    voiceModeRef.current = false;
+    recognitionRef.current = null;
+    setVoiceMode(false);
+    setListening(false);
+  }
+}
+
+useEffect(() => {
+  return () => {
+    voiceModeRef.current = false;
+
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+
+    recognitionRef.current = null;
+  };
+}, []);
+
   useEffect(() => {
     if (!autoQuestion) return;
     if (loading) return;
@@ -903,17 +1073,30 @@ onKeyDown={(e) => {
           className="h-14 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
         />
 
-        <button
-          onClick={() => {
-  if (!requireSignIn()) return;
+<button
+  onClick={toggleVoiceMode}
+  className={`h-11 w-full sm:w-auto rounded-xl border px-4 text-sm font-bold transition ${
+    voiceMode
+      ? "border-cyan-400 bg-cyan-500 text-black"
+      : "border-cyan-500/40 bg-[#111827] text-cyan-300 hover:border-cyan-400"
+  }`}
+>
+  {voiceMode
+    ? "🎙️ Voice ON"
+    : "🎙️ Voice OFF"}
+</button>
 
-  askGaby();
-}}
-          disabled={loading}
-          className="h-11 w-full sm:w-auto rounded-xl bg-cyan-500 px-4 text-sm font-black text-black hover:bg-cyan-400 disabled:opacity-50"
-        >
-          Ask
-        </button>
+<button
+  onClick={() => {
+    if (!requireSignIn()) return;
+    askGaby();
+  }}
+  disabled={loading}
+  className="h-11 w-full sm:w-auto rounded-xl bg-cyan-500 px-4 text-sm font-black text-black hover:bg-cyan-400 disabled:opacity-50"
+>
+  Ask
+</button>
+
       </div>
     </div>
   );

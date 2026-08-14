@@ -216,6 +216,104 @@ Weakest Skill: ${profile?.weakestSkill?.name ?? "N/A"}`,
   });
 }
 
+// Handle current open position with focused GPT explanation
+if (
+  conversationIntent === "CURRENT_POSITION" ||
+  conversationSubject === "CURRENT_POSITION"
+) {
+  const futuresPositions = Array.isArray(marketFacts.futuresPositions)
+    ? marketFacts.futuresPositions
+    : [];
+
+  const spotPositions = marketFacts.positions || {};
+
+  const selectedCoin = marketFacts.selectedCoin;
+
+  const currentFuturesPosition =
+    futuresPositions.find(
+      (position: any) =>
+        !selectedCoin ||
+        position.coin === selectedCoin
+    ) ?? futuresPositions[0];
+
+  const currentSpotAmount =
+    selectedCoin && spotPositions
+      ? Number(spotPositions[selectedCoin] || 0)
+      : 0;
+
+  const hasFuturesPosition =
+    !!currentFuturesPosition;
+
+  const hasSpotPosition =
+    currentSpotAmount > 0;
+
+  if (!hasFuturesPosition && !hasSpotPosition) {
+    return Response.json({
+      answer:
+        "You don't currently have an open position in the selected market.",
+    });
+  }
+
+  const positionFacts = hasFuturesPosition
+    ? {
+        mode: "FUTURES",
+        ...currentFuturesPosition,
+      }
+    : {
+        mode: "SPOT",
+        coin: selectedCoin,
+        quantity: currentSpotAmount,
+      };
+
+  const positionPrompt = `
+User Question:
+${question}
+
+Current Open Position Facts:
+${JSON.stringify(positionFacts, null, 2)}
+
+Current Market Price:
+$${formatPrice(marketFacts.currentPrice)}
+
+Rules:
+- Answer the user's question about their current open position.
+- Use ONLY the supplied TradeNestX position facts.
+- Do not invent missing position values.
+- If break-even facts are supplied, use those exact values.
+- Explain position facts educationally when appropriate.
+- Distinguish entry price from break-even price.
+- Distinguish break-even price from liquidation price for Futures.
+- Distinguish gross P&L from net P&L when those facts are supplied.
+- Do not calculate or estimate missing break-even, fees, P&L, or liquidation values yourself.
+- Do not give buy, sell, long, short, hold, or exit advice.
+- Keep the answer concise.
+`;
+
+  const completion =
+    await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `${GABY_CORE_PROMPT}
+
+${tradenestxKnowledge}`,
+        },
+        ...formattedHistory,
+        {
+          role: "user",
+          content: positionPrompt,
+        },
+      ],
+    });
+
+  return Response.json({
+    answer:
+      completion.choices[0].message.content ||
+      "I couldn't explain the current position right now.",
+  });
+}
+
 // Handle nearest support with focused GPT explanation
 if (normalizedQuestion.includes("nearest support")) {
   const support = marketFacts.nearestSupport;
@@ -550,34 +648,7 @@ Always mention the selected timeframe when answering market levels, direction, s
 Never identify or infer chart patterns unless they come from a completed deterministic TradeNestX Pattern Engine.
 Keep direct questions short and focused.
 
-CHART CONTROL:
-You may interpret natural-language requests to visually control the simulator chart.
 
-Allowed actions:
-SHOW
-PIN
-REMOVE
-CLEAR
-NONE
-
-Allowed targets:
-SUPPORT
-RESISTANCE
-BOTH
-TRENDLINE
-
-Examples:
-"Show support" = SHOW SUPPORT count 1
-"Show the next 2 supports" = SHOW SUPPORT count 2
-"Show support and resistance" = SHOW BOTH count 1
-"Keep these levels on the chart" = PIN BOTH count 1
-"Remove support" = REMOVE SUPPORT count 1
-"Clear the chart" = CLEAR with no target
-
-If the user is not asking to change the chart, use action NONE.
-
-Never invent support, resistance, or trendline prices.
-The frontend will use TradeNestX engine facts to execute the command.
 `;  
     
     const reviewEngine = lastReviewData?.engine ?? null;
@@ -725,10 +796,16 @@ ${JSON.stringify(
     nextSupport: marketFacts.nextSupport,
     nearestResistance: marketFacts.nearestResistance,
     nextResistance: marketFacts.nextResistance,
-    momentumAnalysis: marketFacts.momentumAnalysis,
-    volumeAnalysis: marketFacts.volumeAnalysis,
-    rsiAnalysis: marketFacts.rsiAnalysis,
-    marketConviction: marketFacts.marketConviction,
+momentumAnalysis: marketFacts.momentumAnalysis,
+volumeAnalysis: marketFacts.volumeAnalysis,
+rsiAnalysis: marketFacts.rsiAnalysis,
+
+positions: marketFacts.positions,
+futuresPositions: marketFacts.futuresPositions,
+futuresPositionManagement:
+  marketFacts.futuresPositionManagement,
+
+marketConviction: marketFacts.marketConviction,
   },
   null,
   2
@@ -769,26 +846,10 @@ ${lastReferencedLevel ? JSON.stringify(lastReferencedLevel, null, 2) : "NONE"}
 Last Topic:
 ${lastTopic || "NONE"}
 
-OUTPUT FORMAT:
 
-Return ONLY valid JSON:
-
-{
-  "answer": "your natural response to the user",
-  "chartCommand": {
-    "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
-    "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
-    "count": 1
-  }
-}
-
-Rules:
-- count must be between 1 and 3.
-- Use null target for NONE or CLEAR when no specific target is needed.
-- Do not include markdown fences around the JSON.
 `;
 
-    // 5. Query LLM Instance Engine
+  // 5. Gaby + chart command in one response
 const completion = await openai.chat.completions.create({
   model: "gpt-4o-mini",
 
@@ -800,6 +861,55 @@ const completion = await openai.chat.completions.create({
     {
       role: "system",
       content: systemPrompt,
+    },
+    {
+      role: "system",
+      content: `
+Keep Gaby's existing personality, explanation style, rules, and TradeNestX behavior unchanged.
+
+The frontend can visually control the simulator chart.
+
+Return ONLY valid JSON in this shape:
+
+{
+  "answer": "Gaby's normal natural answer",
+  "chartCommand": {
+    "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
+    "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
+    "count": 1
+  }
+}
+
+Chart command meanings:
+- SHOW = display the requested chart item.
+- PIN = leave the requested chart item displayed.
+- REMOVE = remove the requested chart item.
+- CLEAR = clear Gaby chart annotations.
+- NONE = no chart change.
+
+Examples:
+"show support"
+→ SHOW, SUPPORT, 1
+
+"show me the next 2 supports"
+→ SHOW, SUPPORT, 2
+
+"show support and resistance"
+→ SHOW, BOTH, 1
+
+"leave support there"
+→ PIN, SUPPORT, 1
+
+"remove resistance"
+→ REMOVE, RESISTANCE, 1
+
+"clear the chart"
+→ CLEAR, null, 1
+
+Do not change Gaby's answer style because of the chartCommand.
+Do not explain the command system to the user.
+The chartCommand is executed automatically by TradeNestX.
+`,
     },
     ...formattedHistory,
     {
