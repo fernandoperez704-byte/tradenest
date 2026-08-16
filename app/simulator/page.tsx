@@ -3441,7 +3441,7 @@ strongestPattern={strongestPattern}
   className="fixed inset-0 z-40 bg-black/10"
 />
 
-<div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[255px] xl:w-[500px]">
+<div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[24px] xl:w-[500px]">
   <button
     onClick={() => {
       setShowSimulatorGaby(false);
