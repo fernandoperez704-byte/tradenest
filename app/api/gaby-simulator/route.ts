@@ -225,9 +225,12 @@ if (
     ? marketFacts.futuresPositions
     : [];
 
-  const spotPositions = marketFacts.positions || {};
+const spotPositions = marketFacts.positions || {};
 
-  const selectedCoin = marketFacts.selectedCoin;
+const spotPositionFacts =
+  marketFacts.spotPositionFacts || {};
+
+const selectedCoin = marketFacts.selectedCoin;
 
   const currentFuturesPosition =
     futuresPositions.find(
@@ -240,6 +243,11 @@ if (
     selectedCoin && spotPositions
       ? Number(spotPositions[selectedCoin] || 0)
       : 0;
+
+const currentSpotFacts =
+  selectedCoin && spotPositionFacts
+    ? spotPositionFacts[selectedCoin] || null
+    : null;
 
   const hasFuturesPosition =
     !!currentFuturesPosition;
@@ -254,16 +262,17 @@ if (
     });
   }
 
-  const positionFacts = hasFuturesPosition
-    ? {
-        mode: "FUTURES",
-        ...currentFuturesPosition,
-      }
-    : {
-        mode: "SPOT",
-        coin: selectedCoin,
-        quantity: currentSpotAmount,
-      };
+const positionFacts = hasFuturesPosition
+  ? {
+      mode: "FUTURES",
+      ...currentFuturesPosition,
+    }
+  : {
+      mode: "SPOT",
+      coin: selectedCoin,
+      quantity: currentSpotAmount,
+      ...(currentSpotFacts || {}),
+    };
 
   const positionPrompt = `
 User Question:
@@ -315,7 +324,14 @@ ${tradenestxKnowledge}`,
 }
 
 // Handle nearest support with focused GPT explanation
-if (normalizedQuestion.includes("nearest support")) {
+const isNearestSupportQuestion =
+  normalizedQuestion.includes("nearest support") ||
+  normalizedQuestion === "show support" ||
+  normalizedQuestion === "show me support" ||
+  normalizedQuestion === "show the support" ||
+  normalizedQuestion === "show me the support";
+
+if (isNearestSupportQuestion) {
   const support = marketFacts.nearestSupport;
   const timeframe =
   marketFacts.selectedTimeframe === "1M"
@@ -340,7 +356,7 @@ if (normalizedQuestion.includes("nearest support")) {
     });
   }
 
-  const supportPrompt = `
+const supportPrompt = `
 User Question:
 ${question}
 
@@ -366,20 +382,20 @@ Rules:
 - Use only the facts above.
 `;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: GABY_CORE_PROMPT,
-      },
-      ...formattedHistory,
-      {
-        role: "user",
-        content: supportPrompt,
-      },
-    ],
-  });
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [
+    {
+      role: "system",
+      content: GABY_CORE_PROMPT,
+    },
+    ...formattedHistory,
+    {
+      role: "user",
+      content: supportPrompt,
+    },
+  ],
+});
 
 return Response.json({
   answer:
@@ -395,7 +411,14 @@ return Response.json({
 }
 
 // Handle nearest resistance with focused GPT explanation
-if (normalizedQuestion.includes("nearest resistance")) {
+const isNearestResistanceQuestion =
+  normalizedQuestion.includes("nearest resistance") ||
+  normalizedQuestion === "show resistance" ||
+  normalizedQuestion === "show me resistance" ||
+  normalizedQuestion === "show the resistance" ||
+  normalizedQuestion === "show me the resistance";
+
+if (isNearestResistanceQuestion) {
   const resistance = marketFacts.nearestResistance;
   const timeframe =
   marketFacts.selectedTimeframe === "1M"
@@ -801,6 +824,8 @@ volumeAnalysis: marketFacts.volumeAnalysis,
 rsiAnalysis: marketFacts.rsiAnalysis,
 
 positions: marketFacts.positions,
+spotPositionFacts: marketFacts.spotPositionFacts,
+
 futuresPositions: marketFacts.futuresPositions,
 futuresPositionManagement:
   marketFacts.futuresPositionManagement,

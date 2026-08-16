@@ -33,9 +33,10 @@ type GabySimulatorCoachProps = {
   futuresHistory: any[];
   setFuturesHistory: any;
   setTrades: any;
-  positions: any;
-  futuresPositions: any[];
-  futuresPositionManagement: any;
+positions: any;
+spotPositionFacts: any;
+futuresPositions: any[];
+futuresPositionManagement: any;
   balance: number;
   marginUsed: number;
   marketIntelligence?: any;
@@ -65,6 +66,7 @@ export default function GabySimulatorCoach({
   setFuturesHistory,
   setTrades,
   positions,
+  spotPositionFacts,
   futuresPositions,
   futuresPositionManagement,
   balance,
@@ -74,11 +76,10 @@ export default function GabySimulatorCoach({
   movingAverageAnalysis,
   currentEntryQuality,
   selectedTimeframe,
-currentPrice,
-priceLocation,
-onAnalysisComplete,
-
-onChartCommand,
+  currentPrice,
+  priceLocation,
+  onAnalysisComplete,
+  onChartCommand,
 }: GabySimulatorCoachProps) {
   const { user } = useUser();
   const { openSignIn } = useClerk();
@@ -492,6 +493,31 @@ return null;
 
     if (!finalQuestion.trim()) return;
 
+const normalizedInput =
+  finalQuestion.trim().toLowerCase();
+
+if (
+  normalizedInput === "show support" ||
+  normalizedInput === "show me support" ||
+  normalizedInput === "show the support" ||
+  normalizedInput === "show me the support" ||
+  normalizedInput === "where is support" ||
+  normalizedInput === "where is the support"
+) {
+  finalQuestion = "Where is the nearest support?";
+}
+
+if (
+  normalizedInput === "show resistance" ||
+  normalizedInput === "show me resistance" ||
+  normalizedInput === "show the resistance" ||
+  normalizedInput === "show me the resistance" ||
+  normalizedInput === "where is resistance" ||
+  normalizedInput === "where is the resistance"
+) {
+  finalQuestion = "Where is the nearest resistance?";
+}  
+
     const originalQuestion = finalQuestion.trim().toLowerCase();
     let conversationIntent = getConversationIntent(finalQuestion);
 
@@ -683,11 +709,13 @@ simulatorContext: {
             fallForce: marketIntelligence?.fallForce,
             bouncePressure: marketIntelligence?.bouncePressure,
             momentumStage: marketIntelligence?.momentumStage,
-            trades: trades.slice(-5),
-            futuresHistory: futuresHistory.slice(-5),
-            positions,
-            futuresPositions,
-            futuresPositionManagement,
+trades: trades.slice(-5),
+futuresHistory: futuresHistory.slice(-5),
+
+positions,
+spotPositionFacts,
+futuresPositions,
+futuresPositionManagement,
           },
         }),
       });
@@ -766,9 +794,10 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,
-  trades,
-  futuresHistory,
+trades,
+futuresHistory,
 positions,
+spotPositionFacts,
 futuresPositions,
 futuresPositionManagement,
 getLatestReviewedTrade,

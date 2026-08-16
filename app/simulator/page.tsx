@@ -289,6 +289,24 @@ const [positions, setPositions] =
 const [averagePrices, setAveragePrices] =
   useState<Record<AssetSymbol, number>>(emptyPositions);
 
+const [spotPositionFacts, setSpotPositionFacts] =
+  useState<
+    Partial<
+      Record<
+        AssetSymbol,
+        {
+          entryPrice: number;
+          breakEvenPrice: number;
+          requiredPriceMove: number;
+          requiredMovePercent: number;
+          entryFee: number;
+          estimatedExitFee: number;
+          estimatedRoundTripFees: number;
+        }
+      >
+    >
+  >({});
+
 // ADD EVERYTHING BELOW
 const [spotPositionManagement, setSpotPositionManagement] =
   useState<
@@ -2703,6 +2721,7 @@ const spotEntryFee = Number(tradeAmount) * feeRate;
 
 const quantity =
   effectiveTradeSize / currentPrice;
+
   
 const tradeContext = buildTradeContext();
 const tradeId = crypto.randomUUID();
@@ -2764,6 +2783,47 @@ if (user) {
 setAveragePrices((prev) => ({
   ...prev,
   [selectedCoin]: newAvg,
+}));
+
+const spotPositionCost =
+  newAvg * newQty;
+
+const cumulativeEntryFee =
+  spotPositionCost * feeRate;
+
+const spotBreakEvenPrice =
+  newAvg *
+  ((1 + feeRate) / (1 - feeRate));
+
+const spotBreakEvenValue =
+  newQty * spotBreakEvenPrice;
+
+const estimatedExitFee =
+  spotBreakEvenValue * feeRate;
+
+const estimatedRoundTripFees =
+  cumulativeEntryFee + estimatedExitFee;
+
+const requiredPriceMove =
+  spotBreakEvenPrice - newAvg;
+
+const requiredMovePercent =
+  newAvg > 0
+    ? (requiredPriceMove / newAvg) * 100
+    : 0;
+
+setSpotPositionFacts((prev) => ({
+  ...prev,
+
+  [selectedCoin]: {
+    entryPrice: newAvg,
+    breakEvenPrice: spotBreakEvenPrice,
+    requiredPriceMove,
+    requiredMovePercent,
+    entryFee: cumulativeEntryFee,
+    estimatedExitFee,
+    estimatedRoundTripFees,
+  },
 }));
 
 if (oldQty <= 0) {
@@ -2829,10 +2889,34 @@ tradeContext,
 }
 
     setMessage(`Bought $${tradeAmount} of ${selectedCoin}`);
+
+setShowSimulatorGaby(true);
+
+setAutoGabyQuestion(
+  `Give me a quick educational summary of my newly opened ${selectedCoin} spot position.
+
+Use only the actual TradeNestX position facts.
+
+Keep the entire response under 60 words.
+
+Explain clearly:
+- my average entry price
+- my estimated total round-trip fees
+- that break-even means my position's gross gain must first cover those fees
+- because I only own a fraction of ${selectedCoin}, the market price itself must move enough for that quantity to generate the fee amount
+- mention the required percentage move to break-even
+- mention the break-even price
+
+Do not say the required market-price move is profit.
+Do not imply I need to earn that full dollar amount as profit.
+Do not use headings, bullet points, or markdown.
+Do not give trading advice or predict future price movement.`
+);
+
     if (orderType === "LIMIT") {
   setLimitPrice("");
 }
-  }
+ }
 
 function openFuturesPosition(
   side: "LONG" | "SHORT",
@@ -3380,6 +3464,7 @@ strongestPattern={strongestPattern}
   setFuturesHistory={setFuturesHistory}
 setTrades={setTrades}
   positions={positions}
+  spotPositionFacts={spotPositionFacts}
   futuresPositions={futuresPositions}
   futuresPositionManagement={futuresPositionManagement}
   balance={balance}
