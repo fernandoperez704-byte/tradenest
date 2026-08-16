@@ -5,8 +5,11 @@ import { useClerk, useUser } from "@clerk/nextjs";
 import { db } from "@/app/firebase";
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
+  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -141,6 +144,63 @@ const [conversationHistory, setConversationHistory] = useState<any[]>([]);
     mode: null,
     awaitingFollowUp: false,
   });
+
+const [gabyMemoryLoaded, setGabyMemoryLoaded] = useState(false);
+
+useEffect(() => {
+  if (!user?.id) {
+    setGabyMemoryLoaded(false);
+    return;
+  }
+
+  (async () => {
+    try {
+      const snap = await getDoc(doc(db, "gabySimulatorMemory", user.id));
+
+      if (snap.exists()) {
+        const memory = snap.data();
+
+        if (Array.isArray(memory.conversationHistory))
+          setConversationHistory(memory.conversationHistory.slice(-12));
+
+        setLastTopic(memory.lastTopic ?? null);
+        setLastReferencedLevel(memory.lastReferencedLevel ?? null);
+
+        if (memory.conversationState)
+          setConversationState(memory.conversationState);
+      }
+    } catch (error) {
+      console.error("Failed to load Gaby memory:", error);
+    } finally {
+      setGabyMemoryLoaded(true);
+    }
+  })();
+}, [user?.id]);
+
+useEffect(() => {
+  if (!user?.id || !gabyMemoryLoaded) return;
+
+  setDoc(
+    doc(db, "gabySimulatorMemory", user.id),
+    {
+      conversationHistory: conversationHistory.slice(-12),
+      lastTopic,
+      lastReferencedLevel,
+      conversationState,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  ).catch((error) =>
+    console.error("Failed to save Gaby memory:", error)
+  );
+}, [
+  user?.id,
+  gabyMemoryLoaded,
+  conversationHistory,
+  lastTopic,
+  lastReferencedLevel,
+  conversationState,
+]);
 
   function getConversationIntent(message: string) {
     const text = message.trim().toLowerCase();
