@@ -173,13 +173,27 @@ setShowCommunity(true);
     <div className="h-10 w-[92px]" />
   ) : isSignedIn ? (
     <div suppressHydrationWarning className="flex h-10 w-11 items-center justify-center">
-      <UserButton
-        appearance={{
-          elements: {
-            avatarBox: "h-10 w-11 border border-zinc-700",
-          },
+<UserButton
+  appearance={{
+    elements: {
+      avatarBox: "h-10 w-11 border border-zinc-700",
+    },
+  }}
+>
+  {isPaid && (
+    <UserButton.MenuItems>
+      <UserButton.Action
+        label="Manage Subscription"
+        labelIcon={<span>💳</span>}
+        onClick={async () => {
+          const res = await fetch("/api/stripe/portal", { method: "POST" });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url;
         }}
       />
+    </UserButton.MenuItems>
+  )}
+</UserButton>
     </div>
   ) : (
     <SignInButton mode="modal">
@@ -446,13 +460,27 @@ if (!isPaid) {
           <div className="h-12 w-full animate-pulse rounded-xl bg-white/5" />
         ) : isSignedIn ? (
           <div className="flex h-14 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "h-10 w-10 border border-zinc-700",
-                },
-              }}
-            />
+<UserButton
+  appearance={{
+    elements: {
+      avatarBox: "h-10 w-10 border border-zinc-700",
+    },
+  }}
+>
+  {isPaid && (
+    <UserButton.MenuItems>
+      <UserButton.Action
+        label="Manage Subscription"
+        labelIcon={<span>💳</span>}
+        onClick={async () => {
+          const res = await fetch("/api/stripe/portal", { method: "POST" });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url;
+        }}
+      />
+    </UserButton.MenuItems>
+  )}
+</UserButton>
 
             <span className="text-base font-bold text-zinc-200">
               Account
