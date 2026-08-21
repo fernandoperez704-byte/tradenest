@@ -95,7 +95,7 @@ const [gabyAnswer, setGabyAnswer] = useState(
   
 );
 const [isGabyTyping, setIsGabyTyping] = useState(false);
-
+const [gabyUpgradeRequired, setGabyUpgradeRequired] = useState(false);
 type GabyMessage = {
   role: "user" | "assistant";
   content: string;
@@ -592,12 +592,13 @@ body: JSON.stringify({
 }),
     });
 
-    const data = await response.json();
+const data = await response.json();
 
-    const answer =
-      data.answer || "Gaby is having trouble responding right now.";
+const answer =
+  data.answer || "Gaby is having trouble responding right now.";
 
-    setGabyAnswer(answer);
+setGabyAnswer(answer);
+setGabyUpgradeRequired(Boolean(data.upgradeRequired));
 
     setConversationHistory((prev) =>
       [
@@ -977,6 +978,8 @@ window.scrollTo({
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
+  
   questions={[
     "What is a stock?",
     "Why do prices move?",
@@ -1111,6 +1114,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "Why do prices move?",
     "What is volatility?",
@@ -1234,6 +1238,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is a market order?",
     "What is a limit order?",
@@ -1357,6 +1362,7 @@ onClick={completeLesson}
       gabyAnswer={gabyAnswer}
       isGabyTyping={isGabyTyping}
       askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
       questions={[
         "What is risk management?",
         "Why do traders use stop losses?",
@@ -1481,6 +1487,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is a timeframe?",
     "Why do timeframes matter?",
@@ -1601,6 +1608,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is a candlestick?",
     "What is a bullish candle?",
@@ -1722,6 +1730,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is volume?",
     "Why does volume matter?",
@@ -1844,6 +1853,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is support?",
     "What is resistance?",
@@ -1964,6 +1974,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is supply?",
     "What is demand?",
@@ -2086,6 +2097,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is a chart pattern?",
     "What is a double top?",
@@ -2207,6 +2219,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is a trade plan?",
     "Why do traders use trade plans?",
@@ -2327,6 +2340,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is trading psychology?",
     "What is fear in trading?",
@@ -2451,6 +2465,7 @@ onClick={completeLesson}
   gabyAnswer={gabyAnswer}
   isGabyTyping={isGabyTyping}
   askGaby={askGaby}
+upgradeRequired={gabyUpgradeRequired}
   questions={[
     "What is a bid?",
     "What is an ask?",

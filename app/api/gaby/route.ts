@@ -1,6 +1,8 @@
 import OpenAI from "openai";
+import { auth } from "@clerk/nextjs/server";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
+import { checkGabyUsage, useGabyQuestion } from "@/lib/gabyUsage";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -78,6 +80,7 @@ ${message}
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth();
     const body = await req.json();
 
     const message =
@@ -122,6 +125,23 @@ export async function POST(req: Request) {
           "Ask me a trading or TradeNestX question and I’ll help.",
       });
     }
+
+if (!userId) {
+  return Response.json(
+    { answer: "Sign in to ask Gaby questions." },
+    { status: 401 }
+  );
+}
+
+const usage = await checkGabyUsage(userId);
+
+if (!usage.allowed) {
+  return Response.json({
+    answer:
+      "You've used your 5 free Gaby questions. Upgrade to TradeNestX Pro for unlimited Gaby access.",
+    upgradeRequired: true,
+  });
+}
 
     const topic = await classifyGabyTopic(
       message,
@@ -236,13 +256,15 @@ ${websitePrompt}
       ],
     });
 
-    const response =
-      completion.choices[0].message.content ||
-      "I'm having trouble answering right now.";
+const response =
+  completion.choices[0].message.content ||
+  "I'm having trouble answering right now.";
 
-    return Response.json({
-      answer: response,
-    });
+await useGabyQuestion(userId);
+
+return Response.json({
+  answer: response,
+});
   } catch (error) {
     console.error("GABY API ERROR:", error);
 

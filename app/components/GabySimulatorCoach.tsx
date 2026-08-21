@@ -20,6 +20,7 @@ import {
 
 type GabySimulatorCoachProps = {
   userId: string;
+  isPaid: boolean;
 
   traderDevelopmentEngines?: {
     trendBias: any;
@@ -59,6 +60,7 @@ onChartCommand?: (command: any) => void;
 
 export default function GabySimulatorCoach({
   userId,
+  isPaid,
   traderDevelopmentEngines,
   autoQuestion,
   clearAutoQuestion,
@@ -122,7 +124,7 @@ Stop losses
 How the simulator works   `);
 
 const [loading, setLoading] = useState(false);
-
+const [upgradeRequired, setUpgradeRequired] = useState(false);
 const [listening, setListening] = useState(false);
 const [voiceMode, setVoiceMode] = useState(false);
 
@@ -148,7 +150,7 @@ const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 const [gabyMemoryLoaded, setGabyMemoryLoaded] = useState(false);
 
 useEffect(() => {
-  if (!user?.id) {
+  if (!user?.id || !isPaid) {
     setGabyMemoryLoaded(false);
     return;
   }
@@ -175,10 +177,10 @@ useEffect(() => {
       setGabyMemoryLoaded(true);
     }
   })();
-}, [user?.id]);
+}, [user?.id, isPaid]);
 
 useEffect(() => {
-  if (!user?.id || !gabyMemoryLoaded) return;
+  if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
 
   setDoc(
     doc(db, "gabySimulatorMemory", user.id),
@@ -195,6 +197,7 @@ useEffect(() => {
   );
 }, [
   user?.id,
+  isPaid,
   gabyMemoryLoaded,
   conversationHistory,
   lastTopic,
@@ -504,8 +507,8 @@ return null;
     })[0];
   }, [mode, futuresHistory, trades, selectedCoin]);
 
-  async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
-    if (!completedSnapshot?.snapshotId) return;
+async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
+  if (!completedSnapshot?.snapshotId) return;
 
     // Optimized: Only map scan on the track arrays tied to the active mode state
     if (mode === "FUTURES") {
@@ -532,7 +535,7 @@ return null;
         )
       );
     }
-
+if (!isPaid) return;
     const q = query(
       collection(db, "tradeReviews"),
       where("snapshotId", "==", completedSnapshot.snapshotId)
@@ -785,6 +788,7 @@ const gabyAnswer =
   data.answer || "Gaby could not respond right now.";
 
 setAnswer(gabyAnswer);
+setUpgradeRequired(Boolean(data.upgradeRequired));
 
 if (
   data.chartCommand &&
@@ -1131,11 +1135,24 @@ useEffect(() => {
 ))}
             </div>
           </>
-        ) : (
-          <div className="whitespace-pre-line">
-            {answer}
-          </div>
-        )}
+) : (
+  <>
+    <div className="whitespace-pre-line">{answer}</div>
+
+    {upgradeRequired && (
+      <button
+        onClick={async () => {
+          const res = await fetch("/api/stripe/checkout", { method: "POST" });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url;
+        }}
+        className="mt-4 rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black"
+      >
+        Upgrade to TradeNestX Pro
+      </button>
+    )}
+  </>
+)}
       </div>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">

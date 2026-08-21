@@ -1,7 +1,9 @@
 import OpenAI from "openai";
+import { auth } from "@clerk/nextjs/server";
 import { buildTraderDevelopmentReport } from "@/lib/traderDevelopment/report";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
+import { checkGabyUsage, useGabyQuestion } from "@/lib/gabyUsage";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -28,6 +30,8 @@ function formatPrice(price: number | null | undefined) {
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth();
+
     const {
       question,
       simulatorContext,
@@ -39,6 +43,26 @@ export async function POST(req: Request) {
 
     const normalizedQuestion = question?.trim().toLowerCase() || "";
 
+async function requireGabyAccess() {
+  if (!userId) {
+    return Response.json(
+      { answer: "Sign in to ask Gaby personalized questions." },
+      { status: 401 }
+    );
+  }
+
+  const usage = await checkGabyUsage(userId);
+
+  if (!usage.allowed) {
+    return Response.json({
+      answer:
+        "You've used your 5 free Gaby questions. Upgrade to TradeNestX Pro for unlimited Gaby access.",
+      upgradeRequired: true,
+    });
+  }
+
+return null;
+}    
 
 const formattedHistory: {
   role: "user" | "assistant";
@@ -145,8 +169,8 @@ const tradeLimit = tradeLimitMatch
   ? Number(tradeLimitMatch[1])
   : undefined;
 
-const traderDevelopmentReport = simulatorContext?.userId
-  ? await buildTraderDevelopmentReport(simulatorContext.userId, tradeLimit)
+const traderDevelopmentReport = userId
+  ? await buildTraderDevelopmentReport(userId, tradeLimit)
   : null;
 
 // Handle trader report questions directly
@@ -171,12 +195,19 @@ if (!traderDevelopmentReport) {
   });
 }
 
+const accessResponse = await requireGabyAccess();
+if (accessResponse) return accessResponse;
+
   const development = traderDevelopmentReport.developmentReport;
   const profile = traderDevelopmentReport.profileReport;
 
 if ((development?.totalTrades ?? 0) < 20) {
   const totalTrades = development?.totalTrades ?? 0;
   const remainingTrades = 20 - totalTrades;
+
+  if (userId) {
+    await useGabyQuestion(userId);
+  }
 
   return Response.json({
     answer: `Complete ${remainingTrades} more reviewed trades to unlock your full Trader Development Report.
@@ -190,6 +221,10 @@ Once you've reached 20 reviewed trades, you'll receive:
 • Areas for Improvement
 • Trading Recommendations`,
   });
+}
+
+if (userId) {
+  await useGabyQuestion(userId);
 }
 
   return Response.json({
@@ -221,6 +256,8 @@ if (
   conversationIntent === "CURRENT_POSITION" ||
   conversationSubject === "CURRENT_POSITION"
 ) {
+
+
   const futuresPositions = Array.isArray(marketFacts.futuresPositions)
     ? marketFacts.futuresPositions
     : [];
@@ -261,6 +298,9 @@ const currentSpotFacts =
         "You don't currently have an open position in the selected market.",
     });
   }
+
+const accessResponse = await requireGabyAccess();
+if (accessResponse) return accessResponse;
 
 const positionFacts = hasFuturesPosition
   ? {
@@ -316,11 +356,21 @@ ${tradenestxKnowledge}`,
       ],
     });
 
+const answer = completion.choices[0].message.content;
+
+if (!answer) {
   return Response.json({
-    answer:
-      completion.choices[0].message.content ||
-      "I couldn't explain the current position right now.",
+    answer: "I couldn't explain the current position right now.",
   });
+}
+
+if (userId) {
+  await useGabyQuestion(userId);
+}
+
+return Response.json({
+  answer,
+});
 }
 
 // Handle nearest support with focused GPT explanation
@@ -638,6 +688,8 @@ Rules:
   });
 }
 
+const accessResponse = await requireGabyAccess();
+if (accessResponse) return accessResponse;
 
     // 3. Fallback Short-circuit for Direct Market Updates
     // Expanded match strings to be slightly more forgiving
@@ -962,11 +1014,20 @@ try {
   };
 }
 
-return Response.json({
-  answer:
-    parsed.answer ||
-    "Gaby could not respond right now.",
+const answer = parsed.answer;
 
+if (!answer) {
+  return Response.json({
+    answer: "Gaby could not respond right now.",
+  });
+}
+
+if (userId) {
+  await useGabyQuestion(userId);
+}
+
+return Response.json({
+  answer,
   chartCommand:
     parsed.chartCommand || {
       action: "NONE",

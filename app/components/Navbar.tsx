@@ -8,7 +8,7 @@ import {
   useClerk,
   useUser,
 } from "@clerk/nextjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -17,6 +17,21 @@ const { openSignIn } = useClerk();
 
 const [showCommunity, setShowCommunity] = useState(false);
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+const [isPaid, setIsPaid] = useState(false);
+const [showUpgrade, setShowUpgrade] = useState(false);
+
+useEffect(() => {
+  if (!isSignedIn) {
+    setIsPaid(false);
+    return;
+  }
+
+  fetch("/api/subscription/status")
+    .then((res) => res.json())
+    .then((data) => setIsPaid(Boolean(data.isPaid)))
+    .catch(() => setIsPaid(false));
+}, [isSignedIn]);
 
 function handleProtectedLink(
   event: React.MouseEvent<HTMLAnchorElement>,
@@ -89,9 +104,7 @@ openSignIn({
               Simulator
             </Link>
 
-            <Link
-              href="/leaderboard"
-              onClick={(event) => handleProtectedLink(event, "/leaderboard")}
+<Link href="/leaderboard"
               className={`flex h-10 items-center rounded-xl border px-4 text-[15px] font-bold transition-all duration-200 hover:-translate-y-[1px] xl:px-5 ${
                 pathname === "/leaderboard"
                   ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.12)]"
@@ -141,7 +154,12 @@ openSignIn({
       return;
     }
 
-    setShowCommunity(true);
+    if (!isPaid) {
+  setShowUpgrade(true);
+  return;
+}
+
+setShowCommunity(true);
   }}
   className="flex h-10 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
 >
@@ -215,6 +233,53 @@ openSignIn({
   </>
 )}
     </nav>
+
+{showUpgrade && (
+  <>
+    <button
+      type="button"
+      onClick={() => setShowUpgrade(false)}
+      className="fixed inset-0 z-[99998] bg-black/60 backdrop-blur-md"
+      aria-label="Close upgrade"
+    />
+
+    <div className="fixed left-1/2 top-1/2 z-[99999] w-[90%] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-cyan-500/20 bg-[#050816] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+      <button
+        type="button"
+        onClick={() => setShowUpgrade(false)}
+        className="absolute right-5 top-5 rounded-lg border border-zinc-700 px-3 py-1 text-zinc-400 hover:border-cyan-400 hover:text-white"
+      >
+        ✕
+      </button>
+
+      <h2 className="pr-10 text-2xl font-black text-white">
+        TradeNestX Pro
+      </h2>
+
+      <p className="mt-3 text-sm leading-6 text-zinc-400">
+        Community access is included with TradeNestX Pro for $24.99/month.
+      </p>
+
+      <button
+        type="button"
+        onClick={async () => {
+          const res = await fetch("/api/stripe/checkout", {
+            method: "POST",
+          });
+
+          const data = await res.json();
+
+          if (data.url) {
+            window.location.href = data.url;
+          }
+        }}
+        className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition hover:bg-cyan-400"
+      >
+        Upgrade to Pro
+      </button>
+    </div>
+  </>
+)}
 
 {showCommunity && (
   <>
@@ -295,11 +360,11 @@ openSignIn({
     href: "/simulator",
     requiresSignIn: false,
   },
-  {
-    label: "Leaderboard",
-    href: "/leaderboard",
-    requiresSignIn: true,
-  },
+{
+  label: "Leaderboard",
+  href: "/leaderboard",
+  requiresSignIn: false,
+},
   {
     label: "News",
     href: "/news",
@@ -360,6 +425,11 @@ onClick={() => {
 
     return;
   }
+
+if (!isPaid) {
+  setShowUpgrade(true);
+  return;
+}
 
   setShowCommunity(true);
 }}

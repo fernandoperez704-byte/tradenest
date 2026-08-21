@@ -124,8 +124,32 @@ const emptyPositions: Record<AssetSymbol, number> = {
 
 
 export default function SimulatorPage() {
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
+
+  const [isPaid, setIsPaid] = useState(false);
+  const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
+
+useEffect(() => {
+  if (!isSignedIn) {
+    setIsPaid(false);
+    setSubscriptionLoaded(true);
+    return;
+  }
+
+  setSubscriptionLoaded(false);
+
+  fetch("/api/subscription/status")
+    .then((res) => res.json())
+    .then((data) => {
+      setIsPaid(Boolean(data.isPaid));
+      setSubscriptionLoaded(true);
+    })
+    .catch(() => {
+      setIsPaid(false);
+      setSubscriptionLoaded(true);
+    });
+}, [isSignedIn]);
 
 function requireSignIn() {
   if (user) {
@@ -364,104 +388,72 @@ useEffect(() => {
 
 useEffect(() => {
   async function loadPortfolio() {
-    if (!user) return;
+    if (!user || !subscriptionLoaded || !isPaid) return;
 
-    const portfolioRef = doc(db, "portfolios", user.id);
+    const snap = await getDoc(doc(db, "portfolios", user.id));
+    if (!snap.exists()) return;
 
-    const portfolioSnap = await getDoc(portfolioRef);
-
-    if (portfolioSnap.exists()) {
-      const data = portfolioSnap.data();
-
-      if (data.balance) {
-        setBalance(data.balance);
-      }
-
-      if (data.positions) {
-        setPositions(data.positions);
-      }
-
-      if (data.averagePrices) {
-        setAveragePrices(data.averagePrices);
-      }
-    }
+    const data = snap.data();
+    if (data.balance) setBalance(data.balance);
+    if (data.positions) setPositions(data.positions);
+    if (data.averagePrices) setAveragePrices(data.averagePrices);
   }
 
   loadPortfolio();
-}, [user]);
+}, [user, subscriptionLoaded, isPaid]);
+
 useEffect(() => {
   async function loadTrades() {
-    if (!user) return;
+    if (!user || !subscriptionLoaded || !isPaid) return;
 
-    const q = query(
-      collection(db, "trades"),
-      where("userId", "==", user.id)
+    const snap = await getDocs(
+      query(collection(db, "trades"), where("userId", "==", user.id))
     );
 
-    const snapshot = await getDocs(q);
-
-    const loadedTrades = snapshot.docs.map((doc) => ({
+    const loadedTrades = snap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
     setTrades((prev) => {
-  const mergedTrades = [...prev];
+      const merged = [...prev];
 
-  loadedTrades.forEach((loadedTrade: any) => {
-const alreadyExists = mergedTrades.some((trade: any) => {
-  if (
-    trade.tradeId &&
-    loadedTrade.tradeId &&
-    trade.tradeId === loadedTrade.tradeId
-  ) {
-    return true;
-  }
+      loadedTrades.forEach((loaded: any) => {
+        const exists = merged.some(
+          (trade: any) =>
+            (trade.tradeId &&
+              loaded.tradeId &&
+              trade.tradeId === loaded.tradeId) ||
+            (trade.snapshotId &&
+              loaded.snapshotId &&
+              trade.snapshotId === loaded.snapshotId)
+        );
 
-  if (
-    trade.snapshotId &&
-    loadedTrade.snapshotId &&
-    trade.snapshotId === loadedTrade.snapshotId
-  ) {
-    return true;
-  }
+        if (!exists) merged.push(loaded as any);
+      });
 
-  return false;
-});
-
-    if (!alreadyExists) {
-      mergedTrades.push(loadedTrade as any);
-    }
-  });
-
-  return mergedTrades;
-});
+      return merged;
+    });
   }
 
   loadTrades();
-}, [user]);
+}, [user, subscriptionLoaded, isPaid]);
 
 useEffect(() => {
   async function loadTradeReviews() {
-    if (!user) return;
+    if (!user || !subscriptionLoaded || !isPaid) return;
 
-    const q = query(
-      collection(db, "tradeReviews"),
-      where("userId", "==", user.id)
+    const snap = await getDocs(
+      query(collection(db, "tradeReviews"), where("userId", "==", user.id))
     );
 
-    const snapshot = await getDocs(q);
-
-    const loadedReviews = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    setTradeReviews(loadedReviews as any[]);
+    setTradeReviews(
+      snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as any[]
+    );
   }
 
   loadTradeReviews();
-}, [user]);
+}, [user, subscriptionLoaded, isPaid]);
 
   const [message, setMessage] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
@@ -594,26 +586,36 @@ const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
   const [now, setNow] = useState<Date | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [simulatorReady, setSimulatorReady] = useState(false);
+
 useEffect(() => {
+  if (!subscriptionLoaded) return;
+
+  if (!isPaid) {
+    localStorage.removeItem("tradenestx-simulator-session");
+    setSessionLoaded(true);
+    setSimulatorReady(true);
+    return;
+  }
+
   const saved = localStorage.getItem("tradenestx-simulator-session");
 
   if (!saved) {
-  setSessionLoaded(true);
-  setSimulatorReady(true);
-  return;
-}
+    setSessionLoaded(true);
+    setSimulatorReady(true);
+    return;
+  }
 
   const data = JSON.parse(saved);
 
   if (data.balance !== undefined) setBalance(data.balance);
   if (data.positions) setPositions(data.positions);
-if (data.averagePrices) setAveragePrices(data.averagePrices);
-if (data.spotPositionManagement) setSpotPositionManagement(data.spotPositionManagement);
-if (data.trades) setTrades(data.trades);
+  if (data.averagePrices) setAveragePrices(data.averagePrices);
+  if (data.spotPositionManagement) setSpotPositionManagement(data.spotPositionManagement);
+  if (data.trades) setTrades(data.trades);
   if (data.marginUsed !== undefined) setMarginUsed(data.marginUsed);
-if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
-if (data.futuresPositionManagement) setFuturesPositionManagement(data.futuresPositionManagement);
-if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
+  if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
+  if (data.futuresPositionManagement) setFuturesPositionManagement(data.futuresPositionManagement);
+  if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
   if (data.pendingLimitOrder) setPendingLimitOrder(data.pendingLimitOrder);
   if (data.pendingFuturesLimitOrder) setPendingFuturesLimitOrder(data.pendingFuturesLimitOrder);
   if (data.tradeAmount !== undefined) setTradeAmount(data.tradeAmount);
@@ -623,17 +625,15 @@ if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
   if (data.orderType) setOrderType(data.orderType);
   if (data.leverage) setLeverage(data.leverage);
   if (data.marketMode) setMarketMode(data.marketMode);
-  if (data.selectedTimeframe) {
-  setSelectedTimeframe(data.selectedTimeframe);
-}
-  
+  if (data.selectedTimeframe) setSelectedTimeframe(data.selectedTimeframe);
   if (data.activeBottomTab) setActiveBottomTab(data.activeBottomTab);
+
   setSessionLoaded(true);
-setSimulatorReady(true);
-}, []);
+  setSimulatorReady(true);
+}, [subscriptionLoaded, isPaid]);
 
 useEffect(() => {
-  if (!sessionLoaded) return;
+  if (!sessionLoaded || !subscriptionLoaded || !isPaid) return;
 
   localStorage.setItem(
     "tradenestx-simulator-session",
@@ -682,6 +682,8 @@ marketMode,
 selectedTimeframe,
 activeBottomTab,
 sessionLoaded,
+subscriptionLoaded,
+isPaid,
 ]);
 
 useEffect(() => {
@@ -2252,7 +2254,7 @@ if (position.id) {
   });
 }
 
-  if (user) {
+  if (user && isPaid) {
     await addDoc(collection(db, "tradeReviews"), {
       userId: user.id,
       userName: user.firstName || "Trader",
@@ -2579,7 +2581,7 @@ management: automaticReview.engine.management,
   return next;
 });
 
-  if (user) {
+  if (user && isPaid) {
     await addDoc(collection(db, "tradeReviews"), {
       userId: user.id,
       userName: user.firstName || "Trader",
@@ -2614,7 +2616,7 @@ management: automaticReview.engine.management,
     });
   }
 
-  if (user) {
+if (user && isPaid) {
     await addDoc(collection(db, "trades"), {
       userId: user.id,
       userName: user.firstName || "Trader",
@@ -2657,7 +2659,7 @@ closedAt: new Date().toISOString(),
     });
   }
 
-  if (user) {
+if (user && isPaid) {
     await setDoc(doc(db, "portfolios", user.id), {
       userName: user.firstName || "Trader",
       balance: balance + netSellValue,
@@ -2760,7 +2762,7 @@ const tradeId = crypto.randomUUID();
 if (marketMode === "FUTURES") {
   setMarginUsed((prev) => prev + Number(tradeAmount));
 }
-if (user) {
+if (user && isPaid) {
  setDoc(doc(db, "portfolios", user.id), {
   userName: user.firstName || "Trader",
   balance: balance - Number(tradeAmount),
@@ -2868,7 +2870,7 @@ setTrades((prev) => [
   ...prev,
 ]);
 
-if (user) {
+if (user && isPaid) {
 addDoc(collection(db, "trades"), {
   userId: user.id,
   userName: user.firstName || "Trader",
@@ -3174,7 +3176,7 @@ function resetAccount() {
 
   setMessage("Practice account reset.");
 localStorage.removeItem("tradenestx-simulator-session");
- if (user) {
+if (user && isPaid) {
   deleteDoc(doc(db, "portfolios", user.id));
 
   const q = query(
@@ -3454,6 +3456,7 @@ strongestPattern={strongestPattern}
 
 <GabySimulatorCoach
   userId={user?.id || ""}
+  isPaid={isPaid}
   traderDevelopmentEngines={traderDevelopmentEngines}
   autoQuestion={autoGabyQuestion}
   clearAutoQuestion={() => setAutoGabyQuestion(null)}
