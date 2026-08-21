@@ -45,8 +45,9 @@ such as "why?", "how?", "explain that", "what about it?", or "tell me more."
 TRADING includes trading, investing, financial markets, crypto, stocks,
 ETFs, indexes, forex, commodities, futures, options, technical analysis,
 market education, risk management, trading psychology, simulator questions,
-TradeNestX platform questions, TradeNestX lessons, and English or Spanish
-trading questions.
+TradeNestX platform questions, TradeNestX lessons, support and billing questions,
+and questions about Gaby's identity, role, capabilities, limitations, or relationship
+to TradeNestX, in English or Spanish.
 
 OFF_TOPIC includes sex, sexual content, dating, relationships, politics,
 religion, celebrities, sports, movies, music, gaming, recipes, travel,
@@ -93,6 +94,9 @@ export async function POST(req: Request) {
         ? body.lesson
         : "No specific lesson selected";
 
+  const context =
+  body?.context === "SUPPORT" ? "SUPPORT" : "LEARN";      
+
     const conversationHistory: ConversationMessage[] = Array.isArray(
       body?.conversationHistory
     )
@@ -133,14 +137,16 @@ if (!userId) {
   );
 }
 
-const usage = await checkGabyUsage(userId);
+if (context !== "SUPPORT") {
+  const usage = await checkGabyUsage(userId);
 
-if (!usage.allowed) {
-  return Response.json({
-    answer:
-      "You've used your 5 free Gaby questions. Upgrade to TradeNestX Pro for unlimited Gaby access.",
-    upgradeRequired: true,
-  });
+  if (!usage.allowed) {
+    return Response.json({
+      answer:
+        "You've used your 5 free Gaby questions. Upgrade to TradeNestX Pro for unlimited Gaby access.",
+      upgradeRequired: true,
+    });
+  }
 }
 
     const topic = await classifyGabyTopic(
@@ -154,13 +160,29 @@ if (!usage.allowed) {
       });
     }
 
-    const websitePrompt = `
-You are answering inside the TradeNestX Learn page.
+const websitePrompt = `
+You are the same Gaby used throughout TradeNestX.
 
-Current TradeNestX lesson:
+Current page:
+${context === "SUPPORT" ? "TradeNestX Support" : "TradeNestX Learn"}
+
+Current lesson/context:
 ${lesson}
 
-Website Gaby instructions:
+${context === "SUPPORT" ? `
+Support page instructions:
+- Prioritize TradeNestX account, billing, Pro, subscription, simulator, Academy, Community, and platform support questions.
+- Use the TradeNestX platform knowledge provided above.
+- Resolve the user's question directly when the answer is known.
+- Do not redirect users to support email when Gaby can answer the question herself.
+- For account-specific payment, refund, charge, or subscription-status questions, never invent account information.
+- If the issue requires human assistance, direct the user to support@tradenestxacademy.com.
+` : `
+Learn page instructions:
+- Stay focused on the current lesson unless the user clearly changes topics.
+`}
+
+Website Gaby instructions:    
 - Answer the newest user question directly.
 - Use the previous conversation to understand follow-up questions.
 - When the user says "why?", "how?", "explain that", "what about it?",
@@ -260,7 +282,9 @@ const response =
   completion.choices[0].message.content ||
   "I'm having trouble answering right now.";
 
-await useGabyQuestion(userId);
+if (context !== "SUPPORT") {
+  await useGabyQuestion(userId);
+}
 
 return Response.json({
   answer: response,
