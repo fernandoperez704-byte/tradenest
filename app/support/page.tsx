@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/app/firebase";
 import Navbar from "../components/Navbar";
 type ConversationMessage = {
   role: "user" | "assistant";
@@ -140,10 +143,73 @@ export default function SupportPage() {
 const [question, setQuestion] = useState("");
 const [answer, setAnswer] = useState("");
 const [loading, setLoading] = useState(false);
-const [upgradeRequired, setUpgradeRequired] = useState(false);
 const [conversationHistory, setConversationHistory] = useState<
   ConversationMessage[]
 >([]);
+
+const { user } = useUser();
+const [isPaid, setIsPaid] = useState(false);
+const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
+const [memoryLoaded, setMemoryLoaded] = useState(false);
+
+useEffect(() => {
+  if (!user?.id) {
+    setIsPaid(false);
+    setSubscriptionLoaded(true);
+    return;
+  }
+
+  fetch("/api/subscription/status")
+    .then((res) => res.json())
+    .then((data) => setIsPaid(Boolean(data.isPaid)))
+    .catch(() => setIsPaid(false))
+    .finally(() => setSubscriptionLoaded(true));
+}, [user?.id]);
+
+useEffect(() => {
+  if (!subscriptionLoaded) return;
+
+  if (!user?.id || !isPaid) {
+    setConversationHistory([]);
+    setMemoryLoaded(true);
+    return;
+  }
+
+  getDoc(doc(db, "gabySimulatorMemory", user.id))
+    .then((snap) => {
+      const memory = snap.data();
+
+      const history: ConversationMessage[] = Array.isArray(
+        memory?.conversationHistory
+      )
+        ? memory.conversationHistory.slice(-12)
+        : [];
+
+      setConversationHistory(history);
+
+
+    })
+    .finally(() => setMemoryLoaded(true));
+}, [user?.id, isPaid, subscriptionLoaded]);
+
+useEffect(() => {
+  if (
+    !user?.id ||
+    !isPaid ||
+    !memoryLoaded ||
+    conversationHistory.length === 0
+  ) {
+    return;
+  }
+
+  setDoc(
+    doc(db, "gabySimulatorMemory", user.id),
+    {
+      conversationHistory: conversationHistory.slice(-12),
+    },
+    { merge: true }
+  );
+}, [user?.id, isPaid, memoryLoaded, conversationHistory]);
 
   async function askGaby(customQuestion?: string) {
     const finalQuestion = (customQuestion || question).trim();
@@ -160,7 +226,9 @@ body: JSON.stringify({
   message: finalQuestion,
   lesson: "TradeNestX Support",
   context: "SUPPORT",
-  conversationHistory: conversationHistory.slice(-8),
+ conversationHistory: isPaid
+  ? conversationHistory.slice(-8)
+  : [],
 }),
       });
 
@@ -170,17 +238,19 @@ const gabyAnswer =
   data.answer || "Gaby is having trouble responding right now.";
 
 setAnswer(gabyAnswer);
-setUpgradeRequired(Boolean(data.upgradeRequired));
 
-setConversationHistory((prev) => {
-  const updated: ConversationMessage[] = [
-    ...prev,
-    { role: "user", content: finalQuestion },
-    { role: "assistant", content: gabyAnswer },
-  ];
 
-  return updated.slice(-12);
-});
+if (isPaid) {
+  setConversationHistory((prev) => {
+    const updated: ConversationMessage[] = [
+      ...prev,
+      { role: "user", content: finalQuestion },
+      { role: "assistant", content: gabyAnswer },
+    ];
+
+    return updated.slice(-12);
+  });
+}
 
 } catch {
   setAnswer("Gaby is having trouble responding right now.");
@@ -216,6 +286,15 @@ setConversationHistory((prev) => {
                 Can’t find your answer below? Ask Gaby about any TradeNestX
                 feature, account question, billing question, or platform issue.
               </p>
+
+{subscriptionLoaded && !isPaid && (
+  <p className="mt-2 text-xs text-zinc-500">
+    Support Gaby is free and unlimited. Free questions are answered
+    individually, so include the relevant details in each question.
+    Pro includes conversation memory for follow-up questions.
+  </p>
+)}
+
             </div>
 
 {(answer || loading) && (
@@ -224,23 +303,7 @@ setConversationHistory((prev) => {
       {loading ? "Gaby is helping..." : answer}
     </p>
 
-    {upgradeRequired && (
-      <button
-        onClick={async () => {
-          const res = await fetch("/api/stripe/checkout", {
-            method: "POST",
-          });
-          const data = await res.json();
 
-          if (data.url) {
-            window.location.href = data.url;
-          }
-        }}
-        className="mt-4 rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black"
-      >
-        Upgrade to TradeNestX Pro
-      </button>
-    )}
   </div>
 )}
 
