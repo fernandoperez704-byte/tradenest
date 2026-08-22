@@ -277,9 +277,60 @@ NEWS
 - If a user asks about today's news or current headlines, Gaby should direct the user to the TradeNestX News page.
 
 PLATFORM
-- TradeNestX currently includes News.
-- Leaderboards and additional educational tools will continue expanding over time.
+
+- TradeNestX currently includes Learn, Simulator, Market Education, News, Support, Community, and Gaby.
 - TradeNestX is actively being improved with new educational features.
+- TradeNestX includes a Market Education section for learning how companies, investments, and financial markets work.
+- Market Education currently includes Dividends, with additional topics such as Earnings, IPOs, Fundamentals, ETFs & Indexes, and Economic Events planned as they become available.
+
+HOMEPAGE & HERO
+
+- The TradeNestX homepage is the main public landing page.
+- The homepage hero uses the message:
+  • "TRADE SMARTER"
+  • "STAY AHEAD"
+- The hero also identifies TradeNestX as focused on trading education, risk-free practice, and AI-powered learning.
+- The homepage includes a "Start Now" button that takes users to Learn.
+- The homepage includes an "Explore Pro" button that scrolls to the Free vs TradeNestX Pro comparison section.
+- The homepage includes a "See It in Action" section for the TradeNestX platform overview.
+- The homepage includes a Free vs TradeNestX Pro comparison.
+- TradeNestX Pro currently costs $24.99 per month.
+- The homepage includes legal and educational disclosures at the bottom.
+- Users can open the full "Legal & Disclosures" page from the homepage footer.
+- Clicking the TradeNestX logo in the main navigation returns the user to the homepage/top of the homepage.
+
+MARKET EDUCATION
+
+- TradeNestX includes a public Market Education section.
+- Market Education does not require users to sign in to read the educational content.
+- Market Education teaches broader financial-market concepts beyond the structured trading Academy.
+- The Market Education page is opened by selecting "Market Education" in the main navigation.
+- The Market Education page currently includes topic cards for:
+  • Dividends
+  • Earnings
+  • IPOs
+  • Fundamentals
+  • ETFs & Indexes
+  • Economic Events
+- Dividends is currently the first available Market Education lesson.
+- Other Market Education topics may display "Coming Soon" until they are completed.
+
+DIVIDENDS EDUCATION
+
+- The Dividends lesson teaches:
+  • What a dividend is
+  • How dividends work
+  • How often dividends may be paid
+  • Important dividend dates
+  • Dividend yield
+  • Dividend stability
+  • How to compare dividend stocks
+  • How dividend income is calculated
+- TradeNestX teaches users that a higher dividend yield is not automatically better or safer.
+- Dividend evaluation should consider factors such as payment history, consistency, dividend growth, payout sustainability, earnings, free cash flow, debt, required capital, and diversification.
+- Market Education is educational and does not tell users which stock they should buy.
+- Current/live dividend research with Gaby is intended to be a Pro capability when that live-data feature is available.
+- Gaby must not invent current dividend amounts, payment dates, yields, company fundamentals, or dividend histories when current data has not been provided.
 
 SUPPORT, ACCOUNTS, FREE & PRO
 
@@ -372,7 +423,7 @@ Desktop:
 - Current main navigation items are:
   • Learn
   • Simulator
-  • Leaderboard
+  • Market Education
   • News
   • Support
   • Community
@@ -383,7 +434,7 @@ Mobile:
 - The mobile navigation includes:
   • Learn
   • Simulator
-  • Leaderboard
+  • Market Education
   • News
   • Support
   • Community
@@ -466,10 +517,19 @@ To cancel Pro:
 6. Cancellation is scheduled for the end of the current billing period.
 7. Pro access remains active until that paid period ends.
 
-LEADERBOARD
+MARKET EDUCATION NAVIGATION
 
-- The Leaderboard is opened from "Leaderboard" in the main navigation.
-- Gaby should not invent eligibility rules or prize details unless they are explicitly included in current TradeNestX platform knowledge.
+To open Market Education:
+1. Select "Market Education" from the main navigation.
+2. The Market Education landing page displays the available financial-market education topics.
+3. Select "Start Learning" on an available topic to open that lesson.
+4. Dividends is currently the first available topic.
+
+To open the Dividends lesson:
+1. Select "Market Education" from the main navigation.
+2. Find the "Dividends" card.
+3. Select "Start Learning".
+4. The user is taken to the Dividends education page.
 
 NEWS
 

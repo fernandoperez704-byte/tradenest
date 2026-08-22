@@ -66,6 +66,16 @@ openSignIn({
         <div className="flex items-center gap-8 xl:gap-16">
           <Link
   href="/"
+  onClick={(e) => {
+    if (pathname === "/") {
+      e.preventDefault();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }}
   className="group absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0"
 >
             <div className="relative flex items-center text-3xl font-black tracking-tight md:text-4xl">

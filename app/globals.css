@@ -176,3 +176,13 @@ body {
     transform: translateY(0);
   }
 }
+
+.hero-title {
+  opacity: 0;
+  animation: fadeUp 0.9s ease-out forwards;
+}
+
+.hero-buttons {
+  opacity: 0;
+  animation: fadeUp 0.9s ease-out 0.25s forwards;
+}
