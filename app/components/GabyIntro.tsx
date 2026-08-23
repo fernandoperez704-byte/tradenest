@@ -145,7 +145,7 @@ function returnToExperienceSelection() {
           </div>
         </div>
 
-        <div className="animate-[fadeUp_0.8s_ease-out_both]">
+        <div>
           <div className="flex items-center gap-3">
             <p className="text-2xl font-black uppercase tracking-[0.18em] md:text-3xl">
               <span className="text-white">
@@ -183,7 +183,7 @@ function returnToExperienceSelection() {
       <button
         type="button"
         onClick={chooseBeginner}
-        className="group relative overflow-hidden rounded-2xl border border-cyan-400/25 bg-gradient-to-br from-[#10283a] via-[#0b1b2c] to-[#08111f] p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/70 hover:shadow-[0_0_40px_rgba(34,211,238,0.18)]"
+        className="group relative overflow-hidden rounded-2xl border border-cyan-400/25 bg-gradient-to-br from-[#10283a] via-[#0b1b2c] to-[#08111f] p-5 text-left hover:border-cyan-300/70"
       >
         <div className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-cyan-400/15 blur-[75px]" />
 
@@ -227,7 +227,7 @@ function returnToExperienceSelection() {
       <button
         type="button"
         onClick={chooseExperienced}
-        className="group relative overflow-hidden rounded-2xl border border-violet-400/25 bg-gradient-to-br from-[#211b3f] via-[#15162d] to-[#08111f] p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-violet-300/70 hover:shadow-[0_0_40px_rgba(139,92,246,0.18)]"
+        className="group relative overflow-hidden rounded-2xl border border-violet-400/25 bg-gradient-to-br from-[#211b3f] via-[#15162d] to-[#08111f] p-5 text-left hover:border-violet-300/70"
       >
         <div className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-violet-400/15 blur-[75px]" />
 

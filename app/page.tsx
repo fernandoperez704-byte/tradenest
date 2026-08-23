@@ -225,7 +225,7 @@ export default function HomePage() {
                 </p>
 
                 <div className="mt-4 grid gap-2 text-sm text-zinc-200 sm:grid-cols-2">
-                  <p>✓ Everything in Free</p>
+                  
                   <p>✓ Full Academy access</p>
                   <p>✓ Unlimited Gaby</p>
                   <p>✓ Saved simulator data</p>
