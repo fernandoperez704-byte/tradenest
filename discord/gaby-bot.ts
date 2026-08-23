@@ -753,7 +753,7 @@ await channel.send(
     breakdown,
     "",
     "📖 **Read today's complete market brief:**",
-    "https://tradenestx.vercel.app/news",
+    "https://tradenestxacademy.com/news",
     "",
     "**The complete brief includes:**",
     "• Today's latest headlines",

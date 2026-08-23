@@ -21,6 +21,10 @@ export async function checkGabyUsage(userId: string) {
 }
 
 export async function useGabyQuestion(userId: string) {
+  if (await isPaidUser(userId)) {
+    return;
+  }
+
   const ref = adminDb.collection("gabyUsage").doc(userId);
 
   await adminDb.runTransaction(async (transaction) => {

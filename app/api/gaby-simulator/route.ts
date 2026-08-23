@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { buildTraderDevelopmentReport } from "@/lib/traderDevelopment/report";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
@@ -32,6 +32,13 @@ export async function POST(req: Request) {
   try {
     const { userId } = await auth();
 
+const clerkUser = userId ? await currentUser() : null;
+
+const userName =
+  clerkUser?.firstName ||
+  clerkUser?.username ||
+  null;   
+
     const {
       question,
       simulatorContext,
@@ -41,9 +48,26 @@ export async function POST(req: Request) {
       lastTopic,
     } = await req.json();
 
-    const normalizedQuestion = question?.trim().toLowerCase() || "";
+const normalizedQuestion = question?.trim().toLowerCase() || "";
+
+// Give Gaby the real current date and time
+const now = new Date();
+
+const currentDate = now.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "America/New_York",
+});
+
+const currentTime = now.toLocaleTimeString("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "America/New_York",
+});
 
 async function requireGabyAccess() {
+    
   if (!userId) {
     return Response.json(
       { answer: "Sign in to ask Gaby personalized questions." },
@@ -106,10 +130,24 @@ thk: "You're welcome!",
       "good night": "Good night! See you soon.",
     };
 
-    const acknowledgementReply = acknowledgementReplies[normalizedQuestion];
-    if (acknowledgementReply) {
-      return Response.json({ answer: acknowledgementReply });
-    }
+const greetingMatch = normalizedQuestion.match(
+  /^(hi|hello|hey)(\s+gaby)?[!.?]*$/
+);
+
+if (greetingMatch) {
+  const greeting = greetingMatch[1];
+
+  const namePart = userName ? `, ${userName}` : "";
+
+  return Response.json({
+    answer:
+      greeting === "hi"
+        ? `Hi${namePart}! What can I help you understand today?`
+        : greeting === "hello"
+        ? `Hello${namePart}! What would you like to explore today?`
+        : `Hey${namePart}! What can I help you understand today?`,
+  });
+}
 
 // 🚨 Short-circuit immediately if trying to review a trade but no active trade data exists
 const isAskingToReviewLastTrade = 
@@ -713,6 +751,17 @@ ${GABY_CORE_PROMPT}
 
 ${tradenestxKnowledge}
 
+CURRENT DATE AND TIME:
+Current date: ${currentDate}
+Current time: ${currentTime} Eastern Time
+
+DATE/TIME RULES:
+- The current date and time above are authoritative.
+- If the user asks what year it is, use the year from Current date.
+- If the user asks today's date, use Current date.
+- If the user asks the current time, use Current time.
+- Never guess the current date, year, or time.
+
 IMPORTANT:
 You explain TradeNestX engine facts only.
 Do not create new market analysis.
@@ -831,8 +880,10 @@ Subject: ${conversationSubject || "NONE"}
 State: ${JSON.stringify(conversationState || {}, null, 2)}
 
 Conversation Instruction:
-- If the conversation subject exists, remain on that subject until the user clearly changes topics.
-- Treat the conversation state as the highest-priority context for follow-up questions.
+- Always answer the newest user question as the highest-priority instruction.
+- Use the previous conversation subject only when the newest message is clearly a follow-up.
+- If the newest question introduces a different subject, immediately switch to the new subject.
+- Do not continue discussing support, resistance, market direction, trade reviews, or any previous topic unless it is relevant to the newest question.
 
 General Answer Rules:
 - Answer the user's question directly before adding extra information.

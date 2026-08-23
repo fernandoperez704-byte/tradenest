@@ -46,6 +46,7 @@ TRADING includes trading, investing, financial markets, crypto, stocks,
 ETFs, indexes, forex, commodities, futures, options, technical analysis,
 market education, risk management, trading psychology, simulator questions,
 TradeNestX platform questions, TradeNestX lessons, support and billing questions,
+questions about the current date, current time, or current year,
 and questions about Gaby's identity, role, capabilities, limitations, or relationship
 to TradeNestX, in English or Spanish.
 
@@ -95,7 +96,22 @@ export async function POST(req: Request) {
         : "No specific lesson selected";
 
   const context =
-  body?.context === "SUPPORT" ? "SUPPORT" : "LEARN";      
+  body?.context === "SUPPORT" ? "SUPPORT" : "LEARN";  
+  
+const now = new Date();
+
+const currentDate = now.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "America/New_York",
+});
+
+const currentTime = now.toLocaleTimeString("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "America/New_York",
+});  
 
     const conversationHistory: ConversationMessage[] = Array.isArray(
       body?.conversationHistory
@@ -162,6 +178,17 @@ if (context !== "SUPPORT") {
 
 const websitePrompt = `
 You are the same Gaby used throughout TradeNestX.
+
+CURRENT DATE AND TIME:
+Current date: ${currentDate}
+Current time: ${currentTime} Eastern Time
+
+DATE/TIME RULES:
+- The current date and time above are authoritative.
+- If the user asks what year it is, use the year from Current date.
+- If the user asks today's date, use Current date.
+- If the user asks the current time, use Current time.
+- Never guess the current year, date, or time.
 
 Current page:
 ${context === "SUPPORT" ? "TradeNestX Support" : "TradeNestX Learn"}

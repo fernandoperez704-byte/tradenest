@@ -1,13 +1,17 @@
 import { adminDb } from "@/lib/firebaseAdmin";
 
-const DEV_PRO_USER_IDS = [
-  process.env.DEV_PRO_USER_ID,
-].filter(Boolean);
-
 export async function isPaidUser(userId: string) {
   if (!userId) return false;
 
-  if (DEV_PRO_USER_IDS.includes(userId)) {
+  // Local TradeNestX development always has Pro access
+  if (process.env.NODE_ENV === "development") {
+    return true;
+  }
+
+  // Developer Pro account on deployed environments
+  const devProUserId = process.env.DEV_PRO_USER_ID?.trim();
+
+  if (devProUserId && userId === devProUserId) {
     return true;
   }
 
