@@ -107,37 +107,35 @@ export function buildTraderInsights(
     );
   }
 
-  // 6. Timeframe performance
-  for (const [
-    timeframe,
-    data,
-  ] of Object.entries(
-    report.timeframeAnalysis
-  )) {
-    const completedTrades =
-      data.wins + data.losses;
+// 6. Timeframe performance
+const weakTimeframes = Object.entries(report.timeframeAnalysis)
+  .map(([timeframe, data]) => {
+    const trades = data.wins + data.losses;
+    const winRate = trades
+      ? Math.round((data.wins / trades) * 100)
+      : 0;
 
-    const winRate =
-      completedTrades === 0
-        ? 0
-        : Math.round(
-            (data.wins / completedTrades) *
-              100
-          );
+    return { timeframe, trades, winRate };
+  })
+  .filter(({ trades, winRate }) =>
+    trades >= 3 && winRate <= 35
+  )
+  .sort((a, b) =>
+    a.winRate - b.winRate ||
+    b.trades - a.trades
+  );
 
-    if (
-      completedTrades >= 3 &&
-      winRate <= 35
-    ) {
-      weaknesses.push(
-        `Timeframe weakness (${timeframe}): Your win rate across ${completedTrades} completed trades is ${winRate}%.`
-      );
+const weakest = weakTimeframes[0];
 
-      recommendations.push(
-        `Review your entries on the ${timeframe} timeframe and compare them with a higher timeframe before entering.`
-      );
-    }
-  }
+if (weakest) {
+  weaknesses.push(
+    `Weakest timeframe: ${weakest.timeframe} with a ${weakest.winRate}% win rate across ${weakest.trades} completed trades.`
+  );
+
+  recommendations.push(
+    `Review your ${weakest.timeframe} entries and compare them with a higher timeframe before entering.`
+  );
+}
 
   return {
     strengths,

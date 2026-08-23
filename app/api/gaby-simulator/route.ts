@@ -378,7 +378,7 @@ Rules:
 
   const completion =
     await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.6-luna",
       messages: [
         {
           role: "system",
@@ -462,8 +462,9 @@ ${
 Rules:
 - Answer only the nearest support question.
 - Mention the selected timeframe.
-- If a Support Zone is provided, explain that support is a zone, not one exact price.
-- If a Support Level is provided, refer to it as a single support level.
+- Explain that support and resistance are areas of market interest, not guaranteed exact prices.
+- If the engine provides a single Support Level, present that value as the center/reference level of the nearest support area.
+- Do not call it a "single level."
 - Do not mention resistance, RSI, momentum, conviction, or market direction.
 - Do not give trade advice.
 - Keep it under 80 words.
@@ -471,7 +472,7 @@ Rules:
 `;
 
 const completion = await openai.chat.completions.create({
-  model: "gpt-4o-mini",
+  model: "gpt-5.6-luna",
   messages: [
     {
       role: "system",
@@ -486,10 +487,11 @@ const completion = await openai.chat.completions.create({
 });
 
 return Response.json({
-  answer:
-    completion.choices[0].message.content ||
-    `The nearest support on the selected **${timeframe}** timeframe is between **$${formatPrice(support.low)}** and **$${formatPrice(support.high)}**.`,
-
+answer:
+  completion.choices[0].message.content ||
+  (support.low === support.high
+    ? `The nearest support area on the selected **${timeframe}** timeframe is around **$${formatPrice(support.low)}**.`
+    : `The nearest support zone on the selected **${timeframe}** timeframe is **$${formatPrice(support.low)} - $${formatPrice(support.high)}**.`),
   chartCommand: {
     action: "SHOW",
     target: "SUPPORT",
@@ -551,8 +553,9 @@ Rules:
 
 - Answer ONLY the nearest resistance question.
 - Mention the selected timeframe.
-- If a Resistance Zone is provided, explain that resistance is a zone, not one exact price.
-- If a Resistance Level is provided, refer to it as a single resistance level.
+- Explain that support and resistance are areas of market interest, not guaranteed exact prices.
+- If the engine provides a single Resistance Level, present that value as the center/reference level of the nearest resistance area.
+- Do not call it a "single level."
 - Do NOT mention support.
 - Do NOT mention RSI.
 - Do NOT mention momentum.
@@ -563,7 +566,7 @@ Rules:
 `;
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.6-luna",
     messages: [
       {
         role: "system",
@@ -578,9 +581,11 @@ Rules:
   });
 
 return Response.json({
-  answer:
-    completion.choices[0].message.content ||
-    `The nearest resistance on the selected **${timeframe}** timeframe is between **$${formatPrice(resistance.low)}** and **$${formatPrice(resistance.high)}**.`,
+answer:
+  completion.choices[0].message.content ||
+  (resistance.low === resistance.high
+    ? `The nearest resistance area on the selected **${timeframe}** timeframe is around **$${formatPrice(resistance.low)}**.`
+    : `The nearest resistance zone on the selected **${timeframe}** timeframe is **$${formatPrice(resistance.low)} - $${formatPrice(resistance.high)}**.`),
 
   chartCommand: {
     action: "SHOW",
@@ -705,7 +710,7 @@ Rules:
 
   const completion =
     await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.6-luna",
       messages: [
         {
           role: "system",
@@ -814,22 +819,32 @@ Market Direction at Entry:
 ${reviewEngine?.marketAtEntry?.marketDirection ?? "UNKNOWN"}
 
 Entry Quality:
-${reviewEngine?.entryReview?.quality ?? "UNKNOWN"}
 
-Entry Review:
-${reviewEngine?.entryReview?.review ?? "N/A"}
+${reviewEngine?.entry?.quality ?? "UNKNOWN"}
+
+Entry Strengths:
+
+${JSON.stringify(reviewEngine?.entry?.strengths ?? [])}
+
+Entry Weaknesses:
+
+${JSON.stringify(reviewEngine?.entry?.weaknesses ?? [])}
 
 Entry Lesson:
-${reviewEngine?.entryReview?.lesson ?? "N/A"}
+
+${reviewEngine?.entry?.lesson ?? "N/A"}
 
 Risk Review:
-${reviewEngine?.riskReview?.review ?? "N/A"}
+
+${reviewEngine?.riskReview?.explanation ?? "N/A"}
 
 Management Review:
-${reviewEngine?.managementReview?.lesson ?? "N/A"}
+
+${reviewEngine?.management?.lesson ?? "N/A"}
 
 Exit Review:
-${reviewEngine?.exitReview?.explanation ?? "N/A"}
+
+${reviewEngine?.exit?.lesson ?? "N/A"}
 
 Raw Review Explanation:
 ${reviewEngine?.review?.explanation ?? "N/A"}
@@ -841,32 +856,38 @@ Raw Review Lesson:
 ${reviewEngine?.review?.lesson ?? "N/A"}
 
 CRITICAL INSTRUCTION:
-Perform a process-based critique of this reviewed trade using only the TradeNestX engine facts above.
+Gaby's job is ONLY to explain the completed TradeNestX deterministic trade review.
 
-- Do not merely repeat whether the trade won or lost.
-- Explain what happened only briefly, then focus on why the process produced that result.
-- Separate the financial outcome from the quality of the trading process.
-- Identify the strongest part of the process when the facts support one.
-- Identify one main weakness supported by the facts.
-- End with one specific improvement supported by the facts.
-- If fees caused the loss, explain the break-even hurdle as an execution or trade-selection consideration.
-- Do not claim the entry was late, emotional, overextended, poorly timed, or misaligned unless the engine explicitly says so.
-- Do not claim the user violated a personal rule unless such a rule appears in the engine facts.
-- A losing trade may still have a sound process.
-- A profitable trade may still have weak execution.
+ENGINE AUTHORITY RULES:
+- The supplied TradeNestX engine review data is the ONLY source of truth.
+- Every statement Gaby makes about the trade must be directly supported by a supplied engine fact.
+- When the engine provides both strengths and weaknesses, clearly distinguish the supportive facts from the unfavorable facts.
+- Never present a supplied strength as if it were part of the reason an overall rating was weak.
+- If an overall Entry Quality rating is WEAK but the engine also supplies an entry strength, explain that the strength was present while other supplied weaknesses reduced the overall entry quality.
+- Gaby may rephrase an engine fact for clarity, but must preserve its exact meaning.
+- Gaby must NOT create, infer, assume, calculate, diagnose, or add any trade fact that is not explicitly supplied by the engine.
+- Gaby must NOT create her own explanation for why the trade won or lost.
+- Gaby must NOT create strengths, weaknesses, mistakes, improvements, lessons, opportunities, or conclusions.
+- Gaby must NOT create causal relationships between engine facts unless that causal relationship is explicitly stated by the engine.
+- Never say one fact "caused," "resulted in," "led to," or happened "because of" another fact unless the engine explicitly provides that relationship.
+- Never convert a favorable price movement into an explanation for a loss unless the engine explicitly states that relationship.
+- Never strengthen or reinterpret an engine statement.
+- Never infer entry quality, exit quality, risk quality, management quality, market conditions, trader intent, strategy quality, expected movement, or setup potential.
+- If a supplied review field is "N/A", "UNKNOWN", null, or unavailable, do not mention or diagnose that part of the trade.
+- If the engine facts do not answer the user's question, say that the available TradeNestX engine facts do not provide that information.
+- Engine = Facts. Gaby = Explains the Facts.
 
-Rules:
+ANSWER RULES:
 - Answer ONLY the user's question about the latest reviewed trade.
-- Explain the existing engine review; do not create a new trade review.
-- Use ONLY the supplied TradeNestX engine facts.
-- Treat follow-up questions as referring to the latest reviewed trade unless the user clearly asks about multiple trades or a trader report.
-- If the user asks specifically about the entry, focus on Entry Quality, Entry Review, and Entry Lesson.
-- If the user asks specifically about risk, focus on Risk Review.
-- If the user asks specifically about management or exit, focus on Management Review and Exit Review.
-- If the supplied facts are insufficient for the requested diagnosis, clearly say so.
-- Do not invent emotions, volatility, support, resistance, indicators, strategy rules, or market conditions.
-- Do not provide buy, sell, long, or short advice.
-- Keep the answer under 100 words.
+- Do NOT perform a new trade review.
+- Organize supplied engine facts clearly: state the overall rating first, then separate supportive facts from unfavorable facts, then risk, management, exit, and P&L when available. Do not create any new conclusion.
+- Use Raw Review Explanation, Raw Review Context, and Raw Review Lesson only for the meanings explicitly stated in those fields.
+- If the user asks specifically about entry, use only the supplied Entry Quality, Entry Review, and Entry Lesson.
+- If the user asks specifically about risk, use only the supplied Risk Review.
+- If the user asks specifically about management, use only the supplied Management Review.
+- If the user asks specifically about exit, use only the supplied Exit Review.
+- Do not provide buy, sell, long, short, hold, or exit advice.
+- Keep the answer natural, concise, and under 80 words.
 `;
 
     // Standard comprehensive fallback layout
@@ -896,6 +917,11 @@ General Answer Rules:
 - Use the Market Analysis Summary only when it is relevant to the user's question.
 - If information is missing, clearly say you don't have enough information instead of guessing.
 - Never invent market facts, trade results, or TradeNestX features.
+- When strongestPattern is provided, it is the authoritative current PAT BETA detection from the deterministic TradeNestX Pattern Recognition engine.
+- If the user asks what PAT currently detects, what pattern is showing, or about the displayed PAT result, use strongestPattern exactly.
+- Explain the supplied pattern type, status, confidence, and direction when those values are available.
+- Never independently identify or infer a chart pattern from price data or the chart.
+- If strongestPattern is null or missing, say PAT does not currently have a detected pattern available.
 - Never predict future prices.
 - Never provide buy, sell, long, or short signals.
 - Explain the reasoning behind the TradeNestX engine facts instead of creating new analysis.
@@ -920,8 +946,11 @@ ${JSON.stringify(
     priceLocation: marketFacts.priceLocation,
     nearestSupport: marketFacts.nearestSupport,
     nextSupport: marketFacts.nextSupport,
-    nearestResistance: marketFacts.nearestResistance,
-    nextResistance: marketFacts.nextResistance,
+nearestResistance: marketFacts.nearestResistance,
+nextResistance: marketFacts.nextResistance,
+
+strongestPattern: marketFacts.strongestPattern,
+
 momentumAnalysis: marketFacts.momentumAnalysis,
 volumeAnalysis: marketFacts.volumeAnalysis,
 rsiAnalysis: marketFacts.rsiAnalysis,
@@ -979,7 +1008,7 @@ ${lastTopic || "NONE"}
 
   // 5. Gaby + chart command in one response
 const completion = await openai.chat.completions.create({
-  model: "gpt-4o-mini",
+  model: "gpt-5.6-luna",
 
   response_format: {
     type: "json_object",

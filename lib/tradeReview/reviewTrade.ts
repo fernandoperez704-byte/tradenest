@@ -207,54 +207,60 @@ export function reviewTrade(input: TradeReviewInput) {
   const biggestStrength = [...coachingAreas].sort((a, b) => b.score - a.score)[0];
   const biggestWeakness = [...coachingAreas].sort((a, b) => a.score - b.score)[0];
 
-  // 6. Final Review Explanations (Duplicate Block Removed & Fixed)
-  let reviewExplanation = "The trade ended based on the saved market and trade facts.";
-  let reviewContext = "No single factor was identified as the clear main cause.";
-  let reviewLesson = mainLesson;
+// 6. Final Educational Review Summary
 
-  // Double check if your entryReview uses '.quality' or '.entryQuality'
-  const currentEntryQuality = entryReview.quality;
+const entryStrengths = entryReview.strengths ?? [];
+const entryWeaknesses = entryReview.weaknesses ?? [];
 
-  if (result === "LOSS") {
-if (input.pnl < 0 && (input.grossPnl ?? 0) > 0) {
-  reviewExplanation =
-    "The trade resulted in a small net loss. The market moved slightly in your favor, but the move wasn't large enough to overcome trading fees.";
-  reviewContext =
-    "The trade idea showed potential, but the price movement was too small to produce a positive net result after fees.";
-  reviewLesson =
-    "Look for setups with enough expected movement to comfortably cover trading fees.";
-    } else if (managementReview.managementQuality === "WEAK") {
-      reviewExplanation = "The trade resulted in a loss because too much of the available profit was given back before exiting.";
-      reviewContext = "The market initially supported the trade, but trade management allowed the position to reverse.";
-      reviewLesson = "Protect unrealized profit once the trade begins working.";
-    } else if (currentEntryQuality === "WEAK") {
-      reviewExplanation = "The trade resulted in a loss because the market conditions did not strongly support the entry.";
-      reviewContext = "The trade never developed enough market confirmation after entry.";
-      reviewLesson = "Wait for stronger market alignment before entering.";
-    } else {
-      reviewExplanation = "The trade resulted in a loss because the market did not develop enough in favor of the trade.";
-      reviewContext = "The saved review does not identify one dominant execution mistake.";
-      reviewLesson = "Continue waiting for higher-quality opportunities before committing to a trade.";
-    }
-  } else if (result === "WIN") {
-    if (riskReview.rating === "WEAK") {
-      reviewExplanation = "The trade resulted in a profit, but the risk taken was higher than necessary.";
-      reviewContext = "A profitable outcome does not automatically mean the trade was well managed.";
-      reviewLesson = "Keep the same trade quality while improving risk control.";
-    } else if (exitReview.exitQuality === "EXCELLENT") {
-      reviewExplanation = "The trade resulted in a profit because most of the available move was captured before exiting.";
-      reviewContext = "Trade management protected the move before profits were given back.";
-      reviewLesson = "Continue protecting profitable trades with disciplined exits.";
-    } else if (currentEntryQuality === "GOOD" || currentEntryQuality === "EXCELLENT") {
-      reviewExplanation = "The trade resulted in a profit because the market moved in favor of a well-aligned entry.";
-      reviewContext = "The market conditions supported the trade long enough for it to develop.";
-      reviewLesson = "Continue focusing on high-quality entries.";
-    } else {
-      reviewExplanation = "The trade resulted in a profit because the market moved enough in favor of the position.";
-      reviewContext = "The trade closed with a positive result even though no single factor stood out as the primary reason.";
-      reviewLesson = "Keep reviewing what worked so it can be repeated consistently.";
-    }
-  }
+const reviewFacts: string[] = [];
+const reviewLessons: string[] = [];
+
+if (input.grossPnl != null && input.totalFees != null) {
+  reviewFacts.push(
+    `Gross P&L: $${Number(input.grossPnl).toFixed(2)}. Fees: $${Number(input.totalFees).toFixed(2)}. Net P&L: $${Number(input.pnl).toFixed(2)}.`
+  );
+}
+
+reviewFacts.push(directionReview.explanation);
+reviewFacts.push(`Entry quality: ${entryReview.quality}.`);
+reviewFacts.push(...entryStrengths, ...entryWeaknesses);
+reviewFacts.push(riskReview.explanation);
+
+if (managementReview.available) {
+  reviewFacts.push(
+    `Management: ${managementReview.managementQuality}.`,
+    `Highest unrealized: ${managementReview.highestUnrealizedPercent?.toFixed(2)}%.`,
+    `Lowest unrealized: ${managementReview.lowestUnrealizedPercent?.toFixed(2)}%.`,
+    `Exit efficiency: ${managementReview.exitEfficiency?.toFixed(2)}%.`,
+    `Giveback: ${managementReview.givebackPercent?.toFixed(2)}%.`
+  );
+
+  reviewLessons.push(managementReview.lesson);
+}
+
+if (exitReview.available) {
+  reviewFacts.push(`Exit quality: ${exitReview.exitQuality}.`);
+  reviewLessons.push(exitReview.lesson);
+}
+
+reviewLessons.push(entryReview.lesson);
+
+const reviewExplanation =
+  [...new Set(reviewFacts.filter(Boolean))].join(" ");
+
+const reviewContext = [
+  entryStrengths.length
+    ? `Strengths: ${entryStrengths.join(" ")}`
+    : null,
+  entryWeaknesses.length
+    ? `Weaknesses: ${entryWeaknesses.join(" ")}`
+    : null,
+]
+  .filter(Boolean)
+  .join(" ");
+
+const reviewLesson =
+  [...new Set(reviewLessons.filter(Boolean))].join(" ");
 
   return {
     version: "1.0",

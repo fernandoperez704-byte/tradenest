@@ -71,23 +71,47 @@ export function buildSkillAnalysis(
     developmentReport.trendAnalysis
       ?.alignmentRate ?? 0;
 
-  const highRiskRate =
-    developmentReport.riskAnalysis
-      ?.highRiskRate ?? 100;
+const highRiskRate =
+  developmentReport.riskAnalysis
+    ?.highRiskRate ?? 100;
 
-  const riskManagementScore =
-    100 - highRiskRate;
+const stopLossUsage =
+  developmentReport.stopLossAnalysis
+    ?.usageRate ?? 0;
 
-  const disciplineScore =
-    developmentReport.stopLossAnalysis
-      ?.usageRate ?? 0;
+const riskManagementScore =
+  Math.round(
+    (100 - highRiskRate) * 0.5 +
+    stopLossUsage * 0.5
+  );
 
-  const poorEntryRate =
-    developmentReport.entryQualityAnalysis
-      ?.poorEntryRate ?? 100;
+const disciplineScore =
+  developmentReport.stopLossAnalysis
+    ?.usageRate ?? 0;
 
-  const entryTimingScore =
-    100 - poorEntryRate;
+const goodEntryRate =
+  developmentReport.entryQualityAnalysis
+    ?.goodEntryRate ?? 0;
+
+const averageEntries =
+  developmentReport.entryQualityAnalysis
+    ?.average ?? 0;
+
+const totalEntries =
+  (developmentReport.entryQualityAnalysis?.good ?? 0) +
+  averageEntries +
+  (developmentReport.entryQualityAnalysis?.poor ?? 0);
+
+const averageEntryRate =
+  totalEntries > 0
+    ? (averageEntries / totalEntries) * 100
+    : 0;
+
+const entryQualityScore =
+  Math.round(
+    goodEntryRate +
+    averageEntryRate * 0.5
+  );
 
   const consistencyScore =
     calculateConsistencyScore(
@@ -113,11 +137,11 @@ export function buildSkillAnalysis(
       "Measures how consistently stop losses are used."
     ),
 
-    buildSkill(
-      "Entry Timing",
-      entryTimingScore,
-      "Measures how often entries avoid poor market conditions."
-    ),
+buildSkill(
+  "Entry Quality",
+  entryQualityScore,
+  "Measures how often entries avoid poor market conditions."
+),
 
     buildSkill(
       "Consistency",

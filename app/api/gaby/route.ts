@@ -25,9 +25,8 @@ async function classifyGabyTopic(
     .map((item) => `${item.role}: ${item.content}`)
     .join("\n");
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
-    temperature: 0,
+const completion = await openai.chat.completions.create({
+  model: "gpt-5.6-luna",
     messages: [
       {
         role: "system",
@@ -279,8 +278,8 @@ Future TradeNestX topics may include:
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      temperature: 0.4,
+      model: "gpt-5.6-luna",
+      
       messages: [
         {
           role: "system",

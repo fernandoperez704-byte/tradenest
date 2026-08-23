@@ -3479,6 +3479,7 @@ setTrades={setTrades}
   selectedTimeframe={selectedTimeframe}
   currentPrice={currentPrice}
   priceLocation={priceLocation}
+  strongestPattern={strongestPattern}
 
 onAnalysisComplete={(subject) => {
   if (subject === "DIRECTION") {

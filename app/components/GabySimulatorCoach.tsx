@@ -50,6 +50,7 @@ futuresPositionManagement: any;
   selectedTimeframe?: string;
   currentPrice?: number;
   priceLocation?: string | null;
+  strongestPattern?: any;
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
@@ -83,6 +84,7 @@ export default function GabySimulatorCoach({
   selectedTimeframe,
   currentPrice,
   priceLocation,
+  strongestPattern,
   onAnalysisComplete,
   onChartCommand,
 }: GabySimulatorCoachProps) {
@@ -742,12 +744,13 @@ simulatorContext: {
   traderDevelopmentEngines,
 
   mode,
-            selectedCoin,
-            balance,
-            marginUsed,
-            selectedTimeframe,
-            currentPrice,
-            priceLocation,
+  selectedCoin,
+  balance,
+  marginUsed,
+  selectedTimeframe,
+  currentPrice,
+  priceLocation,
+  strongestPattern,
             marketDirection: movingAverageAnalysis?.direction,
             structure: marketIntelligence?.structure,
             ma7: movingAverageAnalysis?.ma7,
@@ -855,6 +858,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   selectedTimeframe,
   currentPrice,
   priceLocation,
+  strongestPattern,
   movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,
