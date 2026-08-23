@@ -336,14 +336,42 @@ openSignIn({
           Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
         </p>
 
-        <a
-          href="https://discord.gg/QReDrKSEKS"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-8 flex h-16 w-full max-w-sm items-center justify-center rounded-2xl bg-cyan-500 text-xl font-black text-black transition-all duration-200 hover:bg-cyan-400"
-        >
-          Open Discord
-        </a>
+<button
+  type="button"
+  onClick={() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      setShowCommunity(false);
+
+      const currentPage =
+        window.location.pathname +
+        window.location.search +
+        window.location.hash;
+
+      openSignIn({
+        forceRedirectUrl: currentPage,
+      });
+
+      return;
+    }
+
+    if (!isPaid) {
+      setShowCommunity(false);
+      setShowUpgrade(true);
+      return;
+    }
+
+    window.open(
+      "https://discord.gg/QReDrKSEKS",
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }}
+  className="mt-8 flex h-16 w-full max-w-sm items-center justify-center rounded-2xl bg-cyan-500 text-xl font-black text-black transition-all duration-200 hover:bg-cyan-400"
+>
+  Open Discord
+</button>
       </div>
     </div>
   </>
@@ -440,38 +468,17 @@ openSignIn({
   );
 })}
 
-        <button
-          type="button"
-onClick={() => {
-  setMobileMenuOpen(false);
-
-  if (!isLoaded) return;
-
-  if (!isSignedIn) {
-    const currentPage =
-      window.location.pathname +
-      window.location.search +
-      window.location.hash;
-
-    openSignIn({
-      forceRedirectUrl: currentPage,
-    });
-
-    return;
-  }
-
-if (!isPaid) {
-  setShowUpgrade(true);
-  return;
-}
-
-  setShowCommunity(true);
-}}
-          className="mb-2 flex h-14 w-full items-center justify-between rounded-xl border border-transparent px-4 text-left text-lg font-bold text-zinc-200 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white"
-        >
-          <span>Community</span>
-          <span className="text-xl text-zinc-500">›</span>
-        </button>
+<button
+  type="button"
+  onClick={() => {
+    setMobileMenuOpen(false);
+    setShowCommunity(true);
+  }}
+  className="mb-2 flex h-14 w-full items-center justify-between rounded-xl border border-transparent px-4 text-left text-lg font-bold text-zinc-200 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white"
+>
+  <span>Community</span>
+  <span className="text-xl text-zinc-500">›</span>
+</button>
       </div>
 
       {/* Account section */}
