@@ -28,62 +28,65 @@ export default function HomePage() {
 
 {/* HERO */}
 <section className="relative min-h-[calc(100vh-56px)] overflow-hidden">
-  {/* Mobile Hero */}
+  {/* Mobile Hero Image */}
   <img
     src="/learn/hero/mobile-tradenestx-hero.png"
     alt="TradeNestX - Trade Smarter, Stay Ahead"
     className="absolute inset-0 h-full w-full object-cover md:hidden"
   />
 
-  {/* Desktop Hero */}
+  {/* Desktop Hero Image */}
   <img
     src="/learn/hero/tradenestx-hero-banner-4k.png"
     alt="TradeNestX - Trade Smarter, Stay Ahead"
     className="absolute inset-0 hidden h-full w-full object-cover md:block"
   />
 
-  {/* Bottom Fade */}
+  {/* Fade */}
   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
 
-{/* HERO CONTENT */}
-<div className="relative z-10 min-h-[calc(100vh-56px)]">
+  {/* HERO CONTENT */}
+  <div className="relative z-10 min-h-[calc(100vh-56px)]">
+    {/* TITLE */}
+    <div className="absolute left-1/2 top-[48%] w-full -translate-x-1/2 -translate-y-1/2 px-5 text-center md:left-14 md:top-[43%] md:w-auto md:translate-x-0 md:text-left xl:left-20">
+      <h1 className="whitespace-nowrap text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl xl:text-7xl">
+        TRADE SMARTER
+      </h1>
 
-  {/* TITLE - LEFT MIDDLE */}
-<div className="absolute left-5 top-[45%] -translate-y-1/2 md:left-14 xl:left-20">
-  <div className="hero-title">
-    <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl xl:text-7xl">
-      TRADE SMARTER
-    </h1>
+      <p className="mt-2 text-center text-lg font-bold tracking-[0.35em] text-white sm:text-xl md:text-2xl">
+        STAY AHEAD
+      </p>
 
-    <p className="mt-2 text-center text-lg font-bold tracking-[0.35em] text-white sm:text-xl md:text-2xl">
-      STAY AHEAD
-    </p>
+      {/* Mobile Education Text */}
+      <div className="mt-5 space-y-1 text-center text-sm font-semibold text-cyan-300 md:hidden">
+        <p>Trading Education</p>
+        <p>Risk-Free Practice</p>
+        <p>AI-Powered Learning</p>
+      </div>
 
-<p className="mt-4 text-center text-sm font-semibold tracking-wide text-cyan-300/90 md:text-base">
+{/* Desktop Education Text */}
+<p className="mt-4 hidden text-center text-sm font-semibold tracking-wide text-cyan-300/90 md:block md:text-base">
   Trading Education • Risk-Free Practice • AI-Powered Learning
 </p>
+    </div>
 
+    {/* BUTTONS */}
+    <div className="absolute left-1/2 top-5 flex w-auto -translate-x-1/2 justify-center gap-3 md:bottom-40 md:left-[18.5%] md:top-auto md:-translate-x-1/2 xl:left-[25.5%]">
+      <Link
+        href="/learn"
+        className="flex h-12 min-w-[135px] items-center justify-center rounded-xl bg-cyan-400 px-7 text-sm font-black text-black transition hover:bg-cyan-300"
+      >
+        Start Now
+      </Link>
+
+      <a
+        href="#pro"
+        className="flex h-12 min-w-[135px] items-center justify-center rounded-xl border border-white/20 bg-black/40 px-7 text-sm font-black text-white backdrop-blur-md transition hover:border-cyan-400 hover:text-cyan-300"
+      >
+        Explore Pro
+      </a>
+    </div>
   </div>
-</div>
-
-  {/* BUTTONS - BOTTOM LEFT */}
-  <div className="hero-buttons absolute left-5 right-5 top-6 flex gap-3 md:bottom-14 md:left-14 md:right-auto md:top-auto xl:left-20">
-    <Link
-      href="/learn"
-      className="flex h-12 min-w-[150px] items-center justify-center rounded-xl bg-cyan-400 px-7 text-sm font-black text-black transition hover:bg-cyan-300"
-    >
-      Start Now
-    </Link>
-
-    <a
-      href="#pro"
-      className="flex h-12 min-w-[150px] items-center justify-center rounded-xl border border-white/20 bg-black/40 px-7 text-sm font-black text-white backdrop-blur-md transition hover:border-cyan-400 hover:text-cyan-300"
-    >
-      Explore Pro
-    </a>
-  </div>
-
-</div>
 </section>
         {/* PLATFORM VIDEO */}
         <section className="px-5 py-10 md:px-10 md:py-12">
