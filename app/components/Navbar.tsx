@@ -151,27 +151,7 @@ openSignIn({
 </Link>
 <button
   onClick={() => {
-    if (!isLoaded) return;
-
-    if (!isSignedIn) {
-      const currentPage =
-        window.location.pathname +
-        window.location.search +
-        window.location.hash;
-
-      openSignIn({
-        forceRedirectUrl: currentPage,
-      });
-
-      return;
-    }
-
-    if (!isPaid) {
-  setShowUpgrade(true);
-  return;
-}
-
-setShowCommunity(true);
+    setShowCommunity(true);
   }}
   className="flex h-10 items-center rounded-xl border border-zinc-800 bg-[#18181b] px-4 text-[15px] font-bold text-zinc-200 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/40 hover:text-cyan-400 xl:px-5"
 >
@@ -246,14 +226,42 @@ setShowCommunity(true);
           Get lesson reminders, daily market headlines, community support, and direct access to Gaby.
         </p>
 
-        <a
-          href="https://discord.gg/QReDrKSEKS"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition-all duration-200 hover:bg-cyan-400"
-        >
-          Open Discord
-        </a>
+<button
+  type="button"
+  onClick={() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      setShowCommunity(false);
+
+      const currentPage =
+        window.location.pathname +
+        window.location.search +
+        window.location.hash;
+
+      openSignIn({
+        forceRedirectUrl: currentPage,
+      });
+
+      return;
+    }
+
+    if (!isPaid) {
+      setShowCommunity(false);
+      setShowUpgrade(true);
+      return;
+    }
+
+    window.open(
+      "https://discord.gg/QReDrKSEKS",
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }}
+  className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-500 text-base font-black text-black transition-all duration-200 hover:bg-cyan-400"
+>
+  Open Discord
+</button>
       </div>
     </div>
   </>
@@ -278,13 +286,13 @@ setShowCommunity(true);
         ✕
       </button>
 
-      <h2 className="pr-10 text-2xl font-black text-white">
-        TradeNestX Pro
-      </h2>
+<h2 className="pr-10 text-2xl font-black text-white">
+  Community Access
+</h2>
 
-      <p className="mt-3 text-sm leading-6 text-zinc-400">
-        Community access is included with TradeNestX Pro for $24.99/month.
-      </p>
+<p className="mt-3 text-sm leading-6 text-zinc-400">
+  TradeNestX Community access is included with TradeNestX Pro.
+</p>
 
       <button
         type="button"
