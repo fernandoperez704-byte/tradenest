@@ -50,6 +50,15 @@ const userName =
 
 const normalizedQuestion = question?.trim().toLowerCase() || "";
 
+const {
+  conversationIntent,
+  conversationSubject,
+  conversationState,
+  marketAnalysisSummary,
+  traderDevelopmentEngines,
+  ...marketFacts
+} = simulatorContext || {};
+
 // Give Gaby the real current date and time
 const now = new Date();
 
@@ -130,6 +139,22 @@ thk: "You're welcome!",
       "good night": "Good night! See you soon.",
     };
 
+const hasActiveChartFollowUp =
+  marketFacts.chartHighlightState?.visible === true &&
+  marketFacts.chartHighlightState?.pinned !== true;
+
+const acknowledgementReply =
+  acknowledgementReplies[normalizedQuestion];
+
+if (
+  acknowledgementReply &&
+  !hasActiveChartFollowUp
+) {
+  return Response.json({
+    answer: acknowledgementReply,
+  });
+}
+
 const greetingMatch = normalizedQuestion.match(
   /^(hi|hello|hey)(\s+gaby)?[!.?]*$/
 );
@@ -160,16 +185,6 @@ if (isAskingToReviewLastTrade && !lastReviewData) {
     answer: "You haven't executed or selected a trade in the simulator to review yet. Try opening and closing a practice position first!",
   });
 }
-
-// 2. Extract Context Elements
-const {
-  conversationIntent,
-  conversationSubject,
-  conversationState,
-  marketAnalysisSummary,
-  traderDevelopmentEngines,
-  ...marketFacts
-} = simulatorContext || {};
 
     // 🛑 STRICTOR GUARDRAIL: Intercept bypass phrases that act like signals or predictions
     const lowerQuestion = normalizedQuestion.toLowerCase();
@@ -462,9 +477,13 @@ ${
 Rules:
 - Answer only the nearest support question.
 - Mention the selected timeframe.
-- Explain that support and resistance are areas of market interest, not guaranteed exact prices.
-- If the engine provides a single Support Level, present that value as the center/reference level of the nearest support area.
-- Do not call it a "single level."
+- Always describe support as an area or zone of market interest, never as a guaranteed exact price.
+- If the engine provides a support range, describe it as the nearest support area or support zone.
+- If the engine provides one support value, describe that value as the reference level inside the nearest support area.
+- Never describe support as only a single exact level.
+- Briefly explain that the nearest support is the closest lower price area relative to the current market price.
+- Explain it as the most relevant nearby support area to observe.
+- Do not suggest that buying activity will appear there.
 - Do not mention resistance, RSI, momentum, conviction, or market direction.
 - Do not give trade advice.
 - Keep it under 80 words.
@@ -486,12 +505,21 @@ const completion = await openai.chat.completions.create({
   ],
 });
 
-return Response.json({
-answer:
+const supportAnswer =
   completion.choices[0].message.content ||
   (support.low === support.high
     ? `The nearest support area on the selected **${timeframe}** timeframe is around **$${formatPrice(support.low)}**.`
-    : `The nearest support zone on the selected **${timeframe}** timeframe is **$${formatPrice(support.low)} - $${formatPrice(support.high)}**.`),
+    : `The nearest support zone on the selected **${timeframe}** timeframe is **$${formatPrice(support.low)} - $${formatPrice(support.high)}**.`);
+
+const supportAlreadyPinned =
+  marketFacts.chartHighlightState?.pinned === true &&
+  marketFacts.chartHighlightState?.type === "SUPPORT";
+
+return Response.json({
+  answer: supportAlreadyPinned
+    ? supportAnswer
+    : `${supportAnswer}\n\nI highlighted this area on the chart. I can leave it highlighted if you want.`,
+
   chartCommand: {
     action: "SHOW",
     target: "SUPPORT",
@@ -553,9 +581,13 @@ Rules:
 
 - Answer ONLY the nearest resistance question.
 - Mention the selected timeframe.
-- Explain that support and resistance are areas of market interest, not guaranteed exact prices.
-- If the engine provides a single Resistance Level, present that value as the center/reference level of the nearest resistance area.
-- Do not call it a "single level."
+- Always describe resistance as an area or zone of market interest, never as a guaranteed exact price.
+- If the engine provides a resistance range, describe it as the nearest resistance area or resistance zone.
+- If the engine provides one resistance value, describe that value as the reference level inside the nearest resistance area.
+- Never describe resistance as only a single exact level.
+- Briefly explain that the nearest resistance is the closest upper price area relative to the current market price.
+- Explain it as the most relevant nearby resistance area to observe.
+- Do not suggest that selling activity will appear there.
 - Do NOT mention support.
 - Do NOT mention RSI.
 - Do NOT mention momentum.
@@ -580,12 +612,20 @@ Rules:
     ],
   });
 
-return Response.json({
-answer:
+const resistanceAnswer =
   completion.choices[0].message.content ||
   (resistance.low === resistance.high
     ? `The nearest resistance area on the selected **${timeframe}** timeframe is around **$${formatPrice(resistance.low)}**.`
-    : `The nearest resistance zone on the selected **${timeframe}** timeframe is **$${formatPrice(resistance.low)} - $${formatPrice(resistance.high)}**.`),
+    : `The nearest resistance zone on the selected **${timeframe}** timeframe is **$${formatPrice(resistance.low)} - $${formatPrice(resistance.high)}**.`);
+
+const resistanceAlreadyPinned =
+  marketFacts.chartHighlightState?.pinned === true &&
+  marketFacts.chartHighlightState?.type === "RESISTANCE";
+
+return Response.json({
+  answer: resistanceAlreadyPinned
+    ? resistanceAnswer
+    : `${resistanceAnswer}\n\nI highlighted this area on the chart. I can leave it highlighted if you want.`,
 
   chartCommand: {
     action: "SHOW",
@@ -691,13 +731,15 @@ Rules:
 - Explain the Market Direction.
 - Explain the Market Structure.
 - Mention the nearest Support and Resistance when available.
+
 - Use support and resistance correctly:
-  - Support is the lower market level.
-  - Resistance is the upper market level.
+  - Support is the lower market area.
+  - Resistance is the upper market area.
   - A break below support may reinforce bearish conditions.
   - A break above resistance may reinforce bullish conditions.
   - Holding above support may help preserve the current structure.
   - Holding below resistance may help preserve the current structure.
+
 - Do not discuss Momentum unless the user specifically asks about Momentum.
 - Do not discuss Volume, RSI, or other indicators unless the user specifically asks about them.
 - Never identify, infer, or describe chart patterns.
@@ -951,6 +993,9 @@ nextResistance: marketFacts.nextResistance,
 
 strongestPattern: marketFacts.strongestPattern,
 
+chartHighlightState:
+  marketFacts.chartHighlightState ?? null,
+
 momentumAnalysis: marketFacts.momentumAnalysis,
 volumeAnalysis: marketFacts.volumeAnalysis,
 rsiAnalysis: marketFacts.rsiAnalysis,
@@ -1043,6 +1088,15 @@ Chart command meanings:
 - REMOVE = remove the requested chart item.
 - CLEAR = clear Gaby chart annotations.
 - NONE = no chart change.
+
+Chart awareness:
+- Use chartHighlightState to know what Gaby currently has highlighted on the chart.
+- visible=true means the chart item is currently displayed.
+- pinned=true means the item should remain displayed.
+- If an item is already pinned, do not offer to leave it highlighted again.
+- If the user clearly asks to keep the currently visible highlight, return PIN for that item.
+- If the user's reply is ambiguous and could simply be an acknowledgement, ask a short clarification instead of guessing.
+- Never invent a chart item that is not present in the supplied chart state or market facts.
 
 Examples:
 "show support"

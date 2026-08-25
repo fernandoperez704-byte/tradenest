@@ -57,6 +57,13 @@ futuresPositionManagement: any;
 
 
 onChartCommand?: (command: any) => void;
+chartHighlightState?: {
+  visible: boolean;
+  pinned: boolean;
+  type?: "SUPPORT" | "RESISTANCE" | null;
+  price?: number | null;
+};
+
 };
 
 export default function GabySimulatorCoach({
@@ -87,6 +94,7 @@ export default function GabySimulatorCoach({
   strongestPattern,
   onAnalysisComplete,
   onChartCommand,
+  chartHighlightState,
 }: GabySimulatorCoachProps) {
   const { user } = useUser();
   const { openSignIn } = useClerk();
@@ -751,6 +759,13 @@ simulatorContext: {
   currentPrice,
   priceLocation,
   strongestPattern,
+
+  chartHighlightState: chartHighlightState ?? {
+    visible: false,
+    pinned: false,
+    type: null,
+    price: null,
+  },
             marketDirection: movingAverageAnalysis?.direction,
             structure: marketIntelligence?.structure,
             ma7: movingAverageAnalysis?.ma7,
@@ -871,6 +886,7 @@ futuresPositionManagement,
 getLatestReviewedTrade,
 
 onChartCommand,
+chartHighlightState,
 ]);
 
 function toggleVoiceMode() {

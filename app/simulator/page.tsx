@@ -191,6 +191,36 @@ const [gabyAnnotations, setGabyAnnotations] =
  const [pinnedGabyAnnotations, setPinnedGabyAnnotations] =
   useState<GabyAnnotationKey[]>([]); 
 
+const [pinnedLoaded, setPinnedLoaded] =
+  useState(false);
+
+useEffect(() => {
+  const saved = localStorage.getItem(
+    "tradenestx-pinned-gaby-annotations"
+  );
+
+  if (saved) {
+    const parsed = JSON.parse(saved).filter(
+      (x: string) =>
+        x === "SUPPORT" || x === "RESISTANCE"
+    );
+
+    setPinnedGabyAnnotations(parsed);
+    setGabyAnnotations(parsed);
+  }
+
+  setPinnedLoaded(true);
+}, []);
+
+useEffect(() => {
+  if (!pinnedLoaded) return;
+
+  localStorage.setItem(
+    "tradenestx-pinned-gaby-annotations",
+    JSON.stringify(pinnedGabyAnnotations)
+  );
+}, [pinnedGabyAnnotations, pinnedLoaded]);
+
   const [gabyAnnotationCount, setGabyAnnotationCount] =
   useState(1);
 
@@ -3243,7 +3273,22 @@ const watchlist = WATCHLIST.map((coin) => ({
   price: prices[coin.symbol],
 }));
 
-  return (
+const chartHighlightState = {
+  visible: gabyAnnotations.length > 0,
+
+  pinned: gabyAnnotations.some((item) =>
+    pinnedGabyAnnotations.includes(item)
+  ),
+
+  type:
+    gabyAnnotations.length === 1
+      ? gabyAnnotations[0]
+      : null,
+
+  price: null,
+};
+
+return (
     <>
       <Navbar />
 
@@ -3480,6 +3525,7 @@ setTrades={setTrades}
   currentPrice={currentPrice}
   priceLocation={priceLocation}
   strongestPattern={strongestPattern}
+  chartHighlightState={chartHighlightState}
 
 onAnalysisComplete={(subject) => {
   if (subject === "DIRECTION") {

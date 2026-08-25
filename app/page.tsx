@@ -48,7 +48,7 @@ export default function HomePage() {
   {/* HERO CONTENT */}
   <div className="relative z-10 min-h-[calc(100vh-56px)]">
     {/* TITLE */}
-    <div className="absolute left-1/2 top-[48%] w-full -translate-x-1/2 -translate-y-1/2 px-5 text-center md:left-14 md:top-[43%] md:w-auto md:translate-x-0 md:text-left xl:left-20">
+    <div className="absolute left-1/2 top-[48%] w-full -translate-x-1/2 -translate-y-1/2 px-5 text-center md:left-32 md:top-[40%] md:w-auto md:translate-x-0 md:text-left xl:left-40">
       <h1 className="whitespace-nowrap text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl xl:text-7xl">
         TRADE SMARTER
       </h1>
@@ -71,7 +71,7 @@ export default function HomePage() {
     </div>
 
     {/* BUTTONS */}
-    <div className="absolute left-1/2 top-5 flex w-auto -translate-x-1/2 justify-center gap-3 md:bottom-40 md:left-[18.5%] md:top-auto md:-translate-x-1/2 xl:left-[25.5%]">
+    <div className="absolute left-1/2 top-5 flex w-auto -translate-x-1/2 justify-center gap-3 md:bottom-40 md:left-[30%] md:top-auto md:-translate-x-1/2 xl:left-[30%]">
       <Link
         href="/learn"
         className="flex h-12 min-w-[135px] items-center justify-center rounded-xl bg-cyan-400 px-7 text-sm font-black text-black transition hover:bg-cyan-300"
