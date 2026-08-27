@@ -451,6 +451,7 @@ return (
   highlights={gabyChartHighlights}
   candleSeriesRef={candleSeriesRef}
   chartContainerRef={chartRef}
+  chartInstanceRef={chartInstanceRef}
 />
 
   <PatternOverlay

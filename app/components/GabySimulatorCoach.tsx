@@ -51,6 +51,7 @@ futuresPositionManagement: any;
   currentPrice?: number;
   priceLocation?: string | null;
   strongestPattern?: any;
+  detectedTrendline?: any;
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
@@ -60,7 +61,7 @@ onChartCommand?: (command: any) => void;
 chartHighlightState?: {
   visible: boolean;
   pinned: boolean;
-  type?: "SUPPORT" | "RESISTANCE" | null;
+  type?: "SUPPORT" | "RESISTANCE" | "TRENDLINE" | null;
   price?: number | null;
 };
 
@@ -92,7 +93,8 @@ export default function GabySimulatorCoach({
   currentPrice,
   priceLocation,
   strongestPattern,
-  onAnalysisComplete,
+detectedTrendline,
+onAnalysisComplete,
   onChartCommand,
   chartHighlightState,
 }: GabySimulatorCoachProps) {
@@ -757,8 +759,9 @@ simulatorContext: {
   marginUsed,
   selectedTimeframe,
   currentPrice,
-  priceLocation,
-  strongestPattern,
+priceLocation,
+strongestPattern,
+detectedTrendline,
 
   chartHighlightState: chartHighlightState ?? {
     visible: false,
@@ -872,9 +875,10 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   marginUsed,
   selectedTimeframe,
   currentPrice,
-  priceLocation,
-  strongestPattern,
-  movingAverageAnalysis,
+priceLocation,
+strongestPattern,
+detectedTrendline,
+movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,
 trades,
@@ -1199,18 +1203,28 @@ onKeyDown={(e) => {
           className="h-14 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
         />
 
-<button
-  onClick={toggleVoiceMode}
-  className={`h-11 w-full sm:w-auto rounded-xl border px-4 text-sm font-bold transition ${
-    voiceMode
-      ? "border-cyan-400 bg-cyan-500 text-black"
-      : "border-cyan-500/40 bg-[#111827] text-cyan-300 hover:border-cyan-400"
-  }`}
->
-  {voiceMode
-    ? "🎙️ Voice ON"
-    : "🎙️ Voice OFF"}
-</button>
+<div className="group relative w-full sm:w-auto">
+  <button
+    onClick={toggleVoiceMode}
+    className={`h-11 w-full rounded-xl border px-4 text-sm font-bold transition ${
+      voiceMode
+        ? "border-cyan-400 bg-cyan-500 text-black"
+        : "border-cyan-500/40 bg-[#111827] text-cyan-300 hover:border-cyan-400"
+    }`}
+  >
+    {voiceMode
+      ? "🎙️ Voice ON"
+      : "🎙️ Voice OFF"}
+  </button>
+
+  <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-cyan-400/20 bg-[#020617] px-3 py-2 text-xs leading-5 text-zinc-300 shadow-xl group-hover:block">
+    <span className="font-bold text-cyan-300">Voice Command:</span>{" "}
+    Turn Voice ON, then start your question with{" "}
+    <span className="font-bold text-white">“Gaby”</span>.
+    <br />
+    Example: “Gaby, where is the nearest support?”
+  </div>
+</div>
 
 <button
   onClick={() => {

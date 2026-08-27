@@ -5,6 +5,11 @@ import { buildCandlePath } from "./helpers/buildCandlePath";
 import { DETECTOR_REGISTRY } from "./registry";
 import { PATTERN_CONFIG } from "./constants";
 
+import {
+  detectTrendline,
+  type DetectedTrendline,
+} from "./detectors/detectTrendline";
+
 export function detectPatterns(history: PricePoint[]): DetectedPattern[] {
   if (
     !Array.isArray(history) ||
@@ -59,4 +64,26 @@ export function detectPatterns(history: PricePoint[]): DetectedPattern[] {
   return uniquePatterns.length > 0
     ? [uniquePatterns[0]]
     : [];
+}
+
+export function detectMarketTrendline(
+  history: PricePoint[],
+  structure?: string
+): DetectedTrendline | null {
+  if (!Array.isArray(history) || history.length < 20) {
+    return null;
+  }
+
+  const path = buildCandlePath(history, {
+    lookback: Math.min(history.length, 120),
+    minimumMovePercent: PATTERN_CONFIG.MIN_MOVE_PERCENT,
+  });
+
+  if (!Array.isArray(path)) return null;
+
+  try {
+    return detectTrendline(history, path, structure);
+  } catch {
+    return null;
+  }
 }

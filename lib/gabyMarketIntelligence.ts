@@ -277,6 +277,7 @@ function getMarketStructure(candles: Candle[]): MarketStructure {
 
   const lastHigh = highs[highs.length - 1];
   const previousHigh = highs[highs.length - 2];
+
   const lastLow = lows[lows.length - 1];
   const previousLow = lows[lows.length - 2];
 
@@ -285,14 +286,40 @@ function getMarketStructure(candles: Candle[]): MarketStructure {
   const lowerHigh = lastHigh < previousHigh;
   const lowerLow = lastLow < previousLow;
 
+  // Clean bullish structure
   if (higherHigh && higherLow) {
-    if (currentPrice < lastLow) return "TRANSITION";
+    if (currentPrice < lastLow) {
+      return "BULLISH_PULLBACK";
+    }
+
     return "BULLISH";
   }
 
+  // Clean bearish structure
   if (lowerHigh && lowerLow) {
-    if (currentPrice > lastHigh) return "TRANSITION";
+    if (currentPrice > lastHigh) {
+      return "BEARISH_PULLBACK";
+    }
+
     return "BEARISH";
+  }
+
+  // Mixed structure:
+  // wait for price to confirm direction by breaking
+  // the latest structural high or low.
+  if (
+    (lowerHigh && higherLow) ||
+    (higherHigh && lowerLow)
+  ) {
+    if (currentPrice > lastHigh) {
+      return "BULLISH";
+    }
+
+    if (currentPrice < lastLow) {
+      return "BEARISH";
+    }
+
+    return "TRANSITION";
   }
 
   return "TRANSITION";
@@ -836,8 +863,8 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
     : "LOW";
 
   const fallForce = getFallForce(recentCandles);
-  const supportZones = groupZones(getSwingLows(recentCandles));
-  const resistanceZones = groupZones(getSwingHighs(recentCandles));
+const supportZones = groupZones(getSwingLows(recentCandles));
+const resistanceZones = groupZones(getSwingHighs(recentCandles));
 
   const supportLevels = supportZones.filter((z) => z.high < currentPrice).sort((a, b) => b.high - a.high);
   const resistanceLevels = resistanceZones.filter((z) => z.low > currentPrice).sort((a, b) => a.low - b.low);

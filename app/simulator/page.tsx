@@ -47,7 +47,9 @@ import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
 
 import {
   detectPatterns,
+  detectMarketTrendline,
   type DetectedPattern,
+  type DetectedTrendline,
 } from "@/lib/patternRecognition";
 
 import { db } from "../firebase";
@@ -183,7 +185,8 @@ useEffect(() => {
 
 type GabyAnnotationKey =
   | "SUPPORT"
-  | "RESISTANCE";
+  | "RESISTANCE"
+  | "TRENDLINE";
 
 const [gabyAnnotations, setGabyAnnotations] =
   useState<GabyAnnotationKey[]>([]);
@@ -200,10 +203,12 @@ useEffect(() => {
   );
 
   if (saved) {
-    const parsed = JSON.parse(saved).filter(
-      (x: string) =>
-        x === "SUPPORT" || x === "RESISTANCE"
-    );
+const parsed = JSON.parse(saved).filter(
+  (x: string) =>
+    x === "SUPPORT" ||
+    x === "RESISTANCE" ||
+    x === "TRENDLINE"
+);
 
     setPinnedGabyAnnotations(parsed);
     setGabyAnnotations(parsed);
@@ -236,6 +241,9 @@ const [patternRecognitionEnabled, setPatternRecognitionEnabled] =
 
 const [detectedPatterns, setDetectedPatterns] =
   useState<DetectedPattern[]>([]);
+
+const [detectedTrendline, setDetectedTrendline] =
+  useState<DetectedTrendline | null>(null);  
 
 const strongestPattern =
   detectedPatterns.length > 0
@@ -302,12 +310,14 @@ useEffect(() => {
     });
   }
 
+
   setGabyChartHighlights(highlights);
 }, [
   gabyAnnotations,
   gabyAnnotationCount,
   marketIntelligence?.supportLevels,
   marketIntelligence?.resistanceLevels,
+  detectedTrendline,
   selectedCoin,
   selectedTimeframe,
 ]);
@@ -947,6 +957,8 @@ const indicatorPanelRef =
 const ma7SeriesRef = useRef<any>(null);
 const ma25SeriesRef = useRef<any>(null);
 const ma99SeriesRef = useRef<any>(null);
+const gabyUpperTrendlineSeriesRef = useRef<any>(null);
+const gabyLowerTrendlineSeriesRef = useRef<any>(null);
 
 const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
@@ -1557,6 +1569,78 @@ setDetectedPatterns(results);
 ]);
 
 useEffect(() => {
+  const candleKey =
+    `${selectedCoin}-${selectedTimeframe}`;
+
+  if (
+    candlesReadyFor !== candleKey ||
+    history.length < 50
+  ) {
+    setDetectedTrendline(null);
+    return;
+  }
+
+setDetectedTrendline(
+  detectMarketTrendline(
+    history,
+    marketIntelligence?.structure
+  )
+);
+}, [
+  history,
+  candlesReadyFor,
+  selectedCoin,
+  selectedTimeframe,
+  marketIntelligence?.structure,
+]);
+
+useEffect(() => {
+  const upper = gabyUpperTrendlineSeriesRef.current;
+  const lower = gabyLowerTrendlineSeriesRef.current;
+
+  if (
+    !upper ||
+    !lower ||
+    !gabyAnnotations.includes("TRENDLINE") ||
+    !detectedTrendline ||
+    !history.length
+  ) {
+    upper?.setData([]);
+    lower?.setData([]);
+    return;
+  }
+
+  const latestTime = Number(history.at(-1)?.time);
+
+  const draw = (series: any, line: typeof detectedTrendline.upper) => {
+    const start = Number(line.startTime);
+    const end = Number(line.endTime);
+
+    if (!start || !end || end <= start) {
+      series.setData([]);
+      return;
+    }
+
+    const slope =
+      (line.endPrice - line.startPrice) / (end - start);
+
+    series.setData([
+      {
+        time: Math.floor(start / 1000) as any,
+        value: line.startPrice,
+      },
+      {
+        time: Math.floor(latestTime / 1000) as any,
+        value: line.endPrice + slope * (latestTime - end),
+      },
+    ]);
+  };
+
+  draw(upper, detectedTrendline.upper);
+  draw(lower, detectedTrendline.lower);
+}, [gabyAnnotations, detectedTrendline, history]);
+
+useEffect(() => {
   const container = chartRef.current;
 
   if (!container) return;
@@ -1723,6 +1807,18 @@ useEffect(() => {
     lastValueVisible: false,
   });
 
+const gabyUpperTrendlineSeries = chart.addSeries(LineSeries, {
+  lineWidth: 2,
+  priceLineVisible: false,
+  lastValueVisible: false,
+});
+
+const gabyLowerTrendlineSeries = chart.addSeries(LineSeries, {
+  lineWidth: 2,
+  priceLineVisible: false,
+  lastValueVisible: false,
+});
+
   chartInstanceRef.current = chart;
   candleSeriesRef.current = candleSeries;
   volumeSeriesRef.current = volumeSeries;
@@ -1730,6 +1826,8 @@ useEffect(() => {
   ma7SeriesRef.current = ma7Series;
   ma25SeriesRef.current = ma25Series;
   ma99SeriesRef.current = ma99Series;
+  gabyUpperTrendlineSeriesRef.current = gabyUpperTrendlineSeries;
+gabyLowerTrendlineSeriesRef.current = gabyLowerTrendlineSeries;
 
   chart.subscribeCrosshairMove((param) => {
     if (!param.time) {
@@ -1779,6 +1877,9 @@ useEffect(() => {
     ma7SeriesRef.current = null;
     ma25SeriesRef.current = null;
     ma99SeriesRef.current = null;
+    gabyUpperTrendlineSeriesRef.current = null;
+gabyLowerTrendlineSeriesRef.current = null;
+
   };
 }, []);
 
@@ -3525,12 +3626,20 @@ setTrades={setTrades}
   currentPrice={currentPrice}
   priceLocation={priceLocation}
   strongestPattern={strongestPattern}
+  detectedTrendline={detectedTrendline}
   chartHighlightState={chartHighlightState}
 
 onAnalysisComplete={(subject) => {
   if (subject === "DIRECTION") {
-    setGabyAnnotations(["SUPPORT", "RESISTANCE"]);
-  } else if (subject === "SUPPORT" || subject === "RESISTANCE") {
+    setGabyAnnotations([
+      "SUPPORT",
+      "RESISTANCE",
+      "TRENDLINE",
+    ]);
+  } else if (
+    subject === "SUPPORT" ||
+    subject === "RESISTANCE"
+  ) {
     setGabyAnnotations([subject]);
   }
 }}
@@ -3544,12 +3653,14 @@ onChartCommand={(command) => {
     Math.min(Number(command?.count) || 1, 3)
   );
 
-  const targets: GabyAnnotationKey[] =
-    target === "BOTH"
-      ? ["SUPPORT", "RESISTANCE"]
-      : target === "SUPPORT" || target === "RESISTANCE"
-      ? [target]
-      : [];
+const targets: GabyAnnotationKey[] =
+  target === "BOTH"
+    ? ["SUPPORT", "RESISTANCE"]
+    : target === "SUPPORT" ||
+      target === "RESISTANCE" ||
+      target === "TRENDLINE"
+    ? [target]
+    : [];
 
   if (action === "CLEAR") {
     setGabyAnnotations([]);
@@ -3583,7 +3694,20 @@ onChartCommand={(command) => {
 
 if (action === "SHOW") {
   setGabyAnnotationCount(count);
-  setGabyAnnotations(targets);
+
+setGabyAnnotations((prev) => {
+  if (target === "TRENDLINE") {
+    const next: GabyAnnotationKey[] = [...prev];
+
+    if (!next.includes("SUPPORT")) next.push("SUPPORT");
+    if (!next.includes("RESISTANCE")) next.push("RESISTANCE");
+    if (!next.includes("TRENDLINE")) next.push("TRENDLINE");
+
+    return next;
+  }
+
+  return targets;
+});
 }
 }}
 

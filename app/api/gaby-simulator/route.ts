@@ -652,12 +652,8 @@ const isMarketAnalysisQuestion =
 if (isMarketAnalysisQuestion) {
 const direction = marketFacts.marketDirection;
 const structure = marketFacts.structure;
+const detectedTrendline = marketFacts.detectedTrendline;
 
-const marketState = marketFacts.marketState;
-const controlStrength = marketFacts.controlStrength;
-const moveCondition = marketFacts.moveCondition;
-const momentumStage = marketFacts.momentumStage;
-const momentumAnalysis = marketFacts.momentumAnalysis;
 const nearestSupport = marketFacts.nearestSupport;
 const nearestResistance = marketFacts.nearestResistance;
 const currentPrice = marketFacts.currentPrice;
@@ -699,11 +695,6 @@ Current Price: $${formatPrice(currentPrice)}
 
 Market Direction: ${direction}
 Market Structure: ${structure || "UNKNOWN"}
-Market State: ${marketState || "UNKNOWN"}
-
-Control Strength: ${controlStrength || "UNKNOWN"}
-Move Condition: ${moveCondition || "UNKNOWN"}
-
 
 Nearest Support:
 ${
@@ -724,30 +715,34 @@ ${
 }
 
 Rules:
-
 - Answer only the user's overall market direction question.
 - Mention the coin and selected timeframe.
 - Use ONLY the supplied TradeNestX engine facts.
-- Explain the Market Direction.
-- Explain the Market Structure.
+- Clearly state the Market Direction first.
+- Briefly explain the Market Direction.
+- Explain the Market Structure and how it relates to the current direction.
 - Mention the nearest Support and Resistance when available.
-
-- Use support and resistance correctly:
-  - Support is the lower market area.
-  - Resistance is the upper market area.
-  - A break below support may reinforce bearish conditions.
-  - A break above resistance may reinforce bullish conditions.
-  - Holding above support may help preserve the current structure.
-  - Holding below resistance may help preserve the current structure.
-
-- Do not discuss Momentum unless the user specifically asks about Momentum.
-- Do not discuss Volume, RSI, or other indicators unless the user specifically asks about them.
+- Describe Support and Resistance as areas or zones, not guaranteed exact prices.
+- If only one support or resistance value is supplied, treat it as a reference level within that area.
+- Support is the lower market area.
+- Resistance is the upper market area.
+- A break below support may reinforce bearish conditions.
+- A break above resistance may reinforce bullish conditions.
+- Holding above support may help preserve the current structure.
+- Holding below resistance may help preserve the current structure.
+- Do not discuss Control Strength.
+- Do not discuss Market State.
+- Do not discuss Move Condition.
+- Do not discuss Momentum unless specifically asked.
+- Do not discuss Volume, RSI, or other indicators unless specifically asked.
 - Never identify, infer, or describe chart patterns.
 - Never invent technical observations that are not provided by the TradeNestX engines.
 - Do not infer information from the chart.
 - Do not predict future prices.
-- Do not provide buy, sell, long, or short recommendations.
-- Keep the answer under 100 words.
+- Do not provide buy, sell, long, short, hold, or exit recommendations.
+- Return the entire answer as one compact paragraph.
+- Do not use headings, bullet points, or separate paragraphs.
+- Keep the answer concise and under 80 words.
 `;
 
   const completion =
@@ -766,11 +761,25 @@ Rules:
       ],
     });
 
-  return Response.json({
-    answer:
-      completion.choices[0].message.content ||
-      `The overall market direction for **${coin}** on the selected **${timeframe}** timeframe is **${direction}**.`,
-  });
+return Response.json({
+  answer:
+    completion.choices[0].message.content ||
+    `The overall market direction for **${coin}** on the selected **${timeframe}** timeframe is **${direction}**.`,
+
+chartCommand:
+  detectedTrendline &&
+  detectedTrendline.direction === structure
+    ? {
+        action: "SHOW",
+        target: "TRENDLINE",
+        count: 1,
+      }
+    : {
+        action: "NONE",
+        target: null,
+        count: 1,
+      },
+});
 }
 
 const accessResponse = await requireGabyAccess();

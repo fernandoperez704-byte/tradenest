@@ -1,4 +1,7 @@
-export { detectPatterns } from "./detectPatterns";
+export {
+  detectPatterns,
+  detectMarketTrendline,
+} from "./detectPatterns";
 
 export type {
   DetectedPattern,
@@ -15,3 +18,6 @@ export type {
   CandlePathPoint,
   CandlePathDirection,
 } from "./helpers/buildCandlePath";
+
+export { detectTrendline } from "./detectors/detectTrendline";
+export type { DetectedTrendline } from "./detectors/detectTrendline";
