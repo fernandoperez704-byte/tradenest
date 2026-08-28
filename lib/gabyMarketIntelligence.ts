@@ -135,6 +135,8 @@ export type MarketIntelligence = {
   nextSupport: PriceZone | null;
   nearestResistance: PriceZone | null;
   nextResistance: PriceZone | null;
+  strongestSupport: PriceZone | null;
+strongestResistance: PriceZone | null;
   supportLevels: PriceZone[];
   resistanceLevels: PriceZone[];
   patternAnalysis: PatternAnalysis | null;
@@ -255,6 +257,8 @@ function groupZones(levels: number[], tolerancePercent = 0.0015): PriceZone[] {
   });
   return zones;
 }
+
+
 
 export function isPriceNearZone(price: number, zone: PriceZone | null, tolerancePercent = 0.0015): boolean {
   if (!zone) return false;
@@ -835,6 +839,8 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
       nextSupport: null,
       nearestResistance: null,
       nextResistance: null,
+      strongestSupport: null,
+strongestResistance: null,
       supportLevels: [],
       resistanceLevels: [],
       patternAnalysis: null,
@@ -866,13 +872,23 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
 const supportZones = groupZones(getSwingLows(recentCandles));
 const resistanceZones = groupZones(getSwingHighs(recentCandles));
 
-  const supportLevels = supportZones.filter((z) => z.high < currentPrice).sort((a, b) => b.high - a.high);
-  const resistanceLevels = resistanceZones.filter((z) => z.low > currentPrice).sort((a, b) => a.low - b.low);
+const supportLevels = supportZones.filter((z) => z.high < currentPrice).sort((a, b) => b.high - a.high);
+const resistanceLevels = resistanceZones.filter((z) => z.low > currentPrice).sort((a, b) => a.low - b.low);
 
-  const nearestSupport = supportLevels[0] ?? null;
-  const nextSupport = supportLevels[1] ?? null;
-  const nearestResistance = resistanceLevels[0] ?? null;
-  const nextResistance = resistanceLevels[1] ?? null;
+const nearestSupport = supportLevels[0] ?? null;
+const nextSupport = supportLevels[1] ?? null;
+const nearestResistance = resistanceLevels[0] ?? null;
+const nextResistance = resistanceLevels[1] ?? null;
+
+const strongestSupport =
+  supportLevels.length
+    ? [...supportLevels].sort((a, b) => b.strength - a.strength)[0]
+    : null;
+
+const strongestResistance =
+  resistanceLevels.length
+    ? [...resistanceLevels].sort((a, b) => b.strength - a.strength)[0]
+    : null;
 
 const structure = getMarketStructure(recentCandles);
   
@@ -899,6 +915,8 @@ const structure = getMarketStructure(recentCandles);
     nextSupport,
     nearestResistance,
     nextResistance,
+    strongestSupport,
+strongestResistance,
     supportLevels,
     resistanceLevels,
     patternAnalysis,

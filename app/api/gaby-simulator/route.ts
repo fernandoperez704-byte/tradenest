@@ -426,6 +426,28 @@ return Response.json({
 });
 }
 
+// Handle next support
+const isNextSupportQuestion =
+  normalizedQuestion.includes("next support") ||
+  normalizedQuestion.includes("second support");
+
+if (isNextSupportQuestion && marketFacts.nextSupport) {
+  const support = marketFacts.nextSupport;
+
+  return Response.json({
+    answer:
+      support.low === support.high
+        ? `The next support area is around $${formatPrice(support.low)}.`
+        : `The next support zone is $${formatPrice(support.low)}–$${formatPrice(support.high)}.`,
+
+    chartCommand: {
+      action: "SHOW",
+      target: "SUPPORT",
+      count: 2,
+    },
+  });
+}
+
 // Handle nearest support with focused GPT explanation
 const isNearestSupportQuestion =
   normalizedQuestion.includes("nearest support") ||
@@ -526,6 +548,28 @@ return Response.json({
     count: 1,
   },
 });
+}
+
+// Handle next resistance
+const isNextResistanceQuestion =
+  normalizedQuestion.includes("next resistance") ||
+  normalizedQuestion.includes("second resistance");
+
+if (isNextResistanceQuestion && marketFacts.nextResistance) {
+  const resistance = marketFacts.nextResistance;
+
+  return Response.json({
+    answer:
+      resistance.low === resistance.high
+        ? `The next resistance area is around $${formatPrice(resistance.low)}.`
+        : `The next resistance zone is $${formatPrice(resistance.low)}–$${formatPrice(resistance.high)}.`,
+
+    chartCommand: {
+      action: "SHOW",
+      target: "RESISTANCE",
+      count: 2,
+    },
+  });
 }
 
 // Handle nearest resistance with focused GPT explanation
@@ -995,10 +1039,13 @@ ${JSON.stringify(
     marketDirection: marketFacts.marketDirection,
     structure: marketFacts.structure,
     priceLocation: marketFacts.priceLocation,
-    nearestSupport: marketFacts.nearestSupport,
-    nextSupport: marketFacts.nextSupport,
+nearestSupport: marketFacts.nearestSupport,
+nextSupport: marketFacts.nextSupport,
+supportLevels: marketFacts.supportLevels,
+
 nearestResistance: marketFacts.nearestResistance,
 nextResistance: marketFacts.nextResistance,
+resistanceLevels: marketFacts.resistanceLevels,
 
 strongestPattern: marketFacts.strongestPattern,
 
@@ -1084,11 +1131,12 @@ Return ONLY valid JSON in this shape:
 
 {
   "answer": "Gaby's normal natural answer",
-  "chartCommand": {
-    "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
-    "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
-    "count": 1
-  }
+"chartCommand": {
+  "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
+  "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
+  "count": 1,
+  "index": 0
+}
 }
 
 Chart command meanings:
@@ -1106,6 +1154,11 @@ Chart awareness:
 - If the user clearly asks to keep the currently visible highlight, return PIN for that item.
 - If the user's reply is ambiguous and could simply be an acknowledgement, ask a short clarification instead of guessing.
 - Never invent a chart item that is not present in the supplied chart state or market facts.
+- When SHOW targets SUPPORT or RESISTANCE, use index to identify the exact level from supportLevels or resistanceLevels.
+- index 0 = nearest level, index 1 = second level, index 2 = third level, and so on.
+- If the user asks to highlight a specific support or resistance previously discussed, select the index of that exact supplied level.
+- Do not default to index 0 when the user is referring to a different supplied level.
+
 
 Examples:
 "show support"

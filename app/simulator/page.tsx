@@ -180,7 +180,8 @@ useEffect(() => {
   const [showGabyHint, setShowGabyHint] = useState(true);
   const [gabyChartHighlights, setGabyChartHighlights] =
   useState<GabyChartHighlight[]>([]);
-  
+  const [pinnedGabyChartHighlights, setPinnedGabyChartHighlights] =
+  useState<GabyChartHighlight[]>([]);
 
 
 type GabyAnnotationKey =
@@ -203,15 +204,25 @@ useEffect(() => {
   );
 
   if (saved) {
-const parsed = JSON.parse(saved).filter(
-  (x: string) =>
-    x === "SUPPORT" ||
-    x === "RESISTANCE" ||
-    x === "TRENDLINE"
-);
+    const parsed = JSON.parse(saved).filter(
+      (x: string) =>
+        x === "SUPPORT" ||
+        x === "RESISTANCE" ||
+        x === "TRENDLINE"
+    );
 
     setPinnedGabyAnnotations(parsed);
     setGabyAnnotations(parsed);
+  }
+
+  const savedHighlights = localStorage.getItem(
+    "tradenestx-pinned-gaby-chart-highlights"
+  );
+
+  if (savedHighlights) {
+    setPinnedGabyChartHighlights(
+      JSON.parse(savedHighlights)
+    );
   }
 
   setPinnedLoaded(true);
@@ -226,8 +237,23 @@ useEffect(() => {
   );
 }, [pinnedGabyAnnotations, pinnedLoaded]);
 
+useEffect(() => {
+  if (!pinnedLoaded) return;
+
+  localStorage.setItem(
+    "tradenestx-pinned-gaby-chart-highlights",
+    JSON.stringify(pinnedGabyChartHighlights)
+  );
+}, [
+  pinnedGabyChartHighlights,
+  pinnedLoaded,
+]);
+
   const [gabyAnnotationCount, setGabyAnnotationCount] =
   useState(1);
+
+ const [gabyAnnotationIndex, setGabyAnnotationIndex] =
+  useState(0); 
 
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
@@ -274,19 +300,21 @@ const marketIntelligence = useMemo(
 );
 
 useEffect(() => {
-  const highlights: GabyChartHighlight[] = [];
+  const highlights: GabyChartHighlight[] = [
+    ...pinnedGabyChartHighlights,
+  ];
 
-  const supports =
-    marketIntelligence?.supportLevels?.slice(
-      0,
-      gabyAnnotationCount
-    ) ?? [];
+const supports =
+  marketIntelligence?.supportLevels?.slice(
+    gabyAnnotationIndex,
+    gabyAnnotationIndex + gabyAnnotationCount
+  ) ?? [];
 
-  const resistances =
-    marketIntelligence?.resistanceLevels?.slice(
-      0,
-      gabyAnnotationCount
-    ) ?? [];
+const resistances =
+  marketIntelligence?.resistanceLevels?.slice(
+    gabyAnnotationIndex,
+    gabyAnnotationIndex + gabyAnnotationCount
+  ) ?? [];
 
   if (gabyAnnotations.includes("SUPPORT")) {
     supports.forEach((zone: any, index: number) => {
@@ -315,6 +343,8 @@ useEffect(() => {
 }, [
   gabyAnnotations,
   gabyAnnotationCount,
+  gabyAnnotationIndex,
+  pinnedGabyChartHighlights,
   marketIntelligence?.supportLevels,
   marketIntelligence?.resistanceLevels,
   detectedTrendline,
@@ -3636,12 +3666,12 @@ onAnalysisComplete={(subject) => {
       "RESISTANCE",
       "TRENDLINE",
     ]);
-  } else if (
-    subject === "SUPPORT" ||
-    subject === "RESISTANCE"
-  ) {
-    setGabyAnnotations([subject]);
-  }
+} else if (
+  subject === "SUPPORT" ||
+  subject === "RESISTANCE"
+) {
+  return;
+}
 }}
 
 
@@ -3662,38 +3692,109 @@ const targets: GabyAnnotationKey[] =
     ? [target]
     : [];
 
-  if (action === "CLEAR") {
-    setGabyAnnotations([]);
-    setPinnedGabyAnnotations([]);
-    return;
-  }
+if (action === "CLEAR") {
+  setGabyAnnotations([]);
+  setPinnedGabyAnnotations([]);
+  setPinnedGabyChartHighlights([]);
+  return;
+}
 
-  if (action === "REMOVE") {
-    setGabyAnnotations((prev) =>
-      prev.filter((item) => !targets.includes(item))
-    );
+if (action === "REMOVE") {
+  setGabyAnnotations((prev) =>
+    prev.filter((item) => !targets.includes(item))
+  );
 
-    setPinnedGabyAnnotations((prev) =>
-      prev.filter((item) => !targets.includes(item))
-    );
+  setPinnedGabyAnnotations((prev) =>
+    prev.filter((item) => !targets.includes(item))
+  );
 
-    return;
-  }
+const removeIndex =
+  command?.index != null
+    ? Math.max(0, Number(command.index))
+    : gabyAnnotationIndex;
 
-  if (action === "PIN") {
-    setGabyAnnotations((prev) => [
-      ...new Set([...prev, ...targets]),
-    ]);
+setPinnedGabyChartHighlights((prev) =>
+  prev.filter((highlight) => {
+    if (target === "SUPPORT") {
+      return (
+        highlight.id !==
+        `pinned-support-${selectedCoin}-${selectedTimeframe}-${removeIndex}`
+      );
+    }
 
-    setPinnedGabyAnnotations((prev) => [
-      ...new Set([...prev, ...targets]),
-    ]);
+    if (target === "RESISTANCE") {
+      return (
+        highlight.id !==
+        `pinned-resistance-${selectedCoin}-${selectedTimeframe}-${removeIndex}`
+      );
+    }
 
-    return;
-  }
+    return true;
+  })
+);
+
+  return;
+}
+
+if (action === "PIN") {
+  const pinIndex =
+    command?.index != null
+      ? Math.max(0, Number(command.index))
+      : gabyAnnotationIndex;
+
+  setPinnedGabyChartHighlights((prev) => {
+    const next = [...prev];
+
+    if (target === "SUPPORT") {
+      const zone =
+        marketIntelligence?.supportLevels?.[pinIndex];
+
+      if (zone) {
+        const id =
+          `pinned-support-${selectedCoin}-${selectedTimeframe}-${pinIndex}`;
+
+        if (!next.some((item) => item.id === id)) {
+          next.push({
+            id,
+            type: "SUPPORT",
+            low: zone.low,
+            high: zone.high,
+          });
+        }
+      }
+    }
+
+    if (target === "RESISTANCE") {
+      const zone =
+        marketIntelligence?.resistanceLevels?.[pinIndex];
+
+      if (zone) {
+        const id =
+          `pinned-resistance-${selectedCoin}-${selectedTimeframe}-${pinIndex}`;
+
+        if (!next.some((item) => item.id === id)) {
+          next.push({
+            id,
+            type: "RESISTANCE",
+            low: zone.low,
+            high: zone.high,
+          });
+        }
+      }
+    }
+
+    return next;
+  });
+
+  return;
+}
 
 if (action === "SHOW") {
   setGabyAnnotationCount(count);
+
+setGabyAnnotationIndex(
+  Math.max(0, Number(command?.index) || 0)
+);
 
 setGabyAnnotations((prev) => {
   if (target === "TRENDLINE") {

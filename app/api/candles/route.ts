@@ -58,41 +58,37 @@ export async function GET(request: Request) {
 const timeframeSeconds =
   timeframeSecondsMap[timeframe] || 60;
 
-const endTime =
-  Math.floor(Date.now() / 1000);
+const endTime = Math.floor(Date.now() / 1000);
 
-const startTime =
-  endTime - timeframeSeconds * 299;
+const recentStart = endTime - timeframeSeconds * 299;
+const olderEnd = recentStart - timeframeSeconds;
+const olderStart = olderEnd - timeframeSeconds * 299;
 
-const candleUrl =
+const buildUrl = (start: number, end: number) =>
   `https://api.coinbase.com/api/v3/brokerage/market/products/${productId}/candles` +
-  `?start=${startTime}` +
-  `&end=${endTime}` +
-  `&granularity=${granularity}` +
-  `&limit=300`;
+  `?start=${start}&end=${end}&granularity=${granularity}&limit=300`;
 
-const response = await fetch(candleUrl, {
-  cache: "no-store",
-  headers: {
-    "User-Agent": "TradeNestX",
-  },
-});
+const [olderResponse, recentResponse] = await Promise.all([
+  fetch(buildUrl(olderStart, olderEnd), {
+    cache: "no-store",
+    headers: { "User-Agent": "TradeNestX" },
+  }),
+  fetch(buildUrl(recentStart, endTime), {
+    cache: "no-store",
+    headers: { "User-Agent": "TradeNestX" },
+  }),
+]);
 
-if (!response.ok) {
-  throw new Error(
-    `Coinbase candles failed: ${response.status}`
-  );
+if (!olderResponse.ok || !recentResponse.ok) {
+  throw new Error("Coinbase candles failed");
 }
 
-const data = await response.json();
+const [olderData, recentData] = await Promise.all([
+  olderResponse.json(),
+  recentResponse.json(),
+]);
 
-if (!Array.isArray(data?.candles)) {
-  throw new Error(
-    "Invalid candle data"
-  );
-}
-
-const candles = data.candles
+const candles = [...olderData.candles, ...recentData.candles]
   .map((item: any) => ({
     time: String(Number(item.start) * 1000),
     price: Number(item.close),
@@ -109,7 +105,7 @@ const candles = data.candles
 
 
 
-    return NextResponse.json(candles.slice(-300));
+    return NextResponse.json(candles.slice(-600));
   } catch (error) {
     console.error("Candles API failed:", error);
 
