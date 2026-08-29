@@ -4,20 +4,22 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 
 const topics = [
-  {
-    title: "Dividends",
-    description:
-      "Income, yield, payment frequency, important dates, and dividend stability.",
-    href: "/market-education/dividends",
-    available: true,
-  },
-  {
-    title: "Earnings",
-    description:
-      "Revenue, EPS, expectations, guidance, and earnings reports.",
-    href: "#",
-    available: false,
-  },
+{
+  title: "Dividends",
+  description:
+    "Learn how dividends work, payment schedules, important dates, dividend yield, payout ratios, and stability.",
+  href: "/market-education/dividends",
+  available: true,
+  backgroundImage: "/market-education/dividends-bg.png",
+},
+{
+  title: "Earnings",
+  description:
+    "Learn how revenue, profit, EPS, analyst expectations, guidance, and earnings reports affect how investors evaluate companies.",
+  href: "/market-education/earnings",
+  available: true,
+  backgroundImage: "/market-education/earnings-bg.png",
+},
   {
     title: "IPOs",
     description:
@@ -67,29 +69,44 @@ export default function MarketEducationPage() {
 
           <div className="mt-7 grid w-full gap-4 md:grid-cols-2 xl:grid-cols-3">
             {topics.map((topic) => (
-              <div
-                key={topic.title}
-                className="flex min-h-[200px] flex-col rounded-2xl border border-white/10 bg-[#0f172a] p-6 transition hover:border-cyan-400/50"
-              >
+<div
+  key={topic.title}
+  className="relative flex min-h-[200px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a] bg-cover bg-center p-6 transition hover:border-cyan-400/50"
+  style={
+    topic.backgroundImage
+      ? {
+          backgroundImage: `linear-gradient(
+            90deg,
+            rgba(15, 23, 42, 0.98) 0%,
+            rgba(15, 23, 42, 0.88) 42%,
+            rgba(15, 23, 42, 0.35) 70%,
+            rgba(15, 23, 42, 0.10) 100%
+          ), url("${topic.backgroundImage}")`,
+        }
+      : undefined
+  }
+>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-black text-white">
                     {topic.title}
                   </h2>
+{!topic.available && (
+  <span className="shrink-0 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-black text-zinc-500">
+    COMING SOON
+  </span>
+)}
 
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black ${
-                      topic.available
-                        ? "bg-cyan-400/10 text-cyan-300"
-                        : "bg-white/5 text-zinc-500"
-                    }`}
-                  >
-                    {topic.available ? "AVAILABLE" : "COMING SOON"}
-                  </span>
                 </div>
 
-                <p className="mt-3 text-sm leading-6 text-zinc-400">
-                  {topic.description}
-                </p>
+<p
+  className={`mt-3 text-sm leading-6 ${
+    topic.available
+      ? "font-medium text-zinc-200"
+      : "text-zinc-400"
+  }`}
+>
+  {topic.description}
+</p>
 
                 <div className="mt-auto pt-5">
                   {topic.available ? (
