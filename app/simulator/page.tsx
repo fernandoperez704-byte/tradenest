@@ -3418,7 +3418,23 @@ const chartHighlightState = {
 
   price: null,
 
-  pinnedHighlights: pinnedGabyChartHighlights,
+pinnedHighlights: pinnedGabyChartHighlights
+  .filter(
+    (
+      highlight
+    ): highlight is Extract<
+      GabyChartHighlight,
+      { type: "SUPPORT" | "RESISTANCE" }
+    > =>
+      highlight.type === "SUPPORT" ||
+      highlight.type === "RESISTANCE"
+  )
+  .map((highlight) => ({
+    id: highlight.id,
+    type: highlight.type,
+    low: highlight.low,
+    high: highlight.high,
+  })),
 };
 
 return (
