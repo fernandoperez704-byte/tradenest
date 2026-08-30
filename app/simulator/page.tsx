@@ -3491,142 +3491,6 @@ strongestPattern={strongestPattern}
   tourStep={tourStep}
 />
 
-<div
-  className={`xl:col-span-1 xl:flex xl:h-[690px] xl:flex-col xl:gap-2 ${
-    mobileView === "ORDER" ? "block" : "hidden xl:flex"
-  }`}
->
-
-<AccountSummaryCard
-  marketMode={marketMode}
-  balance={balance}
-  accountEquity={accountEquity}
-  marginUsed={marginUsed}
-  futuresUnrealizedPnl={futuresUnrealizedPnl}
-  totalPnlPercent={totalPnlPercent}
-  tourStep={tourStep}
-/>          
-
-<TradingPanel
-  mobileView={mobileView}
-  setMobileView={setMobileView}
-  tourStep={tourStep}
-  tradeAmount={tradeAmount}
-  setTradeAmount={setTradeAmount}
-  takeProfit={takeProfit}
-  setTakeProfit={setTakeProfit}
-  stopLoss={stopLoss}
-  setStopLoss={setStopLoss}
-  orderType={orderType}
-  setOrderType={setOrderType}
-  limitPrice={limitPrice}
-  setLimitPrice={setLimitPrice}
-  marketMode={marketMode}
-  leverage={leverage}
-  setLeverage={setLeverage}
-  showLeverageMenu={showLeverageMenu}
-  setShowLeverageMenu={setShowLeverageMenu}
-  balance={balance}
-  marginUsed={marginUsed}
-  estimatedLongLiquidation={estimatedLongLiquidation}
-  estimatedShortLiquidation={estimatedShortLiquidation}
-  feeRate={feeRate}
-  message={message}
-  buyCoin={buyCoin}
-  sellCoin={sellCoin}
-  openFuturesPosition={openFuturesPosition}
-  setPositionType={setPositionType}
-  setShowResetModal={setShowResetModal}
-/>
-
-</div>
-</div>
-
-<PortfolioPanel
-  mobileView={mobileView}
-  tourStep={tourStep}
->
-  
-<PortfolioTabs
-  activeBottomTab={activeBottomTab}
-  setActiveBottomTab={setActiveBottomTab}
-  marketMode={marketMode}
-/>
-
-{activeBottomTab === "POSITIONS" && (
-<PortfolioPositions
-  marketMode={marketMode}
-  positions={positions}
-  futuresPositions={futuresPositions}
-  futuresPositionManagement={futuresPositionManagement}
-  prices={prices}
-  averagePrices={averagePrices}
-  spotRiskSettings={spotRiskSettings}
-  closeSpotPosition={closeSpotPosition}
-  closeFuturesPosition={closeFuturesPosition}
-  setMessage={setMessage}
-/>
-)}
-
-{activeBottomTab === "HISTORY" && (
-  <PortfolioHistory
-    marketMode={marketMode}
-    trades={trades}
-    futuresHistory={futuresHistory}
-  />
-)}
-
-{activeBottomTab === "ORDERS" && (
-  <PortfolioOrders
-    marketMode={marketMode}
-    pendingLimitOrder={pendingLimitOrder}
-    pendingFuturesLimitOrder={pendingFuturesLimitOrder}
-    setPendingLimitOrder={setPendingLimitOrder}
-    setPendingFuturesLimitOrder={setPendingFuturesLimitOrder}
-    setMessage={setMessage}
-  />
-)}
-
-</PortfolioPanel>
-
-{showResetModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-    <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0f172a] p-8 shadow-[0_20px_80px_rgba(0,0,0,0.6)]">
-      <h3 className="text-2xl font-black text-red-400">
-        Reset Practice Account
-      </h3>
-
-      <p className="mt-4 text-zinc-300 leading-7">
-        This will permanently delete your balance, open positions,
-        trade history, futures history, and trading statistics.
-      </p>
-
-      <p className="mt-3 font-bold text-red-400">
-        This action cannot be undone.
-      </p>
-
-      <div className="mt-8 grid grid-cols-2 gap-3">
-        <button
-          onClick={() => setShowResetModal(false)}
-          className="rounded-xl border border-zinc-700 py-3 font-bold text-zinc-300 transition-all hover:border-cyan-500 hover:text-cyan-400"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={() => {
-            resetAccount();
-            setShowResetModal(false);
-          }}
-          className="rounded-xl bg-red-500 py-3 font-black text-white transition-all hover:bg-red-400"
-        >
-          Yes, Reset
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
 {showSimulatorGaby && (
   <>
 <div
@@ -3634,10 +3498,10 @@ strongestPattern={strongestPattern}
     setShowSimulatorGaby(false);
     setGabyAnnotations(pinnedGabyAnnotations);
   }}
-  className="fixed inset-0 z-40 bg-black/10"
+  className="hidden xl:fixed xl:inset-0 xl:z-40 xl:block xl:bg-black/10"
 />
 
-<div className="fixed inset-x-3 bottom-[72px] z-50 xl:left-[24px] xl:w-[500px]">
+<div className="relative z-50 mt-3 w-full xl:fixed xl:bottom-[72px] xl:left-[24px] xl:mt-0 xl:w-[500px]">
   <button
     onClick={() => {
       setShowSimulatorGaby(false);
@@ -3835,6 +3699,144 @@ setGabyAnnotations((prev) => {
     </div>
   </>
 )}
+
+<div
+  className={`xl:col-span-1 xl:flex xl:h-[690px] xl:flex-col xl:gap-2 ${
+    mobileView === "ORDER" ? "block" : "hidden xl:flex"
+  }`}
+>
+
+<AccountSummaryCard
+  marketMode={marketMode}
+  balance={balance}
+  accountEquity={accountEquity}
+  marginUsed={marginUsed}
+  futuresUnrealizedPnl={futuresUnrealizedPnl}
+  totalPnlPercent={totalPnlPercent}
+  tourStep={tourStep}
+/>          
+
+<TradingPanel
+  mobileView={mobileView}
+  setMobileView={setMobileView}
+  tourStep={tourStep}
+  tradeAmount={tradeAmount}
+  setTradeAmount={setTradeAmount}
+  takeProfit={takeProfit}
+  setTakeProfit={setTakeProfit}
+  stopLoss={stopLoss}
+  setStopLoss={setStopLoss}
+  orderType={orderType}
+  setOrderType={setOrderType}
+  limitPrice={limitPrice}
+  setLimitPrice={setLimitPrice}
+  marketMode={marketMode}
+  leverage={leverage}
+  setLeverage={setLeverage}
+  showLeverageMenu={showLeverageMenu}
+  setShowLeverageMenu={setShowLeverageMenu}
+  balance={balance}
+  marginUsed={marginUsed}
+  estimatedLongLiquidation={estimatedLongLiquidation}
+  estimatedShortLiquidation={estimatedShortLiquidation}
+  feeRate={feeRate}
+  message={message}
+  buyCoin={buyCoin}
+  sellCoin={sellCoin}
+  openFuturesPosition={openFuturesPosition}
+  setPositionType={setPositionType}
+  setShowResetModal={setShowResetModal}
+/>
+
+</div>
+</div>
+
+<PortfolioPanel
+  mobileView={mobileView}
+  tourStep={tourStep}
+>
+  
+<PortfolioTabs
+  activeBottomTab={activeBottomTab}
+  setActiveBottomTab={setActiveBottomTab}
+  marketMode={marketMode}
+/>
+
+{activeBottomTab === "POSITIONS" && (
+<PortfolioPositions
+  marketMode={marketMode}
+  positions={positions}
+  futuresPositions={futuresPositions}
+  futuresPositionManagement={futuresPositionManagement}
+  prices={prices}
+  averagePrices={averagePrices}
+  spotRiskSettings={spotRiskSettings}
+  closeSpotPosition={closeSpotPosition}
+  closeFuturesPosition={closeFuturesPosition}
+  setMessage={setMessage}
+/>
+)}
+
+{activeBottomTab === "HISTORY" && (
+  <PortfolioHistory
+    marketMode={marketMode}
+    trades={trades}
+    futuresHistory={futuresHistory}
+  />
+)}
+
+{activeBottomTab === "ORDERS" && (
+  <PortfolioOrders
+    marketMode={marketMode}
+    pendingLimitOrder={pendingLimitOrder}
+    pendingFuturesLimitOrder={pendingFuturesLimitOrder}
+    setPendingLimitOrder={setPendingLimitOrder}
+    setPendingFuturesLimitOrder={setPendingFuturesLimitOrder}
+    setMessage={setMessage}
+  />
+)}
+
+</PortfolioPanel>
+
+{showResetModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+    <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0f172a] p-8 shadow-[0_20px_80px_rgba(0,0,0,0.6)]">
+      <h3 className="text-2xl font-black text-red-400">
+        Reset Practice Account
+      </h3>
+
+      <p className="mt-4 text-zinc-300 leading-7">
+        This will permanently delete your balance, open positions,
+        trade history, futures history, and trading statistics.
+      </p>
+
+      <p className="mt-3 font-bold text-red-400">
+        This action cannot be undone.
+      </p>
+
+      <div className="mt-8 grid grid-cols-2 gap-3">
+        <button
+          onClick={() => setShowResetModal(false)}
+          className="rounded-xl border border-zinc-700 py-3 font-bold text-zinc-300 transition-all hover:border-cyan-500 hover:text-cyan-400"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => {
+            resetAccount();
+            setShowResetModal(false);
+          }}
+          className="rounded-xl bg-red-500 py-3 font-black text-white transition-all hover:bg-red-400"
+        >
+          Yes, Reset
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
 {tourStep !== null && (
   <>

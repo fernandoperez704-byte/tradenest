@@ -88,61 +88,99 @@ export default function HomePage() {
     </div>
   </div>
 </section>
-        {/* PLATFORM VIDEO */}
-        <section className="px-5 py-10 md:px-10 md:py-12">
-          <div className="mx-auto grid max-w-[1400px] items-center gap-8 md:grid-cols-[0.75fr_1.25fr]">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em]">
-                <TradeNestXName />
-              </p>
 
-              <h2 className="mt-2 text-3xl font-black md:text-4xl">
-                See It in Action
-              </h2>
+{/* PLATFORM VIDEO */}
+<section className="px-5 py-8 md:px-10 md:py-10">
+  <div className="mx-auto max-w-[1200px]">
 
-              <p className="mt-3 max-w-lg text-sm leading-6 text-zinc-400">
-                See how TradeNestX brings education, simulator practice,
-                trade review, market learning, and Gaby together in one
-                trading education platform.
-              </p>
+    {/* TITLE */}
+    <div className="mb-6 text-center">
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                {[
-                  "Learn",
-                  "Practice",
-                  "Review",
-                  "Market Education",
-                  "Gaby",
-                ].map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-lg border border-white/10 bg-[#111827] px-3 py-1.5 text-xs font-bold text-zinc-300"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
+      <h2 className="mt-2 text-3xl font-black text-white md:text-4xl">
+        See <TradeNestXName /> in Action
+      </h2>
 
-            <div className="overflow-hidden rounded-2xl border border-cyan-400/20 bg-[#0f172a]">
-              <div className="flex aspect-video items-center justify-center">
-                <div className="text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-xl text-cyan-300">
-                    ▶
-                  </div>
+      <p className="mx-auto mt-2 max-w-2xl text-sm text-zinc-400">
+        Explore the platform from learning to practice, Gaby, and trade review.
+      </p>
+    </div>
 
-                  <p className="mt-3 text-sm font-black">
-                    <TradeNestXName /> Platform Overview
-                  </p>
+    {/* VIDEO */}
+    <div className="overflow-hidden rounded-2xl border border-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.18)]">
+      <video
+        className="pointer-events-none block h-auto w-full"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        disablePictureInPicture
+      >
+        <source
+          src="/videos/TradeNestX-Platform-Overview.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+    </div>
 
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Video coming soon
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+  </div>
+</section>
+
+{/* WHY TRADENESTX */}
+<section className="px-5 py-12 md:px-10 md:py-16">
+  <div className="mx-auto max-w-[1200px]">
+
+    <div className="rounded-2xl border border-white/10 bg-[#07101f]/60 px-6 py-10 md:px-10 md:py-12">
+
+<p className="text-xs font-black uppercase tracking-[0.24em] text-white">
+  Why TradeNest<span className="text-cyan-400">X</span>
+</p>
+
+      <div className="mt-4 grid gap-8 md:grid-cols-[0.95fr_1.05fr] md:items-start">
+
+        {/* LEFT */}
+        <div>
+          <h2 className="text-3xl font-black leading-tight text-white md:text-4xl">
+            Most platforms give traders more tools.
+          </h2>
+
+          <p className="mt-3 text-2xl font-black leading-tight text-white md:text-3xl">
+            <TradeNestXName /> focuses on the trader using them.
+          </p>
+        </div>
+
+        {/* RIGHT */}
+        <div className="space-y-5 text-sm leading-7 text-zinc-400 md:text-base">
+<p>
+  Trading development is more than learning indicators or placing
+  trades. It comes from understanding how you make decisions, how you
+  manage risk, how you respond to the market, and what your trading
+  history reveals over time.
+</p>
+
+<p>
+  TradeNestX brings those pieces together so your learning doesn&apos;t
+  end when a lesson is completed or a simulated trade is closed. Your
+  practice becomes something you can review, understand, and learn from.
+</p>
+
+          <p className="font-bold text-white">
+            <TradeNestXName /> is built around developing the trader—not
+            predicting the next move.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-9 border-t border-cyan-400/15 pt-6">
+<p className="text-center text-xs font-black uppercase tracking-[0.22em] text-white md:text-sm">
+  Your Decisions. Your Habits. Your Development.
+</p>
+      </div>
+
+    </div>
+  </div>
+</section>
 
         {/* FREE VS PRO */}
         <section id="pro" className="px-5 py-8 md:px-10 md:py-10">
