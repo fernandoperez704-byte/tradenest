@@ -3405,11 +3405,11 @@ const watchlist = WATCHLIST.map((coin) => ({
 }));
 
 const chartHighlightState = {
-  visible: gabyAnnotations.length > 0,
+  visible:
+    gabyAnnotations.length > 0 ||
+    pinnedGabyChartHighlights.length > 0,
 
-  pinned: gabyAnnotations.some((item) =>
-    pinnedGabyAnnotations.includes(item)
-  ),
+  pinned: pinnedGabyChartHighlights.length > 0,
 
   type:
     gabyAnnotations.length === 1
@@ -3417,6 +3417,8 @@ const chartHighlightState = {
       : null,
 
   price: null,
+
+  pinnedHighlights: pinnedGabyChartHighlights,
 };
 
 return (

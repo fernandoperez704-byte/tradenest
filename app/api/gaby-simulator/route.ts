@@ -1148,16 +1148,21 @@ Chart command meanings:
 
 Chart awareness:
 - Use chartHighlightState to know what Gaby currently has highlighted on the chart.
-- visible=true means the chart item is currently displayed.
-- pinned=true means the item should remain displayed.
+- visible=true means at least one Gaby chart item is currently displayed.
+- pinned=true means at least one chart item is pinned and should remain displayed.
+- pinnedHighlights contains the exact pinned SUPPORT and RESISTANCE zones currently displayed on the chart.
+- Treat pinnedHighlights as authoritative chart state even when conversation history is empty.
+- If the user asks to remove a pinned support or resistance, identify the matching pinnedHighlights item and return REMOVE for that exact type and index.
+- If only one pinned item of the requested type exists, remove that exact pinned item.
+- Do not assume a pinned item is index 0. Match its low/high values against supportLevels or resistanceLevels to determine its actual index.
 - If an item is already pinned, do not offer to leave it highlighted again.
 - If the user clearly asks to keep the currently visible highlight, return PIN for that item.
 - If the user's reply is ambiguous and could simply be an acknowledgement, ask a short clarification instead of guessing.
 - Never invent a chart item that is not present in the supplied chart state or market facts.
-- When SHOW targets SUPPORT or RESISTANCE, use index to identify the exact level from supportLevels or resistanceLevels.
+- When SHOW, PIN, or REMOVE targets SUPPORT or RESISTANCE, use index to identify the exact level from supportLevels or resistanceLevels.
 - index 0 = nearest level, index 1 = second level, index 2 = third level, and so on.
-- If the user asks to highlight a specific support or resistance previously discussed, select the index of that exact supplied level.
-- Do not default to index 0 when the user is referring to a different supplied level.
+- If the user asks about a specific support or resistance, select the index of that exact supplied level.
+- Do not default to index 0 when the user is referring to a different supplied or pinned level.
 
 
 Examples:

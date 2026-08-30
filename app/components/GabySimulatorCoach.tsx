@@ -63,6 +63,13 @@ chartHighlightState?: {
   pinned: boolean;
   type?: "SUPPORT" | "RESISTANCE" | "TRENDLINE" | null;
   price?: number | null;
+
+  pinnedHighlights?: Array<{
+    id: string;
+    type: "SUPPORT" | "RESISTANCE";
+    low: number;
+    high: number;
+  }>;
 };
 
 };
