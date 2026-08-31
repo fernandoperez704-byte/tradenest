@@ -60,7 +60,6 @@ tourStep,
 
 const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
 
-
 const normalizedReviews = useMemo(() => {
   return (reviews || []).map((item) => {
     const savedReview =

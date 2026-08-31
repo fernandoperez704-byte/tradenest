@@ -174,8 +174,24 @@ function requireSignIn() {
 useEffect(() => {
   window.scrollTo(0, 0);
 }, []);
+
   const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
+
+const mobileGabyRef = useRef<HTMLDivElement | null>(null);
+
+useEffect(() => {
+  if (!showSimulatorGaby) return;
+  if (window.innerWidth >= 1280) return;
+
+  requestAnimationFrame(() => {
+    mobileGabyRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+}, [showSimulatorGaby]);
+
   const [autoGabyQuestion, setAutoGabyQuestion] = useState<string | null>(null);
   const [showGabyHint, setShowGabyHint] = useState(true);
   const [gabyChartHighlights, setGabyChartHighlights] =
@@ -973,6 +989,7 @@ const estimatedShortLiquidation =
     : null;
 
 const chartRef = useRef<HTMLDivElement | null>(null);
+
 const chartInstanceRef = useRef<any>(null);
 
 const candleSeriesRef = useRef<any>(null);
@@ -993,6 +1010,7 @@ const gabyLowerTrendlineSeriesRef = useRef<any>(null);
 const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
+
 useEffect(() => {
   indicatorPanelRef.current = indicatorPanel;
 }, [indicatorPanel]);
@@ -1967,23 +1985,23 @@ if (
   const visibleCandles =
     containerWidth < 700 ? 70 : 160;
 
+requestAnimationFrame(() => {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (!chartInstanceRef.current) return;
+    if (!chartInstanceRef.current) return;
 
-      chartInstanceRef.current
-        .timeScale()
-        .setVisibleLogicalRange({
-          from: Math.max(
-            chartData.length - visibleCandles,
-            0
-          ),
-          to: chartData.length + 12,
-        });
+    chartInstanceRef.current
+      .timeScale()
+      .setVisibleLogicalRange({
+        from: Math.max(
+          chartData.length - visibleCandles,
+          0
+        ),
+        to: chartData.length + 12,
+      });
 
-      initialRangeKeyRef.current = rangeKey;
-    });
+    initialRangeKeyRef.current = rangeKey;
   });
+});
 }
 
 if (indicatorPanel === "VOLUME") {
@@ -2225,7 +2243,6 @@ if (activeStopLoss != null) {
   stopLoss,
   indicatorPanel,
 ]);
-
 
 function buildTradeContext() {
 
@@ -3501,7 +3518,10 @@ strongestPattern={strongestPattern}
   className="hidden xl:fixed xl:inset-0 xl:z-40 xl:block xl:bg-black/10"
 />
 
-<div className="relative z-50 mt-3 w-full xl:fixed xl:bottom-[72px] xl:left-[24px] xl:mt-0 xl:w-[500px]">
+<div
+  ref={mobileGabyRef}
+  className="relative z-50 mt-3 w-full xl:fixed xl:bottom-[72px] xl:left-[24px] xl:mt-0 xl:w-[500px]"
+>
   <button
     onClick={() => {
       setShowSimulatorGaby(false);
