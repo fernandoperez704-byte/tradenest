@@ -167,16 +167,11 @@ onChange={(e) => setSearchTerm(e.target.value)}
     setMobileView("TRADE");
 
 setTimeout(() => {
-chartInstanceRef.current?.applyOptions({
-  width: chartRef.current?.clientWidth || 0,
-  height: window.innerWidth < 1280 ? 420 : 470,
-});
-
   const visibleCandles = 70;
 
   chartInstanceRef.current?.timeScale().setVisibleLogicalRange({
-from: Math.max(300 - visibleCandles, 0),
-to: 305,
+    from: Math.max(600 - visibleCandles, 0),
+    to: 605,
   });
 }, 300);
   }

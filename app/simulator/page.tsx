@@ -1312,8 +1312,8 @@ useEffect(() => {
     const candleKey = `${selectedCoin}-${selectedTimeframe}`;
 
     try {
-      setCandlesReadyFor("");
-      setHistory([]);
+setCandlesReadyFor("");
+setHistory([]);
 
 initialRangeKeyRef.current = "";
 
@@ -1948,6 +1948,8 @@ const chartData = history
     return index === 0 || item.time > array[index - 1].time;
   });
 
+
+
 const usesEightDecimals =
   selectedCoin === "SHIB" ||
   selectedCoin === "PEPE";
@@ -1982,22 +1984,28 @@ if (
   const containerWidth =
     chartRef.current?.clientWidth ?? 0;
 
-  const visibleCandles =
-    containerWidth < 700 ? 70 : 160;
+const visibleCandles =
+  containerWidth < 700 ? 70 : 160;
 
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (!chartInstanceRef.current) return;
 
+chartInstanceRef.current
+  .priceScale("right")
+  .applyOptions({
+    autoScale: true,
+  });
+
     chartInstanceRef.current
       .timeScale()
-      .setVisibleLogicalRange({
-        from: Math.max(
-          chartData.length - visibleCandles,
-          0
-        ),
-        to: chartData.length + 12,
-      });
+.setVisibleLogicalRange({
+  from: Math.max(
+    chartData.length - visibleCandles,
+    0
+  ),
+  to: chartData.length + 12,
+});
 
     initialRangeKeyRef.current = rangeKey;
   });

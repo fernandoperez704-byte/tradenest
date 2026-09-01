@@ -88,6 +88,7 @@ const [olderData, recentData] = await Promise.all([
   recentResponse.json(),
 ]);
 
+
 const candles = [...olderData.candles, ...recentData.candles]
   .map((item: any) => ({
     time: String(Number(item.start) * 1000),
@@ -102,7 +103,6 @@ const candles = [...olderData.candles, ...recentData.candles]
     (a: { time: string }, b: { time: string }) =>
       Number(a.time) - Number(b.time)
   );
-
 
 
     return NextResponse.json(candles.slice(-600));

@@ -124,7 +124,7 @@ function returnToExperienceSelection() {
       <div className="pointer-events-none absolute right-0 top-0 h-[260px] w-[260px] rounded-full bg-blue-500/10 blur-[90px]" />
 
       <div className="relative grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <div className="flex justify-center pt-4">
+        <div className="hidden justify-center pt-4 lg:flex">
           <div className="relative animate-[gabyFloat_4s_ease-in-out_infinite]">
             <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-[60px] animate-[gabyPulse_3s_ease-in-out_infinite]" />
 
@@ -133,15 +133,10 @@ function returnToExperienceSelection() {
               alt="Gaby AI Coach"
               width={280}
               height={280}
-              className="relative h-[250px] w-[250px] object-contain drop-shadow-[0_0_55px_rgba(34,211,238,0.45)]"
+              className="relative h-auto w-[135px] object-contain drop-shadow-[0_0_55px_rgba(34,211,238,0.45)] lg:w-[250px]"
             />
 
-            <div className="mt-3 rounded-2xl border border-cyan-400/20 bg-[#0f172a]/80 p-3 text-center">
-              <p className="text-sm font-black leading-6 text-cyan-300">
-                Gaby guides your learning, explains each concept,
-                and helps you improve.
-              </p>
-            </div>
+
           </div>
         </div>
 
@@ -158,7 +153,27 @@ function returnToExperienceSelection() {
             <div className="h-[2px] flex-1 bg-gradient-to-r from-cyan-400/60 to-transparent" />
           </div>
 
-          <div className="relative mt-4 rounded-2xl border border-cyan-400/25 bg-[#0f172a]/90 p-4 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
+<div className="mt-4 flex items-center gap-4 lg:hidden">
+  <Image
+    src="/gaby.png"
+    alt="Gaby AI Coach"
+    width={140}
+    height={140}
+    className="h-auto w-[120px] shrink-0 object-contain drop-shadow-[0_0_35px_rgba(34,211,238,0.45)]"
+  />
+
+  <div className="flex-1 rounded-2xl border border-cyan-400/25 bg-[#0f172a]/90 p-4">
+    <p className="text-lg font-black text-cyan-300">
+      Hi, I&apos;m Gaby.
+    </p>
+
+    <p className="mt-2 text-sm leading-6 text-zinc-300">
+      I&apos;ll help you choose the learning path that best fits your trading experience.
+    </p>
+  </div>
+</div>
+
+          <div className="relative mt-4 hidden rounded-2xl border border-cyan-400/25 bg-[#0f172a]/90 p-4 shadow-[0_0_35px_rgba(34,211,238,0.08)] lg:block">
             <div className="absolute -left-3 top-8 hidden h-6 w-6 rotate-45 border-b border-l border-cyan-400/25 bg-[#0f172a] lg:block" />
 
             <p className="text-xl font-black text-cyan-300">
