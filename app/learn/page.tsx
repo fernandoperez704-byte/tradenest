@@ -704,7 +704,7 @@ return (
   </button>
 )}
 
-<div className="min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-hide">
+<div className="min-h-0 flex-1 pr-1 xl:overflow-y-auto xl:scrollbar-hide">
   <div className="space-y-2">
     {lessons.map((lesson, index) => {
 
