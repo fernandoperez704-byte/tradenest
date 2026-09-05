@@ -294,6 +294,7 @@ const reviewLesson =
       },
       timeframe: market?.timeframe || null,
       marketAtEntry: market,
+      priceActionAtEntry: input.priceActionContext || null,
       trendAligned,
       directionReview,
       priceLocation,

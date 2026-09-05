@@ -11,14 +11,14 @@ import PortfolioTabs from "./components/PortfolioTabs";
 import PortfolioPositions from "./components/PortfolioPositions";
 import PortfolioHistory from "./components/PortfolioHistory";
 import PortfolioOrders from "./components/PortfolioOrders";
+import InfoPanel, {
+  type InfoPanelContent,
+} from "./components/InfoPanel";
 import { WATCHLIST } from "./data/watchlist";
 import { buildTrendAnalysis } from "@/lib/traderDevelopment/trendAnalysis";
 import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
 import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagementAnalysis";
-
-
-
 
 
 import { useClerk, useUser } from "@clerk/nextjs";
@@ -124,6 +124,26 @@ const emptyPositions: Record<AssetSymbol, number> = {
   PEPE: 0,
 };
 
+function buildTradePriceActionContext(history: any[], openedAt?: string) {
+  if (!openedAt || history.length < 10) return null;
+
+  const entryTime = new Date(openedAt).getTime();
+  const before = history.filter(c => Number(c.time) <= entryTime).slice(-30);
+  if (before.length < 10) return null;
+
+  let directionChanges = 0;
+  for (let i = 2; i < before.length; i++) {
+    const prev = Number(before[i - 1].close) - Number(before[i - 2].close);
+    const curr = Number(before[i].close) - Number(before[i - 1].close);
+    if (prev && curr && Math.sign(prev) !== Math.sign(curr)) directionChanges++;
+  }
+
+  return {
+    candlesAnalyzed: before.length,
+    directionChanges,
+    repeatedSwings: directionChanges >= 8,
+  };
+}
 
 export default function SimulatorPage() {
   const { user, isSignedIn } = useUser();
@@ -178,7 +198,38 @@ useEffect(() => {
   const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
 
+const [infoPanelContent, setInfoPanelContent] =
+  useState<InfoPanelContent | null>(null);
+
+function closeInfoPanel() {
+  setInfoPanelContent(null);
+
+  requestAnimationFrame(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  });
+}
+
+const infoPanelRef = useRef<HTMLDivElement | null>(null);
 const mobileGabyRef = useRef<HTMLDivElement | null>(null);
+
+useEffect(() => {
+  if (!infoPanelContent) return;
+
+  requestAnimationFrame(() => {
+    const top =
+      (infoPanelRef.current?.getBoundingClientRect().top ?? 0) +
+      window.scrollY -
+      65;
+
+    window.scrollTo({
+      top,
+      behavior: "smooth",
+    });
+  });
+}, [infoPanelContent]);
 
 useEffect(() => {
   if (!showSimulatorGaby) return;
@@ -423,15 +474,16 @@ const [spotPositionManagement, setSpotPositionManagement] =
     Partial<
       Record<
         AssetSymbol,
-        {
-          openedAt: string;
+{
+  openedAt: string;
+  tradeContext?: any;
 
-          highestUnrealizedPnl: number;
-          lowestUnrealizedPnl: number;
+  highestUnrealizedPnl: number;
+  lowestUnrealizedPnl: number;
 
-          highestUnrealizedPercent: number;
-          lowestUnrealizedPercent: number;
-        }
+  highestUnrealizedPercent: number;
+  lowestUnrealizedPercent: number;
+}
       >
     >
   >({});
@@ -2280,11 +2332,10 @@ function buildTradeContext() {
       priceLocation: priceLocation || null,
       entryQuality: currentEntryQuality || null,
 
-      nearestSupport:
-        marketIntelligence?.nearestSupport || null,
-
-      nearestResistance:
-        marketIntelligence?.nearestResistance || null,
+nearestSupport: marketIntelligence?.nearestSupport || null,
+nearestResistance: marketIntelligence?.nearestResistance || null,
+supportLevels: marketIntelligence?.supportLevels || [],
+resistanceLevels: marketIntelligence?.resistanceLevels || [],
 
       movingAverageAnalysis:
         movingAverageAnalysis || null,
@@ -2361,6 +2412,11 @@ const exitEfficiency =
       )
     : 0;
 
+const priceActionContext = buildTradePriceActionContext(
+  history,
+  management?.openedAt || position.tradeContext?.createdAt
+);
+
   const baseReview = reviewTrade({
     mode: "FUTURES",
     side: position.side,
@@ -2391,7 +2447,7 @@ management: management
       exitEfficiency,
     }
   : null,
-
+priceActionContext,
 tradeContext: position.tradeContext,
   });
 
@@ -2586,11 +2642,13 @@ console.log("SPOT CLOSE FUNCTION HIT", {
   const spotPnl =
     grossSpotPnl - spotEntryFeePaid - spotExitFee;
 
-  const snapshotId = crypto.randomUUID();
-
-  const tradeContext = buildTradeContext();
+const snapshotId = crypto.randomUUID();
 
 const management = spotPositionManagement[coin] || null;
+
+const tradeContext =
+  management?.tradeContext ??
+  buildTradeContext();
 
 const durationMinutes =
   management?.openedAt
@@ -2623,6 +2681,10 @@ const exitEfficiency =
       )
     : 0;
 
+const priceActionContext = buildTradePriceActionContext(
+  history,
+  management?.openedAt || tradeContext?.createdAt
+);    
 
   const baseReview = reviewTrade({
     mode: "SPOT",
@@ -2653,6 +2715,7 @@ exitEfficiency,
     }
   : null,
 
+priceActionContext,
 tradeContext,
 });
 
@@ -2733,11 +2796,17 @@ setTrades((prev) => {
           ? "STOP LOSS"
           : "SELL",
 
-      coin,
-      amount: sellValue,
-      price: currentPrice,
+coin,
+amount: sellValue,
+price: currentPrice,
 
-      pnl: spotPnl,
+entryPrice: avgEntryPrice,
+exitPrice: currentPrice,
+
+stopLoss: spotRiskSettings[coin]?.stopLoss ?? null,
+takeProfit: spotRiskSettings[coin]?.takeProfit ?? null,
+
+pnl: spotPnl,
       grossPnl: grossSpotPnl,
       entryFee: spotEntryFeePaid,
       exitFee: spotExitFee,
@@ -2815,11 +2884,17 @@ if (user && isPaid) {
           ? "STOP LOSS"
           : "SELL",
 
-      coin,
-      amount: sellValue,
-      price: currentPrice,
+coin,
+amount: sellValue,
+price: currentPrice,
 
-      pnl: spotPnl,
+entryPrice: avgEntryPrice,
+exitPrice: currentPrice,
+
+stopLoss: spotRiskSettings[coin]?.stopLoss ?? null,
+takeProfit: spotRiskSettings[coin]?.takeProfit ?? null,
+
+pnl: spotPnl,
       grossPnl: grossSpotPnl,
       entryFee: spotEntryFeePaid,
       exitFee: spotExitFee,
@@ -3017,15 +3092,16 @@ setSpotPositionFacts((prev) => ({
 if (oldQty <= 0) {
   setSpotPositionManagement((prev) => ({
     ...prev,
-    [selectedCoin]: {
-      openedAt: new Date().toISOString(),
+[selectedCoin]: {
+  openedAt: new Date().toISOString(),
+  tradeContext,
 
-      highestUnrealizedPnl: 0,
-      lowestUnrealizedPnl: 0,
+  highestUnrealizedPnl: 0,
+  lowestUnrealizedPnl: 0,
 
-      highestUnrealizedPercent: 0,
-      lowestUnrealizedPercent: 0,
-    },
+  highestUnrealizedPercent: 0,
+  lowestUnrealizedPercent: 0,
+},
   }));
 }
 
@@ -3584,6 +3660,29 @@ onAnalysisComplete={(subject) => {
 }
 }}
 
+onInfoPanelCommand={(command) => {
+  if (!command || command.action === "NONE") return;
+
+  if (command.action === "CLOSE") {
+    setInfoPanelContent(null);
+    return;
+  }
+
+  if (command.action === "SHOW") {
+    const content = command.content ?? command;
+
+    setInfoPanelContent({
+      type: content.type,
+      title: content.title || "Gaby Info",
+      subtitle: content.subtitle,
+      image: content.image,
+      description: content.description,
+      sections: content.sections,
+      sourceUrl: content.sourceUrl,
+      data: content.data,
+    });
+  }
+}}
 
 onChartCommand={(command) => {
   const action = command?.action;
@@ -3825,6 +3924,13 @@ setGabyAnnotations((prev) => {
 )}
 
 </PortfolioPanel>
+
+<div ref={infoPanelRef}>
+  <InfoPanel
+    content={infoPanelContent}
+    onClose={closeInfoPanel}
+  />
+</div>
 
 {showResetModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">

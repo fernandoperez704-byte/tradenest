@@ -93,7 +93,13 @@ export interface TradeReviewInput {
   stopLoss?: number | null;
   takeProfit?: number | null;
 
-  management?: TradeManagementData | null;
+management?: TradeManagementData | null;
 
-  tradeContext?: TradeContext | null;
+tradeContext?: TradeContext | null;
+
+priceActionContext?: {
+  candlesAnalyzed: number;
+  directionChanges: number;
+  repeatedSwings: boolean;
+} | null;
 }

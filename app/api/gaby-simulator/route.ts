@@ -826,6 +826,48 @@ chartCommand:
 });
 }
 
+// Handle Bitcoin whitepaper info panel
+const asksForWhitepaper =
+  normalizedQuestion.includes("whitepaper") ||
+  normalizedQuestion.includes("white paper");
+
+const mentionsBitcoin =
+  normalizedQuestion.includes("bitcoin") ||
+  normalizedQuestion.includes("btc");
+
+const isBitcoinWhitepaperQuestion =
+  asksForWhitepaper && mentionsBitcoin;
+
+if (isBitcoinWhitepaperQuestion) {
+  const accessResponse = await requireGabyAccess();
+  if (accessResponse) return accessResponse;
+
+  if (userId) {
+    await useGabyQuestion(userId);
+  }
+
+  return Response.json({
+    answer:
+      "Here is the original Bitcoin whitepaper by Satoshi Nakamoto.",
+
+    panelCommand: {
+      action: "SHOW",
+      type: "WHITEPAPER",
+      title: "Bitcoin: A Peer-to-Peer Electronic Cash System",
+      subtitle: "Satoshi Nakamoto • 2008",
+      description:
+        "The original Bitcoin whitepaper describing a peer-to-peer electronic cash system.",
+        sourceUrl: "https://bitcoin.org/bitcoin.pdf",
+    },
+
+    chartCommand: {
+      action: "NONE",
+      target: null,
+      count: 1,
+    },
+  });
+}
+
 const accessResponse = await requireGabyAccess();
 if (accessResponse) return accessResponse;
 
@@ -919,8 +961,23 @@ TradeNestX Engine Review Data
 Trading Timeframe:
 ${reviewTimeframe}
 
+Trade Side:
+${reviewEngine?.side ?? "UNKNOWN"}
+
+Relevant Entry Zone:
+${reviewEngine?.side === "SHORT"
+  ? `Resistance: ${JSON.stringify(reviewEngine?.marketAtEntry?.nearestResistance ?? null)}`
+  : reviewEngine?.side === "LONG"
+  ? `Support: ${JSON.stringify(reviewEngine?.marketAtEntry?.nearestSupport ?? null)}`
+  : "N/A"}
+
 Market Direction at Entry:
 ${reviewEngine?.marketAtEntry?.marketDirection ?? "UNKNOWN"}
+
+Price Action at Entry:
+${reviewEngine?.priceActionAtEntry
+  ? JSON.stringify(reviewEngine.priceActionAtEntry)
+  : "N/A"}
 
 Entry Quality:
 
@@ -965,6 +1022,8 @@ Gaby's job is ONLY to explain the completed TradeNestX deterministic trade revie
 ENGINE AUTHORITY RULES:
 - The supplied TradeNestX engine review data is the ONLY source of truth.
 - Every statement Gaby makes about the trade must be directly supported by a supplied engine fact.
+- Price Action at Entry is deterministic TradeNestX review data and may be used as an engine fact.
+- Do not mention repeatedSwings automatically. Use Price Action at Entry only when the user specifically asks about pre-entry price behavior or when another supplied engine fact explicitly references reduced clarity or transition.
 - When the engine provides both strengths and weaknesses, clearly distinguish the supportive facts from the unfavorable facts.
 - Never present a supplied strength as if it were part of the reason an overall rating was weak.
 - If an overall Entry Quality rating is WEAK but the engine also supplies an entry strength, explain that the strength was present while other supplied weaknesses reduced the overall entry quality.
@@ -984,7 +1043,11 @@ ENGINE AUTHORITY RULES:
 ANSWER RULES:
 - Answer ONLY the user's question about the latest reviewed trade.
 - Do NOT perform a new trade review.
-- Organize supplied engine facts clearly: state the overall rating first, then separate supportive facts from unfavorable facts, then risk, management, exit, and P&L when available. Do not create any new conclusion.
+- The Trade Review panel already displays the trade numbers and ratings. Do not repeat entry price, exit price, P&L, gross P&L, net P&L, fees, scores, or other displayed numbers unless the user specifically asks for them.
+- For LONG trades, discuss the supplied Relevant Entry Zone only as support. Do not discuss resistance unless the user specifically asks.
+- For SHORT trades, discuss the supplied Relevant Entry Zone only as resistance. Do not discuss support unless the user specifically asks.
+- Do not automatically discuss Price Action at Entry or repeatedSwings.
+- Explain only the most important supplied execution facts for this specific trade. Write naturally like a trading coach reviewing the trade, not like an engine report. End with one practical "Main takeaway:" supported by the engine facts.
 - Use Raw Review Explanation, Raw Review Context, and Raw Review Lesson only for the meanings explicitly stated in those fields.
 - If the user asks specifically about entry, use only the supplied Entry Quality, Entry Review, and Entry Lesson.
 - If the user asks specifically about risk, use only the supplied Risk Review.
@@ -1143,13 +1206,44 @@ Return ONLY valid JSON in this shape:
 
 {
   "answer": "Gaby's normal natural answer",
-"chartCommand": {
-  "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
-  "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
-  "count": 1,
-  "index": 0
+
+  "chartCommand": {
+    "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
+    "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
+    "count": 1,
+    "index": 0
+  },
+
+  "panelCommand": {
+    "action": "SHOW | NONE",
+    "content": {
+      "type": "MARKET_INFO",
+      "title": "panel title",
+      "subtitle": "optional subtitle",
+      "description": "optional short introduction",
+      "sections": [
+        {
+          "heading": "section heading",
+          "body": "optional section explanation",
+          "items": ["optional item"]
+        }
+      ]
+    }
+  }
 }
-}
+
+Info Panel rules:
+- Use panelCommand when the user's question would be clearer or more educational as structured information in the Info Panel.
+- Use MARKET_INFO for general educational information, asset education, company or coin overviews, trading concepts, and structured explanations.
+- Examples include: "teach me about Bitcoin", "what should I know about BTC", "explain proof of work", or future stock/company educational overviews.
+- Use normal chat for short or simple explanations that do not need a structured panel.
+- Do not open the panel for every question.
+- The panel may contain a title, subtitle, short description, and multiple educational sections.
+- Keep each section focused and readable.
+- panelCommand does not replace Gaby's normal answer. Gaby should still give a short natural chat response explaining what she opened or highlighting the main concept.
+- If no panel is useful, return action NONE.
+- Do not invent current market facts inside educational panel content.
+- Current prices, support, resistance, indicators, market direction, or other live simulator facts must still come only from supplied TradeNestX engine facts.
 
 Chart command meanings:
 - SHOW = display the requested chart item.
@@ -1217,14 +1311,18 @@ let parsed: any;
 try {
   parsed = JSON.parse(raw);
 } catch {
-  parsed = {
-    answer: raw,
-    chartCommand: {
-      action: "NONE",
-      target: null,
-      count: 1,
-    },
-  };
+parsed = {
+  answer: raw,
+  chartCommand: {
+    action: "NONE",
+    target: null,
+    count: 1,
+  },
+  panelCommand: {
+    action: "NONE",
+    content: null,
+  },
+};
 }
 
 const answer = parsed.answer;
@@ -1241,11 +1339,18 @@ if (userId) {
 
 return Response.json({
   answer,
+
   chartCommand:
     parsed.chartCommand || {
       action: "NONE",
       target: null,
       count: 1,
+    },
+
+  panelCommand:
+    parsed.panelCommand || {
+      action: "NONE",
+      content: null,
     },
 });
 

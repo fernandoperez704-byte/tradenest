@@ -58,6 +58,8 @@ futuresPositionManagement: any;
 
 
 onChartCommand?: (command: any) => void;
+onInfoPanelCommand?: (command: any) => void;
+
 chartHighlightState?: {
   visible: boolean;
   pinned: boolean;
@@ -102,8 +104,9 @@ export default function GabySimulatorCoach({
   strongestPattern,
 detectedTrendline,
 onAnalysisComplete,
-  onChartCommand,
-  chartHighlightState,
+onChartCommand,
+onInfoPanelCommand,
+chartHighlightState,
 }: GabySimulatorCoachProps) {
   const { user } = useUser();
   const { openSignIn } = useClerk();
@@ -572,7 +575,7 @@ if (!isPaid) return;
   const askGaby = useCallback(async (customQuestion?: string, reviewOverride?: any) => {
     let finalQuestion = customQuestion || question;
     let reviewSnapshot = reviewOverride || null;
-
+let reviewTradeRecord: any = null;
     if (!finalQuestion.trim()) return;
 
 const normalizedInput =
@@ -632,11 +635,13 @@ const wantsMultiTradeReview =
       !wantsMultiTradeReview &&
       !reviewSnapshot
     ) {
-      const latestTrade = getLatestReviewedTrade();
-      reviewSnapshot =
-        latestTrade?.review ||
-        latestTrade?.automaticReview ||
-        null;
+const latestTrade = getLatestReviewedTrade();
+reviewTradeRecord = latestTrade;
+
+reviewSnapshot =
+  latestTrade?.review ||
+  latestTrade?.automaticReview ||
+  null;
     }
     
 let conversationSubject = getConversationSubject(finalQuestion);
@@ -714,28 +719,17 @@ if (
   isInitialTradeReviewRequest &&
   isSnapshotComplete(reviewSnapshot)
 ) {
-  const gabyAnswer = reviewSnapshot.gaby.explanation;
-  setAnswer(gabyAnswer);
-  
-  // ✨ Prime the state so the user can immediately ask follow-up questions about this snapshot
-  setConversationState({
-    intent: "TRADE_REVIEW",
-    subject: "TRADE_REVIEW",
-    mode: "TRADE_REVIEW",
-    awaitingFollowUp: true,
-  });
-
-  // ✨ Save it to history so the backend knows what snapshot was just shown
-  setConversationHistory((prev) => [
-    ...prev.slice(-7),
-    {
-      user: finalQuestion,
-      gaby: gabyAnswer,
+  onInfoPanelCommand?.({
+    action: "SHOW",
+    type: "TRADE_REVIEW",
+    title: `Trade Review — ${selectedCoin}`,
+    subtitle: `${reviewSnapshot.engine?.mode || mode} • ${reviewSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
+    description: "Verified review facts from the TradeNestX Trade Review Engine.",
+    data: {
+      review: reviewSnapshot,
+      trade: reviewTradeRecord,
     },
-  ]);
-
-  setQuestion("");
-  return;
+  });
 }
 
     setLoading(true);
@@ -827,16 +821,31 @@ if (
   onAnalysisComplete?.(conversationSubject);
 }
 
-      if (
-        reviewSnapshot &&
-        !reviewSnapshot.gaby?.generated
-      ) {
-        const completedSnapshot = completeSnapshot(
-          reviewSnapshot,
-          gabyAnswer
-        );
-        await persistCompletedTradeReviewSnapshot(completedSnapshot);
-      }
+if (
+  data.panelCommand &&
+  data.panelCommand.action !== "NONE"
+) {
+  onInfoPanelCommand?.(data.panelCommand);
+}
+
+if (reviewSnapshot && !reviewSnapshot.gaby?.generated) {
+  const completedSnapshot = completeSnapshot(reviewSnapshot, gabyAnswer);
+  await persistCompletedTradeReviewSnapshot(completedSnapshot);
+
+  if (conversationIntent === "TRADE_REVIEW") {
+    onInfoPanelCommand?.({
+      action: "SHOW",
+      type: "TRADE_REVIEW",
+      title: `Trade Review — ${selectedCoin}`,
+      subtitle: `${completedSnapshot.engine?.mode || mode} • ${completedSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
+      description: "Verified review facts from the TradeNestX Trade Review Engine.",
+      data: {
+  review: completedSnapshot,
+  trade: reviewTradeRecord,
+},
+    });
+  }
+}
 
 // ✨ Check for either a new subject OR an existing active conversation thread
 if (conversationSubject || conversationState.awaitingFollowUp) {
@@ -897,6 +906,7 @@ futuresPositionManagement,
 getLatestReviewedTrade,
 
 onChartCommand,
+onInfoPanelCommand,
 chartHighlightState,
 ]);
 
@@ -1104,6 +1114,18 @@ useEffect(() => {
       );
       return;
     }
+
+onInfoPanelCommand?.({
+  action: "SHOW",
+  type: "TRADE_REVIEW",
+  title: `Trade Review — ${latestTrade.coin || selectedCoin}`,
+  subtitle: `${reviewSnapshot.engine?.mode || mode} • ${reviewSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
+  description: "Verified review facts from the TradeNestX Trade Review Engine.",
+  data: {
+  review: reviewSnapshot,
+  trade: latestTrade,
+},
+});
 
     setAnswer(
       `${review.explanation}\n\n${review.context}\n\nLesson: ${review.lesson}`

@@ -58,9 +58,23 @@ export async function GET(request: Request) {
 const timeframeSeconds =
   timeframeSecondsMap[timeframe] || 60;
 
-const endTime = Math.floor(Date.now() / 1000);
+const requestedStart = Number(searchParams.get("start"));
+const requestedEnd = Number(searchParams.get("end"));
 
-const recentStart = endTime - timeframeSeconds * 299;
+const hasCustomRange =
+  Number.isFinite(requestedStart) &&
+  Number.isFinite(requestedEnd) &&
+  requestedStart > 0 &&
+  requestedEnd > requestedStart;
+
+const endTime = hasCustomRange
+  ? requestedEnd
+  : Math.floor(Date.now() / 1000);
+
+const recentStart = hasCustomRange
+  ? requestedStart
+  : endTime - timeframeSeconds * 299;
+
 const olderEnd = recentStart - timeframeSeconds;
 const olderStart = olderEnd - timeframeSeconds * 299;
 
@@ -105,7 +119,15 @@ const candles = [...olderData.candles, ...recentData.candles]
   );
 
 
-    return NextResponse.json(candles.slice(-600));
+    return NextResponse.json(
+  hasCustomRange
+    ? candles.filter(
+        (candle: any) =>
+          Number(candle.time) / 1000 >= requestedStart &&
+          Number(candle.time) / 1000 <= requestedEnd
+      )
+    : candles.slice(-600)
+);
   } catch (error) {
     console.error("Candles API failed:", error);
 
