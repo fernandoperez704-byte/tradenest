@@ -439,9 +439,15 @@ if (
       "can you explain",
     ];
 
-    if (followUps.some((word) => text.includes(word))) {
-      return "FOLLOW_UP";
-    }
+if (
+  followUps.some(
+    (word) =>
+      text === word ||
+      text.startsWith(`${word} `)
+  )
+) {
+  return "FOLLOW_UP";
+}
 
     if (
       text.includes("btc") ||
@@ -747,6 +753,7 @@ if (
           conversationHistory: conversationHistory.slice(-8),
 simulatorContext: {
   userId,
+  userFirstName: user?.firstName || null,
   conversationIntent,
   conversationSubject,
   conversationState,

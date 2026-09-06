@@ -39,9 +39,6 @@ export const metadata: Metadata = {
     "Gaby AI",
   ],
 
-  alternates: {
-    canonical: "/",
-  },
 
   openGraph: {
     type: "website",

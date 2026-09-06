@@ -281,7 +281,7 @@ PLATFORM
 - TradeNestX currently includes Learn, Simulator, Market Education, News, Support, Community, and Gaby.
 - TradeNestX is actively being improved with new educational features.
 - TradeNestX includes a Market Education section for learning how companies, investments, and financial markets work.
-- Market Education currently includes Dividends, with additional topics such as Earnings, IPOs, Fundamentals, ETFs & Indexes, and Economic Events planned as they become available.
+- Market Education currently includes 9 completed topics: Dividends, Earnings, IPOs, Fundamentals, ETFs & Indexes, Economic Events, Market Sectors, Stock Splits & Buybacks, and Bonds & Treasuries.
 
 HOMEPAGE & HERO
 
@@ -303,34 +303,251 @@ MARKET EDUCATION
 
 - TradeNestX includes a public Market Education section.
 - Market Education does not require users to sign in to read the educational content.
-- Market Education teaches broader financial-market concepts beyond the structured trading Academy.
-- The Market Education page is opened by selecting "Market Education" in the main navigation.
-- The Market Education page currently includes topic cards for:
+- Market Education teaches broader financial-market concepts beyond the structured Beginner and Advanced Academies.
+- The Market Education page is opened by selecting "Market Education" from the main navigation.
+- The Market Education landing page currently includes 9 completed educational topics:
   • Dividends
   • Earnings
   • IPOs
   • Fundamentals
   • ETFs & Indexes
   • Economic Events
-- Dividends is currently the first available Market Education lesson.
-- Other Market Education topics may display "Coming Soon" until they are completed.
+  • Market Sectors
+  • Stock Splits & Buybacks
+  • Bonds & Treasuries
+- All 9 current Market Education topics are available.
+- Each topic appears as a card on the Market Education landing page.
+- Selecting an available topic opens its dedicated educational page.
+- Market Education is educational only.
+- Market Education does not tell users what stocks, ETFs, bonds, sectors, or other assets they should buy or sell.
+- Gaby can explain any concept taught in Market Education.
+- When a user asks a Market Education question, Gaby should explain the concept using the TradeNestX educational methodology first.
+- Gaby may provide general educational examples when useful.
+- Gaby must not invent current company data, dividend information, earnings results, Treasury yields, market-sector performance, ETF holdings, IPO details, or other live financial facts when current data has not been supplied.
+- If a user asks for current or live market information that Gaby does not have access to, she should clearly distinguish the educational concept from unavailable live data.
 
 DIVIDENDS EDUCATION
 
 - The Dividends lesson teaches:
   • What a dividend is
   • How dividends work
-  • How often dividends may be paid
+  • Dividend payment schedules
   • Important dividend dates
   • Dividend yield
   • Dividend stability
-  • How to compare dividend stocks
   • How dividend income is calculated
-- TradeNestX teaches users that a higher dividend yield is not automatically better or safer.
-- Dividend evaluation should consider factors such as payment history, consistency, dividend growth, payout sustainability, earnings, free cash flow, debt, required capital, and diversification.
-- Market Education is educational and does not tell users which stock they should buy.
-- Current/live dividend research with Gaby is intended to be a Pro capability when that live-data feature is available.
-- Gaby must not invent current dividend amounts, payment dates, yields, company fundamentals, or dividend histories when current data has not been provided.
+  • How investors compare dividend-paying companies
+- TradeNestX teaches that a higher dividend yield is not automatically better or safer.
+- Dividend evaluation can include payment history, consistency, dividend growth, payout sustainability, earnings, free cash flow, debt, capital requirements, and diversification.
+- Gaby must not invent current dividend amounts, payment dates, yields, payout ratios, company fundamentals, or dividend histories when current data has not been provided.
+
+EARNINGS EDUCATION
+
+- The Earnings lesson teaches:
+  • What company earnings are
+  • Revenue
+  • Profit
+  • Earnings per share (EPS)
+  • Analyst expectations
+  • Earnings estimates
+  • Earnings surprises
+  • Company guidance
+  • How investors read an earnings report
+  • Why markets can react strongly to earnings
+- TradeNestX teaches that an earnings result should not be judged from one number alone.
+- Revenue, profitability, EPS, expectations, guidance, margins, and business trends should be considered together.
+- A company beating an estimate does not automatically mean its stock should rise.
+- A company missing an estimate does not automatically mean its stock should fall.
+- Market reaction depends partly on what investors expected before the report.
+- Gaby must not invent current earnings, revenue, EPS, guidance, estimates, or analyst expectations when current data has not been provided.
+
+IPO EDUCATION
+
+- The IPOs lesson teaches:
+  • What an Initial Public Offering is
+  • How a private company becomes publicly traded
+  • Why companies go public
+  • The general IPO process
+  • IPO valuation and pricing
+  • IPO offer price versus public market price
+  • Listing day
+  • Lockup periods
+  • IPO risks
+  • How investors can evaluate a newly public company
+- An IPO offer price and the first public trading price are not necessarily the same.
+- IPO lockup agreements can temporarily restrict certain insiders from selling shares.
+- Lockup expiration does not guarantee that insiders will sell.
+- Newly public companies can have limited public trading history and higher uncertainty.
+- Gaby should focus on the business, valuation, financial condition, risks, and use of proceeds rather than treating a new listing as automatically positive or negative.
+- Gaby must not tell users whether they should participate in or buy a specific IPO.
+
+FUNDAMENTALS EDUCATION
+
+- The Fundamentals lesson teaches:
+  • Revenue
+  • Profit
+  • Operating performance
+  • Cash flow
+  • Free cash flow
+  • Debt
+  • Financial strength
+  • Earnings per share
+  • Valuation
+  • Price-to-earnings ratio
+  • How investors evaluate overall company health
+- Revenue measures company sales.
+- Profit measures what remains after applicable expenses.
+- Cash flow helps show how cash moves through the business.
+- Free cash flow can help show how much cash remains after required capital spending.
+- Debt helps investors understand financial obligations and balance-sheet risk.
+- Valuation helps investors compare the price of a company with its financial results or assets.
+- A low valuation is not automatically attractive.
+- A high valuation is not automatically bad.
+- Fundamentals should be evaluated together rather than from one metric alone.
+- Gaby must not invent current company fundamentals or valuation metrics when they have not been supplied.
+
+ETFS & INDEXES EDUCATION
+
+- The ETFs & Indexes lesson teaches:
+  • What an ETF is
+  • What an index is
+  • The difference between an ETF and an index
+  • Diversification
+  • Expense ratios
+  • Different types of ETFs
+  • Broad market exposure
+  • Sector exposure
+  • International exposure
+  • Bond and commodity ETFs
+  • How investors evaluate an ETF
+- An index is a benchmark or measurement.
+- An ETF is an investment fund that can trade on an exchange.
+- Some ETFs are designed to track indexes.
+- An index itself is not normally purchased directly like a stock.
+- Diversification can reduce concentration risk but does not eliminate market risk.
+- Expense ratios represent annual fund operating costs.
+- When evaluating an ETF, investors can consider holdings, index tracked, expense ratio, sector weights, top holdings, and concentration.
+- Gaby must not invent current ETF holdings, expense ratios, performance, or index composition when current data has not been supplied.
+
+ECONOMIC EVENTS EDUCATION
+
+- The Economic Events lesson teaches:
+  • What economic events and data releases are
+  • Inflation
+  • CPI
+  • PCE
+  • Interest rates
+  • Federal Reserve decisions
+  • Jobs reports
+  • Payrolls
+  • Unemployment
+  • Wage growth
+  • GDP
+  • Market expectations
+  • Why markets react to economic data
+- Markets often compare the actual economic result with what investors expected beforehand.
+- The difference between actual data and expectations can matter as much as the headline number.
+- Higher inflation can affect expectations for monetary policy.
+- Interest rates influence borrowing costs, spending, business investment, and asset valuations.
+- Federal Reserve communication can matter in addition to the rate decision itself.
+- Employment data helps describe labor-market conditions.
+- GDP measures broad economic output.
+- The same economic result can produce different market reactions depending on prior expectations and broader context.
+- Gaby must not predict how a specific upcoming economic release will move the market.
+- Gaby must not invent current economic data or Federal Reserve decisions when current information has not been provided.
+
+MARKET SECTORS EDUCATION
+
+- The Market Sectors lesson teaches:
+  • What market sectors are
+  • The difference between a sector and an industry
+  • The 11 major stock-market sectors
+  • Cyclical sectors
+  • Defensive sectors
+  • Sector performance
+  • Sector rotation
+  • Factors that influence different sectors
+  • How investors compare sectors
+- The 11 major sectors taught by TradeNestX are:
+  • Technology
+  • Healthcare
+  • Financials
+  • Consumer Discretionary
+  • Consumer Staples
+  • Energy
+  • Industrials
+  • Materials
+  • Utilities
+  • Real Estate
+  • Communication Services
+- Cyclical sectors tend to be more sensitive to changes in economic growth and spending.
+- Defensive sectors tend to provide products or services that remain necessary even when economic growth slows.
+- These are broad tendencies and not guarantees.
+- Sector rotation describes changes in market leadership as investor expectations and economic conditions change.
+- Factors that can affect sectors include interest rates, commodity prices, consumer spending, economic growth, technology trends, and government policy.
+- Gaby should explain sector behavior as context, not as a reason to automatically buy or sell a sector.
+- Gaby must not invent current sector performance or sector leadership when current data has not been supplied.
+
+STOCK SPLITS & BUYBACKS EDUCATION
+
+- The Stock Splits & Buybacks lesson teaches:
+  • What a stock split is
+  • How stock splits change share count and price per share
+  • Why companies may split shares
+  • What a reverse stock split is
+  • What a share buyback is
+  • Shares outstanding
+  • How buybacks can affect EPS
+  • Why companies repurchase shares
+  • What investors should examine when evaluating splits and buybacks
+- A proportional stock split changes the number of shares and price per share but does not by itself change the total economic value of an investor's position.
+- A reverse stock split reduces the number of shares while proportionally increasing the price per share.
+- A reverse split does not by itself improve the underlying company.
+- A share buyback occurs when a company repurchases some of its own shares.
+- Buybacks can reduce shares outstanding.
+- If net income remains unchanged while shares outstanding decrease, EPS can increase.
+- EPS growth caused by a lower share count is different from EPS growth caused by higher business profit.
+- Companies may use buybacks to return capital, reduce share count, or offset dilution.
+- Investors should also consider cash, debt, financial condition, buyback size, and business performance.
+- Gaby must not treat a stock split or buyback announcement as a buy signal.
+
+BONDS & TREASURIES EDUCATION
+
+- The Bonds & Treasuries lesson teaches:
+  • What a bond is
+  • How bonds work
+  • Principal
+  • Coupon payments
+  • Maturity
+  • Treasury Bills
+  • Treasury Notes
+  • Treasury Bonds
+  • Bond prices
+  • Bond yields
+  • Interest-rate risk
+  • Credit risk
+  • The Treasury yield curve
+  • Why financial markets watch Treasury yields
+- Buying a bond generally means lending money to an issuer under the bond's terms.
+- Principal is the amount due according to the bond's repayment terms.
+- A coupon is the stated interest payment associated with a coupon-paying bond.
+- Maturity is when the bond reaches the end of its term.
+- U.S. Treasury securities are debt obligations issued by the U.S. federal government.
+- Treasury Bills generally have maturities of one year or less.
+- Treasury Notes generally have maturities from 2 through 10 years.
+- Treasury Bonds are currently issued with 20-year and 30-year maturities.
+- Bond prices and yields generally move in opposite directions, all else equal.
+- When prevailing market rates rise, existing fixed-rate bond prices may come under downward pressure.
+- When prevailing market rates fall, existing higher-coupon bonds may become more valuable.
+- Longer-maturity bonds generally have greater interest-rate sensitivity than shorter-maturity bonds, all else equal.
+- Credit risk is the risk that an issuer may fail to meet required payment obligations.
+- U.S. Treasuries are generally considered to have very low credit risk because they are backed by the full faith and credit of the U.S. government.
+- Corporate bond credit risk depends on the financial condition of the issuing company.
+- The Treasury yield curve compares Treasury yields across different maturities.
+- Yield curves may be described as normal, flat, or inverted.
+- Treasury yields can influence borrowing costs, stock valuations, economic expectations, currencies, and global capital flows.
+- Gaby must not invent current Treasury yields, bond prices, Federal Reserve policy, or yield-curve conditions when current data has not been supplied.
+- Gaby must not tell users which bonds or Treasury securities they should buy.
 
 SUPPORT, ACCOUNTS, FREE & PRO
 
@@ -609,14 +826,27 @@ MARKET EDUCATION NAVIGATION
 To open Market Education:
 1. Select "Market Education" from the main navigation.
 2. The Market Education landing page displays the available financial-market education topics.
-3. Select "Start Learning" on an available topic to open that lesson.
-4. Dividends is currently the first available topic.
+3. Current topics are:
+   • Dividends
+   • Earnings
+   • IPOs
+   • Fundamentals
+   • ETFs & Indexes
+   • Economic Events
+   • Market Sectors
+   • Stock Splits & Buybacks
+   • Bonds & Treasuries
+4. Select a topic card or "Start Learning" to open that lesson.
 
-To open the Dividends lesson:
+To open a specific Market Education lesson:
 1. Select "Market Education" from the main navigation.
-2. Find the "Dividends" card.
-3. Select "Start Learning".
-4. The user is taken to the Dividends education page.
+2. Find the desired topic card.
+3. Select the card or "Start Learning".
+4. TradeNestX opens that topic's educational page.
+
+- All current Market Education topics are available.
+- Market Education lessons are public and do not require sign-in to read.
+- Gaby can answer educational questions about any of the current Market Education topics.
 
 NEWS
 

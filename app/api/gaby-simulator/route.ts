@@ -51,6 +51,7 @@ const userName =
 const normalizedQuestion = question?.trim().toLowerCase() || "";
 
 const {
+  userFirstName,
   conversationIntent,
   conversationSubject,
   conversationState,
@@ -896,6 +897,14 @@ ${tradenestxKnowledge}
 CURRENT DATE AND TIME:
 Current date: ${currentDate}
 Current time: ${currentTime} Eastern Time
+
+USER:
+First name: ${userFirstName || "Unknown"}
+
+NAME RULES:
+- If the user's first name is available, use it naturally when appropriate.
+- Do not use the name in every answer.
+- If the name is unavailable, never invent one.
 
 DATE/TIME RULES:
 - The current date and time above are authoritative.
