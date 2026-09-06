@@ -48,17 +48,17 @@ export default function HomePage() {
   {/* HERO CONTENT */}
   <div className="relative z-10 min-h-[calc(100vh-56px)]">
     {/* TITLE */}
-    <div className="absolute left-1/2 top-[48%] w-full -translate-x-1/2 -translate-y-1/2 px-5 text-center md:left-32 md:top-[40%] md:w-auto md:translate-x-0 md:text-left xl:left-40">
-      <h1 className="whitespace-nowrap text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl xl:text-7xl">
+    <div className="absolute left-1/2 top-[48%] w-full -translate-x-1/2 -translate-y-1/2 px-5 text-center md:left-1/2 md:top-[40%] md:w-auto md:-translate-x-1/2 md:text-CENTER">
+      <h1 className="whitespace-nowrap text-[44px] font-black tracking-tight text-white sm:text-5xl md:text-6xl xl:text-7xl">
         TRADE SMARTER
       </h1>
 
-      <p className="mt-2 text-center text-lg font-bold tracking-[0.35em] text-white sm:text-xl md:text-2xl">
+      <p className="mt-2 text-center text-xl font-bold tracking-[0.35em] text-white sm:text-xl md:text-2xl">
         STAY AHEAD
       </p>
 
       {/* Mobile Education Text */}
-      <div className="mt-5 space-y-1 text-center text-sm font-semibold text-cyan-300 md:hidden">
+      <div className="mt-5 space-y-1 text-center text-base font-semibold text-cyan-300 md:hidden">
         <p>Trading Education</p>
         <p>Risk-Free Practice</p>
         <p>AI-Powered Learning</p>
@@ -71,7 +71,7 @@ export default function HomePage() {
     </div>
 
     {/* BUTTONS */}
-    <div className="absolute left-1/2 top-5 flex w-auto -translate-x-1/2 justify-center gap-3 md:bottom-40 md:left-[30%] md:top-auto md:-translate-x-1/2 xl:left-[30%]">
+    <div className="absolute left-1/2 top-5 flex w-auto -translate-x-1/2 justify-center gap-3 md:bottom-40 md:left-1/2 md:top-auto md:-translate-x-1/2">
       <Link
         href="/learn"
         className="flex h-12 min-w-[135px] items-center justify-center rounded-xl bg-cyan-400 px-7 text-sm font-black text-black transition hover:bg-cyan-300"
