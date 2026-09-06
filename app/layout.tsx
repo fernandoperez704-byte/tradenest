@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     template: "%s | TradeNestX",
   },
 
-  description:
-    "TradeNestX is an educational trading platform where users can learn market concepts, practice crypto spot and futures trading, review trades with Gaby AI, and develop better trading habits.",
+description:
+  "Learn trading with TradeNestX through structured education, risk-free crypto spot and futures practice, market education, trade reviews, and Gaby AI coaching.",
 
   keywords: [
     "TradeNestX",
@@ -40,21 +40,21 @@ export const metadata: Metadata = {
   ],
 
 
-  openGraph: {
-    type: "website",
-    url: "https://www.tradenestxacademy.com",
-    siteName: "TradeNestX",
-    title: "TradeNestX | Learn Trading Through Practice",
-    description:
-      "Learn trading concepts, practice crypto spot and futures trading, review your trades with Gaby AI, and build better trading habits with TradeNestX.",
-  },
+openGraph: {
+  type: "website",
+  url: "https://www.tradenestxacademy.com",
+  siteName: "TradeNestX",
+  title: "TradeNestX | Learn Trading Through Practice",
+  description:
+    "Learn trading with TradeNestX through structured education, risk-free crypto spot and futures practice, market education, trade reviews, and Gaby AI coaching.",
+},
 
-  twitter: {
-    card: "summary_large_image",
-    title: "TradeNestX | Learn Trading Through Practice",
-    description:
-      "Learn trading concepts, practice crypto spot and futures trading, and develop better trading habits with TradeNestX.",
-  },
+twitter: {
+  card: "summary_large_image",
+  title: "TradeNestX | Learn Trading Through Practice",
+  description:
+    "Learn trading with TradeNestX through structured education, risk-free crypto spot and futures practice, market education, trade reviews, and Gaby AI coaching.",
+},
 
   robots: {
     index: true,
