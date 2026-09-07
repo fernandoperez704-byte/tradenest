@@ -13,9 +13,20 @@ export function startStockStream() {
     }));
   });
 
-  ws.on("message", (data) => {
-    console.log("ALPACA:", data.toString());
-  });
+ws.on("message", (data) => {
+  const message = data.toString();
+  console.log("ALPACA:", message);
+
+  if (message.includes('"msg":"authenticated"')) {
+    const symbols = ["NVDA","TSLA","AAPL","AMD","AMZN","MSFT","META","GOOGL","PLTR","AVGO","NFLX","COIN","MSTR","JPM","BAC","SPY","QQQ","IWM","DIA","VTI"];
+
+    ws.send(JSON.stringify({
+      action: "subscribe",
+      trades: symbols,
+      bars: symbols,
+    }));
+  }
+});
 
   ws.on("error", (error) => {
     console.error("Alpaca stock stream error:", error);
