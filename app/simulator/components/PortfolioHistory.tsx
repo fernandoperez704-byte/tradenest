@@ -1,15 +1,18 @@
 import type { Trade } from "../types/simulator";
+import type { StockTrade } from "../hooks/useStockTrading";
 
 type PortfolioHistoryProps = {
   marketMode: "SPOT" | "FUTURES" | "STOCKS";
   trades: Trade[];
   futuresHistory: any[];
+  stockHistory: StockTrade[];
 };
 
 export default function PortfolioHistory({
   marketMode,
   trades,
   futuresHistory,
+  stockHistory,
 }: PortfolioHistoryProps) {
   return (
     <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
@@ -168,8 +171,69 @@ export default function PortfolioHistory({
             </div>
           ))
         )
+      ) : marketMode === "STOCKS" ? (
+        stockHistory.length === 0 ? (
+          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
+            <p className="text-2xl font-bold text-zinc-300">No Stock History</p>
+            <p className="text-zinc-500 mt-2">Completed stock trades will appear here.</p>
+          </div>
+        ) : (
+          stockHistory.map((trade, index) => (
+            <div
+              key={index}
+              className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 items-center">
+                <div>
+                  <p className={`text-base font-black ${trade.type === "BUY" ? "text-green-400" : "text-red-400"}`}>
+                    {trade.type}
+                  </p>
+                  <p className="text-xs text-zinc-500">{trade.symbol}</p>
+                </div>
+
+                <div>
+                  <p className="text-zinc-500 text-xs">Shares</p>
+                  <p className="text-sm font-bold text-white">{trade.quantity.toFixed(6)}</p>
+                </div>
+
+                <div>
+                  <p className="text-zinc-500 text-xs">Price</p>
+                  <p className="text-sm font-bold text-white">${trade.price.toFixed(2)}</p>
+                </div>
+
+                <div>
+                  <p className="text-zinc-500 text-xs">Value</p>
+                  <p className="text-sm font-bold text-cyan-400">${trade.amount.toFixed(2)}</p>
+                </div>
+
+                <div>
+                  <p className="text-zinc-500 text-xs">P/L</p>
+                  {trade.type === "SELL" && trade.pnl !== undefined ? (
+                    <p className={`text-sm font-bold ${trade.pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      ${trade.pnl.toFixed(2)}
+                    </p>
+                  ) : (
+                    <p className="text-sm font-bold text-zinc-500">Open</p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-zinc-500 text-xs">Status</p>
+                  <p className={`text-sm font-bold ${trade.type === "BUY" ? "text-green-400" : "text-red-400"}`}>
+                    {trade.type === "BUY" ? "OPEN" : "CLOSE"}
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-zinc-500 text-xs">Time</p>
+                  <p className="text-sm font-bold text-white">{trade.time}</p>
+                </div>
+              </div>
+            </div>
+          ))
+        )
       ) : (
-                trades.length === 0 ? (
+        trades.length === 0 ? (
           <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
             <p className="text-2xl font-bold text-zinc-300">
               No Spot History

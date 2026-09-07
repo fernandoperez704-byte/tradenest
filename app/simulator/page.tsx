@@ -16,6 +16,8 @@ import InfoPanel, {
 } from "./components/InfoPanel";
 import { WATCHLIST } from "./data/watchlist";
 import { STOCK_WATCHLIST, type StockSymbol } from "./data/stockWatchlist";
+import { useStockMarket } from "./hooks/useStockMarket";
+import { useStockTrading } from "./hooks/useStockTrading";
 import { buildTrendAnalysis } from "@/lib/traderDevelopment/trendAnalysis";
 import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
@@ -344,7 +346,6 @@ useEffect(() => {
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
-
 const [patternRecognitionEnabled, setPatternRecognitionEnabled] =
   useState(false);
 
@@ -368,8 +369,7 @@ const [prices, setPrices] = useState<
   Partial<Record<AssetSymbol, number>>
 >({});
 
-const [stockPrices, setStockPrices] = useState<Partial<Record<StockSymbol, number>>>({});
-const [previousStockPrices, setPreviousStockPrices] = useState<Partial<Record<StockSymbol, number>>>({});
+
 const [previousPrices, setPreviousPrices] = useState<
   Partial<Record<AssetSymbol, number>>
 >({});
@@ -744,6 +744,44 @@ const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [simulatorReady, setSimulatorReady] = useState(false);
 
+const {
+  stockPrices,
+  previousStockPrices,
+  stockMarketOpen,
+  updateStockPrices,
+} = useStockMarket({
+  enabled: marketMode === "STOCKS",
+  simulatorReady,
+  selectedStock,
+  selectedTimeframe,
+  setHistory,
+});
+
+const currentPrice = marketMode === "STOCKS"
+  ? stockPrices[selectedStock]
+  : prices[selectedCoin];
+
+const {
+  stockPositions,
+  stockAveragePrices,
+  stockHistory,
+  buyStock,
+  sellStock,
+  closeStockPosition,
+  restoreStockTrading,
+  resetStockTrading,
+} = useStockTrading({
+  selectedStock,
+  currentPrice,
+  stockMarketOpen,
+  balance,
+  tradeAmount,
+  requireSignIn,
+  setBalance,
+  setTradeAmount,
+  setMessage,
+});
+
 useEffect(() => {
   if (!subscriptionLoaded) return;
 
@@ -767,6 +805,15 @@ useEffect(() => {
   if (data.balance !== undefined) setBalance(data.balance);
   if (data.positions) setPositions(data.positions);
   if (data.averagePrices) setAveragePrices(data.averagePrices);
+
+if (data.stockPositions || data.stockAveragePrices || data.stockHistory) {
+  restoreStockTrading({
+    positions: data.stockPositions,
+    averagePrices: data.stockAveragePrices,
+    history: data.stockHistory,
+  });
+}
+
   if (data.spotPositionManagement) setSpotPositionManagement(data.spotPositionManagement);
   if (data.trades) setTrades(data.trades);
   if (data.marginUsed !== undefined) setMarginUsed(data.marginUsed);
@@ -794,12 +841,15 @@ useEffect(() => {
 
   localStorage.setItem(
     "tradenestx-simulator-session",
-    JSON.stringify({
-      balance,
-positions,
-averagePrices,
-spotPositionManagement,
-trades,
+JSON.stringify({
+  balance,
+  positions,
+  averagePrices,
+  stockPositions,
+  stockAveragePrices,
+  stockHistory,
+  spotPositionManagement,
+  trades,
       marginUsed,
 futuresPositions,
 futuresPositionManagement,
@@ -819,10 +869,13 @@ activeBottomTab,
   );
 }, [
   balance,
-positions,
-averagePrices,
-spotPositionManagement,
-trades,
+  positions,
+  averagePrices,
+  stockPositions,
+  stockAveragePrices,
+  stockHistory,
+  spotPositionManagement,
+  trades,
   marginUsed,
 futuresPositions,
 futuresPositionManagement,
@@ -1026,9 +1079,6 @@ marginStatus,
   });
 }, [prices, futuresPositions]);
 
-  const currentPrice = marketMode === "STOCKS"
-  ? stockPrices[selectedStock]
-  : prices[selectedCoin];
 
 const priceLocation =
   marketIntelligence && currentPrice
@@ -1206,26 +1256,7 @@ return position.side === "LONG"
   }
 }
 
-async function updateStockPrices() {
-  try {
-    const response = await fetch("/api/stock-prices");
-    const data = await response.json();
 
-    if (!Array.isArray(data)) throw new Error("Invalid stock price data");
-
-    const realPrices = data.reduce((acc: Partial<Record<StockSymbol, number>>, item: any) => {
-      if (item.price != null) acc[item.symbol as StockSymbol] = Number(item.price);
-      return acc;
-    }, {});
-
-    setStockPrices((prev) => {
-      setPreviousStockPrices(prev);
-      return { ...prev, ...realPrices };
-    });
-  } catch (error) {
-    console.error("Stock price update failed:", error);
-  }
-}
 
   useEffect(() => {
     setNow(new Date());
@@ -1241,11 +1272,7 @@ const priceInterval = setInterval(updatePrices, 500);
     };
   }, [selectedCoin, selectedTimeframe, candlesReadyFor]);
 
-useEffect(() => {
-  
-  if (marketMode !== "STOCKS") return;
-  updateStockPrices();
-}, [marketMode]);
+
 
 useEffect(() => {
   if (!pendingLimitOrder) return;
@@ -1682,6 +1709,7 @@ return () => {
   selectedTimeframe,
   simulatorReady,
 ]);
+
 
 useEffect(() => {
   if (!patternRecognitionEnabled) {
@@ -3477,7 +3505,7 @@ function resetAccount() {
   setFuturesPositions([]);
   setFuturesPositionManagement({});
   setFuturesHistory([]);
-
+  resetStockTrading();
   setTradeAmount("");
   setTakeProfit("");
   setStopLoss("");
@@ -3515,6 +3543,14 @@ const portfolioValue =
     return total + Number(qty) * price;
   }, 0);
 
+const stockPortfolioValue =
+  balance +
+  Object.entries(stockPositions).reduce((total, [symbol, qty]) => {
+    const price = stockPrices[symbol as StockSymbol];
+    if (!price) return total;
+    return total + Number(qty) * price;
+  }, 0);
+
 const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
   const current = prices[position.coin as AssetSymbol];
 
@@ -3531,11 +3567,10 @@ const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
 const accountEquity =
   marketMode === "FUTURES"
     ? balance + marginUsed + futuresUnrealizedPnl
+    : marketMode === "STOCKS"
+    ? stockPortfolioValue
     : portfolioValue;
-const accountValue =
-  marketMode === "FUTURES"
-    ? accountEquity
-    : portfolioValue;
+const accountValue = accountEquity;
 
 const totalPnl = accountValue - startingBalance;
 
@@ -3916,10 +3951,10 @@ setGabyAnnotations((prev) => {
   marginUsed={marginUsed}
   estimatedLongLiquidation={estimatedLongLiquidation}
   estimatedShortLiquidation={estimatedShortLiquidation}
-  feeRate={feeRate}
+  feeRate={marketMode === "STOCKS" ? 0 : feeRate}
   message={message}
-  buyCoin={buyCoin}
-  sellCoin={sellCoin}
+  buyCoin={marketMode === "STOCKS" ? buyStock : buyCoin}
+  sellCoin={marketMode === "STOCKS" ? sellStock : sellCoin}
   openFuturesPosition={openFuturesPosition}
   setPositionType={setPositionType}
   setShowResetModal={setShowResetModal}
@@ -3947,6 +3982,10 @@ setGabyAnnotations((prev) => {
   futuresPositionManagement={futuresPositionManagement}
   prices={prices}
   averagePrices={averagePrices}
+  stockPositions={stockPositions}
+stockPrices={stockPrices}
+stockAveragePrices={stockAveragePrices}
+closeStockPosition={closeStockPosition}
   spotRiskSettings={spotRiskSettings}
   closeSpotPosition={closeSpotPosition}
   closeFuturesPosition={closeFuturesPosition}
@@ -3955,11 +3994,12 @@ setGabyAnnotations((prev) => {
 )}
 
 {activeBottomTab === "HISTORY" && (
-  <PortfolioHistory
-    marketMode={marketMode}
-    trades={trades}
-    futuresHistory={futuresHistory}
-  />
+<PortfolioHistory
+  marketMode={marketMode}
+  trades={trades}
+  futuresHistory={futuresHistory}
+  stockHistory={stockHistory}
+/>
 )}
 
 {activeBottomTab === "ORDERS" && (

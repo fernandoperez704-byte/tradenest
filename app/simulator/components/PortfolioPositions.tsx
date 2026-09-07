@@ -1,6 +1,7 @@
 "use client";
 
 import type { AssetSymbol } from "../types/simulator";
+import type { StockSymbol } from "../data/stockWatchlist";
 
 type PortfolioPositionsProps = {
   marketMode: "SPOT" | "FUTURES" | "STOCKS";
@@ -9,8 +10,12 @@ type PortfolioPositionsProps = {
   futuresPositionManagement: any;
   prices: any;
   averagePrices: any;
-  spotRiskSettings: any;
-  closeSpotPosition: any;
+  stockPositions: Partial<Record<StockSymbol, number>>;
+  stockPrices: Partial<Record<StockSymbol, number>>;
+  stockAveragePrices: Partial<Record<StockSymbol, number>>;
+spotRiskSettings: any;
+closeStockPosition: (stock: StockSymbol, price: number) => void;
+closeSpotPosition: any;
   closeFuturesPosition: any;
   setMessage: (message: string) => void;
 };
@@ -22,11 +27,16 @@ export default function PortfolioPositions({
   futuresPositionManagement,
   prices,
   averagePrices,
-  spotRiskSettings,
-  closeSpotPosition,
-  closeFuturesPosition,
-  setMessage,
+  stockPositions,
+  stockPrices,
+  stockAveragePrices,
+spotRiskSettings,
+closeStockPosition,
+closeSpotPosition,
+closeFuturesPosition,
+setMessage,
 }: PortfolioPositionsProps) {
+
   return (
     <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
 
@@ -438,6 +448,77 @@ const pnl =
             </p>
           </div>
         )}
+
+{marketMode === "STOCKS" &&
+  Object.entries(stockPositions)
+    .filter(([_, qty]) => Number(qty) > 0)
+    .map(([symbol, qty]) => {
+      const stock = symbol as StockSymbol;
+      const current = stockPrices[stock];
+      const avgPrice = stockAveragePrices[stock] ?? 0;
+      if (!current) return null;
+
+      const quantity = Number(qty);
+      const marketValue = quantity * current;
+      const pnl = marketValue - quantity * avgPrice;
+
+      return (
+        <div key={stock} className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 items-center">
+            <div>
+              <p className="text-cyan-400 text-lg font-bold">{stock}</p>
+              <p className="text-gray-400 text-xs mt-1">Stock Position</p>
+            </div>
+
+            <div>
+              <p className="text-gray-400 text-xs">Shares</p>
+              <p className="text-sm font-bold text-white">{quantity.toFixed(6)}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-400 text-xs">Market Price</p>
+              <p className="text-sm font-bold text-white">${current.toFixed(2)}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-400 text-xs">Market Value</p>
+              <p className="text-sm font-bold text-white">${marketValue.toFixed(2)}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-400 text-xs">Avg Cost</p>
+              <p className="text-sm font-bold text-white">${avgPrice.toFixed(2)}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-400 text-xs">Unrealized P/L</p>
+              <p className={`text-base font-bold ${pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                ${pnl.toFixed(2)}
+              </p>
+            </div>
+
+<div className="flex justify-end">
+  <button
+    onClick={() => closeStockPosition(stock, current)}
+    className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
+  >
+    Close
+  </button>
+</div>
+
+          </div>
+        </div>
+      );
+    })}
+
+{marketMode === "STOCKS" &&
+  Object.values(stockPositions).every((qty) => Number(qty) === 0) && (
+    <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+      <p className="text-base font-bold text-zinc-300">No Stock Positions</p>
+      <p className="mt-1 text-sm text-zinc-500">Your open stock positions will appear here.</p>
+    </div>
+  )}
+
     </div>
   );
 }
