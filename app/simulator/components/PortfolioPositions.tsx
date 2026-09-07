@@ -3,7 +3,7 @@
 import type { AssetSymbol } from "../types/simulator";
 
 type PortfolioPositionsProps = {
-  marketMode: "SPOT" | "FUTURES";
+  marketMode: "SPOT" | "FUTURES" | "STOCKS";
   positions: any;
   futuresPositions: any[];
   futuresPositionManagement: any;

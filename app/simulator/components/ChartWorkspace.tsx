@@ -16,7 +16,7 @@ type ChartWorkspaceProps = {
   setMobileView: (view: "WATCHLIST" | "TRADE" | "ORDER") => void;
   selectedCoin: string;
   currentPrice?: number;
-  marketMode: "SPOT" | "FUTURES";
+  marketMode: "SPOT" | "FUTURES" | "STOCKS";
   selectedTimeframe: string;
   setSelectedTimeframe: (timeframe: string) => void;
   now: Date | null;
@@ -272,9 +272,9 @@ return (
 
 <div className="mb-2 border-b border-zinc-800 pb-2">
   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
-            {selectedCoin}/USD
-          </h2>
+<h2 className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
+  {marketMode === "STOCKS" ? selectedCoin : `${selectedCoin}/USD`}
+</h2>
 
 <p className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
   {formattedPrice}
@@ -327,8 +327,12 @@ return (
 
         <div className="mt-2 flex items-center gap-4">
           <p className="text-sm text-zinc-500">
-            {marketMode === "SPOT" ? "Spot Market" : "Futures Market"} ·{" "}
-            {selectedTimeframe}
+{marketMode === "STOCKS"
+  ? "US Stock Market"
+  : marketMode === "SPOT"
+  ? "Spot Market"
+  : "Futures Market"} ·{" "}
+{selectedTimeframe}
           </p>
 
           <p className="text-sm text-zinc-500">

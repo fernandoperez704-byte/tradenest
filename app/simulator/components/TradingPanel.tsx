@@ -18,7 +18,7 @@ type TradingPanelProps = {
   limitPrice: number | "";
   setLimitPrice: (value: number | "") => void;
 
-  marketMode: "SPOT" | "FUTURES";
+  marketMode: "SPOT" | "FUTURES" | "STOCKS";
 
   leverage: number;
   setLeverage: (value: number) => void;

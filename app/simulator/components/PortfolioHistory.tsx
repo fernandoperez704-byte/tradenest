@@ -1,7 +1,7 @@
 import type { Trade } from "../types/simulator";
 
 type PortfolioHistoryProps = {
-  marketMode: "SPOT" | "FUTURES";
+  marketMode: "SPOT" | "FUTURES" | "STOCKS";
   trades: Trade[];
   futuresHistory: any[];
 };

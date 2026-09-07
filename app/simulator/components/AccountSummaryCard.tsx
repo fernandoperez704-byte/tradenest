@@ -1,5 +1,5 @@
 type AccountSummaryCardProps = {
-  marketMode: "SPOT" | "FUTURES";
+  marketMode: "SPOT" | "FUTURES" | "STOCKS";
   balance: number;
   accountEquity: number;
   marginUsed: number;

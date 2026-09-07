@@ -15,6 +15,7 @@ import InfoPanel, {
   type InfoPanelContent,
 } from "./components/InfoPanel";
 import { WATCHLIST } from "./data/watchlist";
+import { STOCK_WATCHLIST, type StockSymbol } from "./data/stockWatchlist";
 import { buildTrendAnalysis } from "@/lib/traderDevelopment/trendAnalysis";
 import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
@@ -73,6 +74,8 @@ import type {
 } from "./types/simulator";
 
 import type { GabyChartHighlight } from "./types/gabyChartHighlight";
+
+type SimulatorSymbol = AssetSymbol | StockSymbol;
 
 const startingBalance = 10000;
 const feeRate = 0.006;
@@ -195,7 +198,8 @@ useEffect(() => {
   window.scrollTo(0, 0);
 }, []);
 
-  const [marketMode, setMarketMode] = useState<"SPOT" | "FUTURES">("SPOT");
+  const [marketMode, setMarketMode] =
+  useState<"SPOT" | "FUTURES" | "STOCKS">("SPOT");
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
 
 const [infoPanelContent, setInfoPanelContent] =
@@ -325,6 +329,18 @@ useEffect(() => {
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [showMarketMenu, setShowMarketMenu] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<AssetSymbol>("BTC");
+  const [selectedStock, setSelectedStock] = useState<StockSymbol>("NVDA");
+  const handleSelectSymbol = (symbol: SimulatorSymbol) => {
+  if (marketMode === "STOCKS") setSelectedStock(symbol as StockSymbol);
+  else setSelectedCoin(symbol as AssetSymbol);
+};
+
+const selectedSymbol = marketMode === "STOCKS" ? selectedStock : selectedCoin;
+
+useEffect(() => {
+  if (marketMode === "STOCKS") setSelectedStock("NVDA");
+}, [marketMode]);
+
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
@@ -351,6 +367,9 @@ const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a ca
 const [prices, setPrices] = useState<
   Partial<Record<AssetSymbol, number>>
 >({});
+
+const [stockPrices, setStockPrices] = useState<Partial<Record<StockSymbol, number>>>({});
+const [previousStockPrices, setPreviousStockPrices] = useState<Partial<Record<StockSymbol, number>>>({});
 const [previousPrices, setPreviousPrices] = useState<
   Partial<Record<AssetSymbol, number>>
 >({});
@@ -386,7 +405,7 @@ const resistances =
   if (gabyAnnotations.includes("SUPPORT")) {
     supports.forEach((zone: any, index: number) => {
       highlights.push({
-        id: `support-${selectedCoin}-${selectedTimeframe}-${index}`,
+        id: `support-${selectedSymbol}-${selectedTimeframe}-${index}`,
         type: "SUPPORT",
         low: zone.low,
         high: zone.high,
@@ -397,7 +416,7 @@ const resistances =
   if (gabyAnnotations.includes("RESISTANCE")) {
     resistances.forEach((zone: any, index: number) => {
       highlights.push({
-        id: `resistance-${selectedCoin}-${selectedTimeframe}-${index}`,
+        id: `resistance-${selectedSymbol}-${selectedTimeframe}-${index}`,
         type: "RESISTANCE",
         low: zone.low,
         high: zone.high,
@@ -415,7 +434,7 @@ const resistances =
   marketIntelligence?.supportLevels,
   marketIntelligence?.resistanceLevels,
   detectedTrendline,
-  selectedCoin,
+  selectedSymbol,
   selectedTimeframe,
 ]);
 
@@ -424,7 +443,7 @@ const marketAnalysisSummary =
     ? buildMarketAnalysisSummary(
         marketIntelligence,
         selectedTimeframe,
-        selectedCoin
+        selectedSymbol
       )
     : "";
 
@@ -1007,7 +1026,9 @@ marginStatus,
   });
 }, [prices, futuresPositions]);
 
-  const currentPrice = prices[selectedCoin];
+  const currentPrice = marketMode === "STOCKS"
+  ? stockPrices[selectedStock]
+  : prices[selectedCoin];
 
 const priceLocation =
   marketIntelligence && currentPrice
@@ -1185,6 +1206,27 @@ return position.side === "LONG"
   }
 }
 
+async function updateStockPrices() {
+  try {
+    const response = await fetch("/api/stock-prices");
+    const data = await response.json();
+
+    if (!Array.isArray(data)) throw new Error("Invalid stock price data");
+
+    const realPrices = data.reduce((acc: Partial<Record<StockSymbol, number>>, item: any) => {
+      if (item.price != null) acc[item.symbol as StockSymbol] = Number(item.price);
+      return acc;
+    }, {});
+
+    setStockPrices((prev) => {
+      setPreviousStockPrices(prev);
+      return { ...prev, ...realPrices };
+    });
+  } catch (error) {
+    console.error("Stock price update failed:", error);
+  }
+}
+
   useEffect(() => {
     setNow(new Date());
     updatePrices();
@@ -1199,6 +1241,11 @@ const priceInterval = setInterval(updatePrices, 500);
     };
   }, [selectedCoin, selectedTimeframe, candlesReadyFor]);
 
+useEffect(() => {
+  
+  if (marketMode !== "STOCKS") return;
+  updateStockPrices();
+}, [marketMode]);
 
 useEffect(() => {
   if (!pendingLimitOrder) return;
@@ -1361,7 +1408,7 @@ useEffect(() => {
   let cancelled = false;
 
   async function loadCandles() {
-    const candleKey = `${selectedCoin}-${selectedTimeframe}`;
+    const candleKey = `${marketMode}-${selectedSymbol}-${selectedTimeframe}`;
 
     try {
 setCandlesReadyFor("");
@@ -1369,17 +1416,17 @@ setHistory([]);
 
 initialRangeKeyRef.current = "";
 
-await updatePrices();
+if (marketMode === "STOCKS") await updateStockPrices();
+else await updatePrices();
 
-const response = await fetch(
-  `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}&t=${Date.now()}`,
-  {
-    cache: "no-store",
-  }
-);
+const candleUrl =
+  marketMode === "STOCKS"
+    ? `/api/stock-candles?symbol=${selectedStock}&timeframe=${selectedTimeframe}&t=${Date.now()}`
+    : `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}&t=${Date.now()}`;
+
+const response = await fetch(candleUrl, { cache: "no-store" });
 
 const data = await response.json();
-
 
 
 if (cancelled) return;
@@ -1431,9 +1478,10 @@ setCandlesReadyFor(candleKey);
   return () => {
     cancelled = true;
   };
-}, [selectedCoin, selectedTimeframe, simulatorReady]);
+}, [marketMode, selectedCoin, selectedStock, selectedTimeframe, simulatorReady]);
 
 useEffect(() => {
+  if (marketMode === "STOCKS") return;
   if (!simulatorReady) {
     return;
   }
@@ -1629,6 +1677,7 @@ return () => {
 };
 
 }, [
+  marketMode,
   selectedCoin,
   selectedTimeframe,
   simulatorReady,
@@ -1640,8 +1689,8 @@ useEffect(() => {
     return;
   }
 
-  const candleKey =
-    `${selectedCoin}-${selectedTimeframe}`;
+const candleKey =
+  `${marketMode}-${selectedSymbol}-${selectedTimeframe}`;
 
   if (
     candlesReadyFor !== candleKey ||
@@ -1664,13 +1713,14 @@ setDetectedPatterns(results);
   patternRecognitionEnabled,
   history,
   candlesReadyFor,
-  selectedCoin,
-  selectedTimeframe,
+marketMode,
+selectedSymbol,
+selectedTimeframe,
 ]);
 
 useEffect(() => {
-  const candleKey =
-    `${selectedCoin}-${selectedTimeframe}`;
+const candleKey =
+  `${marketMode}-${selectedSymbol}-${selectedTimeframe}`;
 
   if (
     candlesReadyFor !== candleKey ||
@@ -1689,8 +1739,9 @@ setDetectedTrendline(
 }, [
   history,
   candlesReadyFor,
-  selectedCoin,
-  selectedTimeframe,
+marketMode,
+selectedSymbol,
+selectedTimeframe,
   marketIntelligence?.structure,
 ]);
 
@@ -2027,7 +2078,7 @@ candleSeriesRef.current.applyOptions({
   );
 
 const rangeKey =
-  `${selectedCoin}-${selectedTimeframe}`;
+  `${marketMode}-${selectedSymbol}-${selectedTimeframe}`;
 
 if (
   chartData.length > 80 &&
@@ -3500,10 +3551,9 @@ const activePendingOrder =
     ? pendingFuturesLimitOrder
     : pendingLimitOrder;
 
-const watchlist = WATCHLIST.map((coin) => ({
-  ...coin,
-  price: prices[coin.symbol],
-}));
+const watchlist = marketMode === "STOCKS"
+  ? STOCK_WATCHLIST.map((stock) => ({ ...stock, price: stockPrices[stock.symbol] }))
+  : WATCHLIST.map((coin) => ({ ...coin, price: prices[coin.symbol] }));
 
 const chartHighlightState = {
   visible:
@@ -3549,11 +3599,11 @@ return (
 <WatchlistPanel
   mobileView={mobileView}
   tourStep={tourStep}
-  selectedCoin={selectedCoin}
-  setSelectedCoin={setSelectedCoin}
+  selectedCoin={selectedSymbol}
+  setSelectedCoin={handleSelectSymbol}
   
   watchlist={watchlist}
-  previousPrices={previousPrices}
+  previousPrices={marketMode === "STOCKS" ? previousStockPrices : previousPrices}
   searchTerm={searchTerm}
   setSearchTerm={setSearchTerm}
   marketMode={marketMode}
@@ -3573,7 +3623,7 @@ return (
 reviews={tradeReviews}
   mobileView={mobileView}
   setMobileView={setMobileView}
-  selectedCoin={selectedCoin}
+  selectedCoin={selectedSymbol}
   currentPrice={currentPrice}
   marketMode={marketMode}
   selectedTimeframe={selectedTimeframe}

@@ -3,7 +3,7 @@ type PortfolioTabsProps = {
   setActiveBottomTab: (
     tab: "POSITIONS" | "HISTORY" | "ORDERS"
   ) => void;
-  marketMode: "SPOT" | "FUTURES";
+  marketMode: "SPOT" | "FUTURES" | "STOCKS";
 };
 
 export default function PortfolioTabs({

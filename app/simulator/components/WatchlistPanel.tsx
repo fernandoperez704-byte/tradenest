@@ -1,25 +1,26 @@
 import type { AssetSymbol } from "../types/simulator";
+import type { StockSymbol } from "../data/stockWatchlist";
 
 type WatchlistPanelProps = {
   mobileView: "WATCHLIST" | "TRADE" | "ORDER";
   tourStep: number | null;
 
-  selectedCoin: AssetSymbol;
-  setSelectedCoin: (coin: AssetSymbol) => void;
+  selectedCoin: AssetSymbol | StockSymbol;
+  setSelectedCoin: (coin: AssetSymbol | StockSymbol) => void;
 
   watchlist: {
-  symbol: AssetSymbol;
+  symbol: AssetSymbol | StockSymbol;
   name: string;
   price: number | undefined;
 }[];
 
-previousPrices: Partial<Record<AssetSymbol, number>>;
+previousPrices: Partial<Record<AssetSymbol | StockSymbol, number>>;
 
 searchTerm: string;
 setSearchTerm: (value: string) => void;
 
-marketMode: "SPOT" | "FUTURES";
-setMarketMode: (mode: "SPOT" | "FUTURES") => void;
+marketMode: "SPOT" | "FUTURES" | "STOCKS";
+setMarketMode: (mode: "SPOT" | "FUTURES" | "STOCKS") => void;
 
 showMarketMenu: boolean;
 setShowMarketMenu: (value: boolean) => void;
@@ -80,9 +81,13 @@ setShowSimulatorGaby,
     onClick={() => setShowMarketMenu(!showMarketMenu)}
     className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
   >
-    <span>
-      {marketMode === "SPOT" ? "Crypto Spot" : "Crypto Futures"}
-    </span>
+<span>
+  {marketMode === "SPOT"
+    ? "Crypto Spot"
+    : marketMode === "FUTURES"
+    ? "Crypto Futures"
+    : "US Stocks"}
+</span>
 
     <span className="text-cyan-400">▼</span>
   </button>
@@ -117,12 +122,16 @@ setShowSimulatorGaby,
 
       <div className="border-t border-zinc-800" />
 
-      <button
-        disabled
-        className="block w-full cursor-not-allowed px-4 py-3 text-left text-sm font-bold text-zinc-600"
-      >
-        Stocks Coming Soon
-      </button>
+<button
+  onClick={() => {
+    setMarketMode("STOCKS");
+    setActiveBottomTab("POSITIONS");
+    setShowMarketMenu(false);
+  }}
+  className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+>
+  US Stocks
+</button>
 
       <button
         disabled
