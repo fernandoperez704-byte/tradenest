@@ -28,22 +28,22 @@ export async function GET() {
   try {
     const prices = await Promise.all(
       productMap.map(async (item) => {
-        const response = await fetch(
-          `https://api.exchange.coinbase.com/products/${item.productId}/ticker`,
-          {
-            next: { revalidate: 1 },
-            headers: {
-              "User-Agent": "TradeNestX",
-            },
-          }
-        );
+const response = await fetch(
+  `https://api.exchange.coinbase.com/products/${item.productId}/ticker`,
+  {
+    next: { revalidate: 1 },
+    headers: {
+      "User-Agent": "TradeNestX",
+    },
+  }
+);
 
-        const data = await response.json();
+const data = await response.json();
 
-        return {
-          symbol: item.symbol,
-          price: Number(data.price),
-        };
+return {
+  symbol: item.symbol,
+  price: Number(data.price),
+};
       })
     );
 

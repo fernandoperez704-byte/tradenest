@@ -23,16 +23,12 @@ export default function PortfolioOrders({
   return (
     <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
       {!activePendingOrder ? (
-        <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-          <p className="text-2xl font-bold text-zinc-300">
-            No Open Orders
-          </p>
-
-          <p className="text-zinc-500 mt-2">
-            Pending {marketMode === "FUTURES" ? "futures" : "spot"} limit
-            orders will appear here.
-          </p>
-        </div>
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+  <p className="text-base font-bold text-zinc-300">No Open Orders</p>
+  <p className="mt-1 text-sm text-zinc-500">
+    Pending {marketMode === "FUTURES" ? "futures" : "spot"} limit orders will appear here.
+  </p>
+</div>
       ) : (
         <div className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3">
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">

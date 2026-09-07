@@ -19,15 +19,10 @@ export default function PortfolioHistory({
 
       {marketMode === "FUTURES" ? (
         futuresHistory.length === 0 ? (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">
-              No Futures History
-            </p>
-
-            <p className="text-zinc-500 mt-2">
-              Completed futures trades will appear here.
-            </p>
-          </div>
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+  <p className="text-base font-bold text-zinc-300">No Futures History</p>
+  <p className="mt-1 text-sm text-zinc-500">Completed futures trades will appear here.</p>
+</div>
         ) : (
           futuresHistory.map((trade, index) => (
             <div
@@ -173,10 +168,10 @@ export default function PortfolioHistory({
         )
       ) : marketMode === "STOCKS" ? (
         stockHistory.length === 0 ? (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">No Stock History</p>
-            <p className="text-zinc-500 mt-2">Completed stock trades will appear here.</p>
-          </div>
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+  <p className="text-base font-bold text-zinc-300">No Stock History</p>
+  <p className="mt-1 text-sm text-zinc-500">Completed stock trades will appear here.</p>
+</div>
         ) : (
           stockHistory.map((trade, index) => (
             <div
@@ -234,15 +229,10 @@ export default function PortfolioHistory({
         )
       ) : (
         trades.length === 0 ? (
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-10 text-center">
-            <p className="text-2xl font-bold text-zinc-300">
-              No Spot History
-            </p>
-
-            <p className="text-zinc-500 mt-2">
-              Completed spot trades will appear here.
-            </p>
-          </div>
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+  <p className="text-base font-bold text-zinc-300">No Spot History</p>
+  <p className="mt-1 text-sm text-zinc-500">Completed spot trades will appear here.</p>
+</div>
         ) : (
           trades.map((trade, index) => (
             <div

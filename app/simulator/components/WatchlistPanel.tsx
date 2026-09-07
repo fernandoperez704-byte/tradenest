@@ -192,12 +192,34 @@ setTimeout(() => {
                   }`}
                 >
 <div className="flex items-start justify-between">
+
+<div className="flex items-center gap-2">
+
+<img
+  src={
+    marketMode === "STOCKS"
+      ? `https://cdn.jsdelivr.net/gh/webclinic017/ticker-logo-icons@main/ticker_icons/${coin.symbol}.png`
+      : `https://cdn.jsdelivr.net/gh/prasangapokharel/crypto-icons@v1.0.0/crypto/${coin.symbol.replace("USDT", "").toLowerCase()}.svg`
+  }
+  alt=""
+  className="h-7 w-7 shrink-0 rounded-full"
+onError={(e) => {
+  const img = e.currentTarget;
+  img.style.display = "none";
+  const fallback = img.nextElementSibling as HTMLElement;
+  if (fallback) fallback.style.display = "block";
+}}
+/>
+
+<div className="hidden h-7 w-7 shrink-0 rounded-full bg-zinc-600" />
+
   <div>
     <p className="text-sm font-black tracking-wide text-white">
-  {coin.symbol}
-</p>
+      {coin.symbol}
+    </p>
     <p className="text-xs text-zinc-500">{coin.name}</p>
   </div>
+</div>
 
 <p
 className={`text-xs font-bold ${
