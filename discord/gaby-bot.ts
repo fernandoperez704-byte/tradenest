@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
-
+import { startStockStream } from "./stockStream";
 import {
   Client,
   GatewayIntentBits,
@@ -1024,4 +1024,5 @@ return;
   }
 });
 
+startStockStream();
 client.login(process.env.DISCORD_BOT_TOKEN);
