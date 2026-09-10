@@ -12,6 +12,7 @@ type PriceZone = { low: number; high: number } | number;
 
 type Props = {
   coin: string;
+  mode?: string;
   timeframe: string;
   openedAt: string;
   closedAt: string;
@@ -35,6 +36,7 @@ const timeframeSeconds: Record<string, number> = {
 
 export default function TradeReviewChart({
   coin,
+  mode,
   timeframe,
   openedAt,
   closedAt,
@@ -150,9 +152,12 @@ const updateZoneHighlight = () => {
       });
     }
 
-    fetch(
-      `/api/candles?symbol=${coin}&timeframe=${timeframe}&start=${start}&end=${end}`
-    )
+const candleUrl =
+  mode === "STOCKS"
+    ? `/api/stock-candles?symbol=${coin}&timeframe=${timeframe}&t=${Date.now()}`
+    : `/api/candles?symbol=${coin}&timeframe=${timeframe}&start=${start}&end=${end}`;
+
+fetch(candleUrl)
       .then((res) => res.json())
       .then((data) => {
         if (!Array.isArray(data)) return;
@@ -222,9 +227,10 @@ chart
       candles.removePriceLine(exitLine);
       chart.remove();
     };
-  }, [
-    coin,
-    timeframe,
+}, [
+  coin,
+  mode,
+  timeframe,
     openedAt,
     closedAt,
     entryPrice,

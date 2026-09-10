@@ -33,9 +33,10 @@ type GabySimulatorCoachProps = {
   clearAutoQuestion?: () => void;
   mode: string;
   selectedCoin: string;
-  trades: any[];
-  futuresHistory: any[];
-  setFuturesHistory: any;
+trades: any[];
+futuresHistory: any[];
+stockHistory: any[];
+setFuturesHistory: any;
   setTrades: any;
 positions: any;
 spotPositionFacts: any;
@@ -84,9 +85,10 @@ export default function GabySimulatorCoach({
   clearAutoQuestion,
   mode,
   selectedCoin,
-  trades,
-  futuresHistory,
-  setFuturesHistory,
+trades,
+futuresHistory,
+stockHistory,
+setFuturesHistory,
   setTrades,
   positions,
   spotPositionFacts,
@@ -516,24 +518,39 @@ return null;
   }
 
   // Shared single-source filtering method for extracting the target trade context
-  const getLatestReviewedTrade = useCallback(() => {
-    const sourceArray = mode === "FUTURES" ? futuresHistory : trades;
-    const closedTrades = sourceArray.filter((trade) => {
-      const isCoinMatch = trade.coin === selectedCoin;
-      const isClosed = mode === "FUTURES"
+
+const getLatestReviewedTrade = useCallback(() => {
+  const sourceArray =
+    mode === "FUTURES"
+      ? futuresHistory
+      : mode === "STOCKS"
+      ? stockHistory
+      : trades;
+
+  const closedTrades = sourceArray.filter((trade) => {
+    const isSymbolMatch =
+      mode === "STOCKS"
+        ? trade.symbol === selectedCoin
+        : trade.coin === selectedCoin;
+
+    const isClosed =
+      mode === "FUTURES"
         ? trade.status !== "OPEN"
+        : mode === "STOCKS"
+        ? trade.type === "SELL"
         : ["SELL", "TAKE PROFIT", "STOP LOSS"].includes(trade.type);
-      const hasReviewData = !!(trade.review || trade.automaticReview);
 
-      return isCoinMatch && isClosed && hasReviewData;
-    });
+    const hasReviewData = !!(trade.review || trade.automaticReview);
 
-    return [...closedTrades].sort((a, b) => {
-      const timeA = new Date(a.closedAt ?? a.time ?? 0).getTime();
-      const timeB = new Date(b.closedAt ?? b.time ?? 0).getTime();
-      return timeB - timeA;
-    })[0];
-  }, [mode, futuresHistory, trades, selectedCoin]);
+    return isSymbolMatch && isClosed && hasReviewData;
+  });
+
+  return [...closedTrades].sort((a, b) => {
+    const timeA = new Date(a.closedAt ?? a.time ?? 0).getTime();
+    const timeB = new Date(b.closedAt ?? b.time ?? 0).getTime();
+    return timeB - timeA;
+  })[0];
+}, [mode, futuresHistory, stockHistory, trades, selectedCoin]);  
 
 async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
   if (!completedSnapshot?.snapshotId) return;

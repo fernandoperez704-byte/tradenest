@@ -70,7 +70,7 @@ export interface TradeManagementData {
  */
 
 export interface TradeReviewInput {
-  mode: "SPOT" | "FUTURES";
+  mode: "SPOT" | "FUTURES" | "STOCKS";
 
   side:
     | "BUY"

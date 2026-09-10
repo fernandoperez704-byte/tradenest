@@ -154,9 +154,10 @@ const savedResistance =
   trade.closedAt &&
   trade.tradeContext?.createdAt && (
     <>
-      <TradeReviewChart
-        coin={trade.coin}
-        timeframe={review.timeframe || "1M"}
+<TradeReviewChart
+  coin={trade.coin || trade.symbol}
+  mode={review.mode}
+  timeframe={review.timeframe || "1M"}
 openedAt={trade.tradeContext.createdAt}
 closedAt={trade.closedAt}
         entryPrice={trade.entryPrice}
@@ -196,7 +197,7 @@ resistance={
       ["Fees", money(review.totalFees)],
       ["Quality", review.finalQuality],
       ["Score", review.finalScore != null ? `${review.finalScore}/100` : "—"],
-      ["Entry Quality", review.entryQuality],
+      ["Entry Location", review.entryQuality],
       ["Risk", review.riskLevel],
     ].map(([label, value]) => (
       <div key={label} className="rounded-lg border border-white/10 bg-black/20 p-3">

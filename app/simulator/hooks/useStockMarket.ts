@@ -78,10 +78,17 @@ export function useStockMarket({
       .catch(() => setStockMarketOpen(false));
   }, [enabled]);
 
-  useEffect(() => {
-    if (!enabled || !simulatorReady) return;
+useEffect(() => {
+  if (!enabled || !simulatorReady) return;
 
-    const socket = new WebSocket("wss://tradenest-production.up.railway.app");
+  let socket: WebSocket | null = null;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  let stopped = false;
+
+  const connect = () => {
+    if (stopped) return;
+
+    socket = new WebSocket("wss://tradenest-production.up.railway.app");
 
     socket.onmessage = (event) => {
       try {
@@ -91,7 +98,6 @@ export function useStockMarket({
         const symbol = message.symbol as StockSymbol;
         const tradePrice = Number(message.price);
         const tradeTime = new Date(message.time).getTime();
-
         if (!Number.isFinite(tradePrice) || !Number.isFinite(tradeTime)) return;
 
         setStockPrices((prev) => {
@@ -139,8 +145,20 @@ export function useStockMarket({
 
     socket.onerror = () => console.warn("Stock WebSocket connection error.");
 
-    return () => socket.close();
-  }, [enabled, simulatorReady, setHistory]);
+    socket.onclose = () => {
+      if (stopped) return;
+      reconnectTimer = setTimeout(connect, 5000);
+    };
+  };
+
+  connect();
+
+  return () => {
+    stopped = true;
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    socket?.close();
+  };
+}, [enabled, simulatorReady, setHistory]);
 
   return {
     stockPrices,

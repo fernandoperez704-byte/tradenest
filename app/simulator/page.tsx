@@ -778,8 +778,33 @@ const {
   tradeAmount,
   requireSignIn,
   setBalance,
-  setTradeAmount,
-  setMessage,
+setTradeAmount,
+setMessage,
+getStockTradeContext: () => buildTradeContext(),
+onStockClose: (trade) => {
+  const snapshotId = crypto.randomUUID();
+
+  const automaticReview = {
+    ...reviewTrade({
+      mode: "STOCKS",
+      side: "LONG",
+      entryPrice: trade.entryPrice,
+      exitPrice: trade.exitPrice,
+      pnl: trade.pnl,
+      grossPnl: trade.pnl,
+      totalFees: 0,
+      stopLoss: null,
+      takeProfit: null,
+      tradeContext: trade.tradeContext,
+    }),
+    snapshotId,
+  };
+
+  return {
+    snapshotId,
+    automaticReview,
+  };
+},
 });
 
 useEffect(() => {
@@ -2386,8 +2411,8 @@ if (activeStopLoss != null) {
 function buildTradeContext() {
 
   return {
-    market: {
-      coin: selectedCoin,
+market: {
+  coin: selectedSymbol,
       timeframe: selectedTimeframe,
       entryPrice: currentPrice || null,
       marketAnalysisSummary: marketAnalysisSummary || null,
@@ -3707,11 +3732,12 @@ strongestPattern={strongestPattern}
   traderDevelopmentEngines={traderDevelopmentEngines}
   autoQuestion={autoGabyQuestion}
   clearAutoQuestion={() => setAutoGabyQuestion(null)}
-  mode={marketMode}
-  selectedCoin={selectedCoin}
-  trades={trades}
-  futuresHistory={futuresHistory}
-  setFuturesHistory={setFuturesHistory}
+mode={marketMode}
+selectedCoin={selectedSymbol}
+trades={trades}
+futuresHistory={futuresHistory}
+stockHistory={stockHistory}
+setFuturesHistory={setFuturesHistory}
 setTrades={setTrades}
   positions={positions}
   spotPositionFacts={spotPositionFacts}
