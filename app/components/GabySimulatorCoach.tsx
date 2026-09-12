@@ -29,6 +29,8 @@ type GabySimulatorCoachProps = {
     exitManagement: any;
   };
 
+normalizedTradeReviews: any[];
+
   autoQuestion?: string | null;
   clearAutoQuestion?: () => void;
   mode: string;
@@ -80,8 +82,9 @@ chartHighlightState?: {
 export default function GabySimulatorCoach({
   userId,
   isPaid,
-  traderDevelopmentEngines,
-  autoQuestion,
+traderDevelopmentEngines,
+normalizedTradeReviews,
+autoQuestion,
   clearAutoQuestion,
   mode,
   selectedCoin,
@@ -519,6 +522,57 @@ return null;
 
   // Shared single-source filtering method for extracting the target trade context
 
+function buildTraderReportFacts() {
+  const getDate = (t: any) => {
+    const raw = t?.createdAt ?? t?.closedAt ?? t?.time ?? null;
+    if (!raw) return null;
+    if (typeof raw?.toDate === "function") return raw.toDate();
+    if (typeof raw?.seconds === "number") return new Date(raw.seconds * 1000);
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const reviews = normalizedTradeReviews ?? [];
+  const result = (t: any) => String(t?.result ?? t?.outcome ?? "").toUpperCase();
+  const wins = reviews.filter((t: any) => ["PROFIT", "WIN"].includes(result(t))).length;
+  const losses = reviews.filter((t: any) => result(t) === "LOSS").length;
+  const cumulativePnl = reviews.reduce((sum: number, t: any) => sum + (Number(t?.pnl) || 0), 0);
+
+  const months = Object.values(reviews.reduce((acc: Record<string, any>, t: any) => {
+    const date = getDate(t);
+    if (!date) return acc;
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    acc[key] ??= { label: date.toLocaleDateString("en-US", { month: "short", year: "numeric" }), trades: 0, wins: 0, pnl: 0 };
+    acc[key].trades++;
+    if (["PROFIT", "WIN"].includes(result(t))) acc[key].wins++;
+    acc[key].pnl += Number(t?.pnl) || 0;
+    return acc;
+  }, {})) as any[];
+
+  const days = Object.values(reviews.reduce((acc: Record<string, any>, t: any) => {
+    const date = getDate(t);
+    if (!date) return acc;
+    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    acc[key] ??= { label: date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), trades: 0, pnl: 0 };
+    acc[key].trades++;
+    acc[key].pnl += Number(t?.pnl) || 0;
+    return acc;
+  }, {})) as any[];
+
+  return {
+    totalTrades: reviews.length,
+    wins,
+    losses,
+    winRate: reviews.length ? (wins / reviews.length) * 100 : 0,
+    cumulativePnl,
+    bestMonth: months.length ? months.reduce((a, b) => b.pnl > a.pnl ? b : a) : null,
+    worstMonth: months.length ? months.reduce((a, b) => b.pnl < a.pnl ? b : a) : null,
+    bestDay: days.length ? days.reduce((a, b) => b.pnl > a.pnl ? b : a) : null,
+    worstDay: days.length ? days.reduce((a, b) => b.pnl < a.pnl ? b : a) : null,
+    engines: traderDevelopmentEngines,
+  };
+}
+
 const getLatestReviewedTrade = useCallback(() => {
   const sourceArray =
     mode === "FUTURES"
@@ -776,11 +830,13 @@ simulatorContext: {
   conversationState,
   lastTopic: currentTopic,
 
-  traderDevelopmentEngines,
+traderDevelopmentEngines,
+normalizedTradeReviews,
+traderReportFacts: buildTraderReportFacts(),
 
-  mode,
-  selectedCoin,
-  balance,
+mode,
+selectedCoin,
+balance,
   marginUsed,
   selectedTimeframe,
   currentPrice,
@@ -923,6 +979,8 @@ movingAverageAnalysis,
   marketAnalysisSummary,
 trades,
 futuresHistory,
+normalizedTradeReviews,
+traderDevelopmentEngines,
 positions,
 spotPositionFacts,
 futuresPositions,
@@ -1186,13 +1244,32 @@ onInfoPanelCommand?.({
           mode: "TRADE_REVIEW",
           awaitingFollowUp: true,
         });
-      } else if (prompt === "Show my trades report") {
-        setConversationState({
-          intent: "TRADER_DEVELOPMENT",
-          subject: "TRADE_REVIEW",
-          mode: "TRADER_DEVELOPMENT",
-          awaitingFollowUp: true,
-        });
+
+} else if (prompt === "Show my trades report") {
+  setConversationState({
+    intent: "TRADER_DEVELOPMENT",
+    subject: "TRADER_REPORT",
+    mode: "TRADER_DEVELOPMENT",
+    awaitingFollowUp: true,
+  });
+
+  onInfoPanelCommand?.({
+    action: "SHOW",
+    type: "TRADER_REPORT",
+    title: "Trader Development Report",
+    subtitle: "Spot • Futures • Stocks",
+    description: "Verified performance data from your TradeNestX simulator history and Trader Development engines.",
+data: {
+  engines: traderDevelopmentEngines,
+  reviews: normalizedTradeReviews,
+  trades,
+  futuresHistory,
+  stockHistory,
+},
+  });
+
+  askGaby("What area should I improve most based on my trading performance?");
+
       } else if (prompt.includes("support") || prompt.includes("resistance") || prompt.includes("direction")) {
         setConversationState({
           intent: "MARKET_ANALYSIS",
@@ -1203,7 +1280,7 @@ onInfoPanelCommand?.({
       }
 
       // 2. Run the request thread with the state safely locked down
-      askGaby(prompt);
+      if (prompt !== "Show my trades report") askGaby(prompt);
     }}
     className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
   >

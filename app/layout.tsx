@@ -19,42 +19,46 @@ export const metadata: Metadata = {
   applicationName: "TradeNestX",
 
   title: {
-    default: "TradeNestX | Learn Trading Through Practice",
+    default: "TradeNestX | Learn Trading with Crypto, Stocks & AI",
     template: "%s | TradeNestX",
   },
 
-description:
-  "Learn trading with TradeNestX through structured education, risk-free crypto spot and futures practice, market education, trade reviews, and Gaby AI coaching.",
+  description:
+    "Learn trading through structured education, risk-free crypto and stock simulation, AI-powered Trade Review, Trader Development Reports, market education, and Gaby AI coaching.",
 
   keywords: [
     "TradeNestX",
     "trading education",
     "trading simulator",
+    "stock trading simulator",
     "crypto trading simulator",
     "paper trading",
     "learn trading",
     "crypto futures simulator",
-    "trading practice",
+    "stock market simulator",
+    "trade review",
+    "trader development report",
+    "trading performance analysis",
     "trading risk management",
+    "market education",
     "Gaby AI",
   ],
 
+  openGraph: {
+    type: "website",
+    url: "https://www.tradenestxacademy.com",
+    siteName: "TradeNestX",
+    title: "TradeNestX | Learn Trading with Crypto, Stocks & AI",
+    description:
+      "Learn trading through structured education, risk-free crypto and stock simulation, AI-powered Trade Review, Trader Development Reports, market education, and Gaby AI coaching.",
+  },
 
-openGraph: {
-  type: "website",
-  url: "https://www.tradenestxacademy.com",
-  siteName: "TradeNestX",
-  title: "TradeNestX | Learn Trading Through Practice",
-  description:
-    "Learn trading with TradeNestX through structured education, risk-free crypto spot and futures practice, market education, trade reviews, and Gaby AI coaching.",
-},
-
-twitter: {
-  card: "summary_large_image",
-  title: "TradeNestX | Learn Trading Through Practice",
-  description:
-    "Learn trading with TradeNestX through structured education, risk-free crypto spot and futures practice, market education, trade reviews, and Gaby AI coaching.",
-},
+  twitter: {
+    card: "summary_large_image",
+    title: "TradeNestX | Learn Trading with Crypto, Stocks & AI",
+    description:
+      "Learn trading through structured education, risk-free crypto and stock simulation, AI-powered Trade Review, Trader Development Reports, market education, and Gaby AI coaching.",
+  },
 
   robots: {
     index: true,

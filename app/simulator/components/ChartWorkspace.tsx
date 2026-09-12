@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EngineSelector, EngineType } from "./EngineSelector";
 import { buildTrendAnalysis } from "../../../lib/traderDevelopment/trendAnalysis";
 import { buildRiskAnalysis } from "../../../lib/traderDevelopment/riskAnalysis";
@@ -20,6 +20,8 @@ type ChartWorkspaceProps = {
   selectedTimeframe: string;
   setSelectedTimeframe: (timeframe: string) => void;
   now: Date | null;
+stockMarketOpen: boolean;
+stockNextOpen: string | null;
 indicatorPanel: "VOLUME" | "RSI";
 setIndicatorPanel: (panel: "VOLUME" | "RSI") => void;
 
@@ -42,9 +44,11 @@ export default function ChartWorkspace({
   selectedCoin,
   currentPrice,
   marketMode,
-  selectedTimeframe,
-  setSelectedTimeframe,
-  now,
+selectedTimeframe,
+setSelectedTimeframe,
+now,
+stockMarketOpen,
+stockNextOpen,
 indicatorPanel,
 setIndicatorPanel,
 patternRecognitionEnabled,
@@ -59,6 +63,50 @@ tourStep,
 }: ChartWorkspaceProps) {
 
 const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
+
+const [stockOpenCountdown, setStockOpenCountdown] = useState("");
+
+useEffect(() => {
+  if (
+    marketMode !== "STOCKS" ||
+    stockMarketOpen ||
+    !stockNextOpen
+  ) {
+    setStockOpenCountdown("");
+    return;
+  }
+
+  const updateCountdown = () => {
+    const nextOpenTime = new Date(stockNextOpen).getTime();
+    const difference = nextOpenTime - Date.now();
+
+    if (difference <= 0) {
+      setStockOpenCountdown("");
+      return;
+    }
+
+    const totalSeconds = Math.floor(difference / 1000);
+
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (days > 0) {
+      setStockOpenCountdown(`${days}d ${hours}h ${minutes}m`);
+    } else if (hours > 0) {
+      setStockOpenCountdown(`${hours}h ${minutes}m ${seconds}s`);
+    } else {
+      setStockOpenCountdown(`${minutes}m ${seconds}s`);
+    }
+  };
+
+  updateCountdown();
+
+  const interval = window.setInterval(updateCountdown, 1000);
+
+  return () => window.clearInterval(interval);
+}, [marketMode, stockMarketOpen, stockNextOpen]);
 
 const normalizedReviews = useMemo(() => {
   return (reviews || []).map((item) => {
@@ -194,10 +242,10 @@ const formattedPrice =
         minimumFractionDigits: 3,
         maximumFractionDigits: 5,
       })}`
-    : `$${currentPrice.toLocaleString(undefined, {
-        minimumFractionDigits: 6,
-        maximumFractionDigits: 8,
-      })}`;
+: `$${currentPrice.toLocaleString(undefined, {
+    minimumFractionDigits: 8,
+    maximumFractionDigits: 8,
+  })}`;
 
 
 
@@ -325,20 +373,39 @@ return (
 
         </div>
 
-        <div className="mt-2 flex items-center gap-4">
-          <p className="text-sm text-zinc-500">
-{marketMode === "STOCKS"
-  ? "US Stock Market"
-  : marketMode === "SPOT"
-  ? "Spot Market"
-  : "Futures Market"} ·{" "}
-{selectedTimeframe}
-          </p>
+<div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+  <p className="text-sm text-zinc-500">
+    {marketMode === "STOCKS"
+      ? "US Stock Market"
+      : marketMode === "SPOT"
+      ? "Spot Market"
+      : "Futures Market"}{" "}
+    · {selectedTimeframe}
+  </p>
 
-          <p className="text-sm text-zinc-500">
-            {now ? now.toLocaleTimeString() : "--:--:--"}
-          </p>
-        </div>
+  {marketMode === "STOCKS" && (
+    <div className="flex items-center gap-2">
+      <span
+        className={`text-xs font-bold ${
+          stockMarketOpen ? "text-green-400" : "text-red-400"
+        }`}
+      >
+        {stockMarketOpen ? "MARKET OPEN" : "MARKET CLOSED"}
+      </span>
+
+      {!stockMarketOpen && stockOpenCountdown && (
+        <span className="text-xs text-zinc-500">
+          Opens in {stockOpenCountdown}
+        </span>
+      )}
+    </div>
+  )}
+
+  <p className="text-sm text-zinc-500">
+    {now ? now.toLocaleTimeString() : "--:--:--"}
+  </p>
+</div>
+
       </div>
 
       <div className="mb-1.5 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">

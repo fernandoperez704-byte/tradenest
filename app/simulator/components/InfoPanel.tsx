@@ -1,6 +1,7 @@
 "use client";
 import TradeReviewChart from "./TradeReviewChart";
-export type InfoPanelType = "WHITEPAPER" | "TRADE_REVIEW" | "MARKET_INFO" | "NEWS";
+import TraderDevelopmentReport from "./TraderDevelopmentReport";
+export type InfoPanelType = "WHITEPAPER" | "TRADE_REVIEW" | "TRADER_REPORT" | "MARKET_INFO" | "NEWS";
 
 export type InfoPanelSection = {
   heading: string;
@@ -185,27 +186,71 @@ resistance={
 )}
 
 {content.type === "TRADE_REVIEW" && review && (
-  <div className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+  <div className="mt-3 space-y-1.5">
     {[
-      ["Mode", review.mode],
-      ["Side", review.side],
-      ["Result", review.result],
-      ["Timeframe", review.timeframe],
-      ["Entry", money(review.entryPrice)],
-      ["Exit", money(review.exitPrice)],
-      ["P&L", money(review.pnl)],
-      ["Fees", money(review.totalFees)],
-      ["Quality", review.finalQuality],
-      ["Score", review.finalScore != null ? `${review.finalScore}/100` : "—"],
-      ["Entry Location", review.entryQuality],
-      ["Risk", review.riskLevel],
-    ].map(([label, value]) => (
-      <div key={label} className="rounded-lg border border-white/10 bg-black/20 p-3">
-        <p className="text-xs uppercase text-zinc-500">{label}</p>
-        <p className="mt-1 font-bold text-white">{value ?? "—"}</p>
+      {
+        title: "Trade Details",
+        items: [
+          ["Mode", review.mode, "cyan"],
+          ["Side", review.side, "cyan"],
+          ["Result", review.result, review.result === "PROFIT" || review.result === "WIN" ? "green" : review.result === "LOSS" ? "red" : "zinc"],
+          ["Timeframe", review.timeframe, "cyan"],
+        ],
+      },
+      {
+        title: "Performance",
+        items: [
+          ["Entry", money(review.entryPrice), "zinc"],
+          ["Exit", money(review.exitPrice), "zinc"],
+          ["P&L", money(review.pnl), Number(review.pnl) > 0 ? "green" : Number(review.pnl) < 0 ? "red" : "zinc"],
+          ["Fees", money(review.totalFees), "zinc"],
+        ],
+      },
+      {
+        title: "Review",
+        items: [
+          ["Quality", review.finalQuality, review.finalQuality === "GOOD" ? "green" : review.finalQuality === "WEAK" ? "red" : "zinc"],
+          ["Score", review.finalScore != null ? `${review.finalScore}/100` : "—", "zinc"],
+          ["Entry Location", review.entryQuality, review.entryQuality === "GOOD" || review.entryQuality === "EXCELLENT" ? "green" : review.entryQuality === "POOR" ? "red" : "zinc"],
+          ["Risk", review.riskLevel, review.riskLevel === "LOW" ? "green" : review.riskLevel === "HIGH" ? "red" : "zinc"],
+        ],
+      },
+    ].map((section) => (
+      <div key={section.title}>
+        <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+          {section.title}
+        </p>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {section.items.map(([label, value, tone]) => {
+            const valueClass =
+              tone === "green"
+                ? "text-emerald-400"
+                : tone === "red"
+                ? "text-red-400"
+                : tone === "cyan"
+                ? "text-cyan-400"
+                : "text-white";
+
+            return (
+              <div key={label} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2.5">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                  {label}
+                </p>
+                <p className={`mt-0.5 text-sm font-black ${valueClass}`}>
+                  {value ?? "—"}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     ))}
   </div>
+)}
+
+{content.type === "TRADER_REPORT" && (
+  <TraderDevelopmentReport data={panelData} />
 )}
 
 {content.sourceUrl && content.type === "WHITEPAPER" && (

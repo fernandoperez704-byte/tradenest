@@ -71,39 +71,86 @@ const endTime = hasCustomRange
   ? requestedEnd
   : Math.floor(Date.now() / 1000);
 
-const recentStart = hasCustomRange
-  ? requestedStart
-  : endTime - timeframeSeconds * 299;
-
-const olderEnd = recentStart - timeframeSeconds;
-const olderStart = olderEnd - timeframeSeconds * 299;
-
 const buildUrl = (start: number, end: number) =>
   `https://api.coinbase.com/api/v3/brokerage/market/products/${productId}/candles` +
   `?start=${start}&end=${end}&granularity=${granularity}&limit=300`;
 
-const [olderResponse, recentResponse] = await Promise.all([
-  fetch(buildUrl(olderStart, olderEnd), {
+const fetchCandles = async (start: number, end: number) => {
+  const response = await fetch(buildUrl(start, end), {
     cache: "no-store",
     headers: { "User-Agent": "TradeNestX" },
-  }),
-  fetch(buildUrl(recentStart, endTime), {
-    cache: "no-store",
-    headers: { "User-Agent": "TradeNestX" },
-  }),
-]);
+  });
 
-if (!olderResponse.ok || !recentResponse.ok) {
-  throw new Error("Coinbase candles failed");
+  if (!response.ok) {
+    throw new Error("Coinbase candles failed");
+  }
+
+  const data = await response.json();
+
+  return Array.isArray(data.candles)
+    ? data.candles
+    : [];
+};
+
+let rawCandles: any[] = [];
+
+const sparseOneMinute =
+  timeframe === "1M" &&
+  (symbol === "SHIB" || symbol === "PEPE");
+
+if (sparseOneMinute) {
+  const targetCandles = hasCustomRange
+    ? Math.ceil((requestedEnd - requestedStart) / timeframeSeconds) + 1
+    : 600;
+
+  let cursorEnd = endTime;
+
+  for (
+    let i = 0;
+    i < 10 && rawCandles.length < targetCandles;
+    i++
+  ) {
+    const cursorStart =
+      cursorEnd - timeframeSeconds * 299;
+
+    const batch = await fetchCandles(
+      cursorStart,
+      cursorEnd
+    );
+
+    rawCandles = [
+      ...batch,
+      ...rawCandles,
+    ];
+
+    cursorEnd =
+      cursorStart - timeframeSeconds;
+  }
+} else {
+
+  const recentStart = hasCustomRange
+    ? requestedStart
+    : endTime - timeframeSeconds * 299;
+
+  const olderEnd =
+    recentStart - timeframeSeconds;
+
+  const olderStart =
+    olderEnd - timeframeSeconds * 299;
+
+  const [olderCandles, recentCandles] =
+    await Promise.all([
+      fetchCandles(olderStart, olderEnd),
+      fetchCandles(recentStart, endTime),
+    ]);
+
+  rawCandles = [
+    ...olderCandles,
+    ...recentCandles,
+  ];
 }
 
-const [olderData, recentData] = await Promise.all([
-  olderResponse.json(),
-  recentResponse.json(),
-]);
-
-
-const candles = [...olderData.candles, ...recentData.candles]
+const candles = rawCandles
   .map((item: any) => ({
     time: String(Number(item.start) * 1000),
     price: Number(item.close),
@@ -118,16 +165,18 @@ const candles = [...olderData.candles, ...recentData.candles]
       Number(a.time) - Number(b.time)
   );
 
-
-    return NextResponse.json(
+return NextResponse.json(
   hasCustomRange
-    ? candles.filter(
-        (candle: any) =>
-          Number(candle.time) / 1000 >= requestedStart &&
-          Number(candle.time) / 1000 <= requestedEnd
-      )
+    ? sparseOneMinute
+      ? candles.slice(-Math.ceil((requestedEnd - requestedStart) / timeframeSeconds) - 1)
+      : candles.filter(
+          (candle: any) =>
+            Number(candle.time) / 1000 >= requestedStart &&
+            Number(candle.time) / 1000 <= requestedEnd
+        )
     : candles.slice(-600)
 );
+  
   } catch (error) {
     console.error("Candles API failed:", error);
 

@@ -22,6 +22,7 @@ import { buildTrendAnalysis } from "@/lib/traderDevelopment/trendAnalysis";
 import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
 import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagementAnalysis";
+import { buildTimeframeAnalysis } from "@/lib/traderDevelopment/timeframeAnalysis";
 
 
 import { useClerk, useUser } from "@clerk/nextjs";
@@ -656,62 +657,51 @@ const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
 
 const normalizedTradeReviews = useMemo(() => {
-  return (tradeReviews || []).map((item) => {
-    const savedReview =
-      item?.review ??
-      item?.automaticReview ??
-      item;
+  return (tradeReviews || [])
+    .map((item) => {
+      const savedReview = item?.review ?? item?.automaticReview ?? item;
+      const engine =
+        savedReview?.engine && typeof savedReview.engine === "object"
+          ? savedReview.engine
+          : null;
 
-    return {
-      ...savedReview,
+      return {
+        ...savedReview,
+        ...(engine ?? {}),
+        engine: engine ?? savedReview?.engine,
+        snapshotId: savedReview?.snapshotId ?? item?.snapshotId,
+        createdAt: savedReview?.createdAt ?? item?.createdAt,
+        userId: savedReview?.userId ?? item?.userId,
+        mode: item?.mode ?? savedReview?.mode ?? engine?.mode ?? null,
+        coin: item?.coin ?? savedReview?.coin ?? engine?.coin ?? null,
+        leverage: item?.leverage ?? savedReview?.leverage ?? 1,
+        margin: item?.margin ?? savedReview?.margin ?? 0,
+        positionSize: item?.positionSize ?? savedReview?.positionSize ?? 0,
+        balanceAtEntry:
+          item?.balanceAtEntry ??
+          savedReview?.balanceAtEntry ??
+          savedReview?.tradeContext?.account?.balanceAtEntry ??
+          0,
+        amount: item?.amount ?? savedReview?.amount ?? 0,
+        tradeContext: item?.tradeContext ?? savedReview?.tradeContext ?? null,
+        managementReview:
+          savedReview?.management ??
+          savedReview?.managementReview ??
+          engine?.management ??
+          engine?.managementReview ??
+          null,
+      };
+    })
+    .filter((review) => {
+      const result = String(
+        review?.result ??
+        review?.outcome ??
+        review?.automaticReview?.result ??
+        ""
+      ).toUpperCase();
 
-      mode:
-        item?.mode ??
-        savedReview?.mode ??
-        null,
-
-      coin:
-        item?.coin ??
-        savedReview?.coin ??
-        null,
-
-      leverage:
-        item?.leverage ??
-        savedReview?.leverage ??
-        1,
-
-      margin:
-        item?.margin ??
-        savedReview?.margin ??
-        0,
-
-      positionSize:
-        item?.positionSize ??
-        savedReview?.positionSize ??
-        0,
-
-      balanceAtEntry:
-        item?.balanceAtEntry ??
-        savedReview?.balanceAtEntry ??
-        savedReview?.tradeContext?.account?.balanceAtEntry ??
-        0,
-
-      amount:
-        item?.amount ??
-        savedReview?.amount ??
-        0,
-
-      tradeContext:
-        item?.tradeContext ??
-        savedReview?.tradeContext ??
-        null,
-
-      managementReview:
-        savedReview?.management ??
-        savedReview?.managementReview ??
-        null,
-    };
-  });
+      return result !== "" && result !== "OPEN";
+    });
 }, [tradeReviews]);
 
 const traderDevelopmentEngines = useMemo(() => ({
@@ -719,6 +709,7 @@ const traderDevelopmentEngines = useMemo(() => ({
   riskAllocation: buildRiskAnalysis(normalizedTradeReviews),
   entryQuality: buildEntryQualityAnalysis(normalizedTradeReviews),
   exitManagement: buildExitManagementAnalysis(normalizedTradeReviews),
+  timeframe: buildTimeframeAnalysis(normalizedTradeReviews),
 }), [normalizedTradeReviews]);
 
 const [limitPrice, setLimitPrice] = useState<number | "">("");
@@ -748,6 +739,7 @@ const {
   stockPrices,
   previousStockPrices,
   stockMarketOpen,
+  stockNextOpen,
   updateStockPrices,
 } = useStockMarket({
   enabled: marketMode === "STOCKS",
@@ -2103,7 +2095,6 @@ const chartData = history
   .filter((item, index, array) => {
     return index === 0 || item.time > array[index - 1].time;
   });
-
 
 
 const usesEightDecimals =
@@ -3688,8 +3679,10 @@ reviews={tradeReviews}
   marketMode={marketMode}
   selectedTimeframe={selectedTimeframe}
   setSelectedTimeframe={setSelectedTimeframe}
-  now={now}
-  indicatorPanel={indicatorPanel}
+now={now}
+stockMarketOpen={stockMarketOpen}
+stockNextOpen={stockNextOpen}
+indicatorPanel={indicatorPanel}
   setIndicatorPanel={setIndicatorPanel}
 patternRecognitionEnabled={patternRecognitionEnabled}
 setPatternRecognitionEnabled={setPatternRecognitionEnabled}
@@ -3730,6 +3723,7 @@ strongestPattern={strongestPattern}
   userId={user?.id || ""}
   isPaid={isPaid}
   traderDevelopmentEngines={traderDevelopmentEngines}
+  normalizedTradeReviews={normalizedTradeReviews}
   autoQuestion={autoGabyQuestion}
   clearAutoQuestion={() => setAutoGabyQuestion(null)}
 mode={marketMode}

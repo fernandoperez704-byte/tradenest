@@ -100,9 +100,11 @@ export default function HomePage() {
         See <TradeNestXName /> in Action
       </h2>
 
-      <p className="mx-auto mt-2 max-w-2xl text-sm text-zinc-400">
-        Explore the platform from learning to practice, Gaby, and trade review.
-      </p>
+<p className="mx-auto mt-2 max-w-2xl text-sm text-zinc-400">
+  Explore crypto and stock market education, risk-free trading practice,
+  Gaby AI learning, trade review, and trader development tools in one platform.
+</p>
+
     </div>
 
     {/* VIDEO */}
@@ -153,16 +155,17 @@ export default function HomePage() {
         {/* RIGHT */}
         <div className="space-y-5 text-sm leading-7 text-zinc-400 md:text-base">
 <p>
-  Trading development is more than learning indicators or placing
-  trades. It comes from understanding how you make decisions, how you
-  manage risk, how you respond to the market, and what your trading
-  history reveals over time.
+  Trading development is more than learning indicators or placing trades.
+  It comes from understanding crypto and stock market behavior, how you
+  make decisions, how you manage risk, how you respond to changing market
+  conditions, and what your trading history reveals over time.
 </p>
 
 <p>
-  TradeNestX brings those pieces together so your learning doesn&apos;t
-  end when a lesson is completed or a simulated trade is closed. Your
-  practice becomes something you can review, understand, and learn from.
+  TradeNestX brings market education, AI-powered learning, simulator
+  practice, trade review, and trader development together so your learning
+  doesn&apos;t end when a lesson is completed or a simulated trade is closed.
+  Your practice becomes something you can review, understand, and learn from.
 </p>
 
           <p className="font-bold text-white">
@@ -212,9 +215,11 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm text-zinc-400">
-                    Explore TradeNestX and start learning.
-                  </p>
+<p className="mt-2 text-sm text-zinc-400">
+  Start learning crypto and stock markets with education, simulator
+  practice, and AI-powered explanations.
+</p>
+
                 </div>
 
                 <div className="mt-4 grid gap-2 text-sm text-zinc-300 sm:grid-cols-2">
@@ -264,13 +269,13 @@ export default function HomePage() {
 
                 <div className="mt-4 grid gap-2 text-sm text-zinc-200 sm:grid-cols-2">
                   
-                  <p>✓ Full Academy access</p>
-                  <p>✓ Unlimited Gaby</p>
-                  <p>✓ Saved simulator data</p>
-                  <p>✓ Trade history & reviews</p>
-                  <p>✓ Gaby conversation memory</p>
-                  <p>✓ Trader development</p>
-                  <p>✓ Community access</p>
+<p>✓ Full Trading Academy access</p>
+<p>✓ Unlimited Gaby AI Coach</p>
+<p>✓ Saved simulator data</p>
+<p>✓ Trade history & trade reviews</p>
+<p>✓ Gaby conversation memory</p>
+<p>✓ Trader Development Reports</p>
+<p>✓ Community access</p>
                 </div>
 
                 <button
@@ -290,10 +295,10 @@ export default function HomePage() {
                   Upgrade to Pro
                 </button>
 
-                <p className="mt-2 text-center text-[11px] leading-4 text-zinc-500">
-                  Monthly subscription. Cancel anytime. Pro access remains
-                  active through the end of the paid billing period.
-                </p>
+<p className="mt-3 text-center text-sm font-medium leading-5 text-zinc-300">
+  Monthly subscription. Cancel anytime. Pro access remains active through
+  the end of your paid billing period.
+</p>
               </div>
             </div>
           </div>

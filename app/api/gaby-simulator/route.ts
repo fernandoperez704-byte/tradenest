@@ -57,6 +57,7 @@ const {
   conversationState,
   marketAnalysisSummary,
   traderDevelopmentEngines,
+  traderReportFacts,
   ...marketFacts
 } = simulatorContext || {};
 
@@ -1167,11 +1168,23 @@ ${
     : "NONE"
 }
 
+Verified Trader Report Facts:
+${
+  traderReportFacts
+    ? JSON.stringify(traderReportFacts, null, 2)
+    : "NONE"
+}
+
 IMPORTANT TRADER DEVELOPMENT RULES:
 - The Trader Development Engine Facts are the authoritative values currently displayed in the simulator.
 - Never recalculate, estimate, round differently, or replace these percentages.
 - When asked about Trend Bias, Risk Allocation, Entry Quality, or Exit Management, use these exact values.
 - Do not use a separately calculated report percentage when a matching Trader Development Engine value is available.
+- Verified Trader Report Facts are deterministic TradeNestX performance facts.
+- Use them for total trades, wins, losses, win rate, cumulative P&L, best month, worst month, best day, and worst day.
+- Do not recalculate those values from raw trades or reviews.
+- Do not invent missing report facts.
+- Engine = Facts. Gaby = Explains the Facts.
 
 Trader Development Report:
 ${traderDevelopmentReport?.developmentReport ? JSON.stringify(traderDevelopmentReport.developmentReport, null, 2) : "NONE"}

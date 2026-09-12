@@ -172,18 +172,10 @@ onChange={(e) => setSearchTerm(e.target.value)}
                   onClick={() => {
   setSelectedCoin(coin.symbol);
 
-  if (window.innerWidth < 1280) {
-    setMobileView("TRADE");
+if (window.innerWidth < 1280) {
+  setMobileView("TRADE");
+}
 
-setTimeout(() => {
-  const visibleCandles = 70;
-
-  chartInstanceRef.current?.timeScale().setVisibleLogicalRange({
-    from: Math.max(600 - visibleCandles, 0),
-    to: 605,
-  });
-}, 300);
-  }
 }}
                   className={`w-full rounded-xl border border-zinc-800 bg-[#0f172a] p-3 text-left transition-all duration-200 hover:border-cyan-500/40 hover:bg-[#111827] ${
                     selectedCoin === coin.symbol
@@ -250,10 +242,10 @@ className={`text-xs font-bold ${
       minimumFractionDigits: 3,
       maximumFractionDigits: 5,
     })}`
-  : `$${coin.price.toLocaleString(undefined, {
-      minimumFractionDigits: 6,
-      maximumFractionDigits: 8,
-    })}`}
+: `$${coin.price.toLocaleString(undefined, {
+    minimumFractionDigits: 8,
+    maximumFractionDigits: 8,
+  })}`}
     
 </p>
 </div>

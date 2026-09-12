@@ -36,6 +36,8 @@ export function useStockMarket({
   const [stockPrices, setStockPrices] = useState<Partial<Record<StockSymbol, number>>>({});
   const [previousStockPrices, setPreviousStockPrices] = useState<Partial<Record<StockSymbol, number>>>({});
   const [stockMarketOpen, setStockMarketOpen] = useState(false);
+const [stockNextOpen, setStockNextOpen] = useState<string | null>(null);
+
 
   const selectedStockRef = useRef(selectedStock);
   const selectedTimeframeRef = useRef(selectedTimeframe);
@@ -69,14 +71,20 @@ export function useStockMarket({
     updateStockPrices();
   }, [enabled]);
 
-  useEffect(() => {
-    if (!enabled) return;
+useEffect(() => {
+  if (!enabled) return;
 
-    fetch("/api/stock-market-status")
-      .then((res) => res.json())
-      .then((data) => setStockMarketOpen(Boolean(data.isOpen)))
-      .catch(() => setStockMarketOpen(false));
-  }, [enabled]);
+  fetch("/api/stock-market-status")
+    .then((res) => res.json())
+    .then((data) => {
+      setStockMarketOpen(Boolean(data.isOpen));
+      setStockNextOpen(data.nextOpen ?? null);
+    })
+    .catch(() => {
+      setStockMarketOpen(false);
+      setStockNextOpen(null);
+    });
+}, [enabled]);
 
 useEffect(() => {
   if (!enabled || !simulatorReady) return;
@@ -160,10 +168,12 @@ useEffect(() => {
   };
 }, [enabled, simulatorReady, setHistory]);
 
-  return {
-    stockPrices,
-    previousStockPrices,
-    stockMarketOpen,
-    updateStockPrices,
-  };
+return {
+  stockPrices,
+  previousStockPrices,
+  stockMarketOpen,
+  stockNextOpen,
+  updateStockPrices,
+};
+
 }
