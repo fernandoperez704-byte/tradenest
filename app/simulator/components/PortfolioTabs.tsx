@@ -13,45 +13,51 @@ export default function PortfolioTabs({
 }: PortfolioTabsProps) {
   return (
     <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
-      <div className="flex gap-2">
+      <div className="grid w-full grid-cols-3 gap-2 xl:flex xl:w-auto">
 
         <button
           onClick={() => setActiveBottomTab("POSITIONS")}
-          className={`rounded-xl px-5 py-2.5 text-sm tracking-wide font-black transition-all duration-200 ${
+          className={`whitespace-nowrap rounded-xl px-2 py-2.5 text-[11px] xl:px-5 xl:text-sm tracking-wide font-black transition-all duration-200 ${
             activeBottomTab === "POSITIONS"
               ? "bg-cyan-500 text-black"
               : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
           }`}
         >
-          {marketMode === "FUTURES"
-            ? "Futures Positions"
-            : "Spot Positions"}
+{marketMode === "FUTURES"
+  ? "Futures Positions"
+  : marketMode === "STOCKS"
+  ? "Stock Positions"
+  : "Spot Positions"}
         </button>
 
         <button
           onClick={() => setActiveBottomTab("HISTORY")}
-          className={`rounded-xl px-5 py-2.5 text-sm tracking-wide font-black transition-all duration-200 ${
+          className={`whitespace-nowrap rounded-xl px-2 py-2.5 text-xs xl:px-5 xl:text-sm tracking-wide font-black transition-all duration-200 ${
             activeBottomTab === "HISTORY"
               ? "bg-cyan-500 text-black"
               : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
           }`}
         >
-          {marketMode === "FUTURES"
-            ? "Futures History"
-            : "Spot History"}
+{marketMode === "FUTURES"
+  ? "Futures History"
+  : marketMode === "STOCKS"
+  ? "Stock History"
+  : "Spot History"}
         </button>
 
         <button
           onClick={() => setActiveBottomTab("ORDERS")}
-          className={`px-5 py-2.5 rounded-xl font-bold transition-all ${
+          className={`whitespace-nowrap rounded-xl px-2 py-2.5 text-sm xl:px-5 xl:text-base font-bold transition-all ${
             activeBottomTab === "ORDERS"
               ? "bg-cyan-500 text-black"
               : "bg-[#18181b] text-zinc-400 border border-white/10"
           }`}
         >
-          {marketMode === "FUTURES"
-            ? "Futures Orders"
-            : "Spot Orders"}
+{marketMode === "FUTURES"
+  ? "Futures Orders"
+  : marketMode === "STOCKS"
+  ? "Stock Orders"
+  : "Spot Orders"}
         </button>
 
       </div>

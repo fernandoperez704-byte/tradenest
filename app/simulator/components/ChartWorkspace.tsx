@@ -14,6 +14,18 @@ type ChartWorkspaceProps = {
   reviews: any[];
   mobileView: "WATCHLIST" | "TRADE" | "ORDER";
   setMobileView: (view: "WATCHLIST" | "TRADE" | "ORDER") => void;
+
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+
+watchlist: {
+  symbol: string;
+  name: string;
+  price: number | undefined;
+}[];
+
+setSelectedCoin: (coin: any) => void;
+
   selectedCoin: string;
   currentPrice?: number;
   marketMode: "SPOT" | "FUTURES" | "STOCKS";
@@ -41,7 +53,11 @@ export default function ChartWorkspace({
   reviews,
   mobileView,
   setMobileView,
-  selectedCoin,
+searchTerm,
+setSearchTerm,
+watchlist,
+setSelectedCoin,
+selectedCoin,
   currentPrice,
   marketMode,
 selectedTimeframe,
@@ -248,7 +264,6 @@ const formattedPrice =
   })}`;
 
 
-
 function getEnginePercentColor(
   engineId: EngineType,
   value: number
@@ -302,7 +317,7 @@ return (
     }`}
   >
 
-<div className="mb-3 grid grid-cols-2 gap-2 xl:hidden">
+<div className="mb-3 grid grid-cols-[0.9fr_1.1fr] gap-2 xl:hidden">
   <button
     onClick={() => setMobileView("WATCHLIST")}
     className="flex h-11 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 text-sm font-black text-cyan-300"
@@ -310,12 +325,48 @@ return (
     ← Back
   </button>
 
-  <button
-    onClick={() => setShowSimulatorGaby(true)}
-    className="flex h-11 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 text-sm font-black text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.1)]"
-  >
-    Ask Gaby
-  </button>
+  <div className="relative">
+    <input
+      type="text"
+      placeholder="Search assets..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="h-11 w-full min-w-0 rounded-xl border border-cyan-500/40 bg-[#0f172a] px-3 text-sm text-white placeholder:text-zinc-500 shadow-[0_0_14px_rgba(34,211,238,0.10)] transition-all duration-200 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.18)] focus:border-cyan-400 focus:shadow-[0_0_24px_rgba(34,211,238,0.28)] focus:outline-none"
+    />
+
+    {searchTerm.trim() !== "" && (
+      <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto scrollbar-hide rounded-xl border border-zinc-700 bg-[#0f172a] shadow-xl">
+        {watchlist
+          .filter((coin) => {
+            const search = searchTerm.toLowerCase();
+
+            return (
+              coin.symbol.toLowerCase().startsWith(search) ||
+              coin.name.toLowerCase().startsWith(search)
+            );
+          })
+          .slice(0, 6)
+          .map((coin) => (
+            <button
+              key={coin.symbol}
+              onClick={() => {
+                setSelectedCoin(coin.symbol);
+                setSearchTerm("");
+              }}
+              className="block w-full border-b border-zinc-800 px-3 py-2.5 text-left last:border-b-0 hover:bg-cyan-500/10"
+            >
+              <p className="text-sm font-black text-white">
+                {coin.symbol}
+              </p>
+
+              <p className="text-xs text-zinc-500">
+                {coin.name}
+              </p>
+            </button>
+          ))}
+      </div>
+    )}
+  </div>
 </div>
 
 <div className="mb-2 border-b border-zinc-800 pb-2">
@@ -537,12 +588,22 @@ return (
 
 </div>
 
-      <button
-        onClick={() => setMobileView("ORDER")}
-        className="mt-4 flex w-full items-center justify-center rounded-2xl bg-cyan-500 px-5 py-4 text-xl font-black text-black xl:hidden"
-      >
-        Trade
-      </button>
+<div className="mt-4 grid grid-cols-2 gap-2 xl:hidden">
+  <button
+    onClick={() => setMobileView("ORDER")}
+    className="flex h-[52px] items-center justify-center rounded-2xl bg-cyan-500 px-4 text-xl font-black text-black shadow-[0_0_18px_rgba(6,182,212,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-cyan-400 hover:shadow-[0_0_28px_rgba(6,182,212,0.45)] active:translate-y-0 active:scale-[0.97] active:bg-cyan-600"
+  >
+    Trade
+  </button>
+
+  <button
+    onClick={() => setShowSimulatorGaby(true)}
+    className="flex h-[52px] items-center justify-center rounded-2xl border border-cyan-500/40 bg-cyan-500/10 px-4 text-lg font-black text-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-500/20 hover:shadow-[0_0_26px_rgba(34,211,238,0.28)] active:translate-y-0 active:scale-[0.97] active:bg-cyan-500/25"
+  >
+    Ask Gaby
+  </button>
+</div>
+
     </div>
   );
 }

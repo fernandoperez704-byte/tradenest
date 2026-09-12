@@ -18,9 +18,12 @@ type TradingPanelProps = {
   limitPrice: number | "";
   setLimitPrice: (value: number | "") => void;
 
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+marketMode: "SPOT" | "FUTURES" | "STOCKS";
 
-  leverage: number;
+selectedCoin: string;
+currentPrice?: number;
+
+leverage: number;
   setLeverage: (value: number) => void;
 
   showLeverageMenu: boolean;
@@ -60,8 +63,10 @@ export default function TradingPanel({
   setOrderType,
   limitPrice,
   setLimitPrice,
-  marketMode,
-  leverage,
+marketMode,
+selectedCoin,
+currentPrice,
+leverage,
   setLeverage,
   showLeverageMenu,
   setShowLeverageMenu,
@@ -86,12 +91,43 @@ return (
         : ""
     }`}
   >
-    <button
-      onClick={() => setMobileView("TRADE")}
-      className="mb-4 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 xl:hidden"
-    >
-      ← Back To Chart
-    </button>
+<div className="mb-4 grid grid-cols-[0.9fr_1.1fr] gap-2 xl:hidden">
+  <button
+    onClick={() => setMobileView("TRADE")}
+    className="flex h-[52px] items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 text-sm font-black text-cyan-300 transition-all duration-200 active:scale-[0.97]"
+  >
+    ← Back To Chart
+  </button>
+
+  <div className="flex h-[52px] flex-col items-center justify-center rounded-xl border border-cyan-500/30 bg-[#0f172a] px-2">
+    <span className="text-sm font-black text-white">
+      {marketMode === "STOCKS" ? selectedCoin : `${selectedCoin}/USD`}
+    </span>
+
+    <span className="text-sm font-black text-white">
+      {currentPrice == null
+        ? "Loading..."
+        : currentPrice >= 1000
+        ? `$${currentPrice.toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          })}`
+        : currentPrice >= 1
+        ? `$${currentPrice.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 3,
+          })}`
+        : currentPrice >= 0.01
+        ? `$${currentPrice.toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 5,
+          })}`
+        : `$${currentPrice.toLocaleString(undefined, {
+            minimumFractionDigits: 8,
+            maximumFractionDigits: 8,
+          })}`}
+    </span>
+  </div>
+</div>
 
     <div className="grid grid-cols-3 gap-3">
       <div className="col-span-2">
