@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import Navbar from "./components/Navbar";
 
 function TradeNestXName({
@@ -20,6 +21,8 @@ function TradeNestXName({
 }
 
 export default function HomePage() {
+  const [showAlreadyPro, setShowAlreadyPro] = useState(false);
+
   return (
     <>
       <Navbar />
@@ -292,9 +295,7 @@ if (res.status === 401) {
 }
 
 if (res.status === 409) {
-  alert(
-    "You're already a TradeNestX Pro member. Your subscription is active. You can manage your subscription from your account settings."
-  );
+  setShowAlreadyPro(true);
   return;
 }
 
@@ -453,6 +454,28 @@ if (data.url) {
 </footer>
 
       </main>
+
+      {showAlreadyPro && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-cyan-400/30 bg-[#0f172a] p-6 text-center shadow-2xl">
+            <h2 className="text-xl font-black text-white">
+              You're Already Pro
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Your TradeNestX Pro subscription is active.
+            </p>
+
+            <button
+              onClick={() => setShowAlreadyPro(false)}
+              className="mt-5 h-11 w-full rounded-xl bg-cyan-400 text-sm font-black text-black transition hover:bg-cyan-300"
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
+
     </>
   );
 }
