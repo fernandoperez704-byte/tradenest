@@ -29,10 +29,39 @@ export async function POST() {
       );
     }
 
-    const stripe = getStripe();
-    const email = user.primaryEmailAddress?.emailAddress;
+const stripe = getStripe();
+const email = user.primaryEmailAddress?.emailAddress;
 
-    const session = await stripe.checkout.sessions.create({
+// Prevent duplicate subscriptions
+if (email) {
+  const customers = await stripe.customers.list({
+    email,
+    limit: 100,
+  });
+
+  for (const customer of customers.data) {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      status: "all",
+      limit: 100,
+    });
+
+    const hasSubscription = subscriptions.data.some((subscription) =>
+      ["active", "trialing", "past_due", "unpaid", "paused"].includes(
+        subscription.status
+      )
+    );
+
+    if (hasSubscription) {
+      return Response.json(
+        { error: "You already have an active Pro subscription." },
+        { status: 409 }
+      );
+    }
+  }
+}
+
+const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: userId,
