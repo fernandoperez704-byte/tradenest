@@ -803,12 +803,11 @@ onStockClose: (trade) => {
 useEffect(() => {
   if (!subscriptionLoaded) return;
 
-  if (!isPaid) {
-    localStorage.removeItem("tradenestx-simulator-session");
-    setSessionLoaded(true);
-    setSimulatorReady(true);
-    return;
-  }
+if (!isPaid) {
+  setSessionLoaded(true);
+  setSimulatorReady(true);
+  return;
+}
 
   const saved = localStorage.getItem("tradenestx-simulator-session");
 
