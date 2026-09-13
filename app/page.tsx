@@ -284,11 +284,23 @@ export default function HomePage() {
                       method: "POST",
                     });
 
-                    const data = await res.json();
+const data = await res.json();
 
-                    if (data.url) {
-                      window.location.href = data.url;
-                    }
+if (res.status === 401) {
+  window.location.href = "/sign-in";
+  return;
+}
+
+if (res.status === 409) {
+  alert(
+    "You're already a TradeNestX Pro member. Your subscription is active. You can manage your subscription from your account settings."
+  );
+  return;
+}
+
+if (data.url) {
+  window.location.href = data.url;
+}
                   }}
                   className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-cyan-400 text-sm font-black text-black transition hover:bg-cyan-300"
                 >
