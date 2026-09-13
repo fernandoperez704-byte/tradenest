@@ -133,8 +133,9 @@ return (
       <div className="col-span-2">
         <input
           type="number"
+          step={marketMode === "STOCKS" ? 1 : "any"}
           value={tradeAmount}
-          placeholder="Enter amount"
+          placeholder={marketMode === "STOCKS" ? "Enter shares" : "Enter amount"}
           onChange={(e) => {
             const value = e.target.value;
             setTradeAmount(value === "" ? "" : Number(value));
@@ -245,30 +246,32 @@ return (
   </div>
 )}
   <div className="mt-2 grid grid-cols-4 gap-2">
-    {[100, 500, 1000].map((amount) => (
-      <button
-        key={amount}
-        onClick={() => setTradeAmount(amount)}
-        className="flex h-10 items-center justify-center rounded-lg border border-zinc-700 bg-black text-sm font-bold text-zinc-300 transition-all hover:border-green-500 hover:text-green-400"
-      >
-        ${amount}
-      </button>
-    ))}
+{(marketMode === "STOCKS" ? [1, 5, 10] : [100, 500, 1000]).map((amount) => (
+  <button
+    key={amount}
+    onClick={() => setTradeAmount(amount)}
+    className="flex h-10 items-center justify-center rounded-lg border border-zinc-700 bg-black text-sm font-bold text-zinc-300 transition-all hover:border-green-500 hover:text-green-400"
+  >
+    {marketMode === "STOCKS" ? amount : `$${amount}`}
+  </button>
+))}
 
 <button
   type="button"
   onClick={() => {
+    if (marketMode === "STOCKS") {
+      if (!currentPrice) return;
+      setTradeAmount(Math.floor(balance / currentPrice));
+      return;
+    }
+
     const feeMultiplier =
       marketMode === "FUTURES"
         ? leverage * feeRate
         : feeRate;
 
-    const rawMax =
-      balance / (1 + feeMultiplier);
-
-    // Round down instead of up so margin + fee never exceeds balance.
-    const safeMax =
-      Math.floor(rawMax * 100) / 100;
+    const rawMax = balance / (1 + feeMultiplier);
+    const safeMax = Math.floor(rawMax * 100) / 100;
 
     setTradeAmount(safeMax);
   }}
@@ -280,11 +283,15 @@ return (
   </div>
 <div className="mt-2 rounded-xl border border-zinc-700 bg-[#0f172a] p-2">
   <div className="flex items-center justify-between text-sm">
-    <span className="text-zinc-500">Trade Amount</span>
+ <span className="text-zinc-500">
+  {marketMode === "STOCKS" ? "Shares" : "Trade Amount"}
+</span>
 
-    <span className="font-bold text-white">
-      ${tradeAmount || 0}
-    </span>
+<span className="font-bold text-white">
+  {marketMode === "STOCKS"
+    ? tradeAmount || 0
+    : `$${tradeAmount || 0}`}
+</span>
   </div>
 
   <div className="mt-2 flex items-center justify-between text-sm">
@@ -293,7 +300,14 @@ return (
     </span>
 
     <span className="font-bold text-cyan-400">
-      ${((Number(tradeAmount) || 0) * (marketMode === "FUTURES" ? leverage : 1)).toFixed(2)}
+      ${(
+  (Number(tradeAmount) || 0) *
+  (marketMode === "STOCKS"
+    ? currentPrice || 0
+    : marketMode === "FUTURES"
+    ? leverage
+    : 1)
+).toFixed(2)}
     </span>
   </div>
 

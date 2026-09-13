@@ -14,6 +14,7 @@ import PortfolioOrders from "./components/PortfolioOrders";
 import InfoPanel, {
   type InfoPanelContent,
 } from "./components/InfoPanel";
+import SimulatorTour from "./components/SimulatorTour";
 import { WATCHLIST } from "./data/watchlist";
 import { STOCK_WATCHLIST, type StockSymbol } from "./data/stockWatchlist";
 import { useStockMarket } from "./hooks/useStockMarket";
@@ -1867,15 +1868,17 @@ useEffect(() => {
       mode: CrosshairMode.Normal,
     },
 
-    handleScroll: {
-      mouseWheel: true,
-      pressedMouseMove: true,
-    },
+handleScroll: {
+  mouseWheel: true,
+  pressedMouseMove: window.innerWidth >= 1280,
+  horzTouchDrag: true,
+  vertTouchDrag: false,
+},
 
-    handleScale: {
-      mouseWheel: true,
-      pinch: true,
-    },
+handleScale: {
+  mouseWheel: true,
+  pinch: true,
+},
 
     rightPriceScale: {
       borderColor: "#27272a",
@@ -2126,7 +2129,8 @@ const rangeKey =
 
 if (
   chartData.length > 80 &&
-  initialRangeKeyRef.current !== rangeKey
+  initialRangeKeyRef.current !== rangeKey &&
+  (window.innerWidth >= 1280 || mobileView === "TRADE")
 ) {
   const containerWidth =
     chartRef.current?.clientWidth ?? 0;
@@ -2397,7 +2401,48 @@ if (activeStopLoss != null) {
   takeProfit,
   stopLoss,
   indicatorPanel,
+  mobileView,
 ]);
+
+useEffect(() => {
+  if (window.innerWidth >= 1280) return;
+  if (mobileView !== "TRADE") return;
+  if (!candleSeriesRef.current) return;
+
+  candleSeriesRef.current.applyOptions({
+    autoscaleInfoProvider: (original: any) => {
+      const info = original();
+
+      if (!info?.priceRange || gabyChartHighlights.length === 0) return info;
+
+const zones = gabyChartHighlights.filter(
+  (x): x is GabyChartHighlight & { low: number; high: number } =>
+    "low" in x && "high" in x
+);
+
+if (zones.length === 0) return info;
+
+const low = Math.min(...zones.map((x) => x.low));
+const high = Math.max(...zones.map((x) => x.high));
+
+      const minValue = Math.min(info.priceRange.minValue, low);
+      const maxValue = Math.max(info.priceRange.maxValue, high);
+      const padding = (maxValue - minValue) * 0.08;
+
+      return {
+        ...info,
+        priceRange: {
+          minValue: minValue - padding,
+          maxValue: maxValue + padding,
+        },
+      };
+    },
+  });
+
+  chartInstanceRef.current
+    ?.priceScale("right")
+    .applyOptions({ autoScale: true });
+}, [gabyChartHighlights, mobileView]);
 
 function buildTradeContext() {
 
@@ -3713,19 +3758,13 @@ strongestPattern={strongestPattern}
   ref={mobileGabyRef}
   className="relative z-50 mt-3 w-full xl:fixed xl:bottom-[72px] xl:left-[24px] xl:mt-0 xl:w-[500px]"
 >
-  <button
-    onClick={() => {
-      setShowSimulatorGaby(false);
-      setGabyAnnotations(pinnedGabyAnnotations);
-    }}
-        className="mb-3 rounded-xl border border-zinc-700 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-white"
-      >
-        ✕ Close
-      </button>
-
 <GabySimulatorCoach
   userId={user?.id || ""}
   isPaid={isPaid}
+  onClose={() => {
+    setShowSimulatorGaby(false);
+    setGabyAnnotations(pinnedGabyAnnotations);
+  }}
   traderDevelopmentEngines={traderDevelopmentEngines}
   normalizedTradeReviews={normalizedTradeReviews}
   autoQuestion={autoGabyQuestion}
@@ -3931,7 +3970,6 @@ setGabyAnnotations((prev) => {
 }}
 
 />
-
     </div>
   </>
 )}
@@ -4086,71 +4124,10 @@ closeStockPosition={closeStockPosition}
   </div>
 )}
 
-
-
-{tourStep !== null && (
-  <>
-    <div className="fixed inset-0 z-40 bg-black/10" />
-
-    <div className="fixed left-[270px] top-[150px] z-50 w-[360px] rounded-2xl border border-cyan-500/30 bg-[#0f172a] p-5 shadow-[0_20px_70px_rgba(0,0,0,0.6)]">
-      <p className="text-sm font-black text-cyan-400">
-        Simulator Tour
-      </p>
-
-<h3 className="mt-2 text-xl font-black text-white">
-  {tourStep === 1
-  ? "Watchlist"
-  : tourStep === 2
-  ? "Chart"
-  : tourStep === 3
-  ? "Order Entry"
-  : tourStep === 4
-  ? "Positions & History"
-  : "Account Summary"}
-</h3>
-
-<p className="mt-3 text-sm leading-6 text-zinc-300">
-{tourStep === 1
-  ? "This is where you choose the crypto asset you want to practice with. Selecting a coin updates the chart, price, and order panel."
-  : tourStep === 2
-  ? "This is the chart. It uses real-time crypto market data, so you can study price movement, volume, trends, support, resistance, and practice reading market structure."
-  : tourStep === 3
-  ? "This is where you place practice trades. Set your amount, order type, take profit, stop loss, and use futures tools like leverage carefully."
-  : tourStep === 4
-  ? "This panel shows your open positions, trade history, and pending orders. Use it to review what happened after each practice trade."
-  : "This shows your cash balance, portfolio value or futures equity, margin used, open profit or loss, and total return."}
-</p>
-
-      <div className="mt-5 flex justify-between">
-        <button
-          onClick={() => setTourStep(null)}
-          className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-bold text-zinc-400 hover:text-white"
-        >
-          Close
-        </button>
-
-<button
-  onClick={() => {
-if (tourStep === 1) {
-  setTourStep(2);
-} else if (tourStep === 2) {
-  setTourStep(3);
-} else if (tourStep === 3) {
-  setTourStep(4);
-} else if (tourStep === 4) {
-  setTourStep(5);
-} else {
-  setTourStep(null);
-}
-}}
-          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-black hover:bg-cyan-400"
-        >
-          {tourStep === 5 ? "Done" : "Next"}
-        </button>
-      </div>
-    </div>
-  </>
-)}
+<SimulatorTour
+  tourStep={tourStep}
+  setTourStep={setTourStep}
+/>
 
       </main>
 

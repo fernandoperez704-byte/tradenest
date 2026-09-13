@@ -21,6 +21,7 @@ import {
 type GabySimulatorCoachProps = {
   userId: string;
   isPaid: boolean;
+  onClose?: () => void;
 
   traderDevelopmentEngines?: {
     trendBias: any;
@@ -82,6 +83,7 @@ chartHighlightState?: {
 export default function GabySimulatorCoach({
   userId,
   isPaid,
+  onClose,
 traderDevelopmentEngines,
 normalizedTradeReviews,
 autoQuestion,
@@ -1214,9 +1216,16 @@ onInfoPanelCommand?.({
     );
   }
 
-  return (
-    <div className="rounded-3xl border border-cyan-400/20 bg-[#0f172a]/90 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
-      <div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 text-base leading-6 text-zinc-200 max-h-[460px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+return (
+  <div className="relative rounded-3xl border border-cyan-400/20 bg-[#0f172a]/90 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)]">
+    <button
+      onClick={onClose}
+      className="absolute right-8 top-7 z-20 text-sm font-medium text-zinc-400 transition hover:text-white"
+    >
+      Close
+    </button>
+
+    <div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 pr-24 text-base leading-6 text-zinc-200 max-h-[460px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {loading ? (
           "Gaby is reviewing..."
         ) : answer.startsWith("Not sure what to ask?") ? (
@@ -1225,17 +1234,24 @@ onInfoPanelCommand?.({
               Not sure what to ask? Ask me about:
             </p>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2">
 {[
   "Review my last trade",
   "Show my trades report",
   "Where is the nearest support?",
   "Where is the nearest resistance?",
   "What is the overall market direction?",
+"Explain Panel",
 ].map((prompt) => (
   <button
     key={prompt}
     onClick={() => {
+
+if (prompt === "Explain Panel") {
+  window.dispatchEvent(new Event("startSimulatorTour"));
+  return;
+}
+
       // 1. Force the conversation state immediately based on the button action
       if (prompt === "Review my last trade") {
         setConversationState({
@@ -1282,7 +1298,9 @@ data: {
       // 2. Run the request thread with the state safely locked down
       if (prompt !== "Show my trades report") askGaby(prompt);
     }}
-    className="rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+    className={`w-full rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300 ${
+  prompt === "Explain Panel" ? "hidden xl:block" : ""
+}`}
   >
     {prompt}
   </button>
@@ -1309,14 +1327,6 @@ data: {
 )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <button
-          onClick={() => window.dispatchEvent(new Event("startSimulatorTour"))}
-          className="hidden h-11 rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm font-bold text-zinc-300 hover:border-cyan-400 hover:text-cyan-300 xl:block"
-        >
-          Explain Panel
-        </button>
-      </div>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input

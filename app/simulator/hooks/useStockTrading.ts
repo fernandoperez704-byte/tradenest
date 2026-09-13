@@ -62,45 +62,64 @@ onStockClose,
   const [stockHistory, setStockHistory] = useState<StockTrade[]>([]);
 const [stockTradeContexts, setStockTradeContexts] = useState<Partial<Record<StockSymbol, any>>>({});
 
-  function buyStock() {
-    if (!requireSignIn()) return;
-    if (!stockMarketOpen) return setMessage("US stock market is closed.");
-    if (!currentPrice) return setMessage("Loading real market price...");
-    if (!tradeAmount || Number(tradeAmount) <= 0) return setMessage("Enter an amount.");
+function buyStock() {
+  if (!requireSignIn()) return;
+  if (!stockMarketOpen) return setMessage("US stock market is closed.");
+  if (!currentPrice) return setMessage("Loading real market price...");
+  if (!tradeAmount || Number(tradeAmount) <= 0)
+    return setMessage("Enter number of shares.");
 
-    const amount = Number(tradeAmount);
-    if (amount > balance) return setMessage("Insufficient balance.");
+  const quantity = Number(tradeAmount);
 
-    const quantity = amount / currentPrice;
-    const previousQty = stockPositions[selectedStock] ?? 0;
-    const previousAvg = stockAveragePrices[selectedStock] ?? 0;
-    const totalQty = previousQty + quantity;
-    const averagePrice = totalQty > 0
-      ? ((previousQty * previousAvg) + (quantity * currentPrice)) / totalQty
+  if (!Number.isInteger(quantity))
+    return setMessage("Stocks must be purchased in whole shares.");
+
+  const amount = quantity * currentPrice;
+
+  if (amount > balance)
+    return setMessage("Insufficient balance.");
+
+  const previousQty = stockPositions[selectedStock] ?? 0;
+  const previousAvg = stockAveragePrices[selectedStock] ?? 0;
+  const totalQty = previousQty + quantity;
+
+  const averagePrice =
+    totalQty > 0
+      ? (previousQty * previousAvg + quantity * currentPrice) / totalQty
       : currentPrice;
 
-if (previousQty <= 0) {
-  setStockTradeContexts((prev) => ({
-    ...prev,
-    [selectedStock]: getStockTradeContext?.() ?? null,
-  }));
-}
+  if (previousQty <= 0) {
+    setStockTradeContexts((prev) => ({
+      ...prev,
+      [selectedStock]: getStockTradeContext?.() ?? null,
+    }));
+  }
 
-    setBalance((prev) => prev - amount);
-    setStockPositions((prev) => ({ ...prev, [selectedStock]: totalQty }));
-    setStockAveragePrices((prev) => ({ ...prev, [selectedStock]: averagePrice }));
-    setStockHistory((prev) => [{
+  setBalance((prev) => prev - amount);
+  setStockPositions((prev) => ({ ...prev, [selectedStock]: totalQty }));
+  setStockAveragePrices((prev) => ({
+    ...prev,
+    [selectedStock]: averagePrice,
+  }));
+
+  setStockHistory((prev) => [
+    {
       symbol: selectedStock,
       type: "BUY",
       quantity,
       price: currentPrice,
       amount,
       time: new Date().toLocaleTimeString(),
-    }, ...prev]);
+    },
+    ...prev,
+  ]);
 
-    setMessage(`Bought ${selectedStock}`);
-    setTradeAmount("");
-  }
+  setMessage(
+    `Bought ${quantity} ${quantity === 1 ? "share" : "shares"} of ${selectedStock}`
+  );
+
+  setTradeAmount("");
+}
 
   function sellStock() {
     if (!requireSignIn()) return;
