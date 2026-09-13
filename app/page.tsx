@@ -462,9 +462,9 @@ if (data.url) {
               You're Already Pro
             </h2>
 
-            <p className="mt-3 text-sm leading-6 text-zinc-300">
-              Your TradeNestX Pro subscription is active.
-            </p>
+<p className="mt-3 text-sm leading-6 text-zinc-300">
+  Your TradeNestX Pro subscription is active. You can manage your subscription from your account settings.
+</p>
 
             <button
               onClick={() => setShowAlreadyPro(false)}
