@@ -2,7 +2,7 @@ import type { Trade } from "../types/simulator";
 import type { StockTrade } from "../hooks/useStockTrading";
 
 type PortfolioHistoryProps = {
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+  marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   trades: Trade[];
   futuresHistory: any[];
   stockHistory: StockTrade[];
@@ -17,7 +17,8 @@ export default function PortfolioHistory({
   return (
     <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
 
-      {marketMode === "FUTURES" ? (
+      {marketMode === "FUTURES" ||
+ marketMode === "COINBASE_FUTURES" ? (
         futuresHistory.length === 0 ? (
 <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
   <p className="text-base font-bold text-zinc-300">No Futures History</p>

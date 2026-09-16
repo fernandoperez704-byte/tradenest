@@ -18,7 +18,7 @@ type TradingPanelProps = {
   limitPrice: number | "";
   setLimitPrice: (value: number | "") => void;
 
-marketMode: "SPOT" | "FUTURES" | "STOCKS";
+marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
 
 selectedCoin: string;
 currentPrice?: number;
@@ -144,8 +144,9 @@ return (
         />
       </div>
 
-      {marketMode === "FUTURES" && (
-        <div className="relative">
+    {(marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES") && (
+<div className="relative">
 <button
   type="button"
   onClick={() => setShowLeverageMenu(!showLeverageMenu)}
@@ -265,10 +266,11 @@ return (
       return;
     }
 
-    const feeMultiplier =
-      marketMode === "FUTURES"
-        ? leverage * feeRate
-        : feeRate;
+const feeMultiplier =
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+    ? leverage * feeRate
+    : feeRate;
 
     const rawMax = balance / (1 + feeMultiplier);
     const safeMax = Math.floor(rawMax * 100) / 100;
@@ -296,7 +298,9 @@ return (
 
   <div className="mt-2 flex items-center justify-between text-sm">
     <span className="text-zinc-500">
-      {marketMode === "FUTURES" ? "Position Size" : "Order Value"}
+      {marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
+  ? "Position Size"
+  : "Order Value"}
     </span>
 
     <span className="font-bold text-cyan-400">
@@ -304,14 +308,16 @@ return (
   (Number(tradeAmount) || 0) *
   (marketMode === "STOCKS"
     ? currentPrice || 0
-    : marketMode === "FUTURES"
+    : marketMode === "FUTURES" ||
+      marketMode === "COINBASE_FUTURES"
     ? leverage
     : 1)
 ).toFixed(2)}
     </span>
   </div>
 
-  {marketMode === "FUTURES" && (
+  {(marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES") && (
     <>
       <div className="mt-2 flex items-center justify-between text-sm">
         <span className="text-zinc-500">Leverage</span>
@@ -358,7 +364,10 @@ return (
     <span className="font-bold text-zinc-300">
       ${(
   ((Number(tradeAmount) || 0) *
-    (marketMode === "FUTURES" ? leverage : 1) *
+    (marketMode === "FUTURES" ||
+ marketMode === "COINBASE_FUTURES"
+  ? leverage
+  : 1) *
     feeRate)
 ).toFixed(2)}
     </span>
@@ -367,30 +376,40 @@ return (
   <div className="mt-3 grid grid-cols-2 gap-2">
     <button
   onClick={() => {
-  if (marketMode === "FUTURES") {
-    setPositionType("LONG");
-openFuturesPosition("LONG");
-  } else {
-    buyCoin();
-  }
+if (
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+) {
+  setPositionType("LONG");
+  openFuturesPosition("LONG");
+} else {
+  buyCoin();
+}
 }}
       className="rounded-xl bg-green-500 px-5 py-2 text-sm font-black text-black transition-all hover:scale-[1.02] hover:bg-green-400"
     >
-      {marketMode === "FUTURES" ? "LONG" : "BUY"}
+      {marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
+  ? "LONG"
+  : "BUY"}
     </button>
 
     <button
       onClick={() => {
-  if (marketMode === "FUTURES") {
-    setPositionType("SHORT");
-openFuturesPosition("SHORT");
-  } else {
-    sellCoin();
-  }
+if (
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+) {
+  setPositionType("SHORT");
+  openFuturesPosition("SHORT");
+} else {
+  sellCoin();
+}
 }}
       className="rounded-xl bg-red-500 px-5 py-2 text-sm font-black text-white transition-all hover:scale-[1.02] hover:bg-red-400"
     >
-      {marketMode === "FUTURES" ? "SHORT" : "SELL"}
+      {marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
+  ? "SHORT"
+  : "SELL"}
     </button>
   </div>
 

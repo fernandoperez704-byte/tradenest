@@ -5,6 +5,7 @@ import GabySimulatorCoach from "../components/GabySimulatorCoach";
 import WatchlistPanel from "./components/WatchlistPanel";
 import ChartWorkspace from "./components/ChartWorkspace";
 import TradingPanel from "./components/TradingPanel";
+import CoinbaseFuturesTradingPanel from "./components/CoinbaseFuturesTradingPanel";
 import AccountSummaryCard from "./components/AccountSummaryCard";
 import PortfolioPanel from "./components/PortfolioPanel";
 import PortfolioTabs from "./components/PortfolioTabs";
@@ -16,6 +17,13 @@ import InfoPanel, {
 } from "./components/InfoPanel";
 import SimulatorTour from "./components/SimulatorTour";
 import { WATCHLIST } from "./data/watchlist";
+import {
+  COINBASE_FUTURES_PRODUCT_IDS,
+  buildCoinbaseFuturesPosition,
+  clampCoinbaseFuturesLeverage,
+} from "./data/coinbaseFutures";
+import { createCoinbaseFuturesOrderBook } from "./data/coinbaseFuturesOrderBook";
+import { useCoinbaseFuturesTopOfBook } from "./hooks/useCoinbaseFuturesTopOfBook";
 import { STOCK_WATCHLIST, type StockSymbol } from "./data/stockWatchlist";
 import { useStockMarket } from "./hooks/useStockMarket";
 import { useStockTrading } from "./hooks/useStockTrading";
@@ -203,7 +211,7 @@ useEffect(() => {
 }, []);
 
   const [marketMode, setMarketMode] =
-  useState<"SPOT" | "FUTURES" | "STOCKS">("SPOT");
+  useState<"SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS">("SPOT");
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
 
 const [infoPanelContent, setInfoPanelContent] =
@@ -345,6 +353,16 @@ useEffect(() => {
   if (marketMode === "STOCKS") setSelectedStock("NVDA");
 }, [marketMode]);
 
+useEffect(() => {
+  if (
+    marketMode === "COINBASE_FUTURES" &&
+    (selectedCoin === "UNI" || selectedCoin === "ATOM")
+  ) {
+    setSelectedCoin("BTC");
+  }
+}, [marketMode, selectedCoin]);
+
+
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
@@ -371,6 +389,7 @@ const [prices, setPrices] = useState<
   Partial<Record<AssetSymbol, number>>
 >({});
 
+const { topOfBook, setTopOfBook } = useCoinbaseFuturesTopOfBook();
 
 const [previousPrices, setPreviousPrices] = useState<
   Partial<Record<AssetSymbol, number>>
@@ -727,7 +746,7 @@ const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
   amount: number;
   limitPrice: number;
   side: "LONG" | "SHORT";
-  mode: "FUTURES";
+  mode: "FUTURES" | "COINBASE_FUTURES";
   leverage?: number;
 } | null>(null);
 
@@ -988,10 +1007,13 @@ useEffect(() => {
     let changed = false;
     const updated = { ...prev };
 
-    futuresPositions.forEach((position) => {
-      if (!position.id) return;
+futuresPositions.forEach((position) => {
+  if (!position.id) return;
 
-      const current = prices[position.coin as AssetSymbol];
+  const positionMarketMode = position.marketMode ?? "FUTURES";
+  if (positionMarketMode !== marketMode) return;
+
+  const current = prices[position.coin as AssetSymbol];
       const management = updated[position.id];
 
       if (!current || !management) return;
@@ -1119,12 +1141,16 @@ const currentEntryQuality =
   const maintenanceBuffer = 0.005;
 
 const estimatedLongLiquidation =
-  currentPrice && marketMode === "FUTURES" && leverage > 1
+  currentPrice &&
+  (marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
+  leverage > 1
     ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
     : null;
 
 const estimatedShortLiquidation =
-  currentPrice && marketMode === "FUTURES" && leverage > 1
+  currentPrice &&
+  (marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
+  leverage > 1
     ? currentPrice * (1 + 1 / leverage - maintenanceBuffer)
     : null;
 
@@ -1177,7 +1203,12 @@ function getCurrentCandleStart(timeframe: string) {
 
 async function updatePrices() {
   try {
-    const response = await fetch("/api/prices");
+const priceUrl =
+  marketMode === "COINBASE_FUTURES"
+    ? "/api/futures-prices"
+    : "/api/prices";
+
+    const response = await fetch(priceUrl);
     const data = await response.json();
 
     if (!Array.isArray(data)) {
@@ -1215,10 +1246,14 @@ setPrices((prev) => {
 
       setFuturesPositions((prevPositions) => {
         const liquidatedPositions =
-          prevPositions.filter((position) => {
+ prevPositions.filter((position) => {
+const positionMarketMode = position.marketMode ?? "FUTURES";
+
+if (positionMarketMode !== marketMode) return false;
+
 const current = updated[position.coin as AssetSymbol];
 
-if (!current) return false;
+if (!current) return false;         
 if (!position.liquidationPrice) return false;
 
 return position.side === "LONG"
@@ -1251,10 +1286,14 @@ liquidatedPositions.forEach((position) => {
 
         }
 
-        return prevPositions.filter((position) => {
+ return prevPositions.filter((position) => {
+const positionMarketMode = position.marketMode ?? "FUTURES";
+
+if (positionMarketMode !== marketMode) return true;
+
 const current = updated[position.coin as AssetSymbol];
 
-if (!current) return true;
+if (!current) return true;       
 if (!position.liquidationPrice) return true;
 
 return position.side === "LONG"
@@ -1279,15 +1318,18 @@ return position.side === "LONG"
     setNow(new Date());
     updatePrices();
 
-const priceInterval = setInterval(updatePrices, 500);
+const priceInterval =
+  marketMode === "COINBASE_FUTURES"
+    ? null
+    : setInterval(updatePrices, 500);
 
     const clockInterval = setInterval(() => setNow(new Date()), 1000);
 
     return () => {
-      clearInterval(priceInterval);
+      if (priceInterval) clearInterval(priceInterval);
       clearInterval(clockInterval);
     };
-  }, [selectedCoin, selectedTimeframe, candlesReadyFor]);
+  }, [marketMode, selectedCoin, selectedTimeframe, candlesReadyFor]);
 
 
 
@@ -1336,6 +1378,7 @@ if (!current) return;
 
 useEffect(() => {
   if (!pendingFuturesLimitOrder) return;
+  if (pendingFuturesLimitOrder.mode !== marketMode) return;
 
   const current = prices[pendingFuturesLimitOrder.coin];
 if (!current) return;
@@ -1411,13 +1454,21 @@ useEffect(() => {
 }, [prices, selectedCoin, positions, spotRiskSettings]);
 
 useEffect(() => {
-  if (marketMode !== "FUTURES") return;
+  if (
+  marketMode !== "FUTURES" &&
+  marketMode !== "COINBASE_FUTURES"
+) {
+  return;
+}
   if (futuresPositions.length === 0) return;
 
-  futuresPositions.forEach((position, index) => {
-    if (position.coin !== selectedCoin) return;
+futuresPositions.forEach((position, index) => {
+  const positionMarketMode = position.marketMode ?? "FUTURES";
 
-    const current = prices[position.coin as AssetSymbol];
+  if (positionMarketMode !== marketMode) return;
+  if (position.coin !== selectedCoin) return;
+
+  const current = prices[position.coin as AssetSymbol];
 if (!current) return;
 const takeProfitHit =
   position.takeProfit != null &&
@@ -1466,6 +1517,8 @@ else await updatePrices();
 const candleUrl =
   marketMode === "STOCKS"
     ? `/api/stock-candles?symbol=${selectedStock}&timeframe=${selectedTimeframe}&t=${Date.now()}`
+    : marketMode === "COINBASE_FUTURES"
+    ? `/api/futures-candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}&t=${Date.now()}`
     : `/api/candles?symbol=${selectedCoin}&timeframe=${selectedTimeframe}&t=${Date.now()}`;
 
 const response = await fetch(candleUrl, { cache: "no-store" });
@@ -1530,8 +1583,21 @@ useEffect(() => {
     return;
   }
 
-  const productId =
-    COINBASE_PRODUCT_IDS[selectedCoin];
+  if (marketMode === "COINBASE_FUTURES") {
+    setTopOfBook({
+      bestBid: null,
+      bestAsk: null,
+      mid: null,
+    });
+  }
+
+const productId =
+  marketMode === "COINBASE_FUTURES"
+    ? COINBASE_FUTURES_PRODUCT_IDS[
+        selectedCoin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS
+      ]
+    : COINBASE_PRODUCT_IDS[selectedCoin];
+    
 
   if (!productId) {
     return;
@@ -1546,7 +1612,10 @@ useEffect(() => {
       JSON.stringify({
         type: "subscribe",
         product_ids: [productId],
-        channel: "market_trades",
+        channel:
+  marketMode === "COINBASE_FUTURES"
+    ? "level2"
+    : "market_trades",
       })
     );
 
@@ -1558,13 +1627,60 @@ useEffect(() => {
     );
   };
 
+const futuresOrderBook = createCoinbaseFuturesOrderBook();
+
   socket.onmessage = (event) => {
     try {
       const message = JSON.parse(event.data);
 
-      if (message.channel !== "market_trades") {
-        return;
-      }
+if (
+  marketMode === "COINBASE_FUTURES" &&
+  message.channel === "l2_data"
+) {
+  const updates =
+    message.events?.flatMap(
+      (event: any) => event.updates ?? []
+    ) ?? [];
+
+const book = futuresOrderBook.applyUpdates(updates);
+setTopOfBook(book);
+
+if (book.mid !== null) {
+  const mid = book.mid;
+  const livePrice = mid;
+ 
+  setPrices((prev) => ({
+    ...prev,
+    [selectedCoin]: livePrice,
+  }));
+
+setHistory((prev) => {
+  if (!prev.length) return prev;
+
+  const updated = [...prev];
+  const last = updated.at(-1)!;
+  const candleStart = getCurrentCandleStart(selectedTimeframe);
+
+  if (candleStart > Number(last.time)) {
+    updated.push({ time: String(candleStart), price: livePrice, open: livePrice, high: livePrice, low: livePrice, close: livePrice, volume: 0 });
+  } else {
+    updated[updated.length - 1] = { ...last, price: livePrice, close: livePrice, high: Math.max(Number(last.high), livePrice), low: Math.min(Number(last.low), livePrice) };
+  }
+
+  return updated;
+});
+
+}
+
+  return;
+}
+
+if (
+  message.channel !== "market_trades" &&
+  message.channel !== "l2_data"
+) {
+  return;
+}
 
       const events = Array.isArray(message.events)
         ? message.events
@@ -2249,10 +2365,18 @@ liquidationLinesRef.current.forEach((line) => {
 liquidationLinesRef.current = [];
 
 
-if (marketMode === "FUTURES") {
-  const activePosition = futuresPositions.find(
-    (position) => position.coin === selectedCoin
+if (
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+) {
+const activePosition = futuresPositions.find((position) => {
+  const positionMarketMode = position.marketMode ?? "FUTURES";
+
+  return (
+    positionMarketMode === marketMode &&
+    position.coin === selectedCoin
   );
+});
 
   if (
     activePosition &&
@@ -2286,13 +2410,23 @@ riskLinesRef.current.forEach((line) => {
 riskLinesRef.current = [];
 
 const activeEntryPosition =
-  marketMode === "FUTURES"
-    ? futuresPositions.find(
-        (position) => position.coin === selectedCoin
-      )
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+    ? futuresPositions.find((position) => {
+        const positionMarketMode = position.marketMode ?? "FUTURES";
+
+        return (
+          positionMarketMode === marketMode &&
+          position.coin === selectedCoin
+        );
+      })
     : null;
 
-if (marketMode === "FUTURES" && activeEntryPosition) {
+if (
+  (marketMode === "FUTURES" ||
+    marketMode === "COINBASE_FUTURES") &&
+  activeEntryPosition
+) {
   const entryLine = candleSeriesRef.current?.createPriceLine({
     price: activeEntryPosition.entryPrice,
 color: "#64748b",
@@ -2326,9 +2460,14 @@ const selectedSpotRisk =
   spotRiskSettings[selectedCoin];
 
 const selectedFuturesPosition =
-  futuresPositions.find(
-    (position) => position.coin === selectedCoin
-  );
+  futuresPositions.find((position) => {
+    const positionMarketMode = position.marketMode ?? "FUTURES";
+
+    return (
+      positionMarketMode === marketMode &&
+      position.coin === selectedCoin
+    );
+  });
 
 const hasOpenSpotPosition =
   positions[selectedCoin] > 0;
@@ -2598,7 +2737,7 @@ tradeContext: position.tradeContext,
 setTradeReviews((prev) => [
   {
     snapshotId,
-    mode: "FUTURES",
+    mode: position.marketMode ?? "FUTURES",
     coin: position.coin,
     side: position.side,
 
@@ -2623,9 +2762,11 @@ setTradeReviews((prev) => [
     Math.max(0, prev - position.margin)
   );
 
-  setFuturesPositions((prev) =>
-    prev.filter((_, i) => i !== index)
-  );
+setFuturesPositions((prev) =>
+  prev.filter((item, i) =>
+    position.id ? item.id !== position.id : i !== index
+  )
+);
 
 if (position.id) {
   setFuturesPositionManagement((prev) => {
@@ -2641,9 +2782,9 @@ if (position.id) {
       userName: user.firstName || "Trader",
       snapshotId,
 
-      mode: "FUTURES",
-      coin: position.coin,
-      side: position.side,
+mode: position.marketMode ?? "FUTURES",
+coin: position.coin,
+side: position.side,
 
 leverage: position.leverage,
 margin: position.margin,
@@ -3117,7 +3258,8 @@ const spotEntryFee = Number(tradeAmount) * feeRate;
   }
 
     const effectiveTradeSize =
-  marketMode === "FUTURES"
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
     ? Number(tradeAmount) * leverage
     : Number(tradeAmount);
 
@@ -3159,7 +3301,10 @@ const tradeId = crypto.randomUUID();
 
     setBalance((prev) => prev - Number(tradeAmount) - spotEntryFee);
 
-if (marketMode === "FUTURES") {
+if (
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+) {
   setMarginUsed((prev) => prev + Number(tradeAmount));
 }
 if (user && isPaid) {
@@ -3327,20 +3472,80 @@ function openFuturesPosition(
 ) {
   if (!requireSignIn()) return;
 
-  if (!currentPrice) {
-    setMessage("Loading real market price...");
-    return;
-  }
+if (!currentPrice) {
+  setMessage("Loading real market price...");
+  return;
+}
 
-  if (!tradeAmount || balance < Number(tradeAmount)) {
-    setMessage("Invalid margin amount.");
-    return;
-  }
+const executionPrice =
+  marketMode === "COINBASE_FUTURES"
+    ? side === "LONG"
+      ? topOfBook.bestAsk ?? currentPrice
+      : topOfBook.bestBid ?? currentPrice
+    : currentPrice;
+
+if (!tradeAmount || Number(tradeAmount) <= 0) {
+  setMessage(
+    marketMode === "COINBASE_FUTURES"
+      ? "Enter at least 1 contract."
+      : "Invalid margin amount."
+  );
+  return;
+}
 
   const margin = Number(tradeAmount);
-const positionSize = margin * orderLeverage;
-const entryFee = positionSize * feeRate;
-if (balance < margin + entryFee) {
+
+const effectiveLeverage =
+  marketMode === "COINBASE_FUTURES"
+    ? clampCoinbaseFuturesLeverage(
+        selectedCoin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS,
+        orderLeverage
+      )
+    : orderLeverage;
+
+const coinbaseContracts =
+  marketMode === "COINBASE_FUTURES"
+    ? Math.floor(Number(tradeAmount))
+    : 0;
+
+const requestedPositionSize =
+  marketMode === "COINBASE_FUTURES"
+    ? 0
+    : margin * effectiveLeverage;
+
+const coinbasePosition =
+  marketMode === "COINBASE_FUTURES" &&
+  coinbaseContracts >= 1
+    ? buildCoinbaseFuturesPosition(
+        selectedCoin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS,
+        coinbaseContracts,
+        executionPrice
+      )
+    : null;
+
+if (
+  marketMode === "COINBASE_FUTURES" &&
+  !coinbasePosition
+) {
+setMessage(
+  `Enter at least 1 ${selectedCoin} futures contract.`
+);
+  return;
+}
+
+const positionSize =
+  coinbasePosition?.positionSize ??
+  requestedPositionSize;
+
+const actualMargin =
+  marketMode === "COINBASE_FUTURES"
+    ? positionSize / effectiveLeverage
+    : margin;
+
+const entryFee =
+  positionSize *
+  (marketMode === "COINBASE_FUTURES" ? 0.001 : feeRate);
+if (balance < actualMargin + entryFee) {
   setMessage("Not enough balance for margin plus entry fee.");
   return;
 }
@@ -3350,8 +3555,8 @@ setPendingFuturesLimitOrder({
   amount: margin,
   limitPrice: Number(limitPrice),
   side,
-  mode: "FUTURES",
-  leverage: orderLeverage,
+  mode: marketMode === "COINBASE_FUTURES" ? "COINBASE_FUTURES" : "FUTURES",
+  leverage: effectiveLeverage,
 });
 
   setMessage(
@@ -3361,10 +3566,13 @@ setPendingFuturesLimitOrder({
   return;
 }
 
-const quantity = positionSize / currentPrice;
+const quantity =
+  coinbasePosition?.quantity ??
+  positionSize / executionPrice;
 
 const estimatedExitFee =
-  positionSize * feeRate;
+  positionSize *
+  (marketMode === "COINBASE_FUTURES" ? 0.001 : feeRate);
 
 const estimatedRoundTripFees =
   entryFee + estimatedExitFee;
@@ -3376,12 +3584,12 @@ const requiredPriceMove =
 
 const breakEvenPrice =
   side === "LONG"
-    ? currentPrice + requiredPriceMove
-    : currentPrice - requiredPriceMove;
+    ? executionPrice + requiredPriceMove
+    : executionPrice - requiredPriceMove;
 
 const requiredMovePercent =
-  currentPrice > 0
-    ? (requiredPriceMove / currentPrice) * 100
+  executionPrice > 0
+    ? (requiredPriceMove / executionPrice) * 100
     : 0;
 
 const positionId = crypto.randomUUID();
@@ -3391,22 +3599,23 @@ const tradeContext = buildTradeContext();
 const maintenanceBuffer = 0.005;
 
 const liquidation =
-  orderLeverage > 1
+  effectiveLeverage > 1
     ? side === "LONG"
-      ? currentPrice * (1 - 1 / orderLeverage + maintenanceBuffer)
-      : currentPrice * (1 + 1 / orderLeverage - maintenanceBuffer)
+      ? executionPrice * (1 - 1 / effectiveLeverage + maintenanceBuffer)
+      : executionPrice * (1 + 1 / effectiveLeverage - maintenanceBuffer)
     : null;
 
-  setBalance((prev) => prev - margin - entryFee);
-  setMarginUsed((prev) => prev + margin);
+  setBalance((prev) => prev - actualMargin - entryFee);
+  setMarginUsed((prev) => prev + actualMargin);
 
 setFuturesPositions((prev) => [
   {
     id: positionId,
+    marketMode,
     coin: selectedCoin,
     side,
-    margin,
-    leverage: orderLeverage,
+    margin: actualMargin,
+    leverage: effectiveLeverage,
 entryFee,
 estimatedExitFee,
 estimatedRoundTripFees,
@@ -3414,7 +3623,17 @@ estimatedRoundTripFees,
 positionSize,
 quantity,
 
-entryPrice: currentPrice,
+contracts:
+  marketMode === "COINBASE_FUTURES"
+    ? coinbaseContracts
+    : null,
+
+contractSize:
+  marketMode === "COINBASE_FUTURES"
+    ? coinbasePosition?.contractSize ?? null
+    : null,
+
+entryPrice: executionPrice,
 breakEvenPrice,
 requiredPriceMove,
 requiredMovePercent,
@@ -3456,16 +3675,27 @@ setFuturesPositionManagement((prev) => ({
 setFuturesHistory((prev) => [
   {
     id: positionId,
+    marketMode,
     coin: selectedCoin,
     side,
-    margin,
-    leverage: orderLeverage,
+    margin: actualMargin,
+    leverage: effectiveLeverage,
 
-    positionSize,
+positionSize,
 
-    quantity,
+quantity,
 
-    entryPrice: currentPrice,
+contracts:
+  marketMode === "COINBASE_FUTURES"
+    ? coinbaseContracts
+    : null,
+
+contractSize:
+  marketMode === "COINBASE_FUTURES"
+    ? coinbasePosition?.contractSize ?? null
+    : null,
+
+entryPrice: executionPrice,
 
     liquidationPrice: liquidation,
 
@@ -3493,7 +3723,7 @@ tradeContext,
 ]);
 
   setMessage(
-  `${side} ${selectedCoin} opened with ${orderLeverage}x leverage`
+  `${side} ${selectedCoin} opened with ${effectiveLeverage}x leverage`
 );
 
 setShowSimulatorGaby(true);
@@ -3612,6 +3842,10 @@ const stockPortfolioValue =
   }, 0);
 
 const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
+  const positionMarketMode = position.marketMode ?? "FUTURES";
+
+  if (positionMarketMode !== marketMode) return total;
+
   const current = prices[position.coin as AssetSymbol];
 
   if (!current) return total;
@@ -3625,7 +3859,8 @@ const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
 }, 0);
 
 const accountEquity =
-  marketMode === "FUTURES"
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
     ? balance + marginUsed + futuresUnrealizedPnl
     : marketMode === "STOCKS"
     ? stockPortfolioValue
@@ -3642,13 +3877,22 @@ const totalPnlPercent =
   }
 
 const activePendingOrder =
-  marketMode === "FUTURES"
-    ? pendingFuturesLimitOrder
+  marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES"
+    ? pendingFuturesLimitOrder?.mode === marketMode
+      ? pendingFuturesLimitOrder
+      : null
     : pendingLimitOrder;
 
 const watchlist = marketMode === "STOCKS"
   ? STOCK_WATCHLIST.map((stock) => ({ ...stock, price: stockPrices[stock.symbol] }))
-  : WATCHLIST.map((coin) => ({ ...coin, price: prices[coin.symbol] }));
+  : WATCHLIST
+      .filter(
+        (coin) =>
+          marketMode !== "COINBASE_FUTURES" ||
+          !["UNI", "ATOM"].includes(coin.symbol)
+      )
+      .map((coin) => ({ ...coin, price: prices[coin.symbol] }));
 
 const chartHighlightState = {
   visible:
@@ -3771,13 +4015,21 @@ strongestPattern={strongestPattern}
 mode={marketMode}
 selectedCoin={selectedSymbol}
 trades={trades}
-futuresHistory={futuresHistory}
+futuresHistory={futuresHistory.filter((trade) => {
+  const tradeMarketMode = trade.marketMode ?? "FUTURES";
+
+  return tradeMarketMode === marketMode;
+})}
 stockHistory={stockHistory}
 setFuturesHistory={setFuturesHistory}
 setTrades={setTrades}
   positions={positions}
   spotPositionFacts={spotPositionFacts}
-  futuresPositions={futuresPositions}
+  futuresPositions={futuresPositions.filter((position) => {
+  const positionMarketMode = position.marketMode ?? "FUTURES";
+
+  return positionMarketMode === marketMode;
+})}
   futuresPositionManagement={futuresPositionManagement}
   balance={balance}
   marginUsed={marginUsed}
@@ -3989,39 +4241,42 @@ setGabyAnnotations((prev) => {
   tourStep={tourStep}
 />          
 
-<TradingPanel
-  mobileView={mobileView}
-  setMobileView={setMobileView}
-  tourStep={tourStep}
-  tradeAmount={tradeAmount}
-  setTradeAmount={setTradeAmount}
-  takeProfit={takeProfit}
-  setTakeProfit={setTakeProfit}
-  stopLoss={stopLoss}
-  setStopLoss={setStopLoss}
-  orderType={orderType}
-  setOrderType={setOrderType}
-  limitPrice={limitPrice}
-  setLimitPrice={setLimitPrice}
-  marketMode={marketMode}
-  selectedCoin={selectedSymbol}
-currentPrice={currentPrice}
-  leverage={leverage}
-  setLeverage={setLeverage}
-  showLeverageMenu={showLeverageMenu}
-  setShowLeverageMenu={setShowLeverageMenu}
-  balance={balance}
-  marginUsed={marginUsed}
-  estimatedLongLiquidation={estimatedLongLiquidation}
-  estimatedShortLiquidation={estimatedShortLiquidation}
-  feeRate={marketMode === "STOCKS" ? 0 : feeRate}
-  message={message}
-  buyCoin={marketMode === "STOCKS" ? buyStock : buyCoin}
-  sellCoin={marketMode === "STOCKS" ? sellStock : sellCoin}
-  openFuturesPosition={openFuturesPosition}
-  setPositionType={setPositionType}
-  setShowResetModal={setShowResetModal}
-/>
+{marketMode === "COINBASE_FUTURES" ? (
+  <CoinbaseFuturesTradingPanel
+    selectedCoin={selectedCoin} currentPrice={currentPrice}
+    tradeAmount={tradeAmount} setTradeAmount={setTradeAmount}
+    leverage={leverage} setLeverage={setLeverage}
+    orderType={orderType} setOrderType={setOrderType}
+    limitPrice={limitPrice} setLimitPrice={setLimitPrice}
+    takeProfit={takeProfit} setTakeProfit={setTakeProfit}
+    stopLoss={stopLoss} setStopLoss={setStopLoss}
+    balance={balance} bestBid={topOfBook.bestBid}
+    bestAsk={topOfBook.bestAsk} mid={topOfBook.mid}
+    message={message} openFuturesPosition={openFuturesPosition}
+resetAccount={() => setShowResetModal(true)}
+  />
+) : (
+  <TradingPanel
+    mobileView={mobileView} setMobileView={setMobileView} tourStep={tourStep}
+    tradeAmount={tradeAmount} setTradeAmount={setTradeAmount}
+    takeProfit={takeProfit} setTakeProfit={setTakeProfit}
+    stopLoss={stopLoss} setStopLoss={setStopLoss}
+    orderType={orderType} setOrderType={setOrderType}
+    limitPrice={limitPrice} setLimitPrice={setLimitPrice}
+    marketMode={marketMode} selectedCoin={selectedSymbol} currentPrice={currentPrice}
+    leverage={leverage} setLeverage={setLeverage}
+    showLeverageMenu={showLeverageMenu} setShowLeverageMenu={setShowLeverageMenu}
+    balance={balance} marginUsed={marginUsed}
+    estimatedLongLiquidation={estimatedLongLiquidation}
+    estimatedShortLiquidation={estimatedShortLiquidation}
+    feeRate={marketMode === "STOCKS" ? 0 : feeRate}
+    message={message}
+    buyCoin={marketMode === "STOCKS" ? buyStock : buyCoin}
+    sellCoin={marketMode === "STOCKS" ? sellStock : sellCoin}
+    openFuturesPosition={openFuturesPosition}
+    setPositionType={setPositionType} setShowResetModal={setShowResetModal}
+  />
+)}
 
 </div>
 </div>
@@ -4041,7 +4296,11 @@ currentPrice={currentPrice}
 <PortfolioPositions
   marketMode={marketMode}
   positions={positions}
-  futuresPositions={futuresPositions}
+  futuresPositions={futuresPositions.filter((position) => {
+  const positionMarketMode = position.marketMode ?? "FUTURES";
+
+  return positionMarketMode === marketMode;
+})}
   futuresPositionManagement={futuresPositionManagement}
   prices={prices}
   averagePrices={averagePrices}
@@ -4060,7 +4319,11 @@ closeStockPosition={closeStockPosition}
 <PortfolioHistory
   marketMode={marketMode}
   trades={trades}
-  futuresHistory={futuresHistory}
+  futuresHistory={futuresHistory.filter((trade) => {
+  const tradeMarketMode = trade.marketMode ?? "FUTURES";
+
+  return tradeMarketMode === marketMode;
+})}
   stockHistory={stockHistory}
 />
 )}
@@ -4069,7 +4332,11 @@ closeStockPosition={closeStockPosition}
   <PortfolioOrders
     marketMode={marketMode}
     pendingLimitOrder={pendingLimitOrder}
-    pendingFuturesLimitOrder={pendingFuturesLimitOrder}
+    pendingFuturesLimitOrder={
+  pendingFuturesLimitOrder?.mode === marketMode
+    ? pendingFuturesLimitOrder
+    : null
+}
     setPendingLimitOrder={setPendingLimitOrder}
     setPendingFuturesLimitOrder={setPendingFuturesLimitOrder}
     setMessage={setMessage}

@@ -1,5 +1,5 @@
 type AccountSummaryCardProps = {
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+  marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   balance: number;
   accountEquity: number;
   marginUsed: number;
@@ -41,9 +41,10 @@ export default function AccountSummaryCard({
 
         <div className="flex items-center justify-between">
           <span className="text-zinc-500">
-            {marketMode === "FUTURES"
-              ? "Account Equity"
-              : "Portfolio Value"}
+{marketMode === "FUTURES" ||
+ marketMode === "COINBASE_FUTURES"
+  ? "Account Equity"
+  : "Portfolio Value"}
           </span>
 
           <span className="font-bold text-cyan-400">
@@ -51,7 +52,8 @@ export default function AccountSummaryCard({
           </span>
         </div>
 
-        {marketMode === "FUTURES" && (
+        {(marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES") && (
           <div className="flex items-center justify-between">
             <span className="text-zinc-500">
               Margin Used
@@ -63,7 +65,8 @@ export default function AccountSummaryCard({
           </div>
         )}
 
-        {marketMode === "FUTURES" && (
+        {(marketMode === "FUTURES" ||
+  marketMode === "COINBASE_FUTURES") && (
           <div className="flex items-center justify-between">
             <span className="text-zinc-500">
               Open P/L

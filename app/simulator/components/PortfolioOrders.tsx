@@ -1,5 +1,5 @@
 type PortfolioOrdersProps = {
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+  marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   pendingLimitOrder: any;
   pendingFuturesLimitOrder: any;
   setPendingLimitOrder: React.Dispatch<React.SetStateAction<any>>;

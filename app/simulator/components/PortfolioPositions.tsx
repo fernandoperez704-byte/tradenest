@@ -4,7 +4,7 @@ import type { AssetSymbol } from "../types/simulator";
 import type { StockSymbol } from "../data/stockWatchlist";
 
 type PortfolioPositionsProps = {
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+  marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   positions: any;
   futuresPositions: any[];
   futuresPositionManagement: any;
@@ -40,29 +40,48 @@ setMessage,
   return (
     <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
 
-      {marketMode === "FUTURES" &&
+      {(marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
         futuresPositions.map((position, index) => (
           <div
             key={index}
             className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 mb-3"
           >
-            <div className="grid grid-cols-2 md:grid-cols-5 xl:grid-cols-10 gap-3 items-center">
+            <div className={
+  marketMode === "COINBASE_FUTURES"
+    ? "grid grid-cols-2 md:grid-cols-5 xl:flex xl:justify-between xl:gap-4 xl:items-center"
+    : "grid grid-cols-2 md:grid-cols-5 xl:grid-cols-10 gap-3 items-center"
+}>
 
-              <div>
-                <p className="text-cyan-400 text-lg font-bold">
-                  {position.coin}
-                </p>
+<div>
+<p className="flex items-baseline whitespace-nowrap text-cyan-400 text-lg font-bold">
+    {position.coin}
+    {marketMode === "COINBASE_FUTURES" && (
+      <span className="ml-1 text-xs text-zinc-500">PERP</span>
+    )}
+  </p>
 
-                <p
-                  className={`text-sm mt-1 font-bold ${
-                    position.side === "LONG"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  {position.side}
-                </p>
-              </div>
+  <p
+    className={`text-sm mt-1 font-bold ${
+      position.side === "LONG"
+        ? "text-green-400"
+        : "text-red-400"
+    }`}
+  >
+    {position.side}
+  </p>
+</div>
+
+{marketMode === "COINBASE_FUTURES" && (
+  <div>
+    <p className="text-gray-400 text-xs">Contracts</p>
+    <p className="text-sm font-bold text-cyan-400">
+      {position.contracts ?? "—"}
+    </p>
+    <p className="text-xs text-zinc-500">
+      {position.contractSize ?? "—"} {position.coin} each
+    </p>
+  </div>
+)}
 
               <div>
                 <p className="text-gray-400 text-xs">Entry</p>
@@ -82,15 +101,19 @@ setMessage,
                 </p>
               </div>
 
-              <div>
-                <p className="text-gray-400 text-xs">
-                  Position Size
-                </p>
+<div>
+  <p className="text-gray-400 text-xs">
+    {marketMode === "COINBASE_FUTURES" ? "Notional" : "Position Size"}
+  </p>
 
-                <p className="text-sm font-bold text-white">
-                  ${(position.margin * position.leverage).toFixed(2)}
-                </p>
-              </div>
+  <p className="text-sm font-bold text-white">
+    ${(
+      marketMode === "COINBASE_FUTURES"
+        ? position.positionSize
+        : position.margin * position.leverage
+    ).toFixed(2)}
+  </p>
+</div>
 
               <div>
                 <p className="text-gray-400 text-xs">
@@ -114,10 +137,10 @@ setMessage,
                 </p>
               </div>
 
-              <div>
-                <p className="text-gray-400 text-xs font-bold uppercase">
-                  Risk
-                </p>
+<div className={marketMode === "COINBASE_FUTURES" ? "xl:min-w-[120px]" : ""}>
+  <p className="text-gray-400 text-xs font-bold uppercase">
+    Risk
+  </p>
 
                 {(() => {
                   const current =
@@ -214,9 +237,14 @@ setMessage,
 
 <div>
   <p className="text-gray-400 text-xs font-bold uppercase">
-    Margin
+    {marketMode === "COINBASE_FUTURES" ? "Margin Status" : "Margin"}
   </p>
 
+{marketMode === "COINBASE_FUTURES" && (
+  <p className="mt-1 text-sm font-bold text-white">
+    Used: ${position.margin.toFixed(2)}
+  </p>
+)}
 
   <p
     className={`mt-1 text-sm font-bold ${
@@ -251,7 +279,7 @@ setMessage,
   </p>
 </div>
 
-              <div className="flex justify-end">
+              <div className="flex shrink-0 justify-end">
                 <button
                   onClick={() => {
                     const current =
@@ -282,7 +310,7 @@ setMessage,
           </div>
         ))}
 
-      {marketMode === "FUTURES" &&
+      {(marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
         futuresPositions.length === 0 && (
 <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
   <p className="text-base font-bold text-zinc-300">

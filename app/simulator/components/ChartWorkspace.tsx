@@ -28,7 +28,7 @@ setSelectedCoin: (coin: any) => void;
 
   selectedCoin: string;
   currentPrice?: number;
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+  marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   selectedTimeframe: string;
   setSelectedTimeframe: (timeframe: string) => void;
   now: Date | null;

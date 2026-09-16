@@ -3,7 +3,7 @@ type PortfolioTabsProps = {
   setActiveBottomTab: (
     tab: "POSITIONS" | "HISTORY" | "ORDERS"
   ) => void;
-  marketMode: "SPOT" | "FUTURES" | "STOCKS";
+  marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
 };
 
 export default function PortfolioTabs({
@@ -23,7 +23,7 @@ export default function PortfolioTabs({
               : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
           }`}
         >
-{marketMode === "FUTURES"
+{marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
   ? "Futures Positions"
   : marketMode === "STOCKS"
   ? "Stock Positions"
@@ -38,7 +38,7 @@ export default function PortfolioTabs({
               : "bg-[#18181b] text-zinc-400 border border-zinc-800 hover:text-cyan-400"
           }`}
         >
-{marketMode === "FUTURES"
+{marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
   ? "Futures History"
   : marketMode === "STOCKS"
   ? "Stock History"
@@ -53,7 +53,7 @@ export default function PortfolioTabs({
               : "bg-[#18181b] text-zinc-400 border border-white/10"
           }`}
         >
-{marketMode === "FUTURES"
+{marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
   ? "Futures Orders"
   : marketMode === "STOCKS"
   ? "Stock Orders"

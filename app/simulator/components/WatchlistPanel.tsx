@@ -19,8 +19,10 @@ previousPrices: Partial<Record<AssetSymbol | StockSymbol, number>>;
 searchTerm: string;
 setSearchTerm: (value: string) => void;
 
-marketMode: "SPOT" | "FUTURES" | "STOCKS";
-setMarketMode: (mode: "SPOT" | "FUTURES" | "STOCKS") => void;
+marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
+setMarketMode: (
+  mode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS"
+) => void;
 
 showMarketMenu: boolean;
 setShowMarketMenu: (value: boolean) => void;
@@ -64,6 +66,16 @@ chartRef,
 showGabyHint,
 setShowSimulatorGaby,
 }: WatchlistPanelProps) {
+
+  const marketButtonClass = (
+    mode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS"
+  ) =>
+    `block w-full px-4 py-3 text-left text-sm font-bold ${
+      marketMode === mode
+        ? "bg-cyan-500/10 text-cyan-400"
+        : "text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+    }`;
+
   return (
     <div
       className={`bg-[#111827] border border-zinc-700 rounded-2xl p-3 xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-hidden ${
@@ -85,7 +97,9 @@ setShowSimulatorGaby,
   {marketMode === "SPOT"
     ? "Crypto Spot"
     : marketMode === "FUTURES"
-    ? "Crypto Futures"
+    ? "Offshore Futures"
+    : marketMode === "COINBASE_FUTURES"
+    ? "Coinbase Futures"
     : "US Stocks"}
 </span>
 
@@ -102,9 +116,9 @@ setShowSimulatorGaby,
           setActiveBottomTab("POSITIONS");
           setShowMarketMenu(false);
         }}
-        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
-      >
-        Crypto Spot
+className={marketButtonClass("SPOT")}
+>
+  Crypto Spot
       </button>
 
       <button
@@ -115,10 +129,22 @@ setShowSimulatorGaby,
           setActiveBottomTab("POSITIONS");
           setShowMarketMenu(false);
         }}
-        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
-      >
-        Crypto Futures
+className={marketButtonClass("FUTURES")}
+>
+  Offshore Futures
       </button>
+
+<button
+  onClick={() => {
+    setMarketMode("COINBASE_FUTURES");
+    setSelectedCoin("BTC");
+    setActiveBottomTab("POSITIONS");
+    setShowMarketMenu(false);
+  }}
+className={marketButtonClass("COINBASE_FUTURES")}
+>
+  Coinbase Futures
+</button>
 
       <div className="border-t border-zinc-800" />
 
@@ -128,7 +154,7 @@ setShowSimulatorGaby,
     setActiveBottomTab("POSITIONS");
     setShowMarketMenu(false);
   }}
-  className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-300 hover:bg-cyan-500/10 hover:text-cyan-400"
+className={marketButtonClass("STOCKS")}
 >
   US Stocks
 </button>
