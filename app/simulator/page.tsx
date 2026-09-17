@@ -4247,15 +4247,13 @@ setGabyAnnotations((prev) => {
   }`}
 >
 
-<AccountSummaryCard
+    <AccountSummaryCard
   marketMode={marketMode}
   balance={balance}
-  accountEquity={accountEquity}
-  marginUsed={marginUsed}
   futuresUnrealizedPnl={futuresUnrealizedPnl}
   totalPnlPercent={totalPnlPercent}
   tourStep={tourStep}
-/>          
+/>      
 
 {marketMode === "COINBASE_FUTURES" ? (
   <CoinbaseFuturesTradingPanel
