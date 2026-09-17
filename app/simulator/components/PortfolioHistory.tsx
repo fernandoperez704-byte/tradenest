@@ -30,7 +30,11 @@ export default function PortfolioHistory({
               key={index}
               className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
             >
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
+              <div className={
+  marketMode === "COINBASE_FUTURES"
+    ? "grid grid-cols-2 md:grid-cols-4 xl:flex xl:justify-between xl:gap-4 xl:items-start"
+    : "grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center"
+}>
 
                 <div>
                   <p
@@ -43,26 +47,43 @@ export default function PortfolioHistory({
                     {trade.side}
                   </p>
 
-                  <p className="text-xs text-zinc-500">
-                    {trade.coin}
-                  </p>
+<p className="text-xs text-zinc-500">
+  {trade.coin}
+  {marketMode === "COINBASE_FUTURES" ? " PERP" : ""}
+</p>
                 </div>
 
-                <div>
-                  <p className="text-zinc-500 text-xs">Margin</p>
+<div>
+  <p className="text-zinc-500 text-xs">
+    {marketMode === "COINBASE_FUTURES" ? "Contracts" : "Margin"}
+  </p>
 
-                  <p className="text-sm font-bold text-white">
-                    ${trade.margin}
-                  </p>
-                </div>
+  <p className="text-sm font-bold text-white">
+    {marketMode === "COINBASE_FUTURES"
+      ? trade.contracts ?? "—"
+      : `$${trade.margin}`}
+  </p>
 
-                <div>
-                  <p className="text-zinc-500 text-xs">Entry</p>
+  {marketMode === "COINBASE_FUTURES" && (
+    <p className="text-xs text-zinc-500">
+      {trade.contractSize ?? "—"} {trade.coin} each
+    </p>
+  )}
+</div>
 
-                  <p className="text-sm font-bold text-white">
-                    ${trade.entryPrice.toFixed(2)}
-                  </p>
-                </div>
+<div>
+  <p className="text-zinc-500 text-xs">Entry</p>
+  <p className="text-sm font-bold text-white">
+    ${trade.entryPrice.toFixed(2)}
+  </p>
+
+{marketMode === "COINBASE_FUTURES" && (
+  <p className="text-xs text-zinc-500">
+    Exit: {trade.exitPrice != null ? `$${Number(trade.exitPrice).toFixed(2)}` : "—"}
+  </p>
+)}
+
+</div>
 
                 <div>
                   <p className="text-zinc-500 text-xs">
@@ -74,17 +95,21 @@ export default function PortfolioHistory({
                   </p>
                 </div>
 
-                <div>
-                  <p className="text-zinc-500 text-xs">
-                    Liquidation
-                  </p>
+<div>
+  <p className="text-zinc-500 text-xs">
+    {marketMode === "COINBASE_FUTURES" ? "Notional" : "Liquidation"}
+  </p>
 
-                  <p className="text-sm font-bold text-red-400">
-                    {trade.liquidationPrice != null
-                      ? `$${trade.liquidationPrice.toFixed(2)}`
-                      : "N/A"}
-                  </p>
-                </div>
+  <p className={`text-sm font-bold ${
+    marketMode === "COINBASE_FUTURES" ? "text-white" : "text-red-400"
+  }`}>
+    {marketMode === "COINBASE_FUTURES"
+      ? `$${Number(trade.positionSize ?? 0).toFixed(2)}`
+      : trade.liquidationPrice != null
+      ? `$${trade.liquidationPrice.toFixed(2)}`
+      : "N/A"}
+  </p>
+</div>
 
                 <div>
                   <p className="text-zinc-500 text-xs">
@@ -117,6 +142,13 @@ export default function PortfolioHistory({
                           trade.totalFees || 0
                         ).toFixed(2)}
                       </p>
+
+{marketMode === "COINBASE_FUTURES" && (
+  <p className="text-xs text-zinc-500">
+    Closed: {trade.closedReason ?? "—"}
+  </p>
+)}
+
                     </>
                   ) : (
                     <p className="text-sm font-bold text-zinc-500">

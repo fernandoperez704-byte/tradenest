@@ -21,6 +21,7 @@ import {
   COINBASE_FUTURES_PRODUCT_IDS,
   buildCoinbaseFuturesPosition,
   clampCoinbaseFuturesLeverage,
+  getCoinbaseFuturesLeverageRange,
 } from "./data/coinbaseFutures";
 import { createCoinbaseFuturesOrderBook } from "./data/coinbaseFuturesOrderBook";
 import { useCoinbaseFuturesTopOfBook } from "./hooks/useCoinbaseFuturesTopOfBook";
@@ -640,6 +641,17 @@ useEffect(() => {
 const [stopLoss, setStopLoss] = useState<number | "">("");
 const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
 const [leverage, setLeverage] = useState(1);
+
+useEffect(() => {
+  if (marketMode !== "COINBASE_FUTURES") return;
+
+  const range = getCoinbaseFuturesLeverageRange(
+    selectedCoin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS
+  );
+
+  setLeverage(range.max);
+}, [marketMode, selectedCoin]);
+
 const [showLeverageMenu, setShowLeverageMenu] = useState(false);
 const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
 const [marginUsed, setMarginUsed] = useState(0);
@@ -748,6 +760,8 @@ const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
   side: "LONG" | "SHORT";
   mode: "FUTURES" | "COINBASE_FUTURES";
   leverage?: number;
+  contractSize?: number;
+  positionSize?: number;
 } | null>(null);
 
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -3557,6 +3571,8 @@ setPendingFuturesLimitOrder({
   side,
   mode: marketMode === "COINBASE_FUTURES" ? "COINBASE_FUTURES" : "FUTURES",
   leverage: effectiveLeverage,
+  contractSize: coinbasePosition?.contractSize,
+  positionSize: coinbasePosition?.positionSize,
 });
 
   setMessage(

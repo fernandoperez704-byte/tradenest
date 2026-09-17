@@ -15,10 +15,10 @@ export default function PortfolioOrders({
   setPendingFuturesLimitOrder,
   setMessage,
 }: PortfolioOrdersProps) {
-  const activePendingOrder =
-    marketMode === "FUTURES"
-      ? pendingFuturesLimitOrder
-      : pendingLimitOrder;
+const activePendingOrder =
+  marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES"
+    ? pendingFuturesLimitOrder
+    : pendingLimitOrder;
 
   return (
     <div className="space-y-4 max-h-[460px] xl:max-h-[520px] overflow-y-scroll scrollbar-hide pr-2">
@@ -26,18 +26,24 @@ export default function PortfolioOrders({
 <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
   <p className="text-base font-bold text-zinc-300">No Open Orders</p>
   <p className="mt-1 text-sm text-zinc-500">
-    Pending {marketMode === "FUTURES" ? "futures" : "spot"} limit orders will appear here.
+    Pending {marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES" ? "futures" : "spot"} limit orders will appear here.
   </p>
 </div>
       ) : (
         <div className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
-            <div>
-              <p className="text-base font-black text-cyan-400">LIMIT</p>
-              <p className="text-xs text-zinc-500">
-                {activePendingOrder.coin}
-              </p>
-            </div>
+          <div className={
+  marketMode === "COINBASE_FUTURES"
+    ? "grid grid-cols-2 md:grid-cols-4 xl:flex xl:justify-between xl:gap-4 xl:items-start"
+    : "grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center"
+}>
+
+<div>
+  <p className="text-base font-black text-cyan-400">LIMIT</p>
+  <p className="text-xs text-zinc-500">
+    {activePendingOrder.coin}
+    {marketMode === "COINBASE_FUTURES" ? " PERP" : ""}
+  </p>
+</div>
 
             <div>
               <p className="text-zinc-500 text-xs">Side</p>
@@ -53,19 +59,39 @@ export default function PortfolioOrders({
               </p>
             </div>
 
-            <div>
-              <p className="text-zinc-500 text-xs">Amount</p>
-              <p className="text-sm font-bold text-white">
-                ${activePendingOrder.amount}
-              </p>
-            </div>
+<div>
+  <p className="text-zinc-500 text-xs">
+    {marketMode === "COINBASE_FUTURES" ? "Contracts" : "Amount"}
+  </p>
 
-            <div>
-              <p className="text-zinc-500 text-xs">Market</p>
-              <p className="text-sm font-bold text-white">
-                {activePendingOrder.mode}
-              </p>
-            </div>
+<p className="text-sm font-bold text-white">
+  {marketMode === "COINBASE_FUTURES" ? activePendingOrder.amount : `$${activePendingOrder.amount}`}
+</p>
+{marketMode === "COINBASE_FUTURES" && (
+  <p className="text-xs text-zinc-500">
+    {activePendingOrder.contractSize ?? "—"} {activePendingOrder.coin} each
+  </p>
+)}
+
+</div>
+
+<div>
+  <p className="text-zinc-500 text-xs">Market</p>
+  <p className="text-sm font-bold text-white">
+    {marketMode === "COINBASE_FUTURES"
+      ? "Coinbase Futures"
+      : activePendingOrder.mode}
+  </p>
+</div>
+
+{(marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") && (
+  <div>
+    <p className="text-zinc-500 text-xs">Leverage</p>
+    <p className="text-sm font-bold text-white">
+      {activePendingOrder.leverage ?? 1}x
+    </p>
+  </div>
+)}
 
             <div>
               <p className="text-zinc-500 text-xs">Status</p>
@@ -74,19 +100,25 @@ export default function PortfolioOrders({
               </p>
             </div>
 
-            <div>
-              <p className="text-zinc-500 text-xs">Waiting For</p>
-              <p className="text-sm font-bold text-white">Fill</p>
-            </div>
+<div>
+  <p className="text-zinc-500 text-xs">
+    {marketMode === "COINBASE_FUTURES" ? "Notional" : "Waiting For"}
+  </p>
+  <p className="text-sm font-bold text-white">
+    {marketMode === "COINBASE_FUTURES"
+      ? `$${Number(activePendingOrder.positionSize ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+      : "Fill"}
+  </p>
+</div>
 
-            <div className="flex justify-end">
+            <div className="flex shrink-0 justify-end">
               <button
                 onClick={() => {
-                  if (marketMode === "FUTURES") {
-                    setPendingFuturesLimitOrder(null);
-                  } else {
-                    setPendingLimitOrder(null);
-                  }
+if (marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") {
+  setPendingFuturesLimitOrder(null);
+} else {
+  setPendingLimitOrder(null);
+}
 
                   setMessage("Limit order canceled.");
                 }}

@@ -1,8 +1,7 @@
 type AccountSummaryCardProps = {
   marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   balance: number;
-  accountEquity: number;
-  marginUsed: number;
+
   futuresUnrealizedPnl: number;
   totalPnlPercent: number;
   tourStep: number | null;
@@ -11,8 +10,7 @@ type AccountSummaryCardProps = {
 export default function AccountSummaryCard({
   marketMode,
   balance,
-  accountEquity,
-  marginUsed,
+
   futuresUnrealizedPnl,
   totalPnlPercent,
   tourStep,
@@ -39,31 +37,6 @@ export default function AccountSummaryCard({
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-zinc-500">
-{marketMode === "FUTURES" ||
- marketMode === "COINBASE_FUTURES"
-  ? "Account Equity"
-  : "Portfolio Value"}
-          </span>
-
-          <span className="font-bold text-cyan-400">
-            ${accountEquity.toFixed(2)}
-          </span>
-        </div>
-
-        {(marketMode === "FUTURES" ||
-  marketMode === "COINBASE_FUTURES") && (
-          <div className="flex items-center justify-between">
-            <span className="text-zinc-500">
-              Margin Used
-            </span>
-
-            <span className="font-bold text-orange-400">
-              ${marginUsed.toFixed(2)}
-            </span>
-          </div>
-        )}
 
         {(marketMode === "FUTURES" ||
   marketMode === "COINBASE_FUTURES") && (

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { buildCoinbaseFuturesPosition, getCoinbaseFuturesLeverageRange } from "../data/coinbaseFutures";
 type CoinbaseFuturesTradingPanelProps = {
   selectedCoin: string;
@@ -47,6 +48,9 @@ openFuturesPosition,
 resetAccount,
 }: CoinbaseFuturesTradingPanelProps) {
 
+const [selectedSide, setSelectedSide] =
+  useState<"LONG" | "SHORT">("LONG");
+
 const symbol = selectedCoin as Parameters<typeof getCoinbaseFuturesLeverageRange>[0];
 const leverageRange = getCoinbaseFuturesLeverageRange(symbol);
 const contracts = Math.max(0, Math.floor(Number(tradeAmount) || 0));
@@ -54,18 +58,57 @@ const position = currentPrice && contracts >= 1
   ? buildCoinbaseFuturesPosition(symbol, contracts, currentPrice)
   : null;
 const notional = position?.positionSize ?? 0;
-const marginRequired = leverage > 0 ? notional / leverage : 0;
-const marginRate = leverage > 0 ? 1 / leverage : 0;
+const effectiveLeverage = Math.min(
+  Math.max(leverage, leverageRange.min),
+  leverageRange.max
+);
+const marginRequired = notional / effectiveLeverage;
+const marginRate = 1 / effectiveLeverage;
 const estimatedFee = notional * 0.001;
 const totalRequired = marginRequired + estimatedFee;
 
+const quantity = position?.quantity ?? 0;
+const estimatePnl = (target: number | "") => {
+  if (!currentPrice || !target || quantity <= 0) return null;
+
+  const direction = selectedSide === "LONG" ? 1 : -1;
+  return (Number(target) - currentPrice) * quantity * direction;
+};
+
+const tpPnl = estimatePnl(takeProfit);
+const slPnl = estimatePnl(stopLoss);
+
   return (
     <div className="rounded-2xl border border-zinc-700 bg-[#111827] p-4">
-   <div className="flex items-center justify-between">
-  <span className="text-sm font-black text-white">{selectedCoin} PERP</span>
-  <span className="text-xs font-bold text-white">{leverageRange.min}x–{leverageRange.max}x</span>
+<div className="flex items-center gap-2">
+  <span className="mr-auto text-sm font-black text-white">
+    {selectedCoin} PERP
+  </span>
+
+  <button
+    onClick={() => setSelectedSide("LONG")}
+    className={`rounded-lg border px-3 py-1.5 text-xs font-black ${
+      selectedSide === "LONG"
+        ? "border-green-500 bg-green-500/10 text-green-400"
+        : "border-zinc-500 text-zinc-300 hover:border-green-500 hover:text-green-400"
+    }`}
+  >
+    LONG
+  </button>
+
+  <button
+    onClick={() => setSelectedSide("SHORT")}
+    className={`rounded-lg border px-3 py-1.5 text-xs font-black ${
+      selectedSide === "SHORT"
+        ? "border-red-500 bg-red-500/10 text-red-400"
+        : "border-zinc-500 text-zinc-300 hover:border-red-500 hover:text-red-400"
+    }`}
+  >
+    SHORT
+  </button>
 </div>
- <div className="mt-3 grid grid-cols-2 gap-2">
+
+<div className="mt-3 grid grid-cols-2 gap-2">
   <div>
     <p className="mb-1 text-xs font-bold text-zinc-500">CONTRACTS</p>
 <input type="number" min="0" step="1" value={tradeAmount}
@@ -76,23 +119,60 @@ const totalRequired = marginRequired + estimatedFee;
 
   <div>
     <p className="mb-1 text-xs font-bold text-zinc-500">LEVERAGE</p>
-    <select value={leverage} onChange={(e) => setLeverage(Number(e.target.value))}
+    <select value={effectiveLeverage} onChange={(e) => setLeverage(Number(e.target.value))}
       className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center font-bold text-cyan-400 focus:border-cyan-500 focus:outline-none">
       {Array.from({ length: leverageRange.max - leverageRange.min + 1 }, (_, i) => leverageRange.min + i)
         .map((lev) => <option key={lev} value={lev}>{lev}x</option>)}
     </select>
   </div>
 </div>
-   <div className="mt-3"><p className="mb-1 text-xs font-bold text-zinc-500">ORDER TYPE</p><div className="grid grid-cols-2 gap-2">
-{(["MARKET", "LIMIT"] as const).map((type) => <button key={type} onClick={() => setOrderType(type)} className={`rounded-lg border px-3 py-2 text-sm font-bold ${orderType === type ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-zinc-700 bg-[#0f172a] text-zinc-400"}`}>{type}</button>)}</div></div>
    
-{orderType === "LIMIT" && (
   <div className="mt-3">
-    <input type="number" value={limitPrice} placeholder="Limit Price"
-      onChange={(e) => setLimitPrice(e.target.value === "" ? "" : Number(e.target.value))}
-      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-white focus:border-cyan-500 focus:outline-none" />
+  <p className="mb-1 text-xs font-bold text-zinc-500">ORDER TYPE</p>
 
-    <div className="mt-2 grid grid-cols-3 gap-2">
+  <div className="flex items-center gap-2">
+    <div className="inline-flex shrink-0 overflow-hidden rounded-xl border border-zinc-700">
+      <button
+        onClick={() => setOrderType("MARKET")}
+        className={`border-r border-zinc-700 px-2.5 py-2 text-xs font-bold ${
+          orderType === "MARKET"
+            ? "bg-cyan-500/10 text-cyan-400"
+            : "bg-[#0f172a] text-zinc-400"
+        }`}
+      >
+        MARKET
+      </button>
+
+      <button
+        onClick={() => setOrderType("LIMIT")}
+        className={`px-2.5 py-2 text-xs font-bold ${
+          orderType === "LIMIT"
+            ? "bg-orange-500/10 text-orange-400"
+            : "bg-[#0f172a] text-zinc-400"
+        }`}
+      >
+        LIMIT
+      </button>
+    </div>
+
+    {orderType === "LIMIT" && (
+      <input
+        type="text"
+inputMode="decimal"
+        value={limitPrice}
+        placeholder="Limit Price"
+        onChange={(e) =>
+          setLimitPrice(e.target.value === "" ? "" : Number(e.target.value))
+        }
+        className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-[#0f172a] px-2 py-2 text-center text-xs text-white focus:border-orange-500 focus:outline-none"
+      />
+    )}
+  </div>
+</div>
+
+{orderType === "LIMIT" && (
+  <div className="mt-2">
+    <div className="grid grid-cols-3 gap-2">
       {[["BID", bestBid], ["MID", mid], ["ASK", bestAsk]].map(([label, price]) =>
         <button key={String(label)} disabled={price == null} onClick={() => price != null && setLimitPrice(Number(price))}
           className="rounded-lg border border-zinc-700 bg-[#0f172a] py-2 text-xs font-bold text-cyan-400 disabled:opacity-40">{label}</button>
@@ -122,21 +202,39 @@ const totalRequired = marginRequired + estimatedFee;
 </div>
 
 <div className="mt-3 grid grid-cols-2 gap-2">
-<input type="text" inputMode="decimal" value={takeProfit} placeholder="Take Profit"
-  onChange={(e) => setTakeProfit(e.target.value === "" ? "" : Number(e.target.value))}
-  className="rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-green-500 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-  
-<input type="text" inputMode="decimal" value={stopLoss} placeholder="Stop Loss"
-  onChange={(e) => setStopLoss(e.target.value === "" ? "" : Number(e.target.value))}
-  className="rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-red-500 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+  <div>
+    <input type="text" inputMode="decimal" value={takeProfit} placeholder="Take Profit"
+      onChange={(e) => setTakeProfit(e.target.value === "" ? "" : Number(e.target.value))}
+      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-green-500 focus:outline-none" />
+    {tpPnl != null && (
+      <p className={`mt-1 text-center text-xs font-bold ${tpPnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+        Est. P/L {tpPnl >= 0 ? "+" : ""}${tpPnl.toFixed(2)}
+      </p>
+    )}
+  </div>
+
+  <div>
+    <input type="text" inputMode="decimal" value={stopLoss} placeholder="Stop Loss"
+      onChange={(e) => setStopLoss(e.target.value === "" ? "" : Number(e.target.value))}
+      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-red-500 focus:outline-none" />
+    {slPnl != null && (
+      <p className={`mt-1 text-center text-xs font-bold ${slPnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+        Est. P/L {slPnl >= 0 ? "+" : ""}${slPnl.toFixed(2)}
+      </p>
+    )}
+  </div>
 </div>
 
-<div className="mt-3 grid grid-cols-2 gap-2">
-  <button onClick={() => openFuturesPosition("LONG")}
-    className="rounded-xl bg-green-500 px-5 py-2.5 text-sm font-black text-black hover:bg-green-400">LONG</button>
-  <button onClick={() => openFuturesPosition("SHORT")}
-    className="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-black text-white hover:bg-red-400">SHORT</button>
-</div>
+<button
+  onClick={() => openFuturesPosition(selectedSide)}
+  className={`mt-3 w-full rounded-xl px-5 py-2.5 text-sm font-black ${
+    selectedSide === "LONG"
+      ? "bg-green-500 text-black hover:bg-green-400"
+      : "bg-red-500 text-white hover:bg-red-400"
+  }`}
+>
+  Open {selectedSide === "LONG" ? "Long" : "Short"}
+</button>
 
 <button
   onClick={resetAccount}
