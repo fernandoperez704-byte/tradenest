@@ -91,16 +91,16 @@ setShowSimulatorGaby,
 <div className="relative mb-3">
   <button
     onClick={() => setShowMarketMenu(!showMarketMenu)}
-    className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-4 py-3 text-sm font-black text-white transition-all hover:border-cyan-500"
+    className="flex w-full items-center justify-between rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-3 text-xs font-black text-white transition-all hover:border-cyan-500"
   >
-<span>
+<span className="whitespace-nowrap">
   {marketMode === "SPOT"
     ? "Crypto Spot"
     : marketMode === "FUTURES"
     ? "Offshore Futures"
-    : marketMode === "COINBASE_FUTURES"
-    ? "Coinbase Futures"
-    : "US Stocks"}
+: marketMode === "COINBASE_FUTURES"
+? "US Coinbase Futures"
+: "US Stocks"}
 </span>
 
     <span className="text-cyan-400">▼</span>
@@ -143,7 +143,7 @@ className={marketButtonClass("FUTURES")}
   }}
 className={marketButtonClass("COINBASE_FUTURES")}
 >
-  Coinbase Futures
+  US Coinbase Futures
 </button>
 
       <div className="border-t border-zinc-800" />

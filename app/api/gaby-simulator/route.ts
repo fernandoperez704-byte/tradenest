@@ -309,7 +309,10 @@ Weakest Skill: ${profile?.weakestSkill?.name ?? "N/A"}`,
 // Handle current open position with focused GPT explanation
 if (
   conversationIntent === "CURRENT_POSITION" ||
-  conversationSubject === "CURRENT_POSITION"
+  (
+    conversationIntent === "FOLLOW_UP" &&
+    conversationSubject === "CURRENT_POSITION"
+  )
 ) {
 
 

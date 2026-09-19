@@ -575,9 +575,21 @@ function buildTraderReportFacts() {
   };
 }
 
-const getLatestReviewedTrade = useCallback(() => {
+function getMarketModeLabel(value: string) {
+  if (value === "COINBASE_FUTURES") return "US Coinbase Futures";
+  if (value === "FUTURES") return "Offshore Futures";
+  if (value === "SPOT") return "Crypto Spot";
+  if (value === "STOCKS") return "US Stocks";
+
+  return value;
+}
+
+  const getLatestReviewedTrade = useCallback(() => {
+  const isFuturesMode =
+    mode === "FUTURES" || mode === "COINBASE_FUTURES";
+
   const sourceArray =
-    mode === "FUTURES"
+    isFuturesMode
       ? futuresHistory
       : mode === "STOCKS"
       ? stockHistory
@@ -590,7 +602,7 @@ const getLatestReviewedTrade = useCallback(() => {
         : trade.coin === selectedCoin;
 
     const isClosed =
-      mode === "FUTURES"
+      isFuturesMode
         ? trade.status !== "OPEN"
         : mode === "STOCKS"
         ? trade.type === "SELL"
@@ -606,7 +618,7 @@ const getLatestReviewedTrade = useCallback(() => {
     const timeB = new Date(b.closedAt ?? b.time ?? 0).getTime();
     return timeB - timeA;
   })[0];
-}, [mode, futuresHistory, stockHistory, trades, selectedCoin]);  
+}, [mode, futuresHistory, stockHistory, trades, selectedCoin]);
 
 async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
   if (!completedSnapshot?.snapshotId) return;
@@ -802,7 +814,7 @@ if (
     action: "SHOW",
     type: "TRADE_REVIEW",
     title: `Trade Review — ${selectedCoin}`,
-    subtitle: `${reviewSnapshot.engine?.mode || mode} • ${reviewSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
+    subtitle: `${getMarketModeLabel(mode)} • ${reviewSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
     description: "Verified review facts from the TradeNestX Trade Review Engine.",
     data: {
       review: reviewSnapshot,
@@ -919,7 +931,7 @@ if (reviewSnapshot && !reviewSnapshot.gaby?.generated) {
       action: "SHOW",
       type: "TRADE_REVIEW",
       title: `Trade Review — ${selectedCoin}`,
-      subtitle: `${completedSnapshot.engine?.mode || mode} • ${completedSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
+      subtitle: `${getMarketModeLabel(mode)} • ${completedSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
       description: "Verified review facts from the TradeNestX Trade Review Engine.",
       data: {
   review: completedSnapshot,
@@ -1203,7 +1215,7 @@ onInfoPanelCommand?.({
   action: "SHOW",
   type: "TRADE_REVIEW",
   title: `Trade Review — ${latestTrade.coin || selectedCoin}`,
-  subtitle: `${reviewSnapshot.engine?.mode || mode} • ${reviewSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
+  subtitle: `${getMarketModeLabel(mode)} • ${reviewSnapshot.engine?.timeframe || selectedTimeframe || "—"}`,
   description: "Verified review facts from the TradeNestX Trade Review Engine.",
   data: {
   review: reviewSnapshot,
