@@ -22,6 +22,7 @@ import {
   buildCoinbaseFuturesPosition,
   clampCoinbaseFuturesLeverage,
   getCoinbaseFuturesLeverageRange,
+  getCoinbaseFuturesMarginDetails,
 } from "./data/coinbaseFutures";
 import { createCoinbaseFuturesOrderBook } from "./data/coinbaseFuturesOrderBook";
 import { useCoinbaseFuturesTopOfBook } from "./hooks/useCoinbaseFuturesTopOfBook";
@@ -654,7 +655,8 @@ const [stockTradeAmount, setStockTradeAmount] =
   useState<number | "">("");
 const [coinbaseContracts, setCoinbaseContracts] =
   useState<number | "">("");
-  const [takeProfit, setTakeProfit] = useState<number | "">("");
+const [now, setNow] = useState<Date | null>(null);
+const [takeProfit, setTakeProfit] = useState<number | "">("");
 const [stopLoss, setStopLoss] = useState<number | "">("");
 const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
 const [leverage, setLeverage] = useState(1);
@@ -670,10 +672,109 @@ useEffect(() => {
   setLeverage(range.max);
 }, [marketMode, selectedCoin]);
 
+useEffect(() => {
+  if (!now) return;
+
+  const currentSession =
+    getCoinbaseFuturesMarginDetails(
+      "BTC",
+      0,
+      1,
+      now
+    ).session;
+
+  if (coinbaseMarginSessionRef.current === null) {
+    coinbaseMarginSessionRef.current = currentSession;
+    return;
+  }
+
+  if (
+    coinbaseMarginSessionRef.current === currentSession
+  ) {
+    return;
+  }
+
+  coinbaseMarginSessionRef.current = currentSession;
+
+const coinbasePositions =
+  futuresPositions.filter(
+    (position) =>
+      position.marketMode === "COINBASE_FUTURES"
+  );
+
+let sessionMarginDifference = 0;
+
+const updatedCoinbasePositions =
+  coinbasePositions.map((position) => {
+    const marginDetails =
+      getCoinbaseFuturesMarginDetails(
+        position.coin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS,
+        position.positionSize,
+        position.selectedLeverage ?? position.leverage,
+        now
+      );
+
+    sessionMarginDifference +=
+      marginDetails.marginRequired - position.margin;
+
+    const maintenanceBuffer = 0.005;
+
+    const liquidationPrice =
+      marginDetails.effectiveLeverage > 1
+        ? position.side === "LONG"
+          ? position.entryPrice *
+            (1 -
+              1 / marginDetails.effectiveLeverage +
+              maintenanceBuffer)
+          : position.entryPrice *
+            (1 +
+              1 / marginDetails.effectiveLeverage -
+              maintenanceBuffer)
+        : null;
+
+    return {
+      ...position,
+      margin: marginDetails.marginRequired,
+      leverage: marginDetails.effectiveLeverage,
+      marginSession: marginDetails.session,
+      liquidationPrice,
+    };
+  });
+
+setFuturesPositions((prev) =>
+  prev.map((position) => {
+    if (position.marketMode !== "COINBASE_FUTURES") {
+      return position;
+    }
+
+    return (
+      updatedCoinbasePositions.find(
+        (updatedPosition) =>
+          updatedPosition.id === position.id
+      ) ?? position
+    );
+  })
+);
+
+if (sessionMarginDifference !== 0) {
+  setBalance((currentBalance) =>
+    currentBalance - sessionMarginDifference
+  );
+
+  setMarginUsed((currentMarginUsed) =>
+    currentMarginUsed + sessionMarginDifference
+  );
+}
+
+}, [now]);
+
 const [showLeverageMenu, setShowLeverageMenu] = useState(false);
 const [positionType, setPositionType] = useState<"LONG" | "SHORT">("LONG");
 const [marginUsed, setMarginUsed] = useState(0);
 const [futuresPositions, setFuturesPositions] = useState<any[]>([]);
+
+const coinbaseMarginSessionRef =
+  useRef<"INTRADAY" | "OVERNIGHT" | null>(null);
 
 const [futuresPositionManagement, setFuturesPositionManagement] =
   useState<
@@ -739,9 +840,8 @@ const [pendingCoinbaseFuturesLimitOrder, setPendingCoinbaseFuturesLimitOrder] =
     positionSize?: number;
   } | null>(null);
 
-  const [trades, setTrades] = useState<Trade[]>([]);
-  const [now, setNow] = useState<Date | null>(null);
-  const [sessionLoaded, setSessionLoaded] = useState(false);
+const [trades, setTrades] = useState<Trade[]>([]);
+const [sessionLoaded, setSessionLoaded] = useState(false);
   const [simulatorReady, setSimulatorReady] = useState(false);
 
 const {
@@ -3647,10 +3747,21 @@ const positionSize =
   coinbasePosition?.positionSize ??
   requestedPositionSize;
 
-const actualMargin =
+const coinbaseMarginDetails =
   marketMode === "COINBASE_FUTURES"
-    ? positionSize / effectiveLeverage
-    : margin;
+    ? getCoinbaseFuturesMarginDetails(
+        selectedCoin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS,
+        positionSize,
+        effectiveLeverage
+      )
+    : null;
+
+const actualMargin =
+  coinbaseMarginDetails?.marginRequired ?? margin;
+
+const executionLeverage =
+  coinbaseMarginDetails?.effectiveLeverage ??
+  effectiveLeverage;
 
 const futuresFeeRate =
   marketMode === "FUTURES"
@@ -3729,10 +3840,10 @@ const tradeContext = buildTradeContext();
 const maintenanceBuffer = 0.005;
 
 const liquidation =
-  effectiveLeverage > 1
+  executionLeverage > 1
     ? side === "LONG"
-      ? executionPrice * (1 - 1 / effectiveLeverage + maintenanceBuffer)
-      : executionPrice * (1 + 1 / effectiveLeverage - maintenanceBuffer)
+      ? executionPrice * (1 - 1 / executionLeverage + maintenanceBuffer)
+      : executionPrice * (1 + 1 / executionLeverage - maintenanceBuffer)
     : null;
 
   setBalance((prev) => prev - actualMargin - entryFee);
@@ -3744,8 +3855,11 @@ setFuturesPositions((prev) => [
     marketMode,
     coin: selectedCoin,
     side,
-    margin: actualMargin,
-    leverage: effectiveLeverage,
+margin: actualMargin,
+leverage: executionLeverage,
+selectedLeverage: effectiveLeverage,
+marginSession:
+  coinbaseMarginDetails?.session ?? null,
 entryFee,
 estimatedExitFee,
 estimatedRoundTripFees,
@@ -3809,7 +3923,7 @@ setFuturesHistory((prev) => [
     coin: selectedCoin,
     side,
     margin: actualMargin,
-    leverage: effectiveLeverage,
+    leverage: executionLeverage,
 
 positionSize,
 

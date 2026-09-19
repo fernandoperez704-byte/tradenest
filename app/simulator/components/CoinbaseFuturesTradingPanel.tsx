@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { buildCoinbaseFuturesPosition, getCoinbaseFuturesLeverageRange } from "../data/coinbaseFutures";
+import {
+  buildCoinbaseFuturesPosition,
+  getCoinbaseFuturesLeverageRange,
+  getCoinbaseFuturesMarginDetails,
+} from "../data/coinbaseFutures";
 type CoinbaseFuturesTradingPanelProps = {
   mobileView: "WATCHLIST" | "TRADE" | "ORDER";
   setMobileView: (view: "WATCHLIST" | "TRADE" | "ORDER") => void;
@@ -62,12 +66,17 @@ const position = currentPrice && contracts >= 1
   ? buildCoinbaseFuturesPosition(symbol, contracts, currentPrice)
   : null;
 const notional = position?.positionSize ?? 0;
-const effectiveLeverage = Math.min(
-  Math.max(leverage, leverageRange.min),
-  leverageRange.max
+const {
+  session: marginSession,
+  effectiveLeverage,
+  marginRequired,
+  marginRate,
+} = getCoinbaseFuturesMarginDetails(
+  symbol,
+  notional,
+  leverage
 );
-const marginRequired = notional / effectiveLeverage;
-const marginRate = 1 / effectiveLeverage;
+
 const estimatedFee = notional * 0.001;
 const totalRequired = marginRequired + estimatedFee;
 
@@ -217,12 +226,56 @@ inputMode="decimal"
 </div>
 
 <div className="mt-3 rounded-xl border border-zinc-700 bg-[#0f172a] p-3 text-sm">
-  <div className="flex justify-between"><span className="text-zinc-500">Notional Value</span><span className="font-bold text-cyan-400">${notional.toFixed(2)}</span></div>
-  <div className="mt-2 flex justify-between"><span className="text-zinc-500">Margin Required</span><span className="font-bold text-orange-400">${marginRequired.toFixed(2)}</span></div>
-  <div className="mt-2 flex justify-between"><span className="text-zinc-500">Initial Margin Rate</span><span className="font-bold text-white">{(marginRate * 100).toFixed(0)}%</span></div>
-<div className="mt-2 flex justify-between"><span className="text-zinc-500">Estimated Fee</span><span className="font-bold text-white">${estimatedFee.toFixed(2)}</span></div>
-<div className="mt-2 flex justify-between border-t border-zinc-700 pt-2"><span className="font-bold text-zinc-300">Total Required</span><span className="font-black text-cyan-400">${totalRequired.toFixed(2)}</span></div>
+  <div className="flex justify-between">
+    <span className="text-zinc-500">Margin Session</span>
+    <span className="font-bold text-cyan-400">
+      {marginSession === "INTRADAY" ? "Intraday" : "Overnight"}
+    </span>
+  </div>
 
+  <div className="mt-2 flex justify-between">
+    <span className="text-zinc-500">Notional Value</span>
+    <span className="font-bold text-cyan-400">
+      ${notional.toFixed(2)}
+    </span>
+  </div>
+
+  <div className="mt-2 flex justify-between">
+    <span className="text-zinc-500">Margin Required</span>
+    <span className="font-bold text-orange-400">
+      ${marginRequired.toFixed(2)}
+    </span>
+  </div>
+
+  <div className="mt-2 flex justify-between">
+    <span className="text-zinc-500">Effective Leverage</span>
+    <span className="font-bold text-white">
+      {effectiveLeverage}x
+    </span>
+  </div>
+
+  <div className="mt-2 flex justify-between">
+    <span className="text-zinc-500">Initial Margin Rate</span>
+    <span className="font-bold text-white">
+      {(marginRate * 100).toFixed(0)}%
+    </span>
+  </div>
+
+  <div className="mt-2 flex justify-between">
+    <span className="text-zinc-500">Estimated Fee</span>
+    <span className="font-bold text-white">
+      ${estimatedFee.toFixed(2)}
+    </span>
+  </div>
+
+  <div className="mt-2 flex justify-between border-t border-zinc-700 pt-2">
+    <span className="font-bold text-zinc-300">
+      Total Required
+    </span>
+    <span className="font-black text-cyan-400">
+      ${totalRequired.toFixed(2)}
+    </span>
+  </div>
 </div>
 
 <div className="mt-3 grid grid-cols-2 gap-2">

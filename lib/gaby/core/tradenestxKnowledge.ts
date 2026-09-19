@@ -205,7 +205,19 @@ US COINBASE FUTURES ENTRY PANEL
 - Leverage:
   The Entry panel provides a leverage selector.
   The available leverage range can depend on the selected US Coinbase Futures product.
+  The user's selected leverage and the position's Effective Leverage can differ when the applicable margin session changes.
   Gaby must use the leverage information supplied by TradeNestX and must not invent a leverage limit for a product.
+
+- Margin Session:
+  US Coinbase Futures uses Intraday and Overnight margin sessions.
+  TradeNestX determines the applicable margin session automatically using Eastern Time.
+  The Entry panel displays the current Margin Session as "Intraday" or "Overnight".
+  The active margin session can affect Margin Required, Effective Leverage, Initial Margin Rate, and liquidation calculations.
+  Overnight margin can require more simulated capital and therefore use lower Effective Leverage than the user's selected leverage.
+  When an existing US Coinbase Futures position moves between Intraday and Overnight, TradeNestX recalculates the applicable margin, Effective Leverage, and liquidation information.
+  TradeNestX does not use a separate transition session in the current simulator.
+  Gaby must use the Margin Session, Margin Required, Effective Leverage, Initial Margin Rate, and liquidation facts supplied by TradeNestX instead of independently inventing or recalculating them.
+  These margin-session rules apply to US Coinbase Futures and must not be applied to Offshore Futures.
 
 - Order Type:
   The Entry panel supports MARKET and LIMIT.

@@ -152,3 +152,102 @@ export function buildCoinbaseFuturesPosition(
     positionSize,
   };
 }
+
+export type CoinbaseFuturesMarginSession =
+  | "INTRADAY"
+  | "OVERNIGHT";
+
+export function getCoinbaseFuturesMarginSession(
+  date = new Date()
+): CoinbaseFuturesMarginSession {
+  const easternTime = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const weekday =
+    easternTime.find((part) => part.type === "weekday")
+      ?.value ?? "";
+
+  const hour = Number(
+    easternTime.find((part) => part.type === "hour")
+      ?.value ?? 0
+  );
+
+  const minute = Number(
+    easternTime.find((part) => part.type === "minute")
+      ?.value ?? 0
+  );
+
+  const minutesSinceMidnight = hour * 60 + minute;
+
+  const isWeekday =
+    weekday === "Mon" ||
+    weekday === "Tue" ||
+    weekday === "Wed" ||
+    weekday === "Thu";
+
+  if (
+    isWeekday &&
+    (minutesSinceMidnight < 16 * 60 ||
+      minutesSinceMidnight >= 18 * 60)
+  ) {
+    return "INTRADAY";
+  }
+
+  if (
+    weekday === "Fri" &&
+    minutesSinceMidnight < 16 * 60
+  ) {
+    return "INTRADAY";
+  }
+
+  if (
+    weekday === "Sun" &&
+    minutesSinceMidnight >= 18 * 60
+  ) {
+    return "INTRADAY";
+  }
+
+  return "OVERNIGHT";
+}
+
+export function getCoinbaseFuturesMarginDetails(
+  symbol: keyof typeof COINBASE_FUTURES_LEVERAGE_RANGES,
+  notional: number,
+  selectedLeverage: number,
+  date = new Date()
+) {
+  const session = getCoinbaseFuturesMarginSession(date);
+
+  const leverageRange =
+    getCoinbaseFuturesLeverageRange(symbol);
+
+  const effectiveLeverage =
+    session === "INTRADAY"
+      ? Math.min(
+          Math.max(selectedLeverage, leverageRange.min),
+          leverageRange.max
+        )
+      : leverageRange.min;
+
+  const marginRequired =
+    effectiveLeverage > 0
+      ? notional / effectiveLeverage
+      : 0;
+
+  const marginRate =
+    effectiveLeverage > 0
+      ? 1 / effectiveLeverage
+      : 0;
+
+  return {
+    session,
+    effectiveLeverage,
+    marginRequired,
+    marginRate,
+  };
+}

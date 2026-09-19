@@ -624,7 +624,10 @@ async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
   if (!completedSnapshot?.snapshotId) return;
 
     // Optimized: Only map scan on the track arrays tied to the active mode state
-    if (mode === "FUTURES") {
+    if (
+  mode === "FUTURES" ||
+  mode === "COINBASE_FUTURES"
+) {
       setFuturesHistory((prev: any[]) =>
         prev.map((trade) =>
           trade.snapshotId === completedSnapshot.snapshotId
