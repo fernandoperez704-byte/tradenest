@@ -624,7 +624,14 @@ useEffect(() => {
 
 useEffect(() => {
   async function loadTradeReviews() {
-    if (!user || !subscriptionLoaded || !isPaid) return;
+    if (!subscriptionLoaded) return;
+
+    if (!user || !isPaid) {
+      setTradeReviewsLoaded(true);
+      return;
+    }
+
+    setTradeReviewsLoaded(false);
 
     const snap = await getDocs(
       query(collection(db, "tradeReviews"), where("userId", "==", user.id))
@@ -633,6 +640,8 @@ useEffect(() => {
     setTradeReviews(
       snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as any[]
     );
+
+    setTradeReviewsLoaded(true);
   }
 
   loadTradeReviews();
@@ -696,7 +705,7 @@ const [futuresPositionManagement, setFuturesPositionManagement] =
 
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
-
+const [tradeReviewsLoaded, setTradeReviewsLoaded] = useState(false);
 
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
@@ -753,6 +762,37 @@ const currentPrice = marketMode === "STOCKS"
   ? stockPrices[selectedStock]
   : prices[selectedCoin];
 
+const stockHistoryRef = useRef<any[]>([]);
+
+const {
+  normalizedTradeReviews,
+  traderDevelopmentEngines,
+  registerStockReview,
+} = useTraderDevelopment({
+  tradeReviews,
+  setTradeReviews,
+  tradeReviewsLoaded,
+  userId: user?.id ?? null,
+  userName: user?.firstName || "Trader",
+
+  onReportRequired: () => {
+    setInfoPanelContent({
+      type: "TRADER_REPORT",
+      title: "Trader Development Report",
+      subtitle: "Spot • Futures • Stocks",
+      description:
+        "Verified performance across your completed simulator trades.",
+      data: {
+        engines: traderDevelopmentEngines,
+        reviews: normalizedTradeReviews,
+        trades,
+        futuresHistory,
+        stockHistory: stockHistoryRef.current,
+      },
+    });
+  },
+});
+
 const {
   stockPositions,
   stockAveragePrices,
@@ -773,58 +813,11 @@ const {
   setBalance,
   setTradeAmount: setStockTradeAmount,
   setMessage,
-  getStockTradeContext: () => buildTradeContext(),
-  onStockClose: (trade) => {
-
-  const snapshotId = crypto.randomUUID();
-
-  const automaticReview = {
-    ...reviewTrade({
-      mode: "STOCKS",
-      side: "LONG",
-      entryPrice: trade.entryPrice,
-      exitPrice: trade.exitPrice,
-      pnl: trade.pnl,
-      grossPnl: trade.pnl,
-      totalFees: 0,
-      stopLoss: null,
-      takeProfit: null,
-      tradeContext: trade.tradeContext,
-    }),
-    snapshotId,
-  };
-
-  return {
-    snapshotId,
-    automaticReview,
-  };
-},
+getStockTradeContext: () => buildTradeContext(),
+onStockClose: registerStockReview,
 });
 
-const {
-  normalizedTradeReviews,
-  traderDevelopmentEngines,
-} = useTraderDevelopment({
-  tradeReviews,
-
-  onReportRequired: () => {
-    setInfoPanelContent({
-      type: "TRADER_REPORT",
-      title: "Trader Development Report",
-      subtitle: "Spot • Futures • Stocks",
-      description:
-        "Verified performance across your completed simulator trades.",
-      data: {
-        engines: traderDevelopmentEngines,
-        reviews: normalizedTradeReviews,
-        trades,
-        futuresHistory,
-        stockHistory,
-      },
-    });
-  },
-});
-
+stockHistoryRef.current = stockHistory;
 
 useEffect(() => {
   if (!subscriptionLoaded) return;

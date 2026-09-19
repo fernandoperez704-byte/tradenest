@@ -5,16 +5,29 @@ import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
 import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
 import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagementAnalysis";
 import { buildTimeframeAnalysis } from "@/lib/traderDevelopment/timeframeAnalysis";
+import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
+import { db } from "../../firebase";
+import { addDoc, collection } from "firebase/firestore";
 
 const REPORT_INTERVAL = 20;
 
 type UseTraderDevelopmentProps = {
   tradeReviews: any[];
+  setTradeReviews: React.Dispatch<
+    React.SetStateAction<any[]>
+  >;
+  tradeReviewsLoaded: boolean;
+  userId: string | null;
+  userName: string;
   onReportRequired?: () => void;
 };
 
 export function useTraderDevelopment({
   tradeReviews,
+  setTradeReviews,
+  tradeReviewsLoaded,
+  userId,
+  userName,
   onReportRequired,
 }: UseTraderDevelopmentProps) {
   const previousReviewedTradeCountRef = useRef<number | null>(null);
@@ -149,6 +162,8 @@ useEffect(() => {
     normalizedTradeReviews.length;
 
 useEffect(() => {
+  if (!tradeReviewsLoaded) return;
+
   const previousCount =
     previousReviewedTradeCountRef.current;
 
@@ -172,11 +187,75 @@ useEffect(() => {
   ) {
     onReportRequiredRef.current?.();
   }
-}, [reviewedTradeCount]);
+}, [reviewedTradeCount, tradeReviewsLoaded]);
+
+function registerStockReview(trade: {
+  symbol: string;
+  quantity: number;
+  entryPrice: number;
+  exitPrice: number;
+  pnl: number;
+  tradeContext: any;
+}) {
+  const snapshotId = crypto.randomUUID();
+
+  const automaticReview = {
+    ...reviewTrade({
+      mode: "STOCKS",
+      side: "LONG",
+      entryPrice: trade.entryPrice,
+      exitPrice: trade.exitPrice,
+      pnl: trade.pnl,
+      grossPnl: trade.pnl,
+      totalFees: 0,
+      stopLoss: null,
+      takeProfit: null,
+      tradeContext: trade.tradeContext,
+    }),
+    snapshotId,
+  };
+
+  const savedReview = {
+    snapshotId,
+    mode: "STOCKS",
+    coin: trade.symbol,
+    side: "LONG",
+    amount: trade.entryPrice * trade.quantity,
+    tradeContext: trade.tradeContext ?? null,
+    review: automaticReview,
+  };
+
+  setTradeReviews((prev) => [
+    savedReview,
+    ...prev,
+  ]);
+
+  if (userId) {
+    void addDoc(collection(db, "tradeReviews"), {
+      userId,
+      userName,
+      ...savedReview,
+      tradeResult: trade.pnl > 0 ? "PROFIT" : trade.pnl < 0 ? "LOSS" : "BREAKEVEN",
+      created: new Date().toISOString(),
+    }).catch((error) => {
+      console.error(
+        "Failed to save Stock trade review:",
+        error
+      );
+    });
+  }
 
   return {
-    normalizedTradeReviews,
-    traderDevelopmentEngines,
-    reviewedTradeCount,
+    snapshotId,
+    automaticReview,
   };
+}
+
+return {
+  normalizedTradeReviews,
+  traderDevelopmentEngines,
+  reviewedTradeCount,
+  registerStockReview,
+};
+
 }
