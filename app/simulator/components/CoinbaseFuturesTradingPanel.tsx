@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { buildCoinbaseFuturesPosition, getCoinbaseFuturesLeverageRange } from "../data/coinbaseFutures";
 type CoinbaseFuturesTradingPanelProps = {
+  mobileView: "WATCHLIST" | "TRADE" | "ORDER";
+  setMobileView: (view: "WATCHLIST" | "TRADE" | "ORDER") => void;
   selectedCoin: string;
   currentPrice?: number;
   tradeAmount: number | "";
@@ -25,6 +27,8 @@ resetAccount: () => void;
 };
 
 export default function CoinbaseFuturesTradingPanel({
+  mobileView,
+  setMobileView,
   selectedCoin,
   currentPrice,
   tradeAmount,
@@ -81,9 +85,16 @@ const slPnl = estimatePnl(stopLoss);
   return (
     <div className="rounded-2xl border border-zinc-700 bg-[#111827] p-4">
 <div className="flex items-center gap-2">
-  <span className="mr-auto text-sm font-black text-white">
-    {selectedCoin} PERP
-  </span>
+<button
+  onClick={() => setMobileView("WATCHLIST")}
+  className="shrink-0 rounded-lg border border-cyan-500 px-2 py-1.5 text-xs font-black text-cyan-400 md:hidden"
+>
+  ← Back
+</button>
+
+<span className="ml-auto text-sm font-black text-white">
+  {selectedCoin} PERP
+</span>
 
   <button
     onClick={() => setSelectedSide("LONG")}
@@ -109,18 +120,31 @@ const slPnl = estimatePnl(stopLoss);
 </div>
 
 <div className="mt-3 grid grid-cols-2 gap-2">
-  <div>
-    <p className="mb-1 text-xs font-bold text-zinc-500">CONTRACTS</p>
-<input type="number" min="0" step="1" value={tradeAmount}
-  onChange={(e) => setTradeAmount(e.target.value === "" ? "" : Math.max(0, Math.floor(Number(e.target.value))))}
-  placeholder="0"
-      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center font-bold text-white focus:border-cyan-500 focus:outline-none" />
-  </div>
+
+<div>
+  <p className="mb-1 text-xs font-bold text-zinc-500">CONTRACTS</p>
+  <input
+    type="text"
+    inputMode="numeric"
+    min="0"
+    step="1"
+    value={tradeAmount}
+    onChange={(e) =>
+      setTradeAmount(
+        e.target.value === ""
+          ? ""
+          : Math.max(0, Math.floor(Number(e.target.value)))
+      )
+    }
+    placeholder="0"
+    className="h-[46px] w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 text-center font-bold text-white focus:border-cyan-500 focus:outline-none"
+  />
+</div>
 
   <div>
     <p className="mb-1 text-xs font-bold text-zinc-500">LEVERAGE</p>
     <select value={effectiveLeverage} onChange={(e) => setLeverage(Number(e.target.value))}
-      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center font-bold text-cyan-400 focus:border-cyan-500 focus:outline-none">
+      className="h-[46px] w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 text-center font-bold text-cyan-400 focus:border-cyan-500 focus:outline-none">
       {Array.from({ length: leverageRange.max - leverageRange.min + 1 }, (_, i) => leverageRange.min + i)
         .map((lev) => <option key={lev} value={lev}>{lev}x</option>)}
     </select>

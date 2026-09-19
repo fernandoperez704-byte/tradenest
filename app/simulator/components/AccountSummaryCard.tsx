@@ -1,18 +1,22 @@
 type AccountSummaryCardProps = {
   marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
-  balance: number;
+balance: number;
 
-  futuresUnrealizedPnl: number;
-  totalPnlPercent: number;
+spotUnrealizedPnl: number;
+stockUnrealizedPnl: number;
+futuresUnrealizedPnl: number;
+totalPnlPercent: number;
   tourStep: number | null;
 };
 
 export default function AccountSummaryCard({
   marketMode,
-  balance,
+balance,
 
-  futuresUnrealizedPnl,
-  totalPnlPercent,
+spotUnrealizedPnl,
+stockUnrealizedPnl,
+futuresUnrealizedPnl,
+totalPnlPercent,
   tourStep,
 }: AccountSummaryCardProps) {
   return (
@@ -38,24 +42,28 @@ export default function AccountSummaryCard({
         </div>
 
 
-        {(marketMode === "FUTURES" ||
-  marketMode === "COINBASE_FUTURES") && (
-          <div className="flex items-center justify-between">
-            <span className="text-zinc-500">
-              Open P/L
-            </span>
+<div className="flex items-center justify-between">
+  <span className="text-zinc-500">Open P/L</span>
 
-            <span
-              className={`font-bold ${
-                futuresUnrealizedPnl >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
-              }`}
-            >
-              ${futuresUnrealizedPnl.toFixed(2)}
-            </span>
-          </div>
-        )}
+  {(() => {
+    const openPnl =
+      marketMode === "SPOT"
+        ? spotUnrealizedPnl
+        : marketMode === "STOCKS"
+        ? stockUnrealizedPnl
+        : futuresUnrealizedPnl;
+
+    return (
+      <span
+        className={`font-bold ${
+          openPnl >= 0 ? "text-green-400" : "text-red-400"
+        }`}
+      >
+        ${openPnl.toFixed(2)}
+      </span>
+    );
+  })()}
+</div>
 
         <div className="flex items-center justify-between">
           <span className="text-zinc-500">

@@ -93,6 +93,10 @@ type SimulatorSymbol = AssetSymbol | StockSymbol;
 const startingBalance = 10000;
 const feeRate = 0.006;
 
+const spotMakerFeeRate = 0.005;
+const spotTakerFeeRate = 0.009;
+
+
 const COINBASE_PRODUCT_IDS: Record<AssetSymbol, string> = {
   BTC: "BTC-USD",
   ETH: "ETH-USD",
@@ -576,6 +580,10 @@ useEffect(() => {
     if (data.balance) setBalance(data.balance);
     if (data.positions) setPositions(data.positions);
     if (data.averagePrices) setAveragePrices(data.averagePrices);
+if (data.spotPositionFacts) {
+  setSpotPositionFacts(data.spotPositionFacts);
+}
+
   }
 
   loadPortfolio();
@@ -636,11 +644,16 @@ useEffect(() => {
 
   const [message, setMessage] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
-  const [tradeAmount, setTradeAmount] = useState<number | "">("");
+const [tradeAmount, setTradeAmount] = useState<number | "">("");
+const [stockTradeAmount, setStockTradeAmount] =
+  useState<number | "">("");
+const [coinbaseContracts, setCoinbaseContracts] =
+  useState<number | "">("");
   const [takeProfit, setTakeProfit] = useState<number | "">("");
 const [stopLoss, setStopLoss] = useState<number | "">("");
 const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
 const [leverage, setLeverage] = useState(1);
+const [offshoreLeverage, setOffshoreLeverage] = useState(1);
 
 useEffect(() => {
   if (marketMode !== "COINBASE_FUTURES") return;
@@ -764,6 +777,18 @@ const [pendingFuturesLimitOrder, setPendingFuturesLimitOrder] = useState<{
   positionSize?: number;
 } | null>(null);
 
+const [pendingCoinbaseFuturesLimitOrder, setPendingCoinbaseFuturesLimitOrder] =
+  useState<{
+    coin: AssetSymbol;
+    amount: number;
+    limitPrice: number;
+    side: "LONG" | "SHORT";
+    mode: "COINBASE_FUTURES";
+    leverage?: number;
+    contractSize?: number;
+    positionSize?: number;
+  } | null>(null);
+
   const [trades, setTrades] = useState<Trade[]>([]);
   const [now, setNow] = useState<Date | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
@@ -796,18 +821,20 @@ const {
   closeStockPosition,
   restoreStockTrading,
   resetStockTrading,
+
 } = useStockTrading({
   selectedStock,
   currentPrice,
   stockMarketOpen,
   balance,
-  tradeAmount,
+  tradeAmount: stockTradeAmount,
   requireSignIn,
   setBalance,
-setTradeAmount,
-setMessage,
-getStockTradeContext: () => buildTradeContext(),
-onStockClose: (trade) => {
+  setTradeAmount: setStockTradeAmount,
+  setMessage,
+  getStockTradeContext: () => buildTradeContext(),
+  onStockClose: (trade) => {
+
   const snapshotId = crypto.randomUUID();
 
   const automaticReview = {
@@ -865,14 +892,19 @@ if (data.stockPositions || data.stockAveragePrices || data.stockHistory) {
 }
 
   if (data.spotPositionManagement) setSpotPositionManagement(data.spotPositionManagement);
+if (data.spotPositionFacts) setSpotPositionFacts(data.spotPositionFacts);
   if (data.trades) setTrades(data.trades);
   if (data.marginUsed !== undefined) setMarginUsed(data.marginUsed);
   if (data.futuresPositions) setFuturesPositions(data.futuresPositions);
   if (data.futuresPositionManagement) setFuturesPositionManagement(data.futuresPositionManagement);
   if (data.futuresHistory) setFuturesHistory(data.futuresHistory);
-  if (data.pendingLimitOrder) setPendingLimitOrder(data.pendingLimitOrder);
-  if (data.pendingFuturesLimitOrder) setPendingFuturesLimitOrder(data.pendingFuturesLimitOrder);
-  if (data.tradeAmount !== undefined) setTradeAmount(data.tradeAmount);
+if (data.pendingLimitOrder) setPendingLimitOrder(data.pendingLimitOrder);
+if (data.pendingFuturesLimitOrder) setPendingFuturesLimitOrder(data.pendingFuturesLimitOrder);
+if (data.pendingCoinbaseFuturesLimitOrder)
+  setPendingCoinbaseFuturesLimitOrder(data.pendingCoinbaseFuturesLimitOrder);
+if (data.tradeAmount !== undefined) setTradeAmount(data.tradeAmount);
+if (data.coinbaseContracts !== undefined) setCoinbaseContracts(data.coinbaseContracts);
+if (data.offshoreLeverage) setOffshoreLeverage(data.offshoreLeverage);
   if (data.takeProfit !== undefined) setTakeProfit(data.takeProfit);
   if (data.stopLoss !== undefined) setStopLoss(data.stopLoss);
   if (data.limitPrice !== undefined) setLimitPrice(data.limitPrice);
@@ -898,20 +930,24 @@ JSON.stringify({
   stockPositions,
   stockAveragePrices,
   stockHistory,
-  spotPositionManagement,
-  trades,
+spotPositionManagement,
+spotPositionFacts,
+trades,
       marginUsed,
 futuresPositions,
 futuresPositionManagement,
 futuresHistory,
-      pendingLimitOrder,
-      pendingFuturesLimitOrder,
-      tradeAmount,
-      takeProfit,
-      stopLoss,
-      limitPrice,
-      orderType,
-      leverage,
+pendingLimitOrder,
+pendingFuturesLimitOrder,
+pendingCoinbaseFuturesLimitOrder,
+tradeAmount,
+coinbaseContracts,
+offshoreLeverage,
+takeProfit,
+stopLoss,
+limitPrice,
+orderType,
+leverage,
 marketMode,
 selectedTimeframe,
 activeBottomTab,
@@ -924,17 +960,21 @@ activeBottomTab,
   stockPositions,
   stockAveragePrices,
   stockHistory,
-  spotPositionManagement,
-  trades,
+spotPositionManagement,
+spotPositionFacts,
+trades,
   marginUsed,
 futuresPositions,
 futuresPositionManagement,
 futuresHistory,
-  pendingLimitOrder,
-  pendingFuturesLimitOrder,
-  tradeAmount,
-  takeProfit,
-  stopLoss,
+pendingLimitOrder,
+pendingFuturesLimitOrder,
+pendingCoinbaseFuturesLimitOrder,
+tradeAmount,  
+coinbaseContracts,
+offshoreLeverage,
+takeProfit,
+stopLoss,
   limitPrice,
   orderType,
   leverage,
@@ -1157,15 +1197,15 @@ const currentEntryQuality =
 const estimatedLongLiquidation =
   currentPrice &&
   (marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
-  leverage > 1
-    ? currentPrice * (1 - 1 / leverage + maintenanceBuffer)
+offshoreLeverage > 1
+  ? currentPrice * (1 - 1 / offshoreLeverage + maintenanceBuffer)
     : null;
 
 const estimatedShortLiquidation =
   currentPrice &&
   (marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
-  leverage > 1
-    ? currentPrice * (1 + 1 / leverage - maintenanceBuffer)
+offshoreLeverage > 1
+  ? currentPrice * (1 + 1 / offshoreLeverage - maintenanceBuffer)
     : null;
 
 const chartRef = useRef<HTMLDivElement | null>(null);
@@ -1364,10 +1404,17 @@ if (!current) return;
       setLimitPrice("");
       setPendingLimitOrder(null);
 
-      setTimeout(() => {
-        buyCoin();
-        setMessage(`Limit BUY filled for ${savedOrder.coin}`);
-      }, 0);
+setTimeout(() => {
+buyCoin(
+  "LIMIT",
+  savedOrder.coin,
+  savedOrder.amount,
+  current,
+  true
+);
+  setMessage(`Limit BUY filled for ${savedOrder.coin}`);
+}, 0);
+
     }
 
     if (
@@ -1380,10 +1427,18 @@ if (!current) return;
       setLimitPrice("");
       setPendingLimitOrder(null);
 
-      setTimeout(() => {
-        sellCoin();
-        setMessage(`Limit SELL filled for ${savedOrder.coin}`);
-      }, 0);
+setTimeout(() => {
+  closeSpotPosition({
+    coin: savedOrder.coin,
+    quantity: positions[savedOrder.coin],
+    currentPrice: current,
+    reason: "MANUAL",
+    exitFeeRate: spotMakerFeeRate,
+  });
+
+  setMessage(`Limit SELL filled for ${savedOrder.coin}`);
+}, 0);
+
     }
   }
 
@@ -1391,47 +1446,86 @@ if (!current) return;
 }, [prices]);
 
 useEffect(() => {
-  if (!pendingFuturesLimitOrder) return;
-  if (pendingFuturesLimitOrder.mode !== marketMode) return;
+  const pendingOrder =
+    marketMode === "COINBASE_FUTURES"
+      ? pendingCoinbaseFuturesLimitOrder
+      : pendingFuturesLimitOrder;
 
-  const current = prices[pendingFuturesLimitOrder.coin];
+  if (!pendingOrder) return;
+
+  const current = prices[pendingOrder.coin];
 if (!current) return;
   if (
-    pendingFuturesLimitOrder.side === "LONG" &&
-    current <= pendingFuturesLimitOrder.limitPrice
+    pendingOrder.side === "LONG" &&
+    current <= pendingOrder.limitPrice
   ) {
-    const savedOrder = pendingFuturesLimitOrder;
+    const savedOrder = pendingOrder;
 
-    setSelectedCoin(savedOrder.coin);
-    setTradeAmount(savedOrder.amount);
-    setLeverage(savedOrder.leverage || 1);
-    setLimitPrice("");
-    setPendingFuturesLimitOrder(null);
+setSelectedCoin(savedOrder.coin);
 
-    setTimeout(() => {
-      openFuturesPosition("LONG", savedOrder.leverage || 1);
+if (savedOrder.mode === "COINBASE_FUTURES") {
+  setCoinbaseContracts(savedOrder.amount);
+  setLeverage(savedOrder.leverage || 1);
+} else {
+  setTradeAmount(savedOrder.amount);
+  setOffshoreLeverage(savedOrder.leverage || 1);
+}
+
+setLimitPrice("");
+    if (savedOrder.mode === "COINBASE_FUTURES") {
+  setPendingCoinbaseFuturesLimitOrder(null);
+} else {
+  setPendingFuturesLimitOrder(null);
+}
+
+setTimeout(() => {
+  openFuturesPosition(
+    "LONG",
+    savedOrder.leverage || 1,
+    Number(savedOrder.amount)
+  );
       setMessage(`Limit LONG filled for ${savedOrder.coin}`);
     }, 0);
   }
 
   if (
-    pendingFuturesLimitOrder.side === "SHORT" &&
-    current >= pendingFuturesLimitOrder.limitPrice
+    pendingOrder.side === "SHORT" &&
+    current >= pendingOrder.limitPrice
   ) {
-    const savedOrder = pendingFuturesLimitOrder;
+    const savedOrder = pendingOrder;
 
-    setSelectedCoin(savedOrder.coin);
-    setTradeAmount(savedOrder.amount);
-    setLeverage(savedOrder.leverage || 1);
-    setLimitPrice("");
-    setPendingFuturesLimitOrder(null);
+setSelectedCoin(savedOrder.coin);
 
-    setTimeout(() => {
-      openFuturesPosition("SHORT", savedOrder.leverage || 1);
+if (savedOrder.mode === "COINBASE_FUTURES") {
+  setCoinbaseContracts(savedOrder.amount);
+  setLeverage(savedOrder.leverage || 1);
+} else {
+  setTradeAmount(savedOrder.amount);
+  setOffshoreLeverage(savedOrder.leverage || 1);
+}
+
+setLimitPrice("");
+    if (savedOrder.mode === "COINBASE_FUTURES") {
+  setPendingCoinbaseFuturesLimitOrder(null);
+} else {
+  setPendingFuturesLimitOrder(null);
+}
+
+setTimeout(() => {
+  openFuturesPosition(
+    "SHORT",
+    savedOrder.leverage || 1,
+    Number(savedOrder.amount)
+  );
       setMessage(`Limit SHORT filled for ${savedOrder.coin}`);
     }, 0);
   }
-}, [prices]);
+}, [
+  prices,
+  marketMode,
+  pendingFuturesLimitOrder,
+  pendingCoinbaseFuturesLimitOrder,
+]);
 
 useEffect(() => {
   Object.entries(positions).forEach(([coin, qty]) => {
@@ -2659,8 +2753,14 @@ async function closeFuturesPosition({
       ? (exitPrice - position.entryPrice) * position.quantity
       : (position.entryPrice - exitPrice) * position.quantity;
 
-  const exitFee =
-    (position.positionSize || position.margin * position.leverage) * feeRate;
+const exitFeeRate =
+  (position.marketMode ?? "FUTURES") === "FUTURES"
+    ? 0.0004
+    : 0.001;
+
+const exitFee =
+  (position.positionSize || position.margin * position.leverage) *
+  exitFeeRate;
 
   const netPnl =
     reason === "LIQUIDATION"
@@ -2893,11 +2993,13 @@ async function closeSpotPosition({
   quantity,
   currentPrice,
   reason,
+  exitFeeRate = spotTakerFeeRate,
 }: {
   coin: AssetSymbol;
   quantity: number;
   currentPrice: number;
   reason: "MANUAL" | "TP" | "SL";
+  exitFeeRate?: number;
 }) {
 
   console.log("CLOSE SPOT", {
@@ -2922,7 +3024,9 @@ console.log("SPOT CLOSE FUNCTION HIT", {
   const quantityToClose = Math.min(quantity, ownedAmount);
 
   const sellValue = quantityToClose * currentPrice;
-  const spotExitFee = sellValue * feeRate;
+  
+const spotExitFee = sellValue * exitFeeRate;
+
   const netSellValue = sellValue - spotExitFee;
 
   const avgEntryPrice = averagePrices[coin] || 0;
@@ -2930,8 +3034,11 @@ console.log("SPOT CLOSE FUNCTION HIT", {
   const grossSpotPnl =
     (currentPrice - avgEntryPrice) * quantityToClose;
 
-  const spotEntryFeePaid =
-    avgEntryPrice * quantityToClose * feeRate;
+const totalEntryFee =
+  spotPositionFacts[coin]?.entryFee ?? 0;
+
+const spotEntryFeePaid =
+  totalEntryFee * (quantityToClose / ownedAmount);
 
   const spotPnl =
     grossSpotPnl - spotEntryFeePaid - spotExitFee;
@@ -3056,6 +3163,27 @@ console.log("SPOT CLOSE REVIEW CREATED", {
         ? 0
         : prev[coin],
   }));
+
+const nextSpotPositionFacts = { ...spotPositionFacts };
+const facts = nextSpotPositionFacts[coin];
+
+if (ownedAmount - quantityToClose <= 0) {
+  delete nextSpotPositionFacts[coin];
+} else if (facts) {
+  const remainingRatio =
+    (ownedAmount - quantityToClose) / ownedAmount;
+
+  nextSpotPositionFacts[coin] = {
+    ...facts,
+    entryFee: facts.entryFee * remainingRatio,
+    estimatedExitFee:
+      facts.estimatedExitFee * remainingRatio,
+    estimatedRoundTripFees:
+      facts.estimatedRoundTripFees * remainingRatio,
+  };
+}
+
+setSpotPositionFacts(nextSpotPositionFacts);
 
 setSpotRiskSettings((prev) => ({
   ...prev,
@@ -3229,6 +3357,7 @@ if (user && isPaid) {
             ? 0
             : averagePrices[coin],
       },
+      spotPositionFacts: nextSpotPositionFacts,
       updated: new Date(),
     });
   }
@@ -3256,17 +3385,30 @@ if (
   };
 }
 
-function buyCoin() {
+function buyCoin(
+  executionOrderType = orderType,
+  executionCoin = selectedCoin,
+  executionAmount = Number(tradeAmount),
+  executionPrice = currentPrice,
+  isPendingFill = false
+) {
+
   if (!requireSignIn()) return;
 
-  if (!currentPrice) {
+  if (!executionPrice) {
     setMessage("Loading real market price...");
     return;
   }
 
-const spotEntryFee = Number(tradeAmount) * feeRate;
+const spotEntryFeeRate =
+  executionOrderType === "LIMIT"
+    ? spotMakerFeeRate
+    : spotTakerFeeRate;
 
-  if (!tradeAmount || balance < Number(tradeAmount) + spotEntryFee) {
+const spotEntryFee =
+  executionAmount * spotEntryFeeRate;
+
+  if (!executionAmount || balance < executionAmount + spotEntryFee) {
     setMessage("Invalid trade amount.");
     return;
   }
@@ -3274,20 +3416,21 @@ const spotEntryFee = Number(tradeAmount) * feeRate;
     const effectiveTradeSize =
   marketMode === "FUTURES" ||
   marketMode === "COINBASE_FUTURES"
-    ? Number(tradeAmount) * leverage
-    : Number(tradeAmount);
+    ? executionAmount * leverage
+    : executionAmount;
 
 const quantity =
-  effectiveTradeSize / currentPrice;
+  effectiveTradeSize / executionPrice;
 
   
 const tradeContext = buildTradeContext();
 const tradeId = crypto.randomUUID();
 
     if (
+  !isPendingFill &&
   orderType === "LIMIT" &&
   limitPrice !== "" &&
-  currentPrice > Number(limitPrice)
+  executionPrice > Number(limitPrice)
 ) {
  setPendingLimitOrder({
   coin: selectedCoin,
@@ -3303,17 +3446,18 @@ const tradeId = crypto.randomUUID();
 
   return;
 }
-    const oldQty = positions[selectedCoin];
-    const oldAvg = averagePrices[selectedCoin];
+
+const oldQty = positions[executionCoin];
+const oldAvg = averagePrices[executionCoin];
 
     const newQty = oldQty + quantity;
 
-    const newAvg =
-      oldQty > 0
-        ? (oldQty * oldAvg + quantity * currentPrice) / newQty
-        : currentPrice;
+const newAvg =
+  oldQty > 0
+    ? (oldQty * oldAvg + quantity * executionPrice) / newQty
+    : executionPrice;
 
-    setBalance((prev) => prev - Number(tradeAmount) - spotEntryFee);
+    setBalance((prev) => prev - executionAmount - spotEntryFee);
 
 if (
   marketMode === "FUTURES" ||
@@ -3321,46 +3465,35 @@ if (
 ) {
   setMarginUsed((prev) => prev + Number(tradeAmount));
 }
-if (user && isPaid) {
- setDoc(doc(db, "portfolios", user.id), {
-  userName: user.firstName || "Trader",
-  balance: balance - Number(tradeAmount),
-  positions: {
-    ...positions,
-    [selectedCoin]: newQty,
-  },
-  averagePrices: {
-    ...averagePrices,
-    [selectedCoin]: newAvg,
-  },
-  updated: new Date(),
-});
-}
-    setPositions((prev) => ({
-      ...prev,
-      [selectedCoin]: newQty,
-    }));
+
+setPositions((prev) => ({
+  ...prev,
+  [executionCoin]: newQty,
+}));
 
 setAveragePrices((prev) => ({
   ...prev,
-  [selectedCoin]: newAvg,
+  [executionCoin]: newAvg,
 }));
 
 const spotPositionCost =
   newAvg * newQty;
 
+const previousEntryFee =
+  spotPositionFacts[executionCoin]?.entryFee ?? 0;
+
 const cumulativeEntryFee =
-  spotPositionCost * feeRate;
+  previousEntryFee + spotEntryFee;
 
 const spotBreakEvenPrice =
-  newAvg *
-  ((1 + feeRate) / (1 - feeRate));
+  (spotPositionCost + cumulativeEntryFee) /
+  (newQty * (1 - spotTakerFeeRate));
 
 const spotBreakEvenValue =
   newQty * spotBreakEvenPrice;
 
 const estimatedExitFee =
-  spotBreakEvenValue * feeRate;
+  spotBreakEvenValue * spotTakerFeeRate;
 
 const estimatedRoundTripFees =
   cumulativeEntryFee + estimatedExitFee;
@@ -3373,10 +3506,9 @@ const requiredMovePercent =
     ? (requiredPriceMove / newAvg) * 100
     : 0;
 
-setSpotPositionFacts((prev) => ({
-  ...prev,
-
-  [selectedCoin]: {
+const nextSpotPositionFacts = {
+  ...spotPositionFacts,
+  [executionCoin]: {
     entryPrice: newAvg,
     breakEvenPrice: spotBreakEvenPrice,
     requiredPriceMove,
@@ -3385,12 +3517,31 @@ setSpotPositionFacts((prev) => ({
     estimatedExitFee,
     estimatedRoundTripFees,
   },
-}));
+};
+
+setSpotPositionFacts(nextSpotPositionFacts);
+
+if (user && isPaid) {
+  setDoc(doc(db, "portfolios", user.id), {
+    userName: user.firstName || "Trader",
+    balance: balance - executionAmount - spotEntryFee,
+    positions: {
+      ...positions,
+      [executionCoin]: newQty,
+    },
+    averagePrices: {
+      ...averagePrices,
+      [executionCoin]: newAvg,
+    },
+    spotPositionFacts: nextSpotPositionFacts,
+    updated: new Date(),
+  });
+}
 
 if (oldQty <= 0) {
   setSpotPositionManagement((prev) => ({
     ...prev,
-[selectedCoin]: {
+[executionCoin]: {
   openedAt: new Date().toISOString(),
   tradeContext,
 
@@ -3405,7 +3556,7 @@ if (oldQty <= 0) {
 
 setSpotRiskSettings((prev) => ({
   ...prev,
-  [selectedCoin]: {
+  [executionCoin]: {
     takeProfit:
       takeProfit !== "" ? Number(takeProfit) : null,
     stopLoss:
@@ -3417,9 +3568,9 @@ setTrades((prev) => [
 {
   tradeId,
   type: "BUY",
-  coin: selectedCoin,
-  amount: tradeAmount,
-  price: currentPrice,
+coin: executionCoin,
+amount: executionAmount,
+price: executionPrice,
 
   entryFee: spotEntryFee,
 
@@ -3438,9 +3589,9 @@ addDoc(collection(db, "trades"), {
   tradeId,
 
   type: "BUY",
-  coin: selectedCoin,
-  amount: tradeAmount,
-  price: currentPrice,
+coin: executionCoin,
+amount: executionAmount,
+price: executionPrice,
 
   entryFee: spotEntryFee,
 
@@ -3450,7 +3601,7 @@ tradeContext,
 });
 }
 
-    setMessage(`Bought $${tradeAmount} of ${selectedCoin}`);
+    setMessage(`Bought $${executionAmount} of ${executionCoin}`);
 
 setShowSimulatorGaby(true);
 
@@ -3482,14 +3633,11 @@ Do not give trading advice or predict future price movement.`
 
 function openFuturesPosition(
   side: "LONG" | "SHORT",
-  orderLeverage = leverage
+  orderLeverage =
+    marketMode === "FUTURES" ? offshoreLeverage : leverage,
+  orderAmount?: number
 ) {
   if (!requireSignIn()) return;
-
-if (!currentPrice) {
-  setMessage("Loading real market price...");
-  return;
-}
 
 const executionPrice =
   marketMode === "COINBASE_FUTURES"
@@ -3498,7 +3646,18 @@ const executionPrice =
       : topOfBook.bestBid ?? currentPrice
     : currentPrice;
 
-if (!tradeAmount || Number(tradeAmount) <= 0) {
+if (!executionPrice) {
+  setMessage("Loading real market price...");
+  return;
+}
+
+const activeTradeAmount =
+  orderAmount ??
+  (marketMode === "COINBASE_FUTURES"
+    ? coinbaseContracts
+    : tradeAmount);
+
+if (!activeTradeAmount || Number(activeTradeAmount) <= 0) {
   setMessage(
     marketMode === "COINBASE_FUTURES"
       ? "Enter at least 1 contract."
@@ -3507,7 +3666,7 @@ if (!tradeAmount || Number(tradeAmount) <= 0) {
   return;
 }
 
-  const margin = Number(tradeAmount);
+const margin = Number(activeTradeAmount);
 
 const effectiveLeverage =
   marketMode === "COINBASE_FUTURES"
@@ -3517,9 +3676,9 @@ const effectiveLeverage =
       )
     : orderLeverage;
 
-const coinbaseContracts =
+const contractCount =
   marketMode === "COINBASE_FUTURES"
-    ? Math.floor(Number(tradeAmount))
+    ? Math.floor(Number(activeTradeAmount))
     : 0;
 
 const requestedPositionSize =
@@ -3529,10 +3688,10 @@ const requestedPositionSize =
 
 const coinbasePosition =
   marketMode === "COINBASE_FUTURES" &&
-  coinbaseContracts >= 1
+  contractCount >= 1
     ? buildCoinbaseFuturesPosition(
         selectedCoin as keyof typeof COINBASE_FUTURES_PRODUCT_IDS,
-        coinbaseContracts,
+        contractCount,
         executionPrice
       )
     : null;
@@ -3556,24 +3715,43 @@ const actualMargin =
     ? positionSize / effectiveLeverage
     : margin;
 
-const entryFee =
-  positionSize *
-  (marketMode === "COINBASE_FUTURES" ? 0.001 : feeRate);
+const futuresFeeRate =
+  marketMode === "FUTURES"
+    ? orderType === "MARKET"
+      ? 0.0004
+      : 0.0002
+    : 0.001;
+
+const entryFee = positionSize * futuresFeeRate;
+
 if (balance < actualMargin + entryFee) {
+
   setMessage("Not enough balance for margin plus entry fee.");
   return;
 }
-  if (orderType === "LIMIT" && limitPrice !== "") {
-setPendingFuturesLimitOrder({
-  coin: selectedCoin,
-  amount: margin,
-  limitPrice: Number(limitPrice),
-  side,
-  mode: marketMode === "COINBASE_FUTURES" ? "COINBASE_FUTURES" : "FUTURES",
-  leverage: effectiveLeverage,
-  contractSize: coinbasePosition?.contractSize,
-  positionSize: coinbasePosition?.positionSize,
-});
+
+if (orderType === "LIMIT" && limitPrice !== "") {
+  const pendingOrder = {
+    coin: selectedCoin,
+    amount: margin,
+    limitPrice: Number(limitPrice),
+    side,
+    leverage: effectiveLeverage,
+    contractSize: coinbasePosition?.contractSize,
+    positionSize: coinbasePosition?.positionSize,
+  };
+
+  if (marketMode === "COINBASE_FUTURES") {
+    setPendingCoinbaseFuturesLimitOrder({
+      ...pendingOrder,
+      mode: "COINBASE_FUTURES",
+    });
+  } else {
+    setPendingFuturesLimitOrder({
+      ...pendingOrder,
+      mode: "FUTURES",
+    });
+  }
 
   setMessage(
     `Limit ${side} placed for ${selectedCoin} at $${Number(limitPrice).toFixed(2)}`
@@ -3587,8 +3765,7 @@ const quantity =
   positionSize / executionPrice;
 
 const estimatedExitFee =
-  positionSize *
-  (marketMode === "COINBASE_FUTURES" ? 0.001 : feeRate);
+  positionSize * futuresFeeRate;
 
 const estimatedRoundTripFees =
   entryFee + estimatedExitFee;
@@ -3641,7 +3818,7 @@ quantity,
 
 contracts:
   marketMode === "COINBASE_FUTURES"
-    ? coinbaseContracts
+    ? contractCount
     : null,
 
 contractSize:
@@ -3703,7 +3880,7 @@ quantity,
 
 contracts:
   marketMode === "COINBASE_FUTURES"
-    ? coinbaseContracts
+    ? contractCount
     : null,
 
 contractSize:
@@ -3804,6 +3981,7 @@ function resetAccount() {
   setBalance(startingBalance);
   setPositions(emptyPositions);
   setAveragePrices(emptyPositions);
+  setSpotPositionFacts({});
   setSpotPositionManagement({});
   setSpotRiskSettings({});
   setTrades([]);
@@ -3813,13 +3991,17 @@ function resetAccount() {
   setFuturesHistory([]);
   resetStockTrading();
   setTradeAmount("");
+  setStockTradeAmount("");
+setCoinbaseContracts("");
   setTakeProfit("");
   setStopLoss("");
   setLimitPrice("");
-  setPendingLimitOrder(null);
-  setPendingFuturesLimitOrder(null);
-  setOrderType("MARKET");
+setPendingLimitOrder(null);
+setPendingFuturesLimitOrder(null);
+setPendingCoinbaseFuturesLimitOrder(null);
+setOrderType("MARKET");
   setLeverage(1);
+setOffshoreLeverage(1);
 
   setMessage("Practice account reset.");
 localStorage.removeItem("tradenestx-simulator-session");
@@ -3856,6 +4038,30 @@ const stockPortfolioValue =
     if (!price) return total;
     return total + Number(qty) * price;
   }, 0);
+
+const spotUnrealizedPnl = Object.entries(positions).reduce(
+  (total, [coin, qty]) => {
+    const asset = coin as AssetSymbol;
+    const current = prices[asset];
+    const entry = averagePrices[asset];
+
+    if (!current || !entry || Number(qty) <= 0) return total;
+    return total + (current - entry) * Number(qty);
+  },
+  0
+);
+
+const stockUnrealizedPnl = Object.entries(stockPositions).reduce(
+  (total, [symbol, qty]) => {
+    const stock = symbol as StockSymbol;
+    const current = stockPrices[stock];
+    const entry = stockAveragePrices[stock];
+
+    if (!current || !entry || Number(qty) <= 0) return total;
+    return total + (current - entry) * Number(qty);
+  },
+  0
+);
 
 const futuresUnrealizedPnl = futuresPositions.reduce((total, position) => {
   const positionMarketMode = position.marketMode ?? "FUTURES";
@@ -4249,16 +4455,21 @@ setGabyAnnotations((prev) => {
 
     <AccountSummaryCard
   marketMode={marketMode}
-  balance={balance}
-  futuresUnrealizedPnl={futuresUnrealizedPnl}
+balance={balance}
+spotUnrealizedPnl={spotUnrealizedPnl}
+stockUnrealizedPnl={stockUnrealizedPnl}
+futuresUnrealizedPnl={futuresUnrealizedPnl}
   totalPnlPercent={totalPnlPercent}
   tourStep={tourStep}
 />      
 
 {marketMode === "COINBASE_FUTURES" ? (
   <CoinbaseFuturesTradingPanel
+    mobileView={mobileView}
+  setMobileView={setMobileView}
     selectedCoin={selectedCoin} currentPrice={currentPrice}
-    tradeAmount={tradeAmount} setTradeAmount={setTradeAmount}
+    tradeAmount={coinbaseContracts}
+setTradeAmount={setCoinbaseContracts}
     leverage={leverage} setLeverage={setLeverage}
     orderType={orderType} setOrderType={setOrderType}
     limitPrice={limitPrice} setLimitPrice={setLimitPrice}
@@ -4272,13 +4483,15 @@ resetAccount={() => setShowResetModal(true)}
 ) : (
   <TradingPanel
     mobileView={mobileView} setMobileView={setMobileView} tourStep={tourStep}
-    tradeAmount={tradeAmount} setTradeAmount={setTradeAmount}
+    tradeAmount={marketMode === "STOCKS" ? stockTradeAmount : tradeAmount}
+setTradeAmount={marketMode === "STOCKS" ? setStockTradeAmount : setTradeAmount}
     takeProfit={takeProfit} setTakeProfit={setTakeProfit}
     stopLoss={stopLoss} setStopLoss={setStopLoss}
     orderType={orderType} setOrderType={setOrderType}
     limitPrice={limitPrice} setLimitPrice={setLimitPrice}
     marketMode={marketMode} selectedCoin={selectedSymbol} currentPrice={currentPrice}
-    leverage={leverage} setLeverage={setLeverage}
+    leverage={offshoreLeverage}
+setLeverage={setOffshoreLeverage}
     showLeverageMenu={showLeverageMenu} setShowLeverageMenu={setShowLeverageMenu}
     balance={balance} marginUsed={marginUsed}
     estimatedLongLiquidation={estimatedLongLiquidation}
@@ -4347,12 +4560,18 @@ closeStockPosition={closeStockPosition}
     marketMode={marketMode}
     pendingLimitOrder={pendingLimitOrder}
     pendingFuturesLimitOrder={
-  pendingFuturesLimitOrder?.mode === marketMode
+  marketMode === "COINBASE_FUTURES"
+    ? pendingCoinbaseFuturesLimitOrder
+    : marketMode === "FUTURES"
     ? pendingFuturesLimitOrder
     : null
 }
     setPendingLimitOrder={setPendingLimitOrder}
-    setPendingFuturesLimitOrder={setPendingFuturesLimitOrder}
+    setPendingFuturesLimitOrder={
+  marketMode === "COINBASE_FUTURES"
+    ? setPendingCoinbaseFuturesLimitOrder
+    : setPendingFuturesLimitOrder
+}
     setMessage={setMessage}
   />
 )}

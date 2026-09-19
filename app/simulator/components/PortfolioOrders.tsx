@@ -34,7 +34,7 @@ const activePendingOrder =
           <div className={
   marketMode === "COINBASE_FUTURES"
     ? "grid grid-cols-2 md:grid-cols-4 xl:flex xl:justify-between xl:gap-4 xl:items-start"
-    : "grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center"
+    : "grid grid-cols-2 md:grid-cols-4 xl:flex xl:justify-between xl:gap-4 xl:items-center"
 }>
 
 <div>
