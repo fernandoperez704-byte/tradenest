@@ -1,11 +1,14 @@
 "use client";
 
+
+
 type Props = { data: any };
 
 export default function TraderDevelopmentReport({ data }: Props) {
 
   const reviews = data?.reviews ?? [];
   const engines = data?.engines ?? {};
+
 
 const getTradeDate = (trade: any) => {
   const raw = trade?.createdAt ?? trade?.closedAt ?? trade?.time ?? null;
@@ -357,18 +360,19 @@ const xTicks = total
             <div key={label} className="rounded-lg border border-white/10 bg-[#0b1120] p-3">
               <p className="text-xs text-zinc-500">{label}</p>
               <div className="mt-1 flex items-end justify-between gap-2">
-<p className={`text-lg font-bold ${engineColor(String(status ?? ""))}`}>
-  {value != null ? `${Number(value).toFixed(1)}%` : "—"}
-</p>
+                <p className={`text-lg font-bold ${engineColor(String(status ?? ""))}`}>
+                  {value != null ? `${Number(value).toFixed(1)}%` : "—"}
+                </p>
 
-<p className={`text-xs font-medium ${engineColor(String(status ?? ""))}`}>
-  {status ?? "No Data"}
-</p>
+                <p className={`text-xs font-medium ${engineColor(String(status ?? ""))}`}>
+                  {status ?? "No Data"}
+                </p>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+</div>
+   
   );
 }

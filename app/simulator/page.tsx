@@ -28,11 +28,7 @@ import { useCoinbaseFuturesTopOfBook } from "./hooks/useCoinbaseFuturesTopOfBook
 import { STOCK_WATCHLIST, type StockSymbol } from "./data/stockWatchlist";
 import { useStockMarket } from "./hooks/useStockMarket";
 import { useStockTrading } from "./hooks/useStockTrading";
-import { buildTrendAnalysis } from "@/lib/traderDevelopment/trendAnalysis";
-import { buildRiskAnalysis } from "@/lib/traderDevelopment/riskAnalysis";
-import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityAnalysis";
-import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagementAnalysis";
-import { buildTimeframeAnalysis } from "@/lib/traderDevelopment/timeframeAnalysis";
+import { useTraderDevelopment } from "./hooks/useTraderDevelopment";
 
 
 import { useClerk, useUser } from "@clerk/nextjs";
@@ -701,61 +697,6 @@ const [futuresPositionManagement, setFuturesPositionManagement] =
 const [futuresHistory, setFuturesHistory] = useState<any[]>([]);
 const [tradeReviews, setTradeReviews] = useState<any[]>([]);
 
-const normalizedTradeReviews = useMemo(() => {
-  return (tradeReviews || [])
-    .map((item) => {
-      const savedReview = item?.review ?? item?.automaticReview ?? item;
-      const engine =
-        savedReview?.engine && typeof savedReview.engine === "object"
-          ? savedReview.engine
-          : null;
-
-      return {
-        ...savedReview,
-        ...(engine ?? {}),
-        engine: engine ?? savedReview?.engine,
-        snapshotId: savedReview?.snapshotId ?? item?.snapshotId,
-        createdAt: savedReview?.createdAt ?? item?.createdAt,
-        userId: savedReview?.userId ?? item?.userId,
-        mode: item?.mode ?? savedReview?.mode ?? engine?.mode ?? null,
-        coin: item?.coin ?? savedReview?.coin ?? engine?.coin ?? null,
-        leverage: item?.leverage ?? savedReview?.leverage ?? 1,
-        margin: item?.margin ?? savedReview?.margin ?? 0,
-        positionSize: item?.positionSize ?? savedReview?.positionSize ?? 0,
-        balanceAtEntry:
-          item?.balanceAtEntry ??
-          savedReview?.balanceAtEntry ??
-          savedReview?.tradeContext?.account?.balanceAtEntry ??
-          0,
-        amount: item?.amount ?? savedReview?.amount ?? 0,
-        tradeContext: item?.tradeContext ?? savedReview?.tradeContext ?? null,
-        managementReview:
-          savedReview?.management ??
-          savedReview?.managementReview ??
-          engine?.management ??
-          engine?.managementReview ??
-          null,
-      };
-    })
-    .filter((review) => {
-      const result = String(
-        review?.result ??
-        review?.outcome ??
-        review?.automaticReview?.result ??
-        ""
-      ).toUpperCase();
-
-      return result !== "" && result !== "OPEN";
-    });
-}, [tradeReviews]);
-
-const traderDevelopmentEngines = useMemo(() => ({
-  trendBias: buildTrendAnalysis(normalizedTradeReviews),
-  riskAllocation: buildRiskAnalysis(normalizedTradeReviews),
-  entryQuality: buildEntryQualityAnalysis(normalizedTradeReviews),
-  exitManagement: buildExitManagementAnalysis(normalizedTradeReviews),
-  timeframe: buildTimeframeAnalysis(normalizedTradeReviews),
-}), [normalizedTradeReviews]);
 
 const [limitPrice, setLimitPrice] = useState<number | "">("");
 const [pendingLimitOrder, setPendingLimitOrder] = useState<{
@@ -859,6 +800,31 @@ const {
   };
 },
 });
+
+const {
+  normalizedTradeReviews,
+  traderDevelopmentEngines,
+} = useTraderDevelopment({
+  tradeReviews,
+
+  onReportRequired: () => {
+    setInfoPanelContent({
+      type: "TRADER_REPORT",
+      title: "Trader Development Report",
+      subtitle: "Spot • Futures • Stocks",
+      description:
+        "Verified performance across your completed simulator trades.",
+      data: {
+        engines: traderDevelopmentEngines,
+        reviews: normalizedTradeReviews,
+        trades,
+        futuresHistory,
+        stockHistory,
+      },
+    });
+  },
+});
+
 
 useEffect(() => {
   if (!subscriptionLoaded) return;
@@ -2974,17 +2940,6 @@ time: new Date().toLocaleTimeString(),
   setTakeProfit("");
   setStopLoss("");
 
-const nextReviewedTradeCount = tradeReviews.length + 1;
-
-if (
-  nextReviewedTradeCount >= 20 &&
-  nextReviewedTradeCount % 20 === 0
-) {
-  setShowSimulatorGaby(true);
-  setAutoGabyQuestion(
-    "Generate the Trader Development Report for the user's latest completed trades."
-  );
-}
 
 }
 
@@ -3362,17 +3317,6 @@ if (user && isPaid) {
     });
   }
 
-const nextReviewedTradeCount = tradeReviews.length + 1;
-
-if (
-  nextReviewedTradeCount >= 20 &&
-  nextReviewedTradeCount % 20 === 0
-) {
-  setShowSimulatorGaby(true);
-  setAutoGabyQuestion(
-    "Generate the Trader Development Report for the user's latest completed trades."
-  );
-}
 
   return {
     sellValue,
