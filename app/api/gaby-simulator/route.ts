@@ -39,14 +39,16 @@ const userName =
   clerkUser?.username ||
   null;   
 
-    const {
-      question,
-      simulatorContext,
-      lastReviewData,
-      conversationHistory,
-      lastReferencedLevel,
-      lastTopic,
-    } = await req.json();
+const {
+  question,
+  simulatorContext,
+  lastReviewData,
+  conversationHistory,
+  lastReferencedLevel,
+  lastTopic,
+  
+} = await req.json();
+
 
 const normalizedQuestion = question?.trim().toLowerCase() || "";
 

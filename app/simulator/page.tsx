@@ -19,6 +19,7 @@ import SimulatorTour from "./components/SimulatorTour";
 import { WATCHLIST } from "./data/watchlist";
 import {
   COINBASE_FUTURES_PRODUCT_IDS,
+  COINBASE_FUTURES_CONTRACT_SIZES,
   buildCoinbaseFuturesPosition,
   clampCoinbaseFuturesLeverage,
   getCoinbaseFuturesLeverageRange,
@@ -30,7 +31,21 @@ import { STOCK_WATCHLIST, type StockSymbol } from "./data/stockWatchlist";
 import { useStockMarket } from "./hooks/useStockMarket";
 import { useStockTrading } from "./hooks/useStockTrading";
 import { useTraderDevelopment } from "./hooks/useTraderDevelopment";
+import {
+  type GabyAutoTradeMarketInput,
+  buildGabyAutoTradeDecision,
+  validateGabyAutoTradeDecision,
+  createGabyAutoTradeAccount,
+  buildGabyAutoTradePosition,
+  openGabyAutoTradePosition,
+  monitorGabyAutoTradePosition,
+  GABY_AUTO_TRADE_CONFIG,
+} from "./autoTrade/gabyAutoTrader";
 
+import {
+  saveGabyAutoTradeOpenPosition,
+  saveGabyAutoTradeClosedPosition,
+} from "./autoTrade/gabyAutoTradeStore";
 
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1251,6 +1266,34 @@ const currentEntryQuality =
       )
     : null;
     
+const gabyAutoTradeMarket: GabyAutoTradeMarketInput | null =
+  marketMode === "COINBASE_FUTURES" &&
+  currentPrice &&
+  marketIntelligence
+    ? {
+        mode: marketMode,
+        symbol: selectedSymbol,
+        price: currentPrice,
+        selectedLeverage: leverage,
+        marketIntelligence,
+        multiTimeframeAnalysis,
+        movingAverageAnalysis,
+        structureAnalysis,
+        priceLocation,
+        entryQuality: currentEntryQuality,
+      }
+    : null;
+
+const gabyAutoTradeAccountRef = useRef(
+  createGabyAutoTradeAccount()
+);
+
+const gabyAutoTradeMarketRef = useRef(gabyAutoTradeMarket);
+
+useEffect(() => {
+  gabyAutoTradeMarketRef.current = gabyAutoTradeMarket;
+}, [gabyAutoTradeMarket]);
+
   const maintenanceBuffer = 0.005;
 
 const estimatedLongLiquidation =
@@ -1728,6 +1771,58 @@ setTimeframeStructures((prev) => ({
       intelligence.momentumStage,
   },
 }));
+
+const higherTimeframeMap: Record<string, string[]> = {
+  "1M": ["5M", "15M"],
+  "5M": ["15M", "1H"],
+  "15M": ["1H", "4H"],
+  "1H": ["4H", "1D"],
+  "4H": ["1D"],
+  "1D": [],
+};
+
+const higherTimeframes =
+  higherTimeframeMap[selectedTimeframe] ?? [];
+
+for (const timeframe of higherTimeframes) {
+  const higherTimeframeUrl =
+    marketMode === "COINBASE_FUTURES"
+      ? `/api/futures-candles?symbol=${selectedCoin}&timeframe=${timeframe}&t=${Date.now()}`
+      : marketMode === "STOCKS"
+      ? `/api/stock-candles?symbol=${selectedStock}&timeframe=${timeframe}&t=${Date.now()}`
+      : `/api/candles?symbol=${selectedCoin}&timeframe=${timeframe}&t=${Date.now()}`;
+
+  const higherResponse = await fetch(
+    higherTimeframeUrl,
+    { cache: "no-store" }
+  );
+
+  const higherData = await higherResponse.json();
+
+  if (!Array.isArray(higherData)) continue;
+
+  const higherIntelligence =
+    getMarketIntelligence(higherData);
+
+  setTimeframeStructures((prev) => ({
+    ...prev,
+
+    [timeframe]: {
+      direction: higherIntelligence.direction,
+      structure: higherIntelligence.structure,
+      momentum:
+        higherIntelligence.momentumAnalysis?.momentum,
+      conviction:
+        higherIntelligence.marketConviction,
+      extension:
+        higherIntelligence.maStructureExtension,
+      bouncePressure:
+        higherIntelligence.bouncePressure,
+      momentumStage:
+        higherIntelligence.momentumStage,
+    },
+  }));
+}
 
 setCandlesReadyFor(candleKey);
     } catch (error) {

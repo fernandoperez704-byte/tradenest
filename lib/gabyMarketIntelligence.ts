@@ -938,14 +938,14 @@ export function getMultiTimeframeAnalysis(
   timeframeData: Record<string, MultiTimeframeMarketData>,
   selectedTimeframe: string
 ): MultiTimeframeAnalysis {
-  const contextMap: Record<string, string[]> = {
-    "1M": ["5M", "15M"],
-    "5M": ["1M", "15M"],
-    "15M": ["5M", "1H"],
-    "1H": ["15M", "4H"],
-    "4H": ["1H", "1D"],
-    "1D": ["4H"],
-  };
+const contextMap: Record<string, string[]> = {
+  "1M": ["5M", "15M"],
+  "5M": ["15M", "1H"],
+  "15M": ["1H", "4H"],
+  "1H": ["4H", "1D"],
+  "4H": ["1D"],
+  "1D": [],
+};
 
   const primary = timeframeData[selectedTimeframe];
   if (!primary) {
@@ -977,16 +977,33 @@ export function getMultiTimeframeAnalysis(
     else if (data.conviction && primary.conviction && data.conviction !== primary.conviction) conflictingScore += 1;
   });
 
-  let status: MultiTimeframeAnalysis["status"];
-  if (checkedTimeframes === 0) status = "CONFLICTING";
-  else if (alignedScore >= conflictingScore + 4) status = "ALIGNED";
-  else if (alignedScore > conflictingScore) status = "PARTIALLY_ALIGNED";
-  else status = "CONFLICTING";
+let status: MultiTimeframeAnalysis["status"];
 
-  let summary = "Nearby timeframes are mixed.";
-  if (status === "ALIGNED") summary = "Nearby timeframes support the current timeframe direction.";
-  if (status === "PARTIALLY_ALIGNED") summary = "Some nearby timeframes support the current direction while others disagree.";
-  if (status === "CONFLICTING") summary = "Nearby timeframes are opposing the current timeframe direction.";
+if (selectedTimeframe === "1D") {
+  status = "ALIGNED";
+} else if (checkedTimeframes === 0) {
+  status = "CONFLICTING";
+} else if (alignedScore >= conflictingScore + 4) {
+  status = "ALIGNED";
+} else if (alignedScore > conflictingScore) {
+  status = "PARTIALLY_ALIGNED";
+} else {
+  status = "CONFLICTING";
+}
+
+let summary = "Higher timeframes are mixed.";
+
+if (selectedTimeframe === "1D") {
+  summary = "1D is the highest TradeNestX timeframe, so no higher-timeframe confirmation is required.";
+} else if (checkedTimeframes === 0) {
+  summary = "Higher-timeframe data is not available yet.";
+} else if (status === "ALIGNED") {
+  summary = "Higher timeframes support the current timeframe direction.";
+} else if (status === "PARTIALLY_ALIGNED") {
+  summary = "Some higher timeframes support the current direction while others disagree.";
+} else {
+  summary = "Higher timeframes are opposing the current timeframe direction.";
+}
 
   return { status, primaryTimeframe: selectedTimeframe, supportingTimeframes: supporting, summary };
 }
