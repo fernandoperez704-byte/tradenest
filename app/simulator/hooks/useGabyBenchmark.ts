@@ -7,7 +7,7 @@ import {
   orderBy,
   query,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "../../firebase";
 
 const STARTING_BALANCE = 10_000;
 
