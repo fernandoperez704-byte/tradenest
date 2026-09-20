@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useGabyBenchmark } from "@/app/simulator/hooks/useGabyBenchmark";
 
-const ADMIN_EMAIL = "YOUR_EMAIL_HERE";
+const ADMIN_EMAIL = "fernandoperes704@gmail.com";
 
 export default function AutoTradeAdminPage() {
   const { user, isLoaded } = useUser();
