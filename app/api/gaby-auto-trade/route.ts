@@ -603,15 +603,46 @@ await db.runTransaction(
 
 }
 
+const stateRef =
+  db
+    .collection("gabyAutoTradeState")
+    .doc("v1");
+
+const lastDecision =
+  openTrade
+    ? "MONITORING_POSITION"
+    : proposedPosition
+      ? "TRADE_READY"
+      : decision?.action ?? "NO_TRADE";
+
+const lastReason =
+  openTrade
+    ? closeReason
+      ? String(closeReason)
+      : "Open position being monitored"
+    : validation?.valid
+      ? "Setup passed validation"
+      : validation?.reason ?? decision?.reason ?? "No valid trade setup";
+
+await stateRef.set(
+  {
+    lastCheck:
+      admin.firestore.FieldValue.serverTimestamp(),
+    lastDecision,
+    lastReason,
+  },
+  { merge: true }
+);
+
 return NextResponse.json({
   success: true,
   openTrade,
   currentPrice,
   closeReason,
-marketAnalysis,
-decision,
-validation,
-proposedPosition,
+  marketAnalysis,
+  decision,
+  validation,
+  proposedPosition,
 });
 
 } catch (error) {

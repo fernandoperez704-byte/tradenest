@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   collection,
+  doc,
   onSnapshot,
   orderBy,
   query,
@@ -27,6 +28,16 @@ type BenchmarkTrade = {
 export function useGabyBenchmark() {
   const [trades, setTrades] = useState<BenchmarkTrade[]>([]);
   const [loading, setLoading] = useState(true);
+
+const [autoTradeStatus, setAutoTradeStatus] = useState<{
+  lastCheck: Date | null;
+  lastDecision: string | null;
+  lastReason: string | null;
+}>({
+  lastCheck: null,
+  lastDecision: null,
+  lastReason: null,
+});
 
   useEffect(() => {
     const tradesQuery = query(
@@ -54,6 +65,22 @@ export function useGabyBenchmark() {
 
     return unsubscribe;
   }, []);
+
+useEffect(() => {
+  const stateRef = doc(db, "gabyAutoTradeState", "v1");
+
+  const unsubscribe = onSnapshot(stateRef, (snapshot) => {
+    const data = snapshot.data();
+
+    setAutoTradeStatus({
+      lastCheck: data?.lastCheck?.toDate?.() ?? null,
+      lastDecision: data?.lastDecision ?? null,
+      lastReason: data?.lastReason ?? null,
+    });
+  });
+
+  return unsubscribe;
+}, []);
 
   const closedTrades = trades.filter(
     (trade) => trade.status === "CLOSED"
@@ -98,5 +125,7 @@ export function useGabyBenchmark() {
     winRate,
 
     openTrade,
+autoTradeStatus,
+
   };
 }

@@ -42,16 +42,61 @@ export default function AutoTradeAdminPage() {
         ? "text-red-400"
         : "text-zinc-300";
 
+const lastCheck = benchmark.autoTradeStatus.lastCheck;
+
+const secondsSinceLastCheck = lastCheck
+  ? (Date.now() - lastCheck.getTime()) / 1000
+  : null;
+
+const autoTradeRunning =
+  secondsSinceLastCheck !== null && secondsSinceLastCheck < 180;
+
   return (
     <main className="min-h-screen bg-[#050816] p-4 text-white sm:p-6">
       <div className="mx-auto max-w-5xl">
         <h1 className="text-2xl font-bold">Auto Trade Benchmark</h1>
 
-        <p className="mt-1 text-sm text-zinc-400">
-          Internal TradeNestX performance monitor
-        </p>
+<p className="mt-1 text-sm text-zinc-400">
+  Internal TradeNestX performance monitor
+</p>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+<div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
+  <div className="flex items-center justify-between gap-4">
+    <h2 className="font-bold">Auto Trade Status</h2>
+
+    <p
+      className={`font-bold ${
+        autoTradeRunning ? "text-emerald-400" : "text-red-400"
+      }`}
+    >
+      {autoTradeRunning ? "RUNNING" : "STALE"}
+    </p>
+  </div>
+
+  <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+    <PositionValue
+      label="Last Check"
+      value={
+        lastCheck
+          ? lastCheck.toLocaleString()
+          : "No check recorded"
+      }
+    />
+
+    <PositionValue
+      label="Last Decision"
+      value={benchmark.autoTradeStatus.lastDecision ?? "—"}
+    />
+
+    <PositionValue
+      label="Reason"
+      value={benchmark.autoTradeStatus.lastReason ?? "—"}
+    />
+  </div>
+</div>
+
+<div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+
           <Stat
             label="Starting Balance"
             value={`$${benchmark.startingBalance.toFixed(2)}`}
