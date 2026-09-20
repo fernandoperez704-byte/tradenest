@@ -52,7 +52,7 @@ const [stockNextOpen, setStockNextOpen] = useState<string | null>(null);
 
       if (!Array.isArray(data)) throw new Error("Invalid stock price data");
 
-      const realPrices = data.reduce((acc: Partial<Record<StockSymbol, number>>, item: any) => {
+      const realPrices = data.reduce((acc: Partial<Record<StockSymbol, number>>, item: { symbol: string; price: number | string | null }) => {
         if (item.price != null) acc[item.symbol as StockSymbol] = Number(item.price);
         return acc;
       }, {});
@@ -66,10 +66,15 @@ const [stockNextOpen, setStockNextOpen] = useState<string | null>(null);
     }
   }
 
-  useEffect(() => {
-    if (!enabled) return;
+useEffect(() => {
+  if (!enabled) return;
+
+  const timer = setTimeout(() => {
     updateStockPrices();
-  }, [enabled]);
+  }, 0);
+
+  return () => clearTimeout(timer);
+}, [enabled]);
 
 useEffect(() => {
   if (!enabled) return;

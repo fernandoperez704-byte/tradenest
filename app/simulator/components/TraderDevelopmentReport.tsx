@@ -135,11 +135,16 @@ const engineColor = (status?: string) => {
   return "text-zinc-300";
 };
 
-  let cumulative = 0;
-  const pnl = trades.map((t: any, i: number) => ({
-    x: i,
-    y: cumulative += Number(t.pnl) || 0,
-  }));
+const pnl = trades.reduce(
+  (result: { x: number; y: number }[], t: any, i: number) => {
+    const previous = result[result.length - 1]?.y ?? 0;
+    result.push({ x: i, y: previous + (Number(t.pnl) || 0) });
+    return result;
+  },
+  []
+);
+
+const cumulative = pnl[pnl.length - 1]?.y ?? 0;
 
 const values = pnl.map((p) => p.y);
 const min = Math.min(0, ...values);
