@@ -18,11 +18,26 @@ import {
   type GabyAutoTradePosition,
 } from "@/app/simulator/autoTrade/gabyAutoTrader";
 
+import {
+  GABY_AUTO_TRADE_SYMBOLS,
+  rankGabyAutoTradeSetups,
+  type GabyAutoTradeScannerSymbol,
+} from "@/app/simulator/autoTrade/gabyAutoTradeScanner";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const AUTO_TRADE_SYMBOL = "BTC";
 const AUTO_TRADE_TIMEFRAME = "15M";
+
+function getCompleted15MinuteCandleKey() {
+  const nowSeconds =
+    Math.floor(Date.now() / 1000);
+
+  const currentCandleStart =
+    Math.floor(nowSeconds / 900) * 900;
+
+  return currentCandleStart - 900;
+}
 
 const AUTO_TRADE_HIGHER_TIMEFRAMES = [
   "1H",
@@ -204,15 +219,28 @@ async function getCoinbaseFuturesCandles(
     .slice(-600);
 }
 
-async function getAutoTradeMarketAnalysis() {
-  const primaryCandles =
-    await getCoinbaseFuturesCandles(
-      AUTO_TRADE_SYMBOL,
-      AUTO_TRADE_TIMEFRAME
-    );
+async function getAutoTradeMarketAnalysis(
+  symbol: string
+) {
 
-  const primaryIntelligence =
-    getMarketIntelligence(primaryCandles);
+const allPrimaryCandles =
+  await getCoinbaseFuturesCandles(
+    symbol,
+    AUTO_TRADE_TIMEFRAME
+  );
+
+const completed15mCandle =
+  getCompleted15MinuteCandleKey();
+
+const primaryCandles =
+  allPrimaryCandles.filter(
+    (candle) =>
+      Number(candle.time) / 1000 <=
+      completed15mCandle
+  );
+
+const primaryIntelligence =
+  getMarketIntelligence(primaryCandles);  
 
 const timeframeData: Record<string, any> = {
   [AUTO_TRADE_TIMEFRAME]: {
@@ -227,7 +255,7 @@ const higherTimeframeStructures: Record<string, any> = {};
 for (const timeframe of AUTO_TRADE_HIGHER_TIMEFRAMES) {
   const candles =
     await getCoinbaseFuturesCandles(
-      AUTO_TRADE_SYMBOL,
+      symbol,
       timeframe
     );
 
@@ -250,7 +278,7 @@ for (const timeframe of AUTO_TRADE_HIGHER_TIMEFRAMES) {
 
 const dailyCandles =
   await getCoinbaseFuturesCandles(
-    AUTO_TRADE_SYMBOL,
+    symbol,
     "1D"
   );
 
@@ -298,6 +326,103 @@ return {
   entryQuality,
   higherTimeframeStructures,
 };
+}
+
+async function analyzeAutoTradeSymbol(
+  symbol: GabyAutoTradeScannerSymbol
+) {
+  const marketAnalysis =
+    await getAutoTradeMarketAnalysis(symbol);
+
+  const decision =
+    buildGabyAutoTradeDecision({
+      mode: "COINBASE_FUTURES",
+      symbol,
+      price: marketAnalysis.currentPrice,
+      selectedLeverage: 1,
+
+      marketIntelligence:
+        marketAnalysis.marketIntelligence,
+
+      multiTimeframeAnalysis:
+        marketAnalysis.multiTimeframeAnalysis,
+
+      movingAverageAnalysis: null,
+      structureAnalysis: null,
+      priceLocation: null,
+
+      entryQuality:
+        marketAnalysis.entryQuality,
+
+      higherTimeframeStructures:
+        marketAnalysis.higherTimeframeStructures,
+    });
+
+  const validation =
+    validateGabyAutoTradeDecision(
+      decision,
+      GABY_AUTO_TRADE_CONFIG.startingBalance,
+      symbol,
+      1
+    );
+
+  return {
+    symbol,
+    marketAnalysis,
+    decision,
+    validation,
+  };
+}
+
+async function scanAutoTradeMarkets() {
+  const results = [];
+
+  for (const symbol of GABY_AUTO_TRADE_SYMBOLS) {
+    try {
+      const result =
+        await analyzeAutoTradeSymbol(symbol);
+
+      results.push(result);
+    } catch (error) {
+      console.error(
+        `GABY AUTO TRADE SCAN FAILED: ${symbol}`,
+        error
+      );
+    }
+  }
+
+  const rankedResults =
+    rankGabyAutoTradeSetups(
+results.map((result) => ({
+  symbol: result.symbol,
+  decision: result.decision,
+  valid: result.validation.valid,
+  entryQuality:
+    result.marketAnalysis.entryQuality,
+  alignment:
+    result.marketAnalysis
+      .multiTimeframeAnalysis.status,
+  riskRewardRatio:
+    result.decision.riskRewardRatio,
+  reason:
+    result.validation.reason ??
+    result.decision.reason,
+}))
+    );
+
+  const bestResult =
+    rankedResults[0] ?? null;
+
+  if (!bestResult) {
+    return null;
+  }
+
+  return (
+    results.find(
+      (result) =>
+        result.symbol === bestResult.symbol
+    ) ?? null
+  );
 }
 
 function getFirebaseAdmin() {
@@ -400,72 +525,76 @@ let decision = null;
 let validation = null;
 let proposedPosition: GabyAutoTradePosition | null = null;
 
-if (!openTrade) {
-  marketAnalysis =
-    await getAutoTradeMarketAnalysis();
+const stateRef =
+  db
+    .collection("gabyAutoTradeState")
+    .doc("v1");
 
-  currentPrice =
-    marketAnalysis.currentPrice;
+const stateSnapshot =
+  await stateRef.get();
 
-  decision =
-    buildGabyAutoTradeDecision({
-      mode: "COINBASE_FUTURES",
-      symbol: AUTO_TRADE_SYMBOL,
-      price: currentPrice,
-      selectedLeverage: 1,
+const lastScanned15mCandle =
+  stateSnapshot.exists
+    ? stateSnapshot.data()?.lastScanned15mCandle ?? null
+    : null;
 
-      marketIntelligence:
-        marketAnalysis.marketIntelligence,
+const completed15mCandle =
+  getCompleted15MinuteCandleKey();
 
-      multiTimeframeAnalysis:
-        marketAnalysis.multiTimeframeAnalysis,
+const shouldRunScanner =
+  !openTrade &&
+  lastScanned15mCandle !== completed15mCandle;
 
-      movingAverageAnalysis: null,
-      structureAnalysis: null,
-      priceLocation: null,
+if (shouldRunScanner) {
+  const scannerResult =
+    await scanAutoTradeMarkets();
 
-entryQuality:
-  marketAnalysis.entryQuality,
-
-higherTimeframeStructures:
-  marketAnalysis.higherTimeframeStructures,
-    });
-
-  console.log(
-    "GABY SERVER AUTO TRADE DECISION:",
-    decision
+  await stateRef.set(
+    {
+      lastScanned15mCandle:
+        completed15mCandle,
+    },
+    { merge: true }
   );
 
-validation =
-  validateGabyAutoTradeDecision(
-    decision,
-    GABY_AUTO_TRADE_CONFIG.startingBalance,
-    AUTO_TRADE_SYMBOL,
-    1
-  );
+  if (scannerResult) {
+    marketAnalysis =
+      scannerResult.marketAnalysis;
 
-console.log(
-  "GABY SERVER AUTO TRADE VALIDATION:",
-  validation
-);
+    currentPrice =
+      marketAnalysis.currentPrice;
 
-if (
-  validation.valid &&
-  validation.economics
-) {
-  proposedPosition =
-    buildGabyAutoTradePosition(
-      decision,
-      validation.economics,
-      AUTO_TRADE_SYMBOL
+    decision =
+      scannerResult.decision;
+
+    validation =
+      scannerResult.validation;
+
+    console.log(
+      "GABY SERVER AUTO TRADE SELECTED:",
+      scannerResult.symbol,
+      decision
     );
 
-  console.log(
-    "GABY SERVER AUTO TRADE PROPOSED POSITION:",
-    proposedPosition
-  );
+    if (
+      validation.valid &&
+      validation.economics
+    ) {
+      proposedPosition =
+        buildGabyAutoTradePosition(
+          decision,
+          validation.economics,
+          scannerResult.symbol
+        );
 
-if (proposedPosition) {
+      console.log(
+        "GABY SERVER AUTO TRADE PROPOSED POSITION:",
+        proposedPosition
+      );
+    }
+  }
+
+  if (proposedPosition) {
   const position = proposedPosition;
 
   const lockRef =
@@ -558,7 +687,7 @@ if (proposedPosition) {
     );
   }
 }
-}
+
 
 }
 
@@ -625,11 +754,6 @@ await db.runTransaction(
 }
 
 }
-
-const stateRef =
-  db
-    .collection("gabyAutoTradeState")
-    .doc("v1");
 
 const lastDecision =
   openTrade
