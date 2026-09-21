@@ -214,34 +214,53 @@ async function getAutoTradeMarketAnalysis() {
   const primaryIntelligence =
     getMarketIntelligence(primaryCandles);
 
-  const timeframeData: Record<string, any> = {
-    [AUTO_TRADE_TIMEFRAME]: {
-      direction: primaryIntelligence.direction,
-      momentum:
-        primaryIntelligence.momentumAnalysis?.momentum,
-      conviction:
-        primaryIntelligence.marketConviction,
-    },
+const timeframeData: Record<string, any> = {
+  [AUTO_TRADE_TIMEFRAME]: {
+    direction: primaryIntelligence.direction,
+    momentum: primaryIntelligence.momentumAnalysis?.momentum,
+    conviction: primaryIntelligence.marketConviction,
+  },
+};
+
+const higherTimeframeStructures: Record<string, any> = {};
+
+for (const timeframe of AUTO_TRADE_HIGHER_TIMEFRAMES) {
+  const candles =
+    await getCoinbaseFuturesCandles(
+      AUTO_TRADE_SYMBOL,
+      timeframe
+    );
+
+  const intelligence =
+    getMarketIntelligence(candles);
+
+  timeframeData[timeframe] = {
+    direction: intelligence.direction,
+    momentum:
+      intelligence.momentumAnalysis?.momentum,
+    conviction:
+      intelligence.marketConviction,
   };
 
-  for (const timeframe of AUTO_TRADE_HIGHER_TIMEFRAMES) {
-    const candles =
-      await getCoinbaseFuturesCandles(
-        AUTO_TRADE_SYMBOL,
-        timeframe
-      );
+  higherTimeframeStructures[timeframe] = {
+    support: intelligence.nearestSupport,
+    resistance: intelligence.nearestResistance,
+  };
+}
 
-    const intelligence =
-      getMarketIntelligence(candles);
+const dailyCandles =
+  await getCoinbaseFuturesCandles(
+    AUTO_TRADE_SYMBOL,
+    "1D"
+  );
 
-    timeframeData[timeframe] = {
-      direction: intelligence.direction,
-      momentum:
-        intelligence.momentumAnalysis?.momentum,
-      conviction:
-        intelligence.marketConviction,
-    };
-  }
+const dailyIntelligence =
+  getMarketIntelligence(dailyCandles);
+
+higherTimeframeStructures["1D"] = {
+  support: dailyIntelligence.nearestSupport,
+  resistance: dailyIntelligence.nearestResistance,
+};
 
   const multiTimeframeAnalysis =
     getMultiTimeframeAnalysis(
@@ -271,13 +290,14 @@ async function getAutoTradeMarketAnalysis() {
       primaryIntelligence.direction
     );
 
-  return {
-    currentPrice,
-    marketIntelligence:
-      primaryIntelligence,
-    multiTimeframeAnalysis,
-    entryQuality,
-  };
+return {
+  currentPrice,
+  marketIntelligence:
+    primaryIntelligence,
+  multiTimeframeAnalysis,
+  entryQuality,
+  higherTimeframeStructures,
+};
 }
 
 function getFirebaseAdmin() {
@@ -404,8 +424,11 @@ if (!openTrade) {
       structureAnalysis: null,
       priceLocation: null,
 
-      entryQuality:
-        marketAnalysis.entryQuality,
+entryQuality:
+  marketAnalysis.entryQuality,
+
+higherTimeframeStructures:
+  marketAnalysis.higherTimeframeStructures,
     });
 
   console.log(

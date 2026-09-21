@@ -76,6 +76,14 @@ export type GabyAutoTradeMarketInput = {
   structureAnalysis: any;
   priceLocation: any;
   entryQuality: any;
+
+  higherTimeframeStructures?: Record<
+    string,
+    {
+      support: any;
+      resistance: any;
+    }
+  >;
 };
 
 
@@ -94,8 +102,22 @@ export function buildGabyAutoTradeDecision(
   const alignment = multiTimeframe?.status;
 const entryQuality = market.entryQuality;
 
-const support = intelligence?.nearestSupport;
-const resistance = intelligence?.nearestResistance;
+const higherStructures =
+  market.higherTimeframeStructures ?? {};
+
+const support =
+  intelligence?.nearestSupport ??
+  higherStructures["1H"]?.support ??
+  higherStructures["4H"]?.support ??
+  higherStructures["1D"]?.support ??
+  null;
+
+const resistance =
+  intelligence?.nearestResistance ??
+  higherStructures["1H"]?.resistance ??
+  higherStructures["4H"]?.resistance ??
+  higherStructures["1D"]?.resistance ??
+  null;
 
 console.log("GABY AUTO TRADE SETUP:", {
   direction,
@@ -123,17 +145,31 @@ console.log("GABY AUTO TRADE SETUP:", {
   let stopLoss: number | null = null;
   let takeProfit: number | null = null;
 
-  if (bullishSetup && support && resistance) {
-    action = "LONG";
-    stopLoss = support.low;
-    takeProfit = resistance.low;
-  }
+if (bullishSetup && support) {
+  action = "LONG";
 
-  if (bearishSetup && support && resistance) {
-    action = "SHORT";
-    stopLoss = resistance.high;
-    takeProfit = support.high;
-  }
+  const structuralStopLoss = support.low;
+  stopLoss = structuralStopLoss;
+
+  takeProfit = resistance
+    ? resistance.low
+    : market.price +
+      (market.price - structuralStopLoss) *
+        GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio;
+}
+
+if (bearishSetup && resistance) {
+  action = "SHORT";
+
+  const structuralStopLoss = resistance.high;
+  stopLoss = structuralStopLoss;
+
+  takeProfit = support
+    ? support.high
+    : market.price -
+      (structuralStopLoss - market.price) *
+        GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio;
+}
 
   return {
     action,
