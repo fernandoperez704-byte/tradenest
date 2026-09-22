@@ -1865,6 +1865,23 @@ const productId =
     return;
   }
 
+let pageCached = false;
+
+const handlePageHide = (event: PageTransitionEvent) => {
+  if (!event.persisted) return;
+
+  pageCached = true;
+};
+
+const handlePageShow = (event: PageTransitionEvent) => {
+  if (!event.persisted) return;
+
+  window.location.reload();
+};
+
+window.addEventListener("pagehide", handlePageHide);
+window.addEventListener("pageshow", handlePageShow);
+
   const socket = new WebSocket(
     "wss://advanced-trade-ws.coinbase.com"
   );
@@ -2085,6 +2102,9 @@ socket.onclose = (event) => {
 };
 
 return () => {
+  window.removeEventListener("pagehide", handlePageHide);
+  window.removeEventListener("pageshow", handlePageShow);
+
   socket.onopen = null;
   socket.onmessage = null;
   socket.onerror = null;
@@ -2094,7 +2114,12 @@ return () => {
     socket.readyState === WebSocket.OPEN ||
     socket.readyState === WebSocket.CONNECTING
   ) {
-    socket.close(1000, "Component cleanup");
+    socket.close(
+      1000,
+      pageCached
+        ? "Page entered BFCache"
+        : "Component cleanup"
+    );
   }
 };
 
