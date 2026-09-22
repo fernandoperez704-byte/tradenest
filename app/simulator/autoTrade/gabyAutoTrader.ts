@@ -352,12 +352,35 @@ const riskBasedQuantity =
 const riskBasedNotional =
   riskBasedQuantity * decision.entryPrice;
 
-  const contracts =
-    getCoinbaseFuturesContractsFromNotional(
-      symbol,
-      riskBasedNotional,
-      decision.entryPrice
-    );
+const maxMarginAmount =
+  balance *
+  (GABY_AUTO_TRADE_CONFIG.maxMarginPercent / 100);
+
+const marginDetails =
+  getCoinbaseFuturesMarginDetails(
+    symbol,
+    riskBasedNotional,
+    1
+  );
+
+const marginBasedNotional =
+  marginDetails.marginRequired > 0
+    ? riskBasedNotional *
+      (maxMarginAmount / marginDetails.marginRequired)
+    : riskBasedNotional;
+
+const allowedNotional =
+  Math.min(
+    riskBasedNotional,
+    marginBasedNotional
+  );
+
+const contracts =
+  getCoinbaseFuturesContractsFromNotional(
+    symbol,
+    allowedNotional,
+    decision.entryPrice
+  );
 
   if (contracts < 1) {
     return null;
