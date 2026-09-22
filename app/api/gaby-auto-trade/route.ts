@@ -180,11 +180,14 @@ async function getCoinbaseFuturesCandles(
       }
     );
 
-    if (!response.ok) {
-      throw new Error(
-        "Coinbase futures candles failed"
-      );
-    }
+if (!response.ok) {
+  const errorText =
+    await response.text();
+
+  throw new Error(
+    `Coinbase futures candles failed: ${symbol} ${timeframe} ${response.status} ${errorText}`
+  );
+}
 
     const data = await response.json();
 
