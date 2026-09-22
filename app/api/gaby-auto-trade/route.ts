@@ -410,6 +410,30 @@ results.map((result) => ({
 }))
     );
 
+console.log(
+  "GABY AUTO TRADE SCANNER RESULTS:",
+  results.map((result) => ({
+    symbol: result.symbol,
+    direction:
+      result.marketAnalysis
+        .marketIntelligence.direction,
+    entryQuality:
+      result.marketAnalysis.entryQuality,
+    alignment:
+      result.marketAnalysis
+        .multiTimeframeAnalysis.status,
+    action:
+      result.decision.action,
+    valid:
+      result.validation.valid,
+    riskRewardRatio:
+      result.decision.riskRewardRatio,
+    reason:
+      result.validation.reason ??
+      result.decision.reason,
+  }))
+);
+
   const bestResult =
     rankedResults[0] ?? null;
 
