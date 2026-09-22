@@ -380,19 +380,23 @@ async function analyzeAutoTradeSymbol(
 async function scanAutoTradeMarkets() {
   const results = [];
 
-  for (const symbol of GABY_AUTO_TRADE_SYMBOLS) {
-    try {
-      const result =
-        await analyzeAutoTradeSymbol(symbol);
+for (const symbol of GABY_AUTO_TRADE_SYMBOLS) {
+  try {
+    const result =
+      await analyzeAutoTradeSymbol(symbol);
 
-      results.push(result);
-    } catch (error) {
-      console.error(
-        `GABY AUTO TRADE SCAN FAILED: ${symbol}`,
-        error
-      );
-    }
+    results.push(result);
+  } catch (error) {
+    console.error(
+      `GABY AUTO TRADE SCAN FAILED: ${symbol}`,
+      error
+    );
   }
+
+  await new Promise((resolve) =>
+    setTimeout(resolve, 500)
+  );
+}
 
   const rankedResults =
     rankGabyAutoTradeSetups(
