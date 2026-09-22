@@ -84,6 +84,8 @@ export type GabyAutoTradeMarketInput = {
       resistance: any;
     }
   >;
+dailyDirection?: string;
+
 };
 
 
@@ -98,9 +100,10 @@ export function buildGabyAutoTradeDecision(
   const intelligence = market.marketIntelligence;
   const multiTimeframe = market.multiTimeframeAnalysis;
 
-  const direction = intelligence?.direction;
-  const alignment = multiTimeframe?.status;
+const direction = intelligence?.direction;
+const alignment = multiTimeframe?.status;
 const entryQuality = market.entryQuality;
+const dailyDirection = market.dailyDirection ?? null;
 
 const higherStructures =
   market.higherTimeframeStructures ?? {};
@@ -151,11 +154,30 @@ if (bullishSetup && support) {
   const structuralStopLoss = support.low;
   stopLoss = structuralStopLoss;
 
-  takeProfit = resistance
-    ? resistance.low
-    : market.price +
-      (market.price - structuralStopLoss) *
-        GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio;
+  const minimumTakeProfit =
+    market.price +
+    (market.price - structuralStopLoss) *
+      GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio;
+
+  const resistanceCandidates = [
+    intelligence?.nearestResistance,
+    higherStructures["1H"]?.resistance,
+    higherStructures["4H"]?.resistance,
+    higherStructures["1D"]?.resistance,
+  ]
+    .filter(
+      (level) =>
+        level &&
+        level.low > market.price &&
+        level.low >= minimumTakeProfit
+    )
+    .sort(
+      (a, b) => a.low - b.low
+    );
+
+  takeProfit =
+    resistanceCandidates[0]?.low ??
+    minimumTakeProfit;
 }
 
 if (bearishSetup && resistance) {
@@ -164,11 +186,30 @@ if (bearishSetup && resistance) {
   const structuralStopLoss = resistance.high;
   stopLoss = structuralStopLoss;
 
-  takeProfit = support
-    ? support.high
-    : market.price -
-      (structuralStopLoss - market.price) *
-        GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio;
+  const minimumTakeProfit =
+    market.price -
+    (structuralStopLoss - market.price) *
+      GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio;
+
+  const supportCandidates = [
+    intelligence?.nearestSupport,
+    higherStructures["1H"]?.support,
+    higherStructures["4H"]?.support,
+    higherStructures["1D"]?.support,
+  ]
+    .filter(
+      (level) =>
+        level &&
+        level.high < market.price &&
+        level.high <= minimumTakeProfit
+    )
+    .sort(
+      (a, b) => b.high - a.high
+    );
+
+  takeProfit =
+    supportCandidates[0]?.high ??
+    minimumTakeProfit;
 }
 
   return {

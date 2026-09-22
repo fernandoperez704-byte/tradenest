@@ -328,6 +328,8 @@ return {
   multiTimeframeAnalysis,
   entryQuality,
   higherTimeframeStructures,
+  dailyDirection:
+    dailyIntelligence.direction,
 };
 }
 
@@ -359,6 +361,11 @@ async function analyzeAutoTradeSymbol(
 
       higherTimeframeStructures:
         marketAnalysis.higherTimeframeStructures,
+
+dailyDirection:
+  marketAnalysis.dailyDirection,
+
+
     });
 
   const validation =
