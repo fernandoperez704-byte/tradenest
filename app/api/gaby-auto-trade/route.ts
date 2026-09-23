@@ -330,6 +330,10 @@ return {
   higherTimeframeStructures,
   dailyDirection:
     dailyIntelligence.direction,
+  dailyMAExtension:
+    dailyIntelligence.maStructureExtension,
+  dailyMoveCondition:
+    dailyIntelligence.moveCondition,
 };
 }
 
@@ -364,6 +368,12 @@ async function analyzeAutoTradeSymbol(
 
 dailyDirection:
   marketAnalysis.dailyDirection,
+
+dailyMAExtension:
+  marketAnalysis.dailyMAExtension,
+
+dailyMoveCondition:
+  marketAnalysis.dailyMoveCondition,
 
 
     });

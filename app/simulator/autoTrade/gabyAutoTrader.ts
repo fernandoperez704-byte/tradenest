@@ -85,6 +85,8 @@ export type GabyAutoTradeMarketInput = {
     }
   >;
 dailyDirection?: string;
+dailyMAExtension?: string;
+dailyMoveCondition?: string;
 
 };
 
@@ -103,7 +105,34 @@ export function buildGabyAutoTradeDecision(
 const direction = intelligence?.direction;
 const alignment = multiTimeframe?.status;
 const entryQuality = market.entryQuality;
+
+const pattern =
+  intelligence?.patternAnalysis?.pattern ?? null;
+
+const retestZone =
+  intelligence?.patternAnalysis?.retestZone ?? null;
+
+const bullishBreakRetest =
+  pattern === "BULLISH_BREAKOUT_RETEST" &&
+  retestZone !== null;
+
+const bearishBreakRetest =
+  pattern === "BEARISH_BREAKOUT_RETEST" &&
+  retestZone !== null;
+
 const dailyDirection = market.dailyDirection ?? null;
+const dailyMAExtension =
+  market.dailyMAExtension ?? null;
+const dailyMoveCondition =
+  market.dailyMoveCondition ?? null;
+
+const dailyOverextendedLong =
+  dailyMAExtension === "EXTREME_UPSIDE" ||
+  dailyMoveCondition === "EXHAUSTED";
+
+const dailyOverextendedShort =
+  dailyMAExtension === "EXTREME_DOWNSIDE" ||
+  dailyMoveCondition === "EXHAUSTED";
 
 const higherStructures =
   market.higherTimeframeStructures ?? {};
@@ -138,20 +167,65 @@ console.log("GABY AUTO TRADE SETUP:", {
     (entryQuality === "EXCELLENT" ||
       entryQuality === "GOOD");
 
-  const bearishSetup =
-    direction === "BEARISH" &&
-    alignment !== "CONFLICTING" &&
-    (entryQuality === "EXCELLENT" ||
-      entryQuality === "GOOD");
+const bearishSetup =
+  direction === "BEARISH" &&
+  alignment !== "CONFLICTING" &&
+  (entryQuality === "EXCELLENT" ||
+    entryQuality === "GOOD");
 
-  let action: GabyAutoTradeAction = "NO_TRADE";
+const ENTRY_ZONE_TOLERANCE = 0.003; // 0.3%
+
+const supportEntryZone =
+  support &&
+  market.price >= support.low &&
+  market.price <=
+    support.high * (1 + ENTRY_ZONE_TOLERANCE);
+
+const resistanceEntryZone =
+  resistance &&
+  market.price <= resistance.high &&
+  market.price >=
+    resistance.low * (1 - ENTRY_ZONE_TOLERANCE);
+
+const dailySupport =
+  higherStructures["1D"]?.support ?? null;
+
+const dailyResistance =
+  higherStructures["1D"]?.resistance ?? null;
+
+const nearDailySupport =
+  dailySupport &&
+  market.price >=
+    dailySupport.low * (1 - ENTRY_ZONE_TOLERANCE) &&
+  market.price <=
+    dailySupport.high * (1 + ENTRY_ZONE_TOLERANCE);
+
+const nearDailyResistance =
+  dailyResistance &&
+  market.price >=
+    dailyResistance.low * (1 - ENTRY_ZONE_TOLERANCE) &&
+  market.price <=
+    dailyResistance.high * (1 + ENTRY_ZONE_TOLERANCE);
+
+let action: GabyAutoTradeAction = "NO_TRADE";
   let stopLoss: number | null = null;
   let takeProfit: number | null = null;
 
-if (bullishSetup && support) {
+if (
+  bullishSetup &&
+  (
+    (support && supportEntryZone) ||
+    bullishBreakRetest
+  ) &&
+  !nearDailyResistance &&
+  !dailyOverextendedLong
+) {
   action = "LONG";
 
-  const structuralStopLoss = support.low;
+  const structuralStopLoss =
+  bullishBreakRetest && retestZone
+    ? retestZone.low
+    : support.low;
   stopLoss = structuralStopLoss;
 
   const minimumTakeProfit =
@@ -180,10 +254,21 @@ if (bullishSetup && support) {
     minimumTakeProfit;
 }
 
-if (bearishSetup && resistance) {
+if (
+  bearishSetup &&
+  (
+    (resistance && resistanceEntryZone) ||
+    bearishBreakRetest
+  ) &&
+  !nearDailySupport &&
+  !dailyOverextendedShort
+) {
   action = "SHORT";
 
-  const structuralStopLoss = resistance.high;
+  const structuralStopLoss =
+  bearishBreakRetest && retestZone
+    ? retestZone.high
+    : resistance.high;
   stopLoss = structuralStopLoss;
 
   const minimumTakeProfit =

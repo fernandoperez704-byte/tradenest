@@ -47,6 +47,7 @@ export type PatternAnalysis = {
     | "BULLISH_CONTEXT"
     | "BEARISH_CONTEXT"
     | "NEUTRAL_CONTEXT";
+  retestZone?: PriceZone;
 };
 
 export type MomentumAnalysis = {
@@ -761,6 +762,54 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
     const previousHigh = Math.max(...previousCandles.map((c) => c.high));
     const previousLow = Math.min(...previousCandles.map((c) => c.low));
 
+const priorCandles = candles.slice(0, -1);
+
+const priorSupportZones =
+  groupZones(getSwingLows(priorCandles));
+
+const priorResistanceZones =
+  groupZones(getSwingHighs(priorCandles));
+
+const brokenResistance =
+  priorResistanceZones
+    .filter(
+      (zone) =>
+        previousCandle.close > zone.high &&
+        currentPrice >= zone.low
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(currentPrice - a.high) -
+        Math.abs(currentPrice - b.high)
+    )[0] ?? null;
+
+const brokenSupport =
+  priorSupportZones
+    .filter(
+      (zone) =>
+        previousCandle.close < zone.low &&
+        currentPrice <= zone.high
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(currentPrice - a.low) -
+        Math.abs(currentPrice - b.low)
+    )[0] ?? null;
+
+const nearBrokenResistance =
+  isPriceNearZone(
+    currentPrice,
+    brokenResistance,
+    0.003
+  );
+
+const nearBrokenSupport =
+  isPriceNearZone(
+    currentPrice,
+    brokenSupport,
+    0.003
+  );
+
     const supportMidpoint = nearestSupport ? (nearestSupport.low + nearestSupport.high) / 2 : null;
     const resistanceMidpoint = nearestResistance ? (nearestResistance.low + nearestResistance.high) / 2 : null;
 
@@ -779,12 +828,35 @@ export function getMarketIntelligence(candles: Candle[]): MarketIntelligence {
     if (nearestResistance && currentCandle.close > nearestResistance.high) {
       return { pattern: "RESISTANCE_BREAKING", bias: "BULLISH_CONTEXT", summary: "Price is breaking above resistance, increasing bullish pressure." };
     }
-    if (nearestSupport && currentPrice > nearestSupport.high && nearSupport && currentCandle.close > currentCandle.open) {
-      return { pattern: "BULLISH_BREAKOUT_RETEST", bias: "BULLISH_CONTEXT", summary: "Price broke resistance and is retesting it as support." };
-    }
-    if (nearestResistance && currentPrice < nearestResistance.low && nearResistance && currentCandle.close < currentCandle.open) {
-      return { pattern: "BEARISH_BREAKOUT_RETEST", bias: "BEARISH_CONTEXT", summary: "Price broke support and is retesting it as resistance." };
-    }
+if (
+  brokenResistance &&
+  nearBrokenResistance &&
+  currentCandle.close >= brokenResistance.high &&
+  currentCandle.close > currentCandle.open
+) {
+return {
+  pattern: "BULLISH_BREAKOUT_RETEST",
+  bias: "BULLISH_CONTEXT",
+  summary:
+    "Price broke resistance and is retesting the broken level as support.",
+  retestZone: brokenResistance,
+};
+}
+
+if (
+  brokenSupport &&
+  nearBrokenSupport &&
+  currentCandle.close <= brokenSupport.low &&
+  currentCandle.close < currentCandle.open
+) {
+return {
+  pattern: "BEARISH_BREAKOUT_RETEST",
+  bias: "BEARISH_CONTEXT",
+  summary:
+    "Price broke support and is retesting the broken level as resistance.",
+  retestZone: brokenSupport,
+};
+}
 
     const lowTolerance = previousLow > 0 ? Math.abs(recentLow - previousLow) / previousLow : 1;
     const firstThird = candles.slice(-60, -40);
