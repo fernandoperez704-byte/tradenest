@@ -89,6 +89,9 @@ useEffect(() => {
   const openTrade =
     trades.find((trade) => trade.status === "OPEN") ?? null;
 
+const lastTrade =
+  closedTrades[0] ?? null;
+
   const netPnl = closedTrades.reduce(
     (total, trade) => total + (Number(trade.netPnl) || 0),
     0
@@ -125,6 +128,7 @@ useEffect(() => {
     winRate,
 
     openTrade,
+lastTrade,
 autoTradeStatus,
 
   };

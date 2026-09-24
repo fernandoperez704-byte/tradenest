@@ -532,16 +532,17 @@ export function getMovingAverageAnalysis(
 }
 
 export function getMAStructureExtension(price: number, ma7: number, ma25: number, ma99: number): MAStructureExtension {
-  const distances = [percentDistance(price, ma7), percentDistance(price, ma25), percentDistance(price, ma99)];
-  const averageDistance = distances.reduce((sum, val) => sum + Math.abs(val), 0) / distances.length;
+  const fastDistance =
+    (Math.abs(percentDistance(price, ma7)) +
+      Math.abs(percentDistance(price, ma25))) / 2;
 
   const aboveAll = price > ma7 && price > ma25 && price > ma99;
   const belowAll = price < ma7 && price < ma25 && price < ma99;
 
-  if (belowAll && averageDistance >= 2.5) return "EXTREME_DOWNSIDE";
-  if (aboveAll && averageDistance >= 2.5) return "EXTREME_UPSIDE";
-  if (averageDistance >= 1.5) return "HIGH";
-  if (averageDistance >= 0.75) return "MODERATE";
+  if (belowAll && fastDistance >= 2.5) return "EXTREME_DOWNSIDE";
+  if (aboveAll && fastDistance >= 2.5) return "EXTREME_UPSIDE";
+  if (fastDistance >= 1.5) return "HIGH";
+  if (fastDistance >= 0.75) return "MODERATE";
   return "LOW";
 }
 

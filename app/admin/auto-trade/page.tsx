@@ -136,6 +136,50 @@ const autoTradeRunning =
         </div>
 
         <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
+          <h2 className="font-bold">Last Trade</h2>
+
+          {benchmark.lastTrade ? (
+            <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              <PositionValue
+                label="Symbol"
+                value={benchmark.lastTrade.symbol ?? "—"}
+              />
+
+              <PositionValue
+                label="Side"
+                value={benchmark.lastTrade.side ?? "—"}
+              />
+
+              <PositionValue
+                label="Result"
+                value={
+                  (benchmark.lastTrade.netPnl ?? 0) > 0
+                    ? "PROFIT"
+                    : (benchmark.lastTrade.netPnl ?? 0) < 0
+                      ? "LOSS"
+                      : "BREAKEVEN"
+                }
+              />
+
+              <PositionValue
+                label="Net P&L"
+                value={
+                  benchmark.lastTrade.netPnl != null
+                    ? `${benchmark.lastTrade.netPnl >= 0 ? "+" : "-"}$${Math.abs(
+                        benchmark.lastTrade.netPnl
+                      ).toFixed(2)}`
+                    : "—"
+                }
+              />
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-zinc-400">
+              No closed trades yet.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
           <h2 className="font-bold">Current Position</h2>
 
           {benchmark.openTrade ? (

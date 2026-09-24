@@ -49,11 +49,15 @@ export const GABY_AUTO_TRADE_CONFIG = {
 
   // Trade must offer at least $1.50 of gross reward
   // for every $1.00 of structural price risk.
-  minRiskRewardRatio: 1.5,
+minRiskRewardRatio: 1.5,
 
-  // A single position may use at most 20%
-  // of benchmark equity as required margin.
-  maxMarginPercent: 20,
+// Trade must target at least 1% net return
+// on required margin after estimated fees.
+minNetReturnOnMarginPercent: 1,
+
+// A single position may use at most 20%
+// of benchmark equity as required margin.
+maxMarginPercent: 20,
 
   maxOpenPositions: 1,
   decisionIntervalMs: 60_000,
@@ -127,12 +131,10 @@ const dailyMoveCondition =
   market.dailyMoveCondition ?? null;
 
 const dailyOverextendedLong =
-  dailyMAExtension === "EXTREME_UPSIDE" ||
-  dailyMoveCondition === "EXHAUSTED";
+  dailyMAExtension === "EXTREME_UPSIDE";
 
 const dailyOverextendedShort =
-  dailyMAExtension === "EXTREME_DOWNSIDE" ||
-  dailyMoveCondition === "EXHAUSTED";
+  dailyMAExtension === "EXTREME_DOWNSIDE";
 
 const higherStructures =
   market.higherTimeframeStructures ?? {};
@@ -222,10 +224,14 @@ if (
 ) {
   action = "LONG";
 
-  const structuralStopLoss =
+ const structuralStopLoss =
   bullishBreakRetest && retestZone
-    ? retestZone.low
-    : support.low;
+    ? Math.min(
+        retestZone.low,
+        support?.low ?? retestZone.low
+      )
+    : support.low; 
+
   stopLoss = structuralStopLoss;
 
   const minimumTakeProfit =
@@ -265,10 +271,14 @@ if (
 ) {
   action = "SHORT";
 
-  const structuralStopLoss =
+const structuralStopLoss =
   bearishBreakRetest && retestZone
-    ? retestZone.high
-    : resistance.high;
+    ? Math.max(
+        retestZone.high,
+        resistance?.high ?? retestZone.high
+      )
+    : resistance.high; 
+  
   stopLoss = structuralStopLoss;
 
   const minimumTakeProfit =
@@ -355,8 +365,10 @@ export type GabyAutoTradeEconomics = {
   estimatedExitFee: number;
   estimatedTotalFees: number;
 
-  riskRewardRatio: number;
-  riskPercent: number;
+riskRewardRatio: number;
+netRiskRewardRatio: number;
+netReturnOnMarginPercent: number;
+riskPercent: number;
 };
 
 export function calculateGabyAutoTradePriceEconomics(
@@ -559,6 +571,16 @@ export function calculateGabyAutoTradeEconomics(
   const potentialLossWithFees =
     potentialLoss + estimatedTotalFees;
 
+const netRiskRewardRatio =
+  potentialLossWithFees > 0
+    ? potentialNetProfit / potentialLossWithFees
+    : 0;
+
+const netReturnOnMarginPercent =
+  marginDetails.marginRequired > 0
+    ? (potentialNetProfit / marginDetails.marginRequired) * 100
+    : 0;
+
   const riskPercentWithFees =
     balance > 0
       ? (potentialLossWithFees / balance) * 100
@@ -601,10 +623,13 @@ export function calculateGabyAutoTradeEconomics(
     estimatedTotalFees,
     breakEvenPrice,
 
-    riskRewardRatio:
-      priceEconomics.riskRewardRatio,
+riskRewardRatio:
+  priceEconomics.riskRewardRatio,
 
-    riskPercent: sizing.riskPercent,
+netRiskRewardRatio,
+netReturnOnMarginPercent,
+
+riskPercent: sizing.riskPercent,
     riskPercentWithFees,
   };
 }
@@ -670,17 +695,29 @@ export function validateGabyAutoTradeDecision(
     };
   }
 
-  if (
-    economics.riskRewardRatio <
-    GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio
-  ) {
-    return {
-      valid: false,
-      reason: `Trade does not meet the minimum ${GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio}:1 reward-to-risk requirement.`,
-      priceEconomics,
-      economics,
-    };
-  }
+if (
+  economics.netRiskRewardRatio <
+  GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio
+) {
+  return {
+    valid: false,
+    reason: `Trade does not meet the minimum ${GABY_AUTO_TRADE_CONFIG.minRiskRewardRatio}:1 net reward-to-risk requirement after estimated fees.`,
+    priceEconomics,
+    economics,
+  };
+}
+
+if (
+  economics.netReturnOnMarginPercent <
+  GABY_AUTO_TRADE_CONFIG.minNetReturnOnMarginPercent
+) {
+  return {
+    valid: false,
+    reason: `Trade does not meet the minimum ${GABY_AUTO_TRADE_CONFIG.minNetReturnOnMarginPercent}% net return on required margin after estimated fees.`,
+    priceEconomics,
+    economics,
+  };
+}
 
   const marginPercent =
     balance > 0
