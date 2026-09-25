@@ -945,8 +945,25 @@ strongestResistance: null,
 const supportZones = groupZones(getSwingLows(recentCandles));
 const resistanceZones = groupZones(getSwingHighs(recentCandles));
 
-const supportLevels = supportZones.filter((z) => z.high < currentPrice).sort((a, b) => b.high - a.high);
-const resistanceLevels = resistanceZones.filter((z) => z.low > currentPrice).sort((a, b) => a.low - b.low);
+const STRUCTURAL_LEVEL_MIN_DISTANCE = 0.003; // 0.3%
+
+const supportLevels = supportZones
+  .filter(
+    (z) =>
+      z.high < currentPrice &&
+      (currentPrice - z.high) / currentPrice >=
+        STRUCTURAL_LEVEL_MIN_DISTANCE
+  )
+  .sort((a, b) => b.high - a.high);
+
+const resistanceLevels = resistanceZones
+  .filter(
+    (z) =>
+      z.low > currentPrice &&
+      (z.low - currentPrice) / currentPrice >=
+        STRUCTURAL_LEVEL_MIN_DISTANCE
+  )
+  .sort((a, b) => a.low - b.low);
 
 const nearestSupport = supportLevels[0] ?? null;
 const nextSupport = supportLevels[1] ?? null;
