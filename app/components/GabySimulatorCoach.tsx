@@ -1115,6 +1115,7 @@ if (!command) {
 
   recognitionRef.current = recognition;
   voiceModeRef.current = true;
+  setVoiceMode(true);
 
   try {
     recognition.start();
@@ -1355,21 +1356,20 @@ onKeyDown={(e) => {
   askGaby();
 }}
           placeholder="Ask me about the simulator or review a practice trade."
-          className="h-14 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
+          className="h-30 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
         />
 
-<div className="group relative w-full sm:w-auto">
+<div className="flex gap-2 sm:contents">
+  <div className="group relative w-[34%] sm:w-auto">
   <button
     onClick={toggleVoiceMode}
     className={`h-11 w-full rounded-xl border px-4 text-sm font-bold transition ${
       voiceMode
-        ? "border-cyan-400 bg-cyan-500 text-black"
+                  ? "border-[#ff0000] bg-[#ff0000] text-white"
         : "border-cyan-500/40 bg-[#111827] text-cyan-300 hover:border-cyan-400"
     }`}
   >
-    {voiceMode
-      ? "🎙️ Voice ON"
-      : "🎙️ Voice OFF"}
+    🎙️ Voice
   </button>
 
   <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-cyan-400/20 bg-[#020617] px-3 py-2 text-xs leading-5 text-zinc-300 shadow-xl group-hover:block">
@@ -1391,6 +1391,7 @@ onKeyDown={(e) => {
 >
   Ask
 </button>
+</div>
 
       </div>
     </div>

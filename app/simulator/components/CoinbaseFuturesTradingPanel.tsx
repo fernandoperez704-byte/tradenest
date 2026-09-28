@@ -17,10 +17,10 @@ type CoinbaseFuturesTradingPanelProps = {
   setOrderType: (value: "MARKET" | "LIMIT") => void;
   limitPrice: number | "";
   setLimitPrice: (value: number | "") => void;
-  takeProfit: number | "";
-  setTakeProfit: (value: number | "") => void;
-  stopLoss: number | "";
-  setStopLoss: (value: number | "") => void;
+  takeProfit: string;
+  setTakeProfit: (value: string) => void;
+  stopLoss: string;
+  setStopLoss: (value: string) => void;
   balance: number;
   bestBid: number | null;
   bestAsk: number | null;
@@ -81,11 +81,45 @@ const estimatedFee = notional * 0.001;
 const totalRequired = marginRequired + estimatedFee;
 
 const quantity = position?.quantity ?? 0;
-const estimatePnl = (target: number | "") => {
-  if (!currentPrice || !target || quantity <= 0) return null;
+
+const formatFuturesPrice = (price: number | null) => {
+  if (price == null) return "—";
+
+  // SHIB / PEPE
+  if (price < 0.01) {
+    return `$${price.toFixed(5)}`;
+  }
+
+  // DOGE / HBAR
+  if (price < 1) {
+    return `$${price.toFixed(5)}`;
+  }
+
+  // XRP / SUI / DOT / NEAR
+  if (price < 10) {
+    return `$${price.toFixed(4)}`;
+  }
+
+  // LINK
+  if (price < 100) {
+    return `$${price.toFixed(3)}`;
+  }
+
+  // BTC / ETH / SOL / etc.
+  return `$${price.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const estimatePnl = (target: string) => {
+  if (!currentPrice || target === "" || quantity <= 0) return null;
+
+  const targetPrice = Number(target);
+  if (!Number.isFinite(targetPrice)) return null;
 
   const direction = selectedSide === "LONG" ? 1 : -1;
-  return (Number(target) - currentPrice) * quantity * direction;
+  return (targetPrice - currentPrice) * quantity * direction;
 };
 
 const tpPnl = estimatePnl(takeProfit);
@@ -95,7 +129,7 @@ const slPnl = estimatePnl(stopLoss);
     <div className="rounded-2xl border border-zinc-700 bg-[#111827] p-4">
 <div className="flex items-center gap-2">
 <button
-  onClick={() => setMobileView("WATCHLIST")}
+  onClick={() => setMobileView("TRADE")}
   className="shrink-0 rounded-lg border border-cyan-500 px-2 py-1.5 text-xs font-black text-cyan-400 md:hidden"
 >
   ← Back
@@ -219,7 +253,7 @@ inputMode="decimal"
     <div key={String(label)} className="rounded-lg border border-zinc-700 bg-[#0f172a] p-2">
       <div className="text-zinc-500">{label}</div>
       <div className={`mt-1 font-bold ${label === "Best Bid" ? "text-green-400" : label === "Best Ask" ? "text-red-400" : "text-white"}`}>
-  {price != null ? `$${Number(price).toLocaleString()}` : "—"}
+  {formatFuturesPrice(price == null ? null : Number(price))}
 </div>
     </div>
   ))}
@@ -280,9 +314,19 @@ inputMode="decimal"
 
 <div className="mt-3 grid grid-cols-2 gap-2">
   <div>
-    <input type="text" inputMode="decimal" value={takeProfit} placeholder="Take Profit"
-      onChange={(e) => setTakeProfit(e.target.value === "" ? "" : Number(e.target.value))}
-      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-green-500 focus:outline-none" />
+    <input
+      type="text"
+      inputMode="decimal"
+      value={takeProfit}
+      placeholder="Take Profit"
+      onChange={(e) => {
+        const value = e.target.value;
+        if (value === "" || /^\d*\.?\d*$/.test(value)) {
+          setTakeProfit(value);
+        }
+      }}
+      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-green-500 focus:outline-none"
+    />
     {tpPnl != null && (
       <p className={`mt-1 text-center text-xs font-bold ${tpPnl >= 0 ? "text-green-400" : "text-red-400"}`}>
         Est. P/L {tpPnl >= 0 ? "+" : ""}${tpPnl.toFixed(2)}
@@ -291,9 +335,19 @@ inputMode="decimal"
   </div>
 
   <div>
-    <input type="text" inputMode="decimal" value={stopLoss} placeholder="Stop Loss"
-      onChange={(e) => setStopLoss(e.target.value === "" ? "" : Number(e.target.value))}
-      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-red-500 focus:outline-none" />
+    <input
+      type="text"
+      inputMode="decimal"
+      value={stopLoss}
+      placeholder="Stop Loss"
+      onChange={(e) => {
+        const value = e.target.value;
+        if (value === "" || /^\d*\.?\d*$/.test(value)) {
+          setStopLoss(value);
+        }
+      }}
+      className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-red-500 focus:outline-none"
+    />
     {slPnl != null && (
       <p className={`mt-1 text-center text-xs font-bold ${slPnl >= 0 ? "text-green-400" : "text-red-400"}`}>
         Est. P/L {slPnl >= 0 ? "+" : ""}${slPnl.toFixed(2)}
