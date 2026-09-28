@@ -17,10 +17,10 @@ type CoinbaseFuturesTradingPanelProps = {
   setOrderType: (value: "MARKET" | "LIMIT") => void;
   limitPrice: number | "";
   setLimitPrice: (value: number | "") => void;
-  takeProfit: string;
-  setTakeProfit: (value: string) => void;
-  stopLoss: string;
-  setStopLoss: (value: string) => void;
+takeProfit: number | "";
+setTakeProfit: (value: number | "") => void;
+stopLoss: number | "";
+setStopLoss: (value: number | "") => void;
   balance: number;
   bestBid: number | null;
   bestAsk: number | null;
@@ -112,12 +112,10 @@ const formatFuturesPrice = (price: number | null) => {
   })}`;
 };
 
-const estimatePnl = (target: string) => {
+const estimatePnl = (target: number | "") => {
   if (!currentPrice || target === "" || quantity <= 0) return null;
-
   const targetPrice = Number(target);
   if (!Number.isFinite(targetPrice)) return null;
-
   const direction = selectedSide === "LONG" ? 1 : -1;
   return (targetPrice - currentPrice) * quantity * direction;
 };
@@ -319,12 +317,17 @@ inputMode="decimal"
       inputMode="decimal"
       value={takeProfit}
       placeholder="Take Profit"
-      onChange={(e) => {
-        const value = e.target.value;
-        if (value === "" || /^\d*\.?\d*$/.test(value)) {
-          setTakeProfit(value);
-        }
-      }}
+onChange={(e) => {
+  const value = e.target.value;
+  if (value === "") {
+    setTakeProfit("");
+    return;
+  }
+  const numberValue = Number(value);
+  if (Number.isFinite(numberValue)) {
+    setTakeProfit(numberValue);
+  }
+}}
       className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-green-500 focus:outline-none"
     />
     {tpPnl != null && (
@@ -340,12 +343,17 @@ inputMode="decimal"
       inputMode="decimal"
       value={stopLoss}
       placeholder="Stop Loss"
-      onChange={(e) => {
-        const value = e.target.value;
-        if (value === "" || /^\d*\.?\d*$/.test(value)) {
-          setStopLoss(value);
-        }
-      }}
+onChange={(e) => {
+  const value = e.target.value;
+  if (value === "") {
+    setStopLoss("");
+    return;
+  }
+  const numberValue = Number(value);
+  if (Number.isFinite(numberValue)) {
+    setStopLoss(numberValue);
+  }
+}}
       className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-red-500 focus:outline-none"
     />
     {slPnl != null && (
