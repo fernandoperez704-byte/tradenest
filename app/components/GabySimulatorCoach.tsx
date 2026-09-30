@@ -1365,13 +1365,14 @@ onKeyDown={(e) => {
     onClick={toggleVoiceMode}
     className={`h-11 w-full rounded-xl border px-4 text-sm font-bold transition ${
       voiceMode
-                  ? "border-[#ff0000] bg-[#ff0000] text-white"
+                  ? "border-[#ff0000] bg-[#111827] text-[#ff0000]"
         : "border-cyan-500/40 bg-[#111827] text-cyan-300 hover:border-cyan-400"
     }`}
   >
     🎙️ Voice
   </button>
 
+<div className="hidden xl:block">
   <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-cyan-400/20 bg-[#020617] px-3 py-2 text-xs leading-5 text-zinc-300 shadow-xl group-hover:block">
     <span className="font-bold text-cyan-300">Voice Command:</span>{" "}
     Turn Voice ON, then start your question with{" "}
@@ -1380,6 +1381,8 @@ onKeyDown={(e) => {
     Example: “Gaby, where is the nearest support?”
   </div>
 </div>
+</div>
+
 
 <button
   onClick={() => {

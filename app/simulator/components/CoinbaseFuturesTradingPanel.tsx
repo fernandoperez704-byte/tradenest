@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   buildCoinbaseFuturesPosition,
   getCoinbaseFuturesLeverageRange,
@@ -58,6 +58,16 @@ resetAccount,
 
 const [selectedSide, setSelectedSide] =
   useState<"LONG" | "SHORT">("LONG");
+
+const [takeProfitInput, setTakeProfitInput] = useState("");
+const [stopLossInput, setStopLossInput] = useState("");
+
+useEffect(() => {
+  setTakeProfitInput("");
+  setStopLossInput("");
+  setTakeProfit("");
+  setStopLoss("");
+}, [selectedCoin, setTakeProfit, setStopLoss]);
 
 const symbol = selectedCoin as Parameters<typeof getCoinbaseFuturesLeverageRange>[0];
 const leverageRange = getCoinbaseFuturesLeverageRange(symbol);
@@ -120,8 +130,12 @@ const estimatePnl = (target: number | "") => {
   return (targetPrice - currentPrice) * quantity * direction;
 };
 
-const tpPnl = estimatePnl(takeProfit);
-const slPnl = estimatePnl(stopLoss);
+const tpPnl = estimatePnl(
+  takeProfitInput === "" ? "" : Number(takeProfitInput)
+);
+const slPnl = estimatePnl(
+  stopLossInput === "" ? "" : Number(stopLossInput)
+);
 
   return (
     <div className="rounded-2xl border border-zinc-700 bg-[#111827] p-4">
@@ -315,17 +329,36 @@ inputMode="decimal"
     <input
       type="text"
       inputMode="decimal"
-      value={takeProfit}
+      value={takeProfitInput}
       placeholder="Take Profit"
+
+      onFocus={() => {
+        if (takeProfitInput !== "" || !currentPrice) return;
+        const price =
+          selectedSide === "LONG"
+            ? currentPrice * 1.01
+            : currentPrice * 0.99;
+        const decimals =
+          currentPrice < 1 ? 5 :
+          currentPrice < 10 ? 4 :
+          currentPrice < 100 ? 3 : 2;
+        const value = price.toFixed(decimals);
+        setTakeProfitInput(value);
+        setTakeProfit(Number(value));
+      }}
+
 onChange={(e) => {
   const value = e.target.value;
-  if (value === "") {
-    setTakeProfit("");
-    return;
-  }
-  const numberValue = Number(value);
-  if (Number.isFinite(numberValue)) {
-    setTakeProfit(numberValue);
+  if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    setTakeProfitInput(value);
+    if (value === "" || value.endsWith(".")) {
+      setTakeProfit("");
+    } else {
+      const numberValue = Number(value);
+      if (Number.isFinite(numberValue)) {
+        setTakeProfit(numberValue);
+      }
+    }
   }
 }}
       className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-green-500 focus:outline-none"
@@ -341,17 +374,36 @@ onChange={(e) => {
     <input
       type="text"
       inputMode="decimal"
-      value={stopLoss}
+      value={stopLossInput}
       placeholder="Stop Loss"
+
+      onFocus={() => {
+        if (stopLossInput !== "" || !currentPrice) return;
+        const price =
+          selectedSide === "LONG"
+            ? currentPrice * 0.99
+            : currentPrice * 1.01;
+        const decimals =
+          currentPrice < 1 ? 5 :
+          currentPrice < 10 ? 4 :
+          currentPrice < 100 ? 3 : 2;
+        const value = price.toFixed(decimals);
+        setStopLossInput(value);
+        setStopLoss(Number(value));
+      }}
+
 onChange={(e) => {
   const value = e.target.value;
-  if (value === "") {
-    setStopLoss("");
-    return;
-  }
-  const numberValue = Number(value);
-  if (Number.isFinite(numberValue)) {
-    setStopLoss(numberValue);
+  if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    setStopLossInput(value);
+    if (value === "" || value.endsWith(".")) {
+      setStopLoss("");
+    } else {
+      const numberValue = Number(value);
+      if (Number.isFinite(numberValue)) {
+        setStopLoss(numberValue);
+      }
+    }
   }
 }}
       className="w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 py-2.5 text-center text-sm text-white focus:border-red-500 focus:outline-none"
