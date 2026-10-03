@@ -117,6 +117,12 @@ preferences
 
 importantContext
 - Durable trading-related context explicitly stated by the user that would materially help future coaching and does not belong in another category.
+- The user's trading experience level belongs here.
+- When the user states their trading experience, save it as a short standardized memory whenever possible.
+- Use "Trading experience: NEW" when the user says they are new, a beginner, just starting, have no experience, or gives an equivalent answer.
+- Use "Trading experience: SOME" when the user says they have some experience, know the basics, have traded a little, or gives an equivalent answer.
+- Use "Trading experience: EXPERIENCED" when the user says they are experienced, advanced, comfortable with trading concepts, have traded for years, or gives an equivalent answer.
+- If an existing "Trading experience:" memory is present and the user clearly gives a different current experience level, UPDATE that existing memory instead of adding another one.
 
 NEVER SAVE:
 

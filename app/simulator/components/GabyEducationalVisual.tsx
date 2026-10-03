@@ -1,5 +1,5 @@
 "use client";
-
+import GabyCandlestickVisual from "./GabyCandlestickVisual";
 type Props = {
   type: string;
   example?: string;
@@ -17,29 +17,27 @@ const VisualShell = ({
   </div>
 );
 
-const Legend = ({
-  items,
-}: {
-  items: { label: string; meaning: string; className: string }[];
-}) => (
-  <div className="mt-3 flex flex-wrap gap-2">
-    {items.map((item) => (
-      <div
-        key={item.label}
-        className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs text-zinc-400"
-      >
-        <strong className={item.className}>{item.label}</strong>
-        <span className="ml-1.5">= {item.meaning}</span>
-      </div>
-    ))}
-  </div>
-);
 
 export default function GabyEducationalVisual({
   type,
   example,
 }: Props) {
   const visual = example || type;
+
+  const candlestickVisuals = [
+    "CANDLE_BASICS",
+    "BULLISH_CANDLE",
+    "BEARISH_CANDLE",
+    "DOJI",
+    "HAMMER",
+    "SHOOTING_STAR",
+    "ENGULFING_BULLISH",
+    "ENGULFING_BEARISH",
+  ];
+
+  if (candlestickVisuals.includes(visual)) {
+    return <GabyCandlestickVisual type={visual} />;
+  }
 
   if (visual === "UPTREND") {
     return (
@@ -99,12 +97,7 @@ export default function GabyEducationalVisual({
           </text>
         </svg>
 
-        <Legend
-          items={[
-            { label: "HH", meaning: "Higher High", className: "text-cyan-300" },
-            { label: "HL", meaning: "Higher Low", className: "text-emerald-300" },
-          ]}
-        />
+
       </VisualShell>
     );
   }
@@ -150,12 +143,7 @@ export default function GabyEducationalVisual({
 
         </svg>
 
-        <Legend
-          items={[
-            { label: "LH", meaning: "Lower High", className: "text-amber-300" },
-            { label: "LL", meaning: "Lower Low", className: "text-rose-300" },
-          ]}
-        />
+
       </VisualShell>
     );
   }
@@ -190,12 +178,7 @@ export default function GabyEducationalVisual({
           </text>
         </svg>
 
-        <Legend
-          items={[
-            { label: "Resistance", meaning: "Area where selling pressure may appear", className: "text-rose-300" },
-            { label: "Support", meaning: "Area where buying pressure may appear", className: "text-emerald-300" },
-          ]}
-        />
+
       </VisualShell>
     );
   }
@@ -262,28 +245,18 @@ export default function GabyEducationalVisual({
     );
   }
 
-  if (visual === "BREAKOUT" || visual === "BREAKOUT_RETEST") {
-    const retest = visual === "BREAKOUT_RETEST";
-
+  if (visual === "BREAKOUT") {
     return (
       <VisualShell
-        title={retest ? "Breakout & Retest" : "Breakout"}
-        subtitle={
-          retest
-            ? "Price breaks resistance, returns to test it, then continues higher."
-            : "Price pushes decisively above resistance."
-        }
+        title="Breakout"
+        subtitle="Price breaks through resistance and establishes acceptance above it."
       >
-        <svg viewBox="0 0 760 330" className="h-auto w-full" role="img">
-          <rect x="45" y="175" width="670" height="34" rx="8" fill="#ef4444" opacity="0.12" />
-          <line x1="45" y1="192" x2="715" y2="192" stroke="#fb7185" strokeWidth="3" strokeDasharray="10 7" />
+        <svg viewBox="0 0 760 360" className="h-auto w-full" role="img">
+          <rect x="45" y="190" width="670" height="36" rx="8" fill="#ef4444" opacity="0.12" />
+          <line x1="45" y1="208" x2="715" y2="208" stroke="#fb7185" strokeWidth="3" strokeDasharray="10 7" />
 
           <polyline
-            points={
-              retest
-                ? "55,270 145,220 235,250 325,205 405,225 475,145 535,190 600,115 705,55"
-                : "55,270 145,220 235,250 325,205 405,225 485,140 590,90 705,45"
-            }
+            points="55,295 125,245 190,270 255,215 315,260 375,205 425,240 475,165 525,130 585,105 650,75 705,45"
             fill="none"
             stroke="#22d3ee"
             strokeWidth="4"
@@ -291,26 +264,154 @@ export default function GabyEducationalVisual({
             strokeLinejoin="round"
           />
 
-          <text x="60" y="170" fill="#fda4af" fontSize="16" fontWeight="700">
+          <circle cx="255" cy="215" r="7" fill="#fb7185" />
+          <circle cx="375" cy="205" r="7" fill="#fb7185" />
+
+          <text x="65" y="180" fill="#fda4af" fontSize="16" fontWeight="700">
+            RESISTANCE ZONE
+          </text>
+
+          <text x="255" y="195" textAnchor="middle" fill="#fda4af" fontSize="14" fontWeight="700">
+            REJECTION
+          </text>
+
+          <text x="375" y="185" textAnchor="middle" fill="#fda4af" fontSize="14" fontWeight="700">
+            REJECTION
+          </text>
+
+          <circle cx="455" cy="195" r="8" fill="#22d3ee" />
+
+          <text x="455" y="260" textAnchor="middle" fill="#67e8f9" fontSize="16" fontWeight="700">
+            BREAKS RESISTANCE
+          </text>
+
+          <circle cx="525" cy="130" r="8" fill="#34d399" />
+
+          <text x="525" y="105" textAnchor="middle" fill="#6ee7b7" fontSize="16" fontWeight="700">
+            ACCEPTANCE ABOVE
+          </text>
+
+          <path d="M585 150 L585 112" stroke="#34d399" strokeWidth="3" />
+          <path d="M575 123 L585 108 L595 123" fill="none" stroke="#34d399" strokeWidth="3" />
+
+          <text x="610" y="155" fill="#6ee7b7" fontSize="16" fontWeight="700">
+            CONTINUATION
+          </text>
+
+          <text x="380" y="335" textAnchor="middle" fill="#94a3b8" fontSize="14">
+            Rejection → Break → Acceptance → Continuation
+          </text>
+        </svg>
+
+
+      </VisualShell>
+    );
+  }
+
+  if (visual === "BREAKOUT_RETEST") {
+    return (
+      <VisualShell
+        title="Breakout & Retest"
+        subtitle="Price breaks resistance, returns to the broken area, then reacts from it."
+      >
+        <svg viewBox="0 0 760 350" className="h-auto w-full" role="img">
+          <rect x="45" y="185" width="670" height="36" rx="8" fill="#ef4444" opacity="0.12" />
+          <line x1="45" y1="203" x2="715" y2="203" stroke="#fb7185" strokeWidth="3" strokeDasharray="10 7" />
+
+          <polyline
+            points="55,285 135,235 215,265 300,210 380,240 455,145 515,195 575,125 640,85 705,50"
+            fill="none"
+            stroke="#22d3ee"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          <text x="65" y="175" fill="#fda4af" fontSize="16" fontWeight="700">
             OLD RESISTANCE
           </text>
 
-          <text x="465" y="125" fill="#67e8f9" fontSize="17" fontWeight="700">
+          <circle cx="430" cy="177" r="8" fill="#22d3ee" />
+
+          <text x="430" y="135" textAnchor="middle" fill="#67e8f9" fontSize="17" fontWeight="700">
             BREAKOUT
           </text>
 
-          {retest && (
-            <>
-              <circle cx="535" cy="190" r="8" fill="#34d399" />
-              <text x="535" y="225" textAnchor="middle" fill="#6ee7b7" fontSize="17" fontWeight="700">
-                RETEST
-              </text>
-              <text x="535" y="280" textAnchor="middle" fill="#6ee7b7" fontSize="15">
-                Old resistance can become support
-              </text>
-            </>
-          )}
+          <circle cx="515" cy="195" r="8" fill="#34d399" />
+
+          <text x="515" y="245" textAnchor="middle" fill="#6ee7b7" fontSize="17" fontWeight="700">
+            RETEST
+          </text>
+
+          <text x="515" y="275" textAnchor="middle" fill="#6ee7b7" fontSize="14">
+            Old resistance may act as support
+          </text>
+
+          <path d="M590 165 L590 125" stroke="#34d399" strokeWidth="3" />
+          <path d="M580 136 L590 121 L600 136" fill="none" stroke="#34d399" strokeWidth="3" />
+
+          <text x="615" y="165" fill="#6ee7b7" fontSize="16" fontWeight="700">
+            CONTINUATION
+          </text>
+
+          <text x="380" y="330" textAnchor="middle" fill="#94a3b8" fontSize="14">
+            Breakout → Retest → Reaction → Continuation
+          </text>
         </svg>
+      </VisualShell>
+    );
+  }
+
+  if (visual === "FAILED_BREAKOUT") {
+    return (
+      <VisualShell
+        title="Failed Breakout"
+        subtitle="Price moves above resistance but fails to maintain acceptance above it."
+      >
+        <svg viewBox="0 0 760 360" className="h-auto w-full" role="img">
+          <rect x="45" y="190" width="670" height="36" rx="8" fill="#ef4444" opacity="0.12" />
+          <line x1="45" y1="208" x2="715" y2="208" stroke="#fb7185" strokeWidth="3" strokeDasharray="10 7" />
+
+          <polyline
+            points="55,295 130,250 205,275 280,220 350,255 420,205 475,145 525,115 565,165 610,220 660,255 705,285"
+            fill="none"
+            stroke="#22d3ee"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          <text x="65" y="180" fill="#fda4af" fontSize="16" fontWeight="700">
+            RESISTANCE ZONE
+          </text>
+
+          <circle cx="475" cy="145" r="8" fill="#22d3ee" />
+
+          <text x="455" y="115" textAnchor="middle" fill="#67e8f9" fontSize="16" fontWeight="700">
+            BREAKOUT ATTEMPT
+          </text>
+
+          <circle cx="525" cy="115" r="8" fill="#f59e0b" />
+
+          <text x="555" y="85" textAnchor="middle" fill="#fbbf24" fontSize="16" fontWeight="700">
+            CANNOT HOLD ABOVE
+          </text>
+
+          <circle cx="610" cy="220" r="8" fill="#fb7185" />
+
+          <text x="610" y="255" textAnchor="middle" fill="#fda4af" fontSize="16" fontWeight="700">
+            BACK BELOW
+          </text>
+
+          <path d="M650 225 L650 265" stroke="#f43f5e" strokeWidth="3" />
+          <path d="M640 254 L650 269 L660 254" fill="none" stroke="#f43f5e" strokeWidth="3" />
+
+          <text x="380" y="335" textAnchor="middle" fill="#94a3b8" fontSize="14">
+            Breakout attempt → Failure to hold → Return below resistance
+          </text>
+        </svg>
+
+
       </VisualShell>
     );
   }
@@ -583,4 +684,5 @@ export default function GabyEducationalVisual({
   }
 
   return null;
+
 }

@@ -60,6 +60,7 @@ const {
   conversationState,
   marketAnalysisSummary,
   traderDevelopmentEngines,
+  personalizedReviewFacts,
   traderReportFacts,
   ...marketFacts
 } = simulatorContext || {};
@@ -723,7 +724,10 @@ const isMarketAnalysisQuestion =
   normalizedQuestion.includes("analyze btc") ||
   normalizedQuestion.includes("analyze bitcoin");
 
-if (isMarketAnalysisQuestion) {
+if (
+  isMarketAnalysisQuestion &&
+  conversationIntent === "MARKET_ANALYSIS"
+) {
 const direction = marketFacts.marketDirection;
 const structure = marketFacts.structure;
 const detectedTrendline = marketFacts.detectedTrendline;
@@ -1095,7 +1099,14 @@ ANSWER RULES:
 - Keep the answer natural, concise, and under 80 words.
 `;
 
+
     // Standard comprehensive fallback layout
+
+const includeCurrentMarketContext =
+  conversationIntent === "MARKET_ANALYSIS" ||
+  conversationIntent === "CURRENT_POSITION" ||
+  conversationIntent === "FOLLOW_UP";
+
     const userPrompt = `
 User Question:
 ${question}
@@ -1119,7 +1130,14 @@ General Answer Rules:
 - Only discuss RSI, momentum, volume, support, resistance, structure, patterns, or other indicators when the user's question specifically requires them.
 - For a simple current-market follow-up, answer the specific question first and keep the explanation focused on the market fact most directly relevant to it.
 - Use the Latest Reviewed Trade Facts only when the user is referring to their reviewed trade.
-- Use the Trader Development Report only when the user asks about their trading performance or multiple trades.
+- Use Personalized Reviewed Trade Facts when the user asks why their own entries, exits, trades, or results are succeeding or failing, or asks about a specific subset of their reviewed trades.
+- For those personalized questions, diagnose only from the matching deterministic reviewed-trade facts. Do not substitute aggregate Trader Development statistics for facts about that subset.
+- Use the Trader Development Report, Trader Development Engine Facts, and Verified Trader Report Facts when the user asks about their aggregate trading performance or recurring behavior.
+- When the user states a condition or premise about their own trade or a subset of their trades, treat that premise as the scope of the question unless deterministic TradeNestX data for that same trade or subset directly contradicts it.
+- Do not use an aggregate performance statistic to claim that a specific trade or subset had a characteristic that the aggregate statistic does not establish.
+- Filter Personalized Reviewed Trade Facts conceptually to the subset described by the user's question before drawing a personalized conclusion. For example, if the user explicitly describes trades as aligned with the market direction, use reviewed trades whose deterministic trendAligned value is true when evaluating that scoped question.
+- After identifying supported weaknesses in that subset, explain those personalized findings first, then provide a structured educational guideline for what the trader should understand or examine. If the matching reviewed trades do not provide enough evidence for a user-specific cause, say so instead of borrowing a cause from unrelated trades or aggregate statistics.
+- Clearly distinguish personalized conclusions supported by TradeNestX data from general trading education. Never invent a user-specific cause.
 - Use the Conversation History to continue natural follow-up conversations.
 
 - Use the Market Analysis Summary only when it is relevant to the user's question.
@@ -1159,10 +1177,10 @@ Long-Term Memory Rules:
 - A learnedConcept describes something the user has said they learned. Do not assume mastery beyond what the memory states.
 
 Market Analysis Summary:
-${marketAnalysisSummary || "NONE"}
+${includeCurrentMarketContext ? marketAnalysisSummary || "NONE" : "NONE"}
 
 Current Market Facts:
-${JSON.stringify(
+${includeCurrentMarketContext ? JSON.stringify(
   {
     selectedCoin: marketFacts.selectedCoin,
     selectedTimeframe: marketFacts.selectedTimeframe,
@@ -1198,7 +1216,7 @@ marketConviction: marketFacts.marketConviction,
   },
   null,
   2
-)}
+) : "NONE"}
 
 Latest Reviewed Trade Facts:
 ${
@@ -1207,12 +1225,21 @@ ${
     : "NONE"
 }
 
+
 Trader Development Engine Facts:
 ${
   traderDevelopmentEngines
     ? JSON.stringify(traderDevelopmentEngines, null, 2)
     : "NONE"
 }
+
+Personalized Reviewed Trade Facts:
+${
+  Array.isArray(personalizedReviewFacts) && personalizedReviewFacts.length > 0
+    ? JSON.stringify(personalizedReviewFacts, null, 2)
+    : "NONE"
+}
+
 
 Verified Trader Report Facts:
 ${
@@ -1306,6 +1333,8 @@ Return ONLY valid JSON in this shape:
 }
 
 Info Panel rules:
+- If conversationIntent is PERSONALIZED_COACHING, keep panelCommand action NONE unless the user explicitly asks for a visual, diagram, structured explanation, or educational example.
+- Do not open an educational panel merely because a personalized coaching answer discusses market direction, structure, entry quality, support, resistance, risk, or another teachable trading concept.
 - Use panelCommand when the user's question would be clearer or more educational as structured information in the Info Panel.
 - Use MARKET_INFO for general educational information, asset education, company or coin overviews, trading concepts, and structured explanations.
 - Examples include: "teach me about Bitcoin", "what should I know about BTC", "explain proof of work", or future stock/company educational overviews.
@@ -1332,8 +1361,9 @@ SUPPORTED EDUCATIONAL VISUALS:
 - SUPPORT: teaching how support works or how support is identified conceptually.
 - RESISTANCE: teaching how resistance works or how resistance is identified conceptually.
 - SUPPORT_RESISTANCE: teaching or comparing support and resistance together.
-- BREAKOUT: price breaking above resistance.
-- BREAKOUT_RETEST: bullish breakout followed by a retest of the broken level.
+- BREAKOUT: teaching a bullish breakout through resistance. Explain that price first encounters an established resistance area, then pushes through it. Distinguish the breakout attempt from confirmation: a wick or brief move above resistance alone does not necessarily establish a confirmed breakout. Confirmation is stronger when price closes or shows acceptance above the broken resistance area. Continuation above the level can further support the breakout.
+- BREAKOUT_RETEST: teaching what happens after a bullish breakout when price returns to the broken resistance area. Explain the sequence as resistance -> breakout -> acceptance above -> return to the broken area -> possible support reaction -> possible continuation. A retest happens after the breakout; it is not the breakout itself.
+- FAILED_BREAKOUT: teaching a bullish breakout attempt that does not hold above resistance. Explain the sequence as resistance -> push above resistance -> failure to maintain acceptance above -> return below resistance. Distinguish a failed breakout from a successful breakout and from a normal breakout retest.
 - BREAKDOWN: price breaking below support.
 - BREAKDOWN_RETEST: bearish breakdown followed by a retest of the broken level.
 - TRENDLINE_UP: rising trendline or rising dynamic support.
@@ -1349,6 +1379,15 @@ SUPPORTED EDUCATIONAL VISUALS:
 - TAKE_PROFIT_LONG: teaching take-profit placement conceptually for a long position.
 - TAKE_PROFIT_SHORT: teaching take-profit placement conceptually for a short position.
 - RISK_REWARD: teaching the relationship between entry, stop loss, risk, target, and reward.
+- CANDLE_BASICS: teaching candlestick anatomy. Explain that the real body represents the distance between open and close, while the upper and lower wicks show price movement beyond the body toward the candle's high and low.
+- BULLISH_CANDLE: teaching a bullish candlestick. Explain that a bullish candle closes above its open. This describes what happened during that candle and does not by itself predict that price will continue higher.
+- BEARISH_CANDLE: teaching a bearish candlestick. Explain that a bearish candle closes below its open. This describes what happened during that candle and does not by itself predict that price will continue lower.
+- DOJI: teaching a doji candlestick. Explain that the open and close are at or very near the same price, producing a very small real body. A doji can reflect temporary balance or indecision between buyers and sellers, but its meaning depends on context and it is not automatically a reversal signal.
+- HAMMER: teaching the hammer candlestick shape. Explain that a hammer has a small real body near the top of its range, a long lower wick, and little or no upper wick. The lower wick shows rejection from lower prices during that candle. Context matters, and a hammer is not automatically a buy or reversal signal.
+- SHOOTING_STAR: teaching the shooting star candlestick shape. Explain that a shooting star has a small real body near the bottom of its range, a long upper wick, and little or no lower wick. The upper wick shows rejection from higher prices during that candle. Context matters, and a shooting star is not automatically a sell or reversal signal.
+- ENGULFING_BULLISH: teaching a bullish engulfing pattern. Explain that it is a two-candle pattern where the second candle is bullish and its real body engulfs the real body of the previous bearish candle. Explain the pattern conceptually without treating it as an automatic reversal or buy signal.
+- ENGULFING_BEARISH: teaching a bearish engulfing pattern. Explain that it is a two-candle pattern where the second candle is bearish and its real body engulfs the real body of the previous bullish candle. Explain the pattern conceptually without treating it as an automatic reversal or sell signal.
+
 
 VISUAL OUTPUT FORMAT:
 "visual": {
@@ -1365,7 +1404,12 @@ AUTOMATIC VISUAL EXAMPLES:
 - "What is resistance?" -> RESISTANCE
 - "Explain support and resistance." -> SUPPORT_RESISTANCE
 - "What is a breakout?" -> BREAKOUT
+- "How does a breakout work?" -> BREAKOUT
+- "How do I know if a breakout is confirmed?" -> BREAKOUT
 - "What is a breakout retest?" -> BREAKOUT_RETEST
+- "Why does price come back after a breakout?" -> BREAKOUT_RETEST
+- "What is a failed breakout?" -> FAILED_BREAKOUT
+- "Why did price break resistance and then fall back below it?" -> FAILED_BREAKOUT
 - "What happens when support breaks?" -> BREAKDOWN
 - "What is a breakdown retest?" -> BREAKDOWN_RETEST
 - "Explain a rising trendline." -> TRENDLINE_UP
@@ -1381,12 +1425,31 @@ AUTOMATIC VISUAL EXAMPLES:
 - "Where is take profit on a long?" -> TAKE_PROFIT_LONG
 - "Where is take profit on a short?" -> TAKE_PROFIT_SHORT
 - "Explain risk/reward." -> RISK_REWARD
+- "What is a candlestick?" -> CANDLE_BASICS
+- "How does a candlestick work?" -> CANDLE_BASICS
+- "What do the body and wicks mean on a candle?" -> CANDLE_BASICS
+- "What is a bullish candle?" -> BULLISH_CANDLE
+- "What does a green candle mean?" -> BULLISH_CANDLE
+- "What is a bearish candle?" -> BEARISH_CANDLE
+- "What does a red candle mean?" -> BEARISH_CANDLE
+- "What is a doji?" -> DOJI
+- "What does a doji candle mean?" -> DOJI
+- "What is a hammer candle?" -> HAMMER
+- "What does a hammer candlestick look like?" -> HAMMER
+- "What is a shooting star candle?" -> SHOOTING_STAR
+- "What does a shooting star candlestick look like?" -> SHOOTING_STAR
+- "What is a bullish engulfing pattern?" -> ENGULFING_BULLISH
+- "What does bullish engulfing mean?" -> ENGULFING_BULLISH
+- "What is a bearish engulfing pattern?" -> ENGULFING_BEARISH
+- "What does bearish engulfing mean?" -> ENGULFING_BEARISH
 - panelCommand does not replace Gaby's normal answer. Gaby should still give a short natural chat response explaining what she opened or highlighting the main concept.
 - If no panel is useful, return action NONE.
 - Do not invent current market facts inside educational panel content.
 - Current prices, support, resistance, indicators, market direction, or other live simulator facts must still come only from supplied TradeNestX engine facts.
 
 Chart command meanings:
+- If conversationIntent is PERSONALIZED_COACHING, return chartCommand action NONE unless the user explicitly asks to show, highlight, pin, remove, or clear something on the chart.
+- Do not change the chart merely because a personalized coaching answer discusses direction, structure, support, resistance, entries, exits, or other market concepts.
 - SHOW = display the requested chart item.
 - PIN = leave the requested chart item displayed.
 - REMOVE = remove the requested chart item.

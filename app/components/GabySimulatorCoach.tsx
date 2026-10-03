@@ -435,9 +435,7 @@ if (
   text.includes("review my trade") ||
   text.includes("review my last trade") ||
   text.includes("last trade") ||
-  text.includes("my trade") ||
-  text.includes("my entry") ||
-  text.includes("my exit")
+  text.includes("my last trade")
 ) {
   return "TRADE_REVIEW";
 }
@@ -484,6 +482,15 @@ if (
   return "SIGNAL_REQUEST";
 }
 
+const isPersonalizedTradingQuestion =
+  /\b(my|i|i'm|im)\b/.test(text) &&
+  /\b(entries|entry|exits|exit|trades|results|risk|management|execution)\b/.test(text) &&
+  /\b(why|failing|fail|failed|working|work|weak|weakness|problem|problems|improve|improving)\b/.test(text);
+
+if (isPersonalizedTradingQuestion) {
+  return "PERSONALIZED_COACHING";
+}
+
     const followUps = [
       "why",
       "how",
@@ -505,17 +512,6 @@ if (
 ) {
   return "FOLLOW_UP";
 }
-
-    if (
-      text.includes("btc") ||
-      text.includes("bullish") ||
-      text.includes("bearish") ||
-      text.includes("support") ||
-      text.includes("resistance") ||
-      text.includes("pattern")
-    ) {
-      return "MARKET_ANALYSIS";
-    }
 
     return "GENERAL_QUESTION";
   }
@@ -539,8 +535,8 @@ if (
 
     if (text.includes("volume")) return "VOLUME";
     if (text.includes("momentum")) return "MOMENTUM";
-if (text.includes("support")) return "SUPPORT";
-if (text.includes("resistance")) return "RESISTANCE";
+if (/\bsupport\b/.test(text)) return "SUPPORT";
+if (/\bresistance\b/.test(text)) return "RESISTANCE";
 
 if (
   text.includes("direction") ||
@@ -573,6 +569,31 @@ return null;
   }
 
   // Shared single-source filtering method for extracting the target trade context
+
+function buildPersonalizedReviewFacts() {
+  return (normalizedTradeReviews ?? []).slice(0, 50).map((review: any) => ({
+    result: review?.result ?? null,
+    side: review?.side ?? null,
+    trendAligned: review?.trendAligned ?? null,
+    marketDirection: review?.marketAtEntry?.marketDirection ?? null,
+    marketStructure: review?.marketAtEntry?.marketStructure ?? null,
+    priceLocation: review?.priceLocation ?? null,
+    entryQuality: review?.entryQuality ?? null,
+    entryReviewQuality: review?.entry?.quality ?? null,
+    entryStrengths: review?.entry?.strengths ?? [],
+    entryWeaknesses: review?.entry?.weaknesses ?? [],
+    entryLesson: review?.entry?.lesson ?? null,
+    riskLevel: review?.riskLevel ?? null,
+    riskRating: review?.riskReview?.rating ?? null,
+    riskExplanation: review?.riskReview?.explanation ?? null,
+    managementQuality: review?.management?.managementQuality ?? null,
+    managementLesson: review?.management?.lesson ?? null,
+    exitQuality: review?.exit?.exitQuality ?? null,
+    exitLesson: review?.exit?.lesson ?? null,
+    primaryWeakness: review?.primaryWeakness ?? null,
+    mainLesson: review?.mainLesson ?? null,
+  }));
+}
 
 function buildTraderReportFacts() {
   const getDate = (t: any) => {
@@ -927,10 +948,14 @@ reviewSnapshot =
   null;
     }
     
-let conversationSubject = getConversationSubject(finalQuestion);
+let conversationSubject =
+  conversationIntent === "PERSONALIZED_COACHING"
+    ? null
+    : getConversationSubject(finalQuestion);
 
 
-if (
+  if (
+  conversationIntent !== "PERSONALIZED_COACHING" &&
   conversationState.awaitingFollowUp &&
   conversationState.subject &&
   (
@@ -939,10 +964,14 @@ if (
   )
 ) {
   conversationSubject = conversationState.subject;
-}   
+} 
 
-// Give GPT explicit context.
-if (conversationSubject) {
+// Give GPT explicit context only for a real conversation follow-up.
+if (
+  conversationSubject &&
+  conversationState.awaitingFollowUp &&
+  conversationState.subject
+) {
   finalQuestion = `${finalQuestion}
 
 Context: Continue discussing ${conversationSubject}.`;
@@ -1038,7 +1067,7 @@ simulatorContext: {
   lastTopic: currentTopic,
 
 traderDevelopmentEngines,
-normalizedTradeReviews,
+personalizedReviewFacts: buildPersonalizedReviewFacts(),
 traderReportFacts: buildTraderReportFacts(),
 
 mode,
@@ -1099,13 +1128,15 @@ const gabyAnswer =
 setAnswer(gabyAnswer);
 setUpgradeRequired(Boolean(data.upgradeRequired));
 
-if (
-  data.chartCommand &&
-  data.chartCommand.action !== "NONE"
-) {
-  onChartCommand?.(data.chartCommand);
-} else {
-  onAnalysisComplete?.(conversationSubject);
+if (conversationIntent !== "PERSONALIZED_COACHING") {
+  if (
+    data.chartCommand &&
+    data.chartCommand.action !== "NONE"
+  ) {
+    onChartCommand?.(data.chartCommand);
+  } else {
+    onAnalysisComplete?.(conversationSubject);
+  }
 }
 
 if (
