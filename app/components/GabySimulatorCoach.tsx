@@ -160,6 +160,31 @@ const [voiceMode, setVoiceMode] = useState(false);
 const recognitionRef = useRef<any>(null);
 const voiceModeRef = useRef(false);
 
+type GabyLongTermMemory = {
+  goals: string[];
+  strategies: string[];
+  recurringIssues: string[];
+  learnedConcepts: string[];
+  preferences: string[];
+  importantContext: string[];
+};
+
+type GabyMemoryAction = {
+  action: "ADD" | "UPDATE" | "REMOVE" | "NONE";
+  category: keyof GabyLongTermMemory | null;
+  value: string | null;
+  oldValue: string | null;
+};
+
+const [longTermMemory, setLongTermMemory] = useState<GabyLongTermMemory>({
+  goals: [],
+  strategies: [],
+  recurringIssues: [],
+  learnedConcepts: [],
+  preferences: [],
+  importantContext: [],
+});
+
 const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
   const [lastTopic, setLastTopic] = useState<string | null>(null);
@@ -191,6 +216,29 @@ useEffect(() => {
       if (snap.exists()) {
         const memory = snap.data();
 
+        if (memory.longTermMemory) {
+  setLongTermMemory({
+    goals: Array.isArray(memory.longTermMemory.goals)
+      ? memory.longTermMemory.goals
+      : [],
+    strategies: Array.isArray(memory.longTermMemory.strategies)
+      ? memory.longTermMemory.strategies
+      : [],
+    recurringIssues: Array.isArray(memory.longTermMemory.recurringIssues)
+      ? memory.longTermMemory.recurringIssues
+      : [],
+    learnedConcepts: Array.isArray(memory.longTermMemory.learnedConcepts)
+      ? memory.longTermMemory.learnedConcepts
+      : [],
+    preferences: Array.isArray(memory.longTermMemory.preferences)
+      ? memory.longTermMemory.preferences
+      : [],
+    importantContext: Array.isArray(memory.longTermMemory.importantContext)
+      ? memory.longTermMemory.importantContext
+      : [],
+  });
+}
+
         if (Array.isArray(memory.conversationHistory))
           setConversationHistory(memory.conversationHistory.slice(-12));
 
@@ -215,6 +263,7 @@ useEffect(() => {
     doc(db, "gabySimulatorMemory", user.id),
     {
       conversationHistory: conversationHistory.slice(-12),
+      longTermMemory,
       lastTopic,
       lastReferencedLevel,
       conversationState,
@@ -229,6 +278,7 @@ useEffect(() => {
   isPaid,
   gabyMemoryLoaded,
   conversationHistory,
+  longTermMemory,
   lastTopic,
   lastReferencedLevel,
   conversationState,
@@ -666,6 +716,145 @@ if (!isPaid) return;
     });
   }
 
+const containsTemporaryMarketData = useCallback((value: string) => {
+  const text = value.toLowerCase();
+
+  const temporaryMarketTerms = [
+    "current price",
+    "current support",
+    "current resistance",
+    "nearest support",
+    "nearest resistance",
+    "next support",
+    "next resistance",
+    "current rsi",
+    "current momentum",
+    "current volume",
+    "current market direction",
+    "current market structure",
+    "current pattern",
+    "current position",
+    "take profit",
+    "stop loss price",
+    "chart highlight",
+  ];
+
+  return temporaryMarketTerms.some((term) => text.includes(term));
+}, []);
+
+const addLongTermMemory = useCallback(
+  (category: keyof GabyLongTermMemory, value: string) => {
+    const cleanValue = value.trim();
+
+    if (!cleanValue) return;
+    if (containsTemporaryMarketData(cleanValue)) return;
+
+    setLongTermMemory((prev) => {
+      if (prev[category].includes(cleanValue)) return prev;
+
+      return {
+        ...prev,
+        [category]: [...prev[category], cleanValue].slice(-20),
+      };
+    });
+  },
+  [containsTemporaryMarketData]
+);
+
+const removeLongTermMemory = useCallback(
+  (category: keyof GabyLongTermMemory, value: string) => {
+    setLongTermMemory((prev) => ({
+      ...prev,
+      [category]: prev[category].filter((item) => item !== value),
+    }));
+  },
+  []
+);
+
+const updateLongTermMemory = useCallback(
+  (
+    category: keyof GabyLongTermMemory,
+    oldValue: string,
+    newValue: string
+  ) => {
+    const cleanValue = newValue.trim();
+
+    if (!cleanValue) return;
+    if (containsTemporaryMarketData(cleanValue)) return;
+
+    setLongTermMemory((prev) => ({
+      ...prev,
+      [category]: prev[category]
+        .map((item) => (item === oldValue ? cleanValue : item))
+        .filter((item, index, items) => items.indexOf(item) === index)
+        .slice(-20),
+    }));
+  },
+  [containsTemporaryMarketData]
+);
+
+const processLongTermMemory = useCallback(
+  async (userMessage: string, gabyMessage: string) => {
+    if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
+
+    try {
+      const res = await fetch("/api/gaby-memory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userMessage,
+          gabyMessage,
+          longTermMemory,
+        }),
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const memoryAction = data.memoryAction as GabyMemoryAction | undefined;
+
+      if (!memoryAction || memoryAction.action === "NONE") return;
+      if (!memoryAction.category) return;
+
+      if (memoryAction.action === "ADD" && memoryAction.value) {
+        addLongTermMemory(memoryAction.category, memoryAction.value);
+        return;
+      }
+
+      if (
+        memoryAction.action === "UPDATE" &&
+        memoryAction.oldValue &&
+        memoryAction.value
+      ) {
+        updateLongTermMemory(
+          memoryAction.category,
+          memoryAction.oldValue,
+          memoryAction.value
+        );
+        return;
+      }
+
+      if (memoryAction.action === "REMOVE" && memoryAction.oldValue) {
+        removeLongTermMemory(memoryAction.category, memoryAction.oldValue);
+      }
+    } catch (error) {
+      console.error("Failed to process Gaby long-term memory:", error);
+    }
+  },
+  [
+    user?.id,
+    isPaid,
+    gabyMemoryLoaded,
+    longTermMemory,
+    addLongTermMemory,
+    updateLongTermMemory,
+    removeLongTermMemory,
+  ]
+);
+
+
   const askGaby = useCallback(async (customQuestion?: string, reviewOverride?: any) => {
     let finalQuestion = customQuestion || question;
     let reviewSnapshot = reviewOverride || null;
@@ -839,6 +1028,7 @@ if (
           lastReferencedLevel,
           lastReviewData: reviewSnapshot,
           conversationHistory: conversationHistory.slice(-8),
+longTermMemory,
 simulatorContext: {
   userId,
   userFirstName: user?.firstName || null,
@@ -969,6 +1159,8 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
         },
       ]);
 
+      void processLongTermMemory(finalQuestion, gabyAnswer);
+
       setQuestion("");
     } catch (error) {
       setAnswer("Gaby is having trouble reviewing the simulator right now.");
@@ -979,6 +1171,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   question,
   lastReferencedLevel,
   conversationHistory,
+  longTermMemory,
   userId,
   conversationState,
   lastTopic,
@@ -1002,9 +1195,10 @@ positions,
 spotPositionFacts,
 futuresPositions,
 futuresPositionManagement,
-getLatestReviewedTrade,
+  getLatestReviewedTrade,
+  processLongTermMemory,
 
-onChartCommand,
+  onChartCommand,
 onInfoPanelCommand,
 chartHighlightState,
 ]);

@@ -44,6 +44,7 @@ const {
   simulatorContext,
   lastReviewData,
   conversationHistory,
+  longTermMemory,
   lastReferencedLevel,
   lastTopic,
   
@@ -100,6 +101,28 @@ async function requireGabyAccess() {
 
 return null;
 }    
+
+const sanitizedLongTermMemory = {
+  goals: Array.isArray(longTermMemory?.goals)
+    ? longTermMemory.goals.filter((x: unknown) => typeof x === "string").slice(-20)
+    : [],
+  strategies: Array.isArray(longTermMemory?.strategies)
+    ? longTermMemory.strategies.filter((x: unknown) => typeof x === "string").slice(-20)
+    : [],
+  recurringIssues: Array.isArray(longTermMemory?.recurringIssues)
+    ? longTermMemory.recurringIssues.filter((x: unknown) => typeof x === "string").slice(-20)
+    : [],
+  learnedConcepts: Array.isArray(longTermMemory?.learnedConcepts)
+    ? longTermMemory.learnedConcepts.filter((x: unknown) => typeof x === "string").slice(-20)
+    : [],
+  preferences: Array.isArray(longTermMemory?.preferences)
+    ? longTermMemory.preferences.filter((x: unknown) => typeof x === "string").slice(-20)
+    : [],
+  importantContext: Array.isArray(longTermMemory?.importantContext)
+    ? longTermMemory.importantContext.filter((x: unknown) => typeof x === "string").slice(-20)
+    : [],
+};
+
 
 const formattedHistory: {
   role: "user" | "assistant";
@@ -1115,7 +1138,25 @@ General Answer Rules:
 
 
 Recent Conversation:
+
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
+
+Long-Term Gaby Memory:
+
+${JSON.stringify(sanitizedLongTermMemory, null, 2)}
+
+Long-Term Memory Rules:
+- Use this memory only as durable background context about the user.
+- Use it when it is relevant to the newest question.
+- Do not force memory into unrelated answers.
+- Do not mention that information came from stored memory unless the user asks.
+- Never treat long-term memory as current market data.
+- Current TradeNestX market facts always override memory for current market questions.
+- Trader Development Engine Facts and Verified Trader Report Facts always override memory for measurable trading performance.
+- Do not use memory to invent current prices, support, resistance, indicators, positions, market conditions, or trade-review facts.
+- If memory conflicts with current deterministic TradeNestX facts, use the TradeNestX facts.
+- A recurringIssue describes something the user has said they struggle with. Do not treat it as proof of current trading performance.
+- A learnedConcept describes something the user has said they learned. Do not assume mastery beyond what the memory states.
 
 Market Analysis Summary:
 ${marketAnalysisSummary || "NONE"}
@@ -1248,6 +1289,11 @@ Return ONLY valid JSON in this shape:
       "title": "panel title",
       "subtitle": "optional subtitle",
       "description": "optional short introduction",
+      "visual": {
+        "type": "EDUCATIONAL",
+        "example": "UPTREND"
+      },
+
       "sections": [
         {
           "heading": "section heading",
@@ -1267,6 +1313,74 @@ Info Panel rules:
 - Do not open the panel for every question.
 - The panel may contain a title, subtitle, short description, and multiple educational sections.
 - Keep each section focused and readable.
+VISUAL TEACHING RULES:
+- Do not wait for the user to request a visual.
+- When explaining a trading concept that is materially easier to understand visually, automatically include the most relevant supported visual in panelCommand.content.visual.
+- Prefer a visual for concepts involving market structure, support, resistance, price zones, breakouts, breakdowns, retests, trendlines, RSI, entries, stop losses, take profits, long or short positions, and risk/reward.
+- If the user explicitly asks for a visual, diagram, drawing, picture, or visual example and a supported visual matches the concept, you MUST include it.
+- The visual must directly support the concept Gaby is explaining.
+- Do not add a visual merely because a related keyword appears.
+- Do not show an unrelated visual.
+- Normally use one visual for the main concept.
+- If no supported visual matches the concept, do not invent a visual type or example.
+- The visual supplements Gaby's explanation. It does not replace Gaby's normal answer or educational sections.
+
+SUPPORTED EDUCATIONAL VISUALS:
+- UPTREND: higher highs, higher lows, and bullish market structure.
+- DOWNTREND: lower highs, lower lows, and bearish market structure.
+- RANGE: sideways or ranging price structure between support and resistance.
+- SUPPORT: teaching how support works or how support is identified conceptually.
+- RESISTANCE: teaching how resistance works or how resistance is identified conceptually.
+- SUPPORT_RESISTANCE: teaching or comparing support and resistance together.
+- BREAKOUT: price breaking above resistance.
+- BREAKOUT_RETEST: bullish breakout followed by a retest of the broken level.
+- BREAKDOWN: price breaking below support.
+- BREAKDOWN_RETEST: bearish breakdown followed by a retest of the broken level.
+- TRENDLINE_UP: rising trendline or rising dynamic support.
+- TRENDLINE_DOWN: falling trendline or falling dynamic resistance.
+- MARKET_STRUCTURE_BREAK: break of structure or price breaking a meaningful previous swing.
+- RSI: RSI basics, momentum, and the RSI scale.
+- OVERBOUGHT: explaining the RSI overbought area.
+- OVERSOLD: explaining the RSI oversold area.
+- LONG_POSITION: teaching the basic structure of a long position.
+- SHORT_POSITION: teaching the basic structure of a short position.
+- STOP_LOSS_LONG: teaching stop-loss placement conceptually for a long position.
+- STOP_LOSS_SHORT: teaching stop-loss placement conceptually for a short position.
+- TAKE_PROFIT_LONG: teaching take-profit placement conceptually for a long position.
+- TAKE_PROFIT_SHORT: teaching take-profit placement conceptually for a short position.
+- RISK_REWARD: teaching the relationship between entry, stop loss, risk, target, and reward.
+
+VISUAL OUTPUT FORMAT:
+"visual": {
+  "type": "EDUCATIONAL",
+  "example": "SUPPORTED_VISUAL_NAME"
+}
+
+AUTOMATIC VISUAL EXAMPLES:
+- "What is an uptrend?" -> UPTREND
+- "What are higher highs and higher lows?" -> UPTREND
+- "What is a downtrend?" -> DOWNTREND
+- "What is a ranging market?" -> RANGE
+- "How do I identify support?" -> SUPPORT
+- "What is resistance?" -> RESISTANCE
+- "Explain support and resistance." -> SUPPORT_RESISTANCE
+- "What is a breakout?" -> BREAKOUT
+- "What is a breakout retest?" -> BREAKOUT_RETEST
+- "What happens when support breaks?" -> BREAKDOWN
+- "What is a breakdown retest?" -> BREAKDOWN_RETEST
+- "Explain a rising trendline." -> TRENDLINE_UP
+- "Explain a falling trendline." -> TRENDLINE_DOWN
+- "What is a break of structure?" -> MARKET_STRUCTURE_BREAK
+- "What is RSI?" -> RSI
+- "What does overbought mean?" -> OVERBOUGHT
+- "What does oversold mean?" -> OVERSOLD
+- "How does a long position work?" -> LONG_POSITION
+- "How does a short position work?" -> SHORT_POSITION
+- "Where does a stop loss go on a long?" -> STOP_LOSS_LONG
+- "Where does a stop loss go on a short?" -> STOP_LOSS_SHORT
+- "Where is take profit on a long?" -> TAKE_PROFIT_LONG
+- "Where is take profit on a short?" -> TAKE_PROFIT_SHORT
+- "Explain risk/reward." -> RISK_REWARD
 - panelCommand does not replace Gaby's normal answer. Gaby should still give a short natural chat response explaining what she opened or highlighting the main concept.
 - If no panel is useful, return action NONE.
 - Do not invent current market facts inside educational panel content.

@@ -1,6 +1,7 @@
 "use client";
 import TradeReviewChart from "./TradeReviewChart";
 import TraderDevelopmentReport from "./TraderDevelopmentReport";
+import GabyEducationalVisual from "./GabyEducationalVisual";
 export type InfoPanelType = "WHITEPAPER" | "TRADE_REVIEW" | "TRADER_REPORT" | "MARKET_INFO" | "NEWS";
 
 export type InfoPanelSection = {
@@ -16,6 +17,10 @@ export type InfoPanelContent = {
   image?: string;
   description?: string;
   sourceUrl?: string;
+  visual?: {
+    type: string;
+    example?: string;
+  };
 
   sections?: InfoPanelSection[];
 
@@ -111,6 +116,13 @@ const savedResistance =
       )}
 
 {content.description && <p className="mt-4 text-sm leading-6 text-zinc-300">{content.description}</p>}
+
+{content.visual && (
+  <GabyEducationalVisual
+    type={content.visual.type}
+    example={content.visual.example}
+  />
+)}
 
 {content.sections && content.sections.length > 0 && (
   <div className="mt-4 space-y-4">

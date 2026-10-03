@@ -4469,6 +4469,7 @@ onInfoPanelCommand={(command) => {
       subtitle: content.subtitle,
       image: content.image,
       description: content.description,
+      visual: content.visual,
       sections: content.sections,
       sourceUrl: content.sourceUrl,
       data: content.data,
