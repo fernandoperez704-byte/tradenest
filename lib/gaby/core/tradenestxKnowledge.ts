@@ -1,4 +1,5 @@
 import { WATCHLIST } from "@/app/simulator/data/watchlist";
+import { tradenestxUpdates } from "./tradenestxUpdates";
 
 const supportedCoins = WATCHLIST.map((coin) => coin.symbol).join(", ");
 
@@ -1403,5 +1404,7 @@ WHEN ANSWERING QUESTIONS
 - For TradeNestX navigation or support questions, never guess where a feature is located.
 - Use the WEBSITE NAVIGATION & STEP-BY-STEP HELP section as the authority for UI directions.
 - If an exact UI path is not documented, clearly say the exact location is not available in the current platform knowledge.
+
+${tradenestxUpdates}
 
 `;

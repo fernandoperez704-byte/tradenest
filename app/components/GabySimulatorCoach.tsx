@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { usePendingBeginnerCoaching } from "@/lib/gabyCoaching/usePendingBeginnerCoaching";
+import { latestTradeNestXUpdate } from "@/lib/gaby/core/tradenestxUpdates";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { db } from "@/app/firebase";
 import {
@@ -158,7 +159,7 @@ const [loading, setLoading] = useState(false);
 const [upgradeRequired, setUpgradeRequired] = useState(false);
 const [listening, setListening] = useState(false);
 const [voiceMode, setVoiceMode] = useState(false);
-
+const updateAnnouncementHandledRef = useRef(false);
 const recognitionRef = useRef<any>(null);
 const voiceModeRef = useRef(false);
 
@@ -206,6 +207,14 @@ const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 
 const [gabyMemoryLoaded, setGabyMemoryLoaded] = useState(false);
 const [showExperienceOnboarding, setShowExperienceOnboarding] = useState(false);
+
+const latestTradeNestXUpdateId =
+  latestTradeNestXUpdate.id;
+
+const hasSeenLatestTradeNestXUpdate =
+  longTermMemory.importantContext.includes(
+    `Seen TradeNestX update: ${latestTradeNestXUpdateId}`
+  );
 
 const hasTradingExperienceMemory =
   longTermMemory.importantContext.some((item) =>
@@ -1289,6 +1298,29 @@ onInfoPanelCommand,
 chartHighlightState,
 ]);
 
+useEffect(() => {
+  if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
+  if (!hasTradingExperienceMemory) return;
+  if (hasSeenLatestTradeNestXUpdate) return;
+  if (updateAnnouncementHandledRef.current) return;
+
+  updateAnnouncementHandledRef.current = true;
+
+  setAnswer(latestTradeNestXUpdate.announcement);
+
+  addLongTermMemory(
+    "importantContext",
+    `Seen TradeNestX update: ${latestTradeNestXUpdateId}`
+  );
+
+}, [
+  user?.id,
+  isPaid,
+  gabyMemoryLoaded,
+  hasTradingExperienceMemory,
+  hasSeenLatestTradeNestXUpdate,
+  addLongTermMemory,
+]);
 
 usePendingBeginnerCoaching({
   isPaid,

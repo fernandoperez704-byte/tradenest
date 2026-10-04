@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { buildTraderDevelopmentReport } from "@/lib/traderDevelopment/report";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
+import { tradenestxUpdates } from "@/lib/gaby/core/tradenestxUpdates";
 import { checkGabyUsage, useGabyQuestion } from "@/lib/gabyUsage";
 
 const openai = new OpenAI({
@@ -131,6 +132,14 @@ const tradingExperience =
 
 const learnedConcepts =
   sanitizedLongTermMemory.learnedConcepts;
+
+const latestTradeNestXUpdateId =
+  "gaby-pattern-education-2026-10-04";
+
+const hasSeenLatestTradeNestXUpdate =
+  sanitizedLongTermMemory.importantContext.includes(
+    `Seen TradeNestX update: ${latestTradeNestXUpdateId}`
+  );
 
 const formattedHistory: {
   role: "user" | "assistant";
@@ -934,6 +943,8 @@ ${GABY_CORE_PROMPT}
 
 ${tradenestxKnowledge}
 
+${tradenestxUpdates}
+
 CURRENT DATE AND TIME:
 Current date: ${currentDate}
 Current time: ${currentTime} Eastern Time
@@ -1169,6 +1180,11 @@ ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
 Long-Term Gaby Memory:
 
 ${JSON.stringify(sanitizedLongTermMemory, null, 2)}
+
+TRADENESTX UPDATE STATUS:
+Latest update ID: ${latestTradeNestXUpdateId}
+User has already seen latest update: ${hasSeenLatestTradeNestXUpdate ? "YES" : "NO"}
+
 
 Long-Term Memory Rules:
 - Use this memory only as durable background context about the user.
