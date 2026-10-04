@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { usePendingBeginnerCoaching } from "@/lib/gabyCoaching/usePendingBeginnerCoaching";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { db } from "@/app/firebase";
 import {
@@ -17,6 +18,7 @@ import {
   completeSnapshot,
   isSnapshotComplete,
 } from "@/lib/gabySnapshot/snapshot";
+
 
 type GabySimulatorCoachProps = {
   userId: string;
@@ -160,6 +162,7 @@ const [voiceMode, setVoiceMode] = useState(false);
 const recognitionRef = useRef<any>(null);
 const voiceModeRef = useRef(false);
 
+
 type GabyLongTermMemory = {
   goals: string[];
   strategies: string[];
@@ -202,6 +205,19 @@ const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   });
 
 const [gabyMemoryLoaded, setGabyMemoryLoaded] = useState(false);
+const [showExperienceOnboarding, setShowExperienceOnboarding] = useState(false);
+
+const hasTradingExperienceMemory =
+  longTermMemory.importantContext.some((item) =>
+    item.startsWith("Trading experience:")
+  );
+
+const tradingExperience =
+  longTermMemory.importantContext
+    .find((item) => item.startsWith("Trading experience:"))
+    ?.replace("Trading experience:", "")
+    .trim() || "UNKNOWN";
+
 
 useEffect(() => {
   if (!user?.id || !isPaid) {
@@ -255,6 +271,17 @@ useEffect(() => {
     }
   })();
 }, [user?.id, isPaid]);
+
+useEffect(() => {
+  if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
+
+  if (hasTradingExperienceMemory) {
+    setShowExperienceOnboarding(false);
+    return;
+  }
+
+  setShowExperienceOnboarding(true);
+}, [user?.id, isPaid, gabyMemoryLoaded, hasTradingExperienceMemory]);
 
 useEffect(() => {
   if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
@@ -485,7 +512,7 @@ if (
 const isPersonalizedTradingQuestion =
   /\b(my|i|i'm|im)\b/.test(text) &&
   /\b(entries|entry|exits|exit|trades|results|risk|management|execution)\b/.test(text) &&
-  /\b(why|failing|fail|failed|working|work|weak|weakness|problem|problems|improve|improving)\b/.test(text);
+  /\b(why|failing|fail|failed|working|work|weak|weakness|problem|problems|improve|improving|pay attention|doing wrong|going wrong|keep entering|keep exiting)\b/.test(text);
 
 if (isPersonalizedTradingQuestion) {
   return "PERSONALIZED_COACHING";
@@ -814,6 +841,28 @@ const updateLongTermMemory = useCallback(
   [containsTemporaryMarketData]
 );
 
+function selectTradingExperience(
+  level: "NEW" | "SOME" | "EXPERIENCED"
+) {
+  addLongTermMemory(
+    "importantContext",
+    `Trading experience: ${level}`
+  );
+
+  setShowExperienceOnboarding(false);
+
+  const firstName = user?.firstName?.trim();
+  const name = firstName ? `, ${firstName}` : "";
+
+  const messages = {
+    NEW: `Perfect${name}. I'll help you learn trading step by step. When important concepts show up, I'll explain what they mean and use visuals when they can make things easier to understand.`,
+    SOME: `Got it${name}. I'll build on what you already know, explain concepts when they're relevant, and use visuals when they can help you understand the market more clearly.`,
+    EXPERIENCED: `Got it${name}. I'll keep the coaching focused and avoid covering basic concepts unless they're relevant to what you're analyzing or doing.`,
+  };
+
+  setAnswer(messages[level]);
+}
+
 const processLongTermMemory = useCallback(
   async (userMessage: string, gabyMessage: string) => {
     if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
@@ -876,7 +925,11 @@ const processLongTermMemory = useCallback(
 );
 
 
-  const askGaby = useCallback(async (customQuestion?: string, reviewOverride?: any) => {
+  const askGaby = useCallback(async (
+  customQuestion?: string,
+  reviewOverride?: any,
+  options?: { internal?: boolean }
+) => {
     let finalQuestion = customQuestion || question;
     let reviewSnapshot = reviewOverride || null;
 let reviewTradeRecord: any = null;
@@ -1182,6 +1235,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   });
 }
 
+    if (!options?.internal) {
       setConversationHistory((prev) => [
         ...prev.slice(-7),
         {
@@ -1191,6 +1245,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
       ]);
 
       void processLongTermMemory(finalQuestion, gabyAnswer);
+    }
 
       setQuestion("");
     } catch (error) {
@@ -1233,6 +1288,20 @@ futuresPositionManagement,
 onInfoPanelCommand,
 chartHighlightState,
 ]);
+
+
+usePendingBeginnerCoaching({
+  isPaid,
+  gabyMemoryLoaded,
+  loading,
+  askGaby,
+  onConceptTaught: (concept) => {
+    addLongTermMemory(
+      "learnedConcepts",
+      concept
+    );
+  },
+});
 
 function toggleVoiceMode() {
   if (!requireSignIn()) return;
@@ -1469,6 +1538,37 @@ return (
     <div className="rounded-2xl border border-zinc-800 bg-[#020617] p-5 pr-24 text-base leading-6 text-zinc-200 max-h-[460px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {loading ? (
           "Gaby is reviewing..."
+        ) : showExperienceOnboarding ? (
+          <div>
+            <p className="mb-4 font-semibold text-white">
+              {user?.firstName
+                ? `Hi ${user.firstName}! Before we get started, how much experience do you have with trading?`
+                : "Hi! Before we get started, how much experience do you have with trading?"}
+            </p>
+
+            <div className="grid gap-2">
+              <button
+                onClick={() => selectTradingExperience("NEW")}
+                className="w-full rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-left text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              >
+                New — I'm just getting started
+              </button>
+
+              <button
+                onClick={() => selectTradingExperience("SOME")}
+                className="w-full rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-left text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              >
+                Some experience — I understand the basics
+              </button>
+
+              <button
+                onClick={() => selectTradingExperience("EXPERIENCED")}
+                className="w-full rounded-lg border border-zinc-700 bg-[#0f172a] px-3 py-2 text-left text-sm font-semibold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              >
+                Experienced — I'm comfortable with trading concepts
+              </button>
+            </div>
+          </div>
         ) : answer.startsWith("Not sure what to ask?") ? (
           <>
             <p className="mb-4 font-semibold">

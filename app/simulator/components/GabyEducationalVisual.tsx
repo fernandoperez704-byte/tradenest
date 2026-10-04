@@ -1,5 +1,9 @@
 "use client";
 import GabyCandlestickVisual from "./GabyCandlestickVisual";
+import GabyPatternVisual from "./GabyPatternVisual";
+
+
+
 type Props = {
   type: string;
   example?: string;
@@ -35,8 +39,23 @@ export default function GabyEducationalVisual({
     "ENGULFING_BEARISH",
   ];
 
+  const patternVisuals = [
+    "DOUBLE_TOP",
+    "DOUBLE_BOTTOM",
+    "ASCENDING_TRIANGLE",
+    "DESCENDING_TRIANGLE",
+    "ROUNDED_TOP",
+    "ROUNDED_BOTTOM",
+    "HEAD_AND_SHOULDERS",
+    "INVERSE_HEAD_AND_SHOULDERS",
+  ];
+
   if (candlestickVisuals.includes(visual)) {
     return <GabyCandlestickVisual type={visual} />;
+  }
+
+  if (patternVisuals.includes(visual)) {
+    return <GabyPatternVisual type={visual} />;
   }
 
   if (visual === "UPTREND") {

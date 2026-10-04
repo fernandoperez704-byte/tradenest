@@ -6,10 +6,23 @@ import { buildEntryQualityAnalysis } from "@/lib/traderDevelopment/entryQualityA
 import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagementAnalysis";
 import { buildTimeframeAnalysis } from "@/lib/traderDevelopment/timeframeAnalysis";
 import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
+import { getBeginnerCoachingTrigger } from "@/lib/gabyCoaching/getBeginnerCoachingTrigger";
 import { db } from "../../firebase";
-import { addDoc, collection } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 
 const REPORT_INTERVAL = 20;
+
+type PendingBeginnerCoachingEvent = {
+  snapshotId: string;
+  concept: string;
+  reason: string;
+  createdAt: string;
+};
 
 type UseTraderDevelopmentProps = {
   tradeReviews: any[];
@@ -22,6 +35,46 @@ type UseTraderDevelopmentProps = {
   onReportRequired?: () => void;
 };
 
+async function getGabyBeginnerMemory(userId: string) {
+  const memoryRef = doc(db, "gabySimulatorMemory", userId);
+  const memorySnap = await getDoc(memoryRef);
+
+  if (!memorySnap.exists()) {
+    return null;
+  }
+
+  const longTermMemory =
+    memorySnap.data()?.longTermMemory;
+
+  if (!longTermMemory) {
+    return null;
+  }
+
+  const tradingExperience =
+    longTermMemory.importantContext
+      ?.find((item: string) =>
+        item.startsWith("Trading experience:")
+      )
+      ?.replace("Trading experience:", "")
+      .trim() || "UNKNOWN";
+
+  return {
+    tradingExperience,
+    learnedConcepts:
+      longTermMemory.learnedConcepts || [],
+  };
+}
+
+
+function savePendingBeginnerCoachingEvent(
+  event: PendingBeginnerCoachingEvent
+) {
+  localStorage.setItem(
+    "tradenestx-pending-beginner-coaching",
+    JSON.stringify(event)
+  );
+}
+
 export function useTraderDevelopment({
   tradeReviews,
   setTradeReviews,
@@ -31,6 +84,7 @@ export function useTraderDevelopment({
   onReportRequired,
 }: UseTraderDevelopmentProps) {
   const previousReviewedTradeCountRef = useRef<number | null>(null);
+  const lastBeginnerCoachingSnapshotRef = useRef<string | null>(null);
 
 const onReportRequiredRef = useRef(onReportRequired);
 
@@ -180,6 +234,54 @@ useEffect(() => {
   // Only react when a new completed review was added.
   if (reviewedTradeCount <= previousCount) return;
 
+  const latestReview = normalizedTradeReviews[0];
+
+  if (!latestReview?.snapshotId) return;
+
+  if (
+    lastBeginnerCoachingSnapshotRef.current ===
+    latestReview.snapshotId
+  ) {
+    return;
+  }
+
+  lastBeginnerCoachingSnapshotRef.current =
+    latestReview.snapshotId;
+
+  if (userId) {
+    void getGabyBeginnerMemory(userId).then((memory) => {
+      if (!memory) return;
+
+      const coachingTrigger =
+        getBeginnerCoachingTrigger({
+          tradingExperience:
+            memory.tradingExperience,
+          learnedConcepts:
+            memory.learnedConcepts,
+          reviews: [latestReview],
+        });
+
+
+      if (!coachingTrigger) return;
+
+      savePendingBeginnerCoachingEvent({
+        snapshotId: latestReview.snapshotId,
+        concept: coachingTrigger.concept,
+        reason: coachingTrigger.reason,
+        createdAt: new Date().toISOString(),
+      });
+
+      window.dispatchEvent(
+        new Event("openGabyBeginnerCoaching")
+      );
+    }).catch((error) => {
+      console.error(
+        "Failed to create beginner coaching event:",
+        error
+      );
+    });
+  }
+
   // Open at 20, 40, 60, 80...
   if (
     reviewedTradeCount >= REPORT_INTERVAL &&
@@ -187,7 +289,12 @@ useEffect(() => {
   ) {
     onReportRequiredRef.current?.();
   }
-}, [reviewedTradeCount, tradeReviewsLoaded]);
+}, [
+  reviewedTradeCount,
+  tradeReviewsLoaded,
+  normalizedTradeReviews,
+  userId,
+]);
 
 function registerStockReview(trade: {
   symbol: string;

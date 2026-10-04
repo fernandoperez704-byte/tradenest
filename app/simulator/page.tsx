@@ -231,6 +231,24 @@ useEffect(() => {
   useState<"SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS">("SPOT");
   const [showSimulatorGaby, setShowSimulatorGaby] = useState(false);
 
+useEffect(() => {
+  const openGabyForBeginnerCoaching = () => {
+    setShowSimulatorGaby(true);
+  };
+
+  window.addEventListener(
+    "openGabyBeginnerCoaching",
+    openGabyForBeginnerCoaching
+  );
+
+  return () => {
+    window.removeEventListener(
+      "openGabyBeginnerCoaching",
+      openGabyForBeginnerCoaching
+    );
+  };
+}, []);
+
 const [infoPanelContent, setInfoPanelContent] =
   useState<InfoPanelContent | null>(null);
 
