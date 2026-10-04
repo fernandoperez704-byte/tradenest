@@ -159,7 +159,9 @@ const [loading, setLoading] = useState(false);
 const [upgradeRequired, setUpgradeRequired] = useState(false);
 const [listening, setListening] = useState(false);
 const [voiceMode, setVoiceMode] = useState(false);
+
 const updateAnnouncementHandledRef = useRef(false);
+const experienceSelectedThisSessionRef = useRef(false);
 const recognitionRef = useRef<any>(null);
 const voiceModeRef = useRef(false);
 
@@ -853,6 +855,8 @@ const updateLongTermMemory = useCallback(
 function selectTradingExperience(
   level: "NEW" | "SOME" | "EXPERIENCED"
 ) {
+  experienceSelectedThisSessionRef.current = true;
+
   addLongTermMemory(
     "importantContext",
     `Trading experience: ${level}`
@@ -1302,6 +1306,7 @@ useEffect(() => {
   if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
   if (!hasTradingExperienceMemory) return;
   if (hasSeenLatestTradeNestXUpdate) return;
+  if (experienceSelectedThisSessionRef.current) return;
   if (updateAnnouncementHandledRef.current) return;
 
   updateAnnouncementHandledRef.current = true;
