@@ -15,6 +15,98 @@ export type GabyAutoTradeAction =
   | "SHORT"
   | "NO_TRADE";
 
+export function getAutoTradeEntryQuality(
+  market: any,
+  currentPrice: number
+): "EXCELLENT" | "GOOD" | "NEUTRAL" | "POOR" {
+  const currentDirection = market.direction;
+
+  const support = market.nearestSupport;
+  const resistance = market.nearestResistance;
+  const ENTRY_ZONE_TOLERANCE = 0.003;
+
+  const nearSupport =
+    support &&
+    currentPrice >=
+      support.low * (1 - ENTRY_ZONE_TOLERANCE) &&
+    currentPrice <=
+      support.high * (1 + ENTRY_ZONE_TOLERANCE);
+
+  const nearResistance =
+    resistance &&
+    currentPrice >=
+      resistance.low * (1 - ENTRY_ZONE_TOLERANCE) &&
+    currentPrice <=
+      resistance.high * (1 + ENTRY_ZONE_TOLERANCE);
+
+  if (
+    currentDirection === "BULLISH" &&
+    nearSupport
+  ) {
+    return "EXCELLENT";
+  }
+
+  if (
+    currentDirection === "BEARISH" &&
+    nearResistance
+  ) {
+    return "EXCELLENT";
+  }
+
+  if (currentDirection === "TRANSITION") {
+    return "NEUTRAL";
+  }
+
+  const bullishDirection =
+    currentDirection === "BULLISH";
+
+  const bearishDirection =
+    currentDirection === "BEARISH";
+
+  const bullishMomentum =
+    market.momentumAnalysis?.momentum ===
+    "BULLISH_MOMENTUM";
+
+  const bearishMomentum =
+    market.momentumAnalysis?.momentum ===
+    "BEARISH_MOMENTUM";
+
+  const bullishControl =
+    market.marketState === "BULLS_IN_CONTROL";
+
+  const bearishControl =
+    market.marketState === "BEARS_IN_CONTROL";
+
+  const healthyContinuation =
+    market.momentumStage === "HEALTHY_CONTINUATION";
+
+  const acceptableMove =
+    market.moveCondition === "FRESH" ||
+    market.moveCondition === "MATURE";
+
+  if (
+    bullishDirection &&
+    bullishMomentum &&
+    bullishControl &&
+    healthyContinuation &&
+    acceptableMove
+  ) {
+    return "GOOD";
+  }
+
+  if (
+    bearishDirection &&
+    bearishMomentum &&
+    bearishControl &&
+    healthyContinuation &&
+    acceptableMove
+  ) {
+    return "GOOD";
+  }
+
+  return "POOR";
+}
+
 export type GabyAutoTradeDecision = {
   action: GabyAutoTradeAction;
   confidence: number;
@@ -169,6 +261,9 @@ console.log("GABY AUTO TRADE SETUP:", {
     (entryQuality === "EXCELLENT" ||
       entryQuality === "GOOD");
 
+const continuationEntry =
+  entryQuality === "GOOD";
+
 const bearishSetup =
   direction === "BEARISH" &&
   alignment !== "CONFLICTING" &&
@@ -217,7 +312,8 @@ if (
   bullishSetup &&
   (
     (support && supportEntryZone) ||
-    bullishBreakRetest
+    bullishBreakRetest ||
+    continuationEntry
   ) &&
   !nearDailyResistance &&
   !dailyOverextendedLong
@@ -264,7 +360,8 @@ if (
   bearishSetup &&
   (
     (resistance && resistanceEntryZone) ||
-    bearishBreakRetest
+    bearishBreakRetest ||
+    continuationEntry
   ) &&
   !nearDailySupport &&
   !dailyOverextendedShort

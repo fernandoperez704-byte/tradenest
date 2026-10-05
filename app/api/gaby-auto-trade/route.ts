@@ -5,11 +5,11 @@ import admin from "firebase-admin";
 import {
   getMarketIntelligence,
   getMultiTimeframeAnalysis,
-  getEntryQuality,
 } from "@/lib/gabyMarketIntelligence";
 
 import {
   buildGabyAutoTradeDecision,
+  getAutoTradeEntryQuality,
   validateGabyAutoTradeDecision,
   buildGabyAutoTradePosition,
   getGabyAutoTradeCloseReason,
@@ -314,11 +314,9 @@ higherTimeframeStructures["1D"] = {
   }
 
   const entryQuality =
-    getEntryQuality(
-      currentPrice,
-      primaryIntelligence.nearestSupport,
-      primaryIntelligence.nearestResistance,
-      primaryIntelligence.direction
+    getAutoTradeEntryQuality(
+      primaryIntelligence,
+      currentPrice
     );
 
 return {
