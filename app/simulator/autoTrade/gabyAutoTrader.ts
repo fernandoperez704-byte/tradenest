@@ -321,12 +321,12 @@ if (
   action = "LONG";
 
  const structuralStopLoss =
-  bullishBreakRetest && retestZone
+  (bullishBreakRetest && retestZone
     ? Math.min(
         retestZone.low,
         support?.low ?? retestZone.low
       )
-    : support.low; 
+    : support.low) * 0.9975;
 
   stopLoss = structuralStopLoss;
 
@@ -369,12 +369,12 @@ if (
   action = "SHORT";
 
 const structuralStopLoss =
-  bearishBreakRetest && retestZone
+  (bearishBreakRetest && retestZone
     ? Math.max(
         retestZone.high,
         resistance?.high ?? retestZone.high
       )
-    : resistance.high; 
+    : resistance.high) * 1.0025;
   
   stopLoss = structuralStopLoss;
 
