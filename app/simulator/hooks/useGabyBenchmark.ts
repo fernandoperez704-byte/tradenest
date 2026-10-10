@@ -20,6 +20,10 @@ type BenchmarkTrade = {
   entryPrice?: number;
   stopLoss?: number;
   takeProfit?: number;
+  lastScanPrice?: number;
+  lastPriceUpdate?: {
+    toDate: () => Date;
+  };
   netPnl?: number;
   openedAt?: string;
   closedAt?: string;

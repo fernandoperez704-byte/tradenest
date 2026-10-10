@@ -220,6 +220,23 @@ const autoTradeRunning =
                     : "—"
                 }
               />
+
+              <PositionValue
+                label="Last Scan Price"
+                value={
+                  benchmark.openTrade.lastScanPrice != null
+                    ? `$${benchmark.openTrade.lastScanPrice.toFixed(2)}`
+                    : "—"
+                }
+              />
+
+              <PositionValue
+                label="Last Price Update"
+                value={
+                  benchmark.openTrade.lastPriceUpdate?.toDate?.()
+                    .toLocaleString() ?? "—"
+                }
+              />
             </div>
           ) : (
             <p className="mt-3 text-sm text-zinc-400">

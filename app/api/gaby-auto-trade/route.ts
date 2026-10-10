@@ -746,6 +746,15 @@ if (openTrade) {
       String((openTrade as any).symbol)
     );
 
+  await db
+    .collection("gabyAutoTrades")
+    .doc(openTrade.id)
+    .update({
+      lastScanPrice: currentPrice,
+      lastPriceUpdate:
+        admin.firestore.FieldValue.serverTimestamp(),
+    });
+
   const position =
     openTrade as unknown as GabyAutoTradePosition;
 
