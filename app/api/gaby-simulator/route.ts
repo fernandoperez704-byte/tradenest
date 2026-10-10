@@ -1120,10 +1120,7 @@ ANSWER RULES:
 
     // Standard comprehensive fallback layout
 
-const includeCurrentMarketContext =
-  conversationIntent === "MARKET_ANALYSIS" ||
-  conversationIntent === "CURRENT_POSITION" ||
-  conversationIntent === "FOLLOW_UP";
+const includeCurrentMarketContext = true;
 
     const userPrompt = `
 User Question:

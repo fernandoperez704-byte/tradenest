@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { GabyVoiceProcessor } from "@/app/simulator/voice/gabyVoice";
 import { usePendingBeginnerCoaching } from "@/lib/gabyCoaching/usePendingBeginnerCoaching";
 import { latestTradeNestXUpdate } from "@/lib/gaby/core/tradenestxUpdates";
 import { useClerk, useUser } from "@clerk/nextjs";
@@ -165,6 +166,11 @@ const experienceSelectedThisSessionRef = useRef(false);
 const recognitionRef = useRef<any>(null);
 const voiceModeRef = useRef(false);
 
+const voiceProcessorRef = useRef<GabyVoiceProcessor | null>(null);
+
+if (!voiceProcessorRef.current) {
+  voiceProcessorRef.current = new GabyVoiceProcessor();
+}
 
 type GabyLongTermMemory = {
   goals: string[];
@@ -1343,8 +1349,9 @@ usePendingBeginnerCoaching({
 function toggleVoiceMode() {
   if (!requireSignIn()) return;
 
-  // TURN OFF
-  if (voiceModeRef.current) {
+// TURN OFF
+if (voiceModeRef.current) {
+  voiceProcessorRef.current?.reset();
     voiceModeRef.current = false;
     setVoiceMode(false);
     setListening(false);
@@ -1382,47 +1389,41 @@ function toggleVoiceMode() {
   };
 
 recognition.onresult = (event: any) => {
-  const text =
-    event.results[
-      event.results.length - 1
-    ][0].transcript.trim();
+  const processor = voiceProcessorRef.current;
+  if (!processor) return;
 
-  
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    const result = event.results[i];
 
-  const wakeWord =
-    /\b(?:gaby|gabby|gabi|gabbi)\b/i;
+    if (!result.isFinal) continue;
 
-  const wakeMatch = text.match(wakeWord);
+    const text = result[0]?.transcript?.trim();
+    if (!text) continue;
 
-  if (!wakeMatch) {
-    
-    return;
+    const voiceResult = processor.process(text);
+
+    if (voiceResult.type === "IGNORE") {
+      continue;
+    }
+
+    if (voiceResult.type === "WAKE") {
+      const firstName = user?.firstName?.trim();
+
+      setAnswer(
+        firstName
+          ? `Hi ${firstName}! What can I help you with?`
+          : "Hi! What can I help you with?"
+      );
+
+      continue;
+    }
+
+    if (voiceResult.type === "COMMAND") {
+      setQuestion(voiceResult.command);
+      void askGaby(voiceResult.command);
+      break;
+    }
   }
-
-  const command = text
-    .slice(
-      (wakeMatch.index ?? 0) +
-        wakeMatch[0].length
-    )
-    .replace(/^[,\s.!?-]+/, "")
-    .trim();
-
-  
-
-if (!command) {
-  const firstName = user?.firstName?.trim();
-
-  setAnswer(
-    firstName
-      ? `Hi ${firstName}! What can I help you with?`
-      : "Hi! What can I help you with?"
-  );
-
-  return;
-}
-
-  setQuestion(command);
-  askGaby(command);
 };
 
   recognition.onerror = (event: any) => {
@@ -1439,9 +1440,20 @@ if (!command) {
 
     if (!voiceModeRef.current) return;
 
-    try {
-      recognition.start();
-    } catch {}
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    );
+
+    setTimeout(() => {
+      if (!voiceModeRef.current) return;
+      if (recognitionRef.current !== recognition) return;
+
+      try {
+        recognition.start();
+      } catch (error) {
+        console.warn("Gaby voice restart:", error);
+      }
+    }, isMobile ? 1500 : 0);
   };
 
   recognitionRef.current = recognition;
