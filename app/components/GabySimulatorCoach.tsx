@@ -1119,6 +1119,13 @@ if (
     setLoading(true);
 
     try {
+
+console.log("GABY MARKET DEBUG", {
+  direction: movingAverageAnalysis?.direction,
+  structure: marketIntelligence?.structure,
+  timeframe: selectedTimeframe,
+});
+
       const res = await fetch("/api/gaby-simulator", {
         method: "POST",
         headers: {

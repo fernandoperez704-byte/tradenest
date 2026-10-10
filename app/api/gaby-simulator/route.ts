@@ -740,10 +740,7 @@ const isMarketAnalysisQuestion =
   normalizedQuestion.includes("analyze btc") ||
   normalizedQuestion.includes("analyze bitcoin");
 
-if (
-  isMarketAnalysisQuestion &&
-  conversationIntent === "MARKET_ANALYSIS"
-) {
+if (isMarketAnalysisQuestion) {
 const direction = marketFacts.marketDirection;
 const structure = marketFacts.structure;
 const detectedTrendline = marketFacts.detectedTrendline;
