@@ -903,6 +903,7 @@ export type GabyAutoTradePosition = {
 
   entryPrice: number;
   stopLoss: number;
+  initialStopLoss: number;
   takeProfit: number;
   liquidationPrice: number | null;
 
@@ -941,6 +942,7 @@ return {
 
     entryPrice: decision.entryPrice,
     stopLoss: decision.stopLoss,
+    initialStopLoss: decision.stopLoss,
     takeProfit: decision.takeProfit,
     liquidationPrice: economics.liquidationPrice,
 
@@ -1102,6 +1104,57 @@ export function closeGabyAutoTradePosition(
     marginUsed: 0,
     openPosition: null,
   };
+}
+
+// ============================================================
+// GABY AUTO TRADE — TRAILING STOP LOSS
+// ============================================================
+
+export function calculateGabyTrailingStopLoss(
+  position: GabyAutoTradePosition,
+  currentPrice: number
+): number {
+  const entry = position.entryPrice;
+  const initialStop = position.initialStopLoss;
+  const risk = Math.abs(entry - initialStop);
+
+  if (risk <= 0 || position.quantity <= 0) {
+    return position.stopLoss;
+  }
+
+  const profitDistance =
+    position.side === "LONG"
+      ? currentPrice - entry
+      : entry - currentPrice;
+
+  // Activate trailing SL after reaching 1:1 reward-to-risk.
+  if (profitDistance < risk) {
+    return position.stopLoss;
+  }
+
+  // Cover estimated entry and exit fees.
+  const feeBuffer =
+    (position.entryFee + position.positionSize * 0.001) /
+    position.quantity;
+
+  // Trail by one original risk unit.
+  const trailingStop =
+    position.side === "LONG"
+      ? Math.max(entry + feeBuffer, currentPrice - risk)
+      : Math.min(entry - feeBuffer, currentPrice + risk);
+
+  // Never move the stop backward or beyond current price.
+  if (position.side === "LONG") {
+    return Math.min(
+      currentPrice,
+      Math.max(position.stopLoss, trailingStop)
+    );
+  }
+
+  return Math.max(
+    currentPrice,
+    Math.min(position.stopLoss, trailingStop)
+  );
 }
 
 export function monitorGabyAutoTradePosition(

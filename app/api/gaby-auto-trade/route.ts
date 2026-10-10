@@ -12,6 +12,7 @@ import {
   getAutoTradeEntryQuality,
   validateGabyAutoTradeDecision,
   buildGabyAutoTradePosition,
+  calculateGabyTrailingStopLoss,
   getGabyAutoTradeCloseReason,
   buildGabyAutoTradeClosedPosition,
   GABY_AUTO_TRADE_CONFIG,
@@ -686,6 +687,8 @@ if (shouldRunScanner) {
           position.entryPrice,
         stopLoss:
           position.stopLoss,
+        initialStopLoss:
+          position.initialStopLoss,
         takeProfit:
           position.takeProfit,
         liquidationPrice:
@@ -742,6 +745,53 @@ if (openTrade) {
     await getCoinbaseFuturesPrice(
       String((openTrade as any).symbol)
     );
+
+  const position =
+    openTrade as unknown as GabyAutoTradePosition;
+
+  // Existing trades may not have initialStopLoss yet.
+  const originalStop =
+    Number.isFinite(position.initialStopLoss)
+      ? position.initialStopLoss
+      : position.stopLoss;
+
+  const trailingPosition = {
+    ...position,
+    initialStopLoss: originalStop,
+  };
+
+  // Check the existing SL/TP before adjusting protection.
+  const existingCloseReason =
+    getGabyAutoTradeCloseReason(
+      trailingPosition,
+      currentPrice
+    );
+
+  if (!existingCloseReason) {
+    const newStopLoss =
+      calculateGabyTrailingStopLoss(
+        trailingPosition,
+        currentPrice
+      );
+
+    if (
+      Number.isFinite(newStopLoss) &&
+      newStopLoss !== position.stopLoss
+    ) {
+      await db
+        .collection("gabyAutoTrades")
+        .doc(openTrade.id)
+        .update({
+          stopLoss: newStopLoss,
+          initialStopLoss: originalStop,
+          updatedAt:
+            admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+      position.stopLoss = newStopLoss;
+      position.initialStopLoss = originalStop;
+    }
+  }
 
   closeReason =
     getGabyAutoTradeCloseReason(
