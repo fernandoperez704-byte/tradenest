@@ -1380,7 +1380,8 @@ if (voiceModeRef.current) {
   recognition.lang =
     navigator.language || "en-US";
 
-  recognition.continuous = true;
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+recognition.continuous = !isMobile;
   recognition.interimResults = false;
 
   recognition.onstart = () => {
@@ -1438,22 +1439,18 @@ recognition.onresult = (event: any) => {
   recognition.onend = () => {
     setListening(false);
 
+    if (isMobile) {
+      voiceModeRef.current = false;
+      setVoiceMode(false);
+      recognitionRef.current = null;
+      return;
+    }
+
     if (!voiceModeRef.current) return;
 
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(
-      navigator.userAgent
-    );
-
-    setTimeout(() => {
-      if (!voiceModeRef.current) return;
-      if (recognitionRef.current !== recognition) return;
-
-      try {
-        recognition.start();
-      } catch (error) {
-        console.warn("Gaby voice restart:", error);
-      }
-    }, isMobile ? 1500 : 0);
+    try {
+      recognition.start();
+    } catch {}
   };
 
   recognitionRef.current = recognition;
