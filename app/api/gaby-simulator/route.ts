@@ -54,6 +54,72 @@ const {
 
 const normalizedQuestion = question?.trim().toLowerCase() || "";
 
+const chartHistory = Array.isArray(simulatorContext?.history)
+  ? simulatorContext.history
+  : [];
+
+const timeframeMinutes: Record<string, number> = {
+  "1M": 1,
+  "5M": 5,
+  "15M": 15,
+  "1H": 60,
+  "4H": 240,
+  "1D": 1440,
+};
+
+const candleMinutes =
+  timeframeMinutes[simulatorContext?.selectedTimeframe] ?? 0;
+
+const recentPriceMovements = [5, 15, 30].map((minutes) => {
+  if (!candleMinutes || candleMinutes > minutes) {
+    return {
+      minutes,
+      available: false,
+      reason: "Selected chart timeframe is too large",
+    };
+  }
+
+  const candlesNeeded = minutes / candleMinutes;
+
+  if (
+    !Number.isInteger(candlesNeeded) ||
+    chartHistory.length < candlesNeeded + 1
+  ) {
+    return {
+      minutes,
+      available: false,
+      reason: "Insufficient candle history",
+    };
+  }
+
+  const previousCandle =
+    chartHistory[chartHistory.length - 1 - candlesNeeded];
+
+  const previousPrice = Number(previousCandle?.close);
+  const latestPrice = Number(simulatorContext?.currentPrice);
+
+  if (
+    !Number.isFinite(previousPrice) ||
+    !Number.isFinite(latestPrice) ||
+    previousPrice <= 0
+  ) {
+    return {
+      minutes,
+      available: false,
+      reason: "Invalid price data",
+    };
+  }
+
+  const change = latestPrice - previousPrice;
+
+  return {
+    minutes,
+    available: true,
+    change,
+    changePercent: (change / previousPrice) * 100,
+  };
+});
+
 const {
   userFirstName,
   conversationIntent,
@@ -1138,6 +1204,12 @@ General Answer Rules:
 - Answer the user's exact question directly and only use the minimum information needed to answer it.
 - Use the TradeNestX facts provided below as the primary source of truth for current market questions.
 - Use the Current Market Facts when the user asks about the current market.
+- When the user asks what just happened to a coin, prioritize verified recentPriceMovements.
+- Explain the price change and percentage over the available 5, 15, or 30-minute periods.
+- If a period is unavailable, do not estimate its price movement.
+- A verified price movement shows what happened, not why it happened.
+- Never invent news, liquidation events, institutional activity, or other causes of a sudden price move.
+- If the cause is not verified, clearly say the cause is unknown from the available TradeNestX data.
 - Do not automatically summarize or combine unrelated Current Market Facts just because they are available.
 - Only discuss RSI, momentum, volume, support, resistance, structure, patterns, or other indicators when the user's question specifically requires them.
 - For a simple current-market follow-up, answer the specific question first and keep the explanation focused on the market fact most directly relevant to it.
@@ -1229,6 +1301,7 @@ ${includeCurrentMarketContext ? JSON.stringify(
     selectedCoin: marketFacts.selectedCoin,
     selectedTimeframe: marketFacts.selectedTimeframe,
     currentPrice: marketFacts.currentPrice,
+    recentPriceMovements,
     marketDirection: marketFacts.marketDirection,
     structure: marketFacts.structure,
     priceLocation: marketFacts.priceLocation,

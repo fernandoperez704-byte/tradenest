@@ -101,7 +101,13 @@ export default function GabyChartOverlay({
         }
       }
 
-      setItems(next);
+      setItems((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(next)) {
+          return prev;
+        }
+
+        return next;
+      });
     };
 
     update();

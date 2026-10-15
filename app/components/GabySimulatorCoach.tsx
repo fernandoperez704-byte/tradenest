@@ -57,6 +57,7 @@ futuresPositionManagement: any;
   currentEntryQuality?: string | null;
   selectedTimeframe?: string;
   currentPrice?: number;
+  history?: any[];
   priceLocation?: string | null;
   strongestPattern?: any;
   detectedTrendline?: any;
@@ -111,6 +112,7 @@ setFuturesHistory,
   currentEntryQuality,
   selectedTimeframe,
   currentPrice,
+  history,
   priceLocation,
   strongestPattern,
 detectedTrendline,
@@ -1155,6 +1157,7 @@ balance,
   marginUsed,
   selectedTimeframe,
   currentPrice,
+  history: history?.slice(-200) ?? [],
 priceLocation,
 strongestPattern,
 detectedTrendline,
@@ -1293,6 +1296,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   marginUsed,
   selectedTimeframe,
   currentPrice,
+  history,
 priceLocation,
 strongestPattern,
 detectedTrendline,

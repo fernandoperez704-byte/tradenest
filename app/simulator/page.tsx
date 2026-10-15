@@ -4450,6 +4450,7 @@ setTrades={setTrades}
   currentEntryQuality={currentEntryQuality}
   selectedTimeframe={selectedTimeframe}
   currentPrice={currentPrice}
+  history={history}
   priceLocation={priceLocation}
   strongestPattern={strongestPattern}
   detectedTrendline={detectedTrendline}
