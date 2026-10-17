@@ -4,6 +4,7 @@ import admin from "firebase-admin";
 
 import {
   getMarketIntelligence,
+  getAutoTradeStructureZones,
   getMultiTimeframeAnalysis,
 } from "@/lib/gabyMarketIntelligence";
 
@@ -243,8 +244,23 @@ const primaryCandles =
       completed15mCandle
   );
 
+  const previousCompletedCandle =
+  primaryCandles[primaryCandles.length - 2] ?? null;
+
+const latestCompletedCandle =
+  primaryCandles[primaryCandles.length - 1] ?? null;
+
 const primaryIntelligence =
-  getMarketIntelligence(primaryCandles);  
+  getMarketIntelligence(primaryCandles);
+
+const previousStructureZones =
+  getAutoTradeStructureZones(primaryCandles.slice(0, -1));
+
+const previousSupportLevels =
+  previousStructureZones.supportLevels;
+
+const previousResistanceLevels =
+  previousStructureZones.resistanceLevels;
 
 const timeframeData: Record<string, any> = {
   [AUTO_TRADE_TIMEFRAME]: {
@@ -322,6 +338,10 @@ higherTimeframeStructures["1D"] = {
 
 return {
   currentPrice,
+  previousCompletedCandle,
+  latestCompletedCandle,
+  previousSupportLevels,
+  previousResistanceLevels,
   marketIntelligence:
     primaryIntelligence,
   multiTimeframeAnalysis,
@@ -348,6 +368,18 @@ async function analyzeAutoTradeSymbol(
       symbol,
       price: marketAnalysis.currentPrice,
       selectedLeverage: 1,
+
+      previousCompletedCandle:
+        marketAnalysis.previousCompletedCandle,
+
+      latestCompletedCandle:
+        marketAnalysis.latestCompletedCandle,
+
+      previousSupportLevels:
+        marketAnalysis.previousSupportLevels,
+
+      previousResistanceLevels:
+        marketAnalysis.previousResistanceLevels,
 
       marketIntelligence:
         marketAnalysis.marketIntelligence,

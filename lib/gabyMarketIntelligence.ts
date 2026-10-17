@@ -259,7 +259,12 @@ function groupZones(levels: number[], tolerancePercent = 0.0015): PriceZone[] {
   return zones;
 }
 
-
+export function getAutoTradeStructureZones(candles: Candle[]) {
+  return {
+    supportLevels: groupZones(getSwingLows(candles)),
+    resistanceLevels: groupZones(getSwingHighs(candles)),
+  };
+}
 
 export function isPriceNearZone(price: number, zone: PriceZone | null, tolerancePercent = 0.0015): boolean {
   if (!zone) return false;

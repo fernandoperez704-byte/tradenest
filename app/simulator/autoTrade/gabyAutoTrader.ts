@@ -166,6 +166,34 @@ export type GabyAutoTradeMarketInput = {
   price: number;
   selectedLeverage: number;
 
+  previousCompletedCandle?: {
+    time: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+  } | null;
+
+  latestCompletedCandle?: {
+    time: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+  } | null;
+
+  previousSupportLevels?: {
+    low: number;
+    high: number;
+    strength: number;
+  }[];
+
+  previousResistanceLevels?: {
+    low: number;
+    high: number;
+    strength: number;
+  }[];
+
   marketIntelligence: any;
   multiTimeframeAnalysis: any;
   movingAverageAnalysis: any;
@@ -231,6 +259,18 @@ const dailyOverextendedShort =
 const higherStructures =
   market.higherTimeframeStructures ?? {};
 
+const previousCompletedCandle =
+  market.previousCompletedCandle ?? null;
+
+const latestCompletedCandle =
+  market.latestCompletedCandle ?? null;
+
+const previousSupportLevels =
+  market.previousSupportLevels ?? [];
+
+const previousResistanceLevels =
+  market.previousResistanceLevels ?? [];
+
 const support =
   intelligence?.nearestSupport ??
   higherStructures["1H"]?.support ??
@@ -271,6 +311,48 @@ const bearishSetup =
     entryQuality === "GOOD");
 
 const ENTRY_ZONE_TOLERANCE = 0.003; // 0.3%
+
+const confirmedBreakdown = (zone: {
+  low: number;
+  high: number;
+} | null): boolean =>
+  Boolean(
+    zone &&
+    previousCompletedCandle &&
+    latestCompletedCandle &&
+    previousCompletedCandle.close >= zone.low &&
+    latestCompletedCandle.close < zone.low
+  );
+
+const confirmedBreakout = (zone: {
+  low: number;
+  high: number;
+} | null): boolean =>
+  Boolean(
+    zone &&
+    previousCompletedCandle &&
+    latestCompletedCandle &&
+    previousCompletedCandle.close <= zone.high &&
+    latestCompletedCandle.close > zone.high
+  );
+
+const strongSupportNearby =
+  previousSupportLevels.some(
+    (zone) =>
+      zone.strength >= 2 &&
+      market.price >= zone.low * (1 - ENTRY_ZONE_TOLERANCE) &&
+      market.price <= zone.high * (1 + ENTRY_ZONE_TOLERANCE) &&
+      !confirmedBreakdown(zone)
+  );
+
+const strongResistanceNearby =
+  previousResistanceLevels.some(
+    (zone) =>
+      zone.strength >= 2 &&
+      market.price >= zone.low * (1 - ENTRY_ZONE_TOLERANCE) &&
+      market.price <= zone.high * (1 + ENTRY_ZONE_TOLERANCE) &&
+      !confirmedBreakout(zone)
+  );
 
 const supportEntryZone =
   support &&
@@ -316,6 +398,7 @@ if (
     continuationEntry
   ) &&
   !nearDailyResistance &&
+  !strongResistanceNearby &&
   !dailyOverextendedLong
 ) {
   action = "LONG";
@@ -364,6 +447,7 @@ if (
     continuationEntry
   ) &&
   !nearDailySupport &&
+  !strongSupportNearby &&
   !dailyOverextendedShort
 ) {
   action = "SHORT";
