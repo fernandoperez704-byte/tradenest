@@ -206,6 +206,16 @@ export type GabyAutoTradeMarketInput = {
     {
       support: any;
       resistance: any;
+      supportLevels?: {
+        low: number;
+        high: number;
+        strength: number;
+      }[];
+      resistanceLevels?: {
+        low: number;
+        high: number;
+        strength: number;
+      }[];
     }
   >;
 dailyDirection?: string;
@@ -270,6 +280,24 @@ const previousSupportLevels =
 
 const previousResistanceLevels =
   market.previousResistanceLevels ?? [];
+
+const fourHourSupport =
+  (higherStructures["4H"]?.supportLevels ?? [])
+    .filter(
+      (zone) =>
+        zone.strength >= 2 &&
+        zone.high < market.price
+    )
+    .sort((a, b) => b.high - a.high)[0] ?? null;
+
+const fourHourResistance =
+  (higherStructures["4H"]?.resistanceLevels ?? [])
+    .filter(
+      (zone) =>
+        zone.strength >= 2 &&
+        zone.low > market.price
+    )
+    .sort((a, b) => a.low - b.low)[0] ?? null;
 
 const support =
   intelligence?.nearestSupport ??
@@ -403,15 +431,18 @@ if (
 ) {
   action = "LONG";
 
- const structuralStopLoss =
-  (bullishBreakRetest && retestZone
-    ? Math.min(
-        retestZone.low,
-        support?.low ?? retestZone.low
-      )
-    : support.low) * 0.9975;
+ const structuralSupport =
+  fourHourSupport;
 
-  stopLoss = structuralStopLoss;
+const structuralStopLoss =
+  structuralSupport
+    ? structuralSupport.low * 0.9975
+    : market.price;
+
+  stopLoss =
+    structuralStopLoss < market.price
+      ? structuralStopLoss
+      : null;
 
   const minimumTakeProfit =
     market.price +
@@ -452,15 +483,18 @@ if (
 ) {
   action = "SHORT";
 
+const structuralResistance =
+  fourHourResistance;
+
 const structuralStopLoss =
-  (bearishBreakRetest && retestZone
-    ? Math.max(
-        retestZone.high,
-        resistance?.high ?? retestZone.high
-      )
-    : resistance.high) * 1.0025;
-  
-  stopLoss = structuralStopLoss;
+  structuralResistance
+    ? structuralResistance.high * 1.0025
+    : market.price;
+
+  stopLoss =
+    structuralStopLoss > market.price
+      ? structuralStopLoss
+      : null;
 
   const minimumTakeProfit =
     market.price -

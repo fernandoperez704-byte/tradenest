@@ -279,8 +279,16 @@ for (const timeframe of AUTO_TRADE_HIGHER_TIMEFRAMES) {
       timeframe
     );
 
+  const completedCandles =
+    timeframe === "4H"
+      ? candles.filter(
+          (candle) =>
+            Number(candle.time) + 14400 * 1000 <= Date.now()
+        )
+      : candles;
+
   const intelligence =
-    getMarketIntelligence(candles);
+    getMarketIntelligence(completedCandles);
 
   timeframeData[timeframe] = {
     direction: intelligence.direction,
@@ -290,9 +298,18 @@ for (const timeframe of AUTO_TRADE_HIGHER_TIMEFRAMES) {
       intelligence.marketConviction,
   };
 
+  const structuralZones =
+    timeframe === "4H"
+      ? getAutoTradeStructureZones(completedCandles)
+      : null;
+
   higherTimeframeStructures[timeframe] = {
     support: intelligence.nearestSupport,
     resistance: intelligence.nearestResistance,
+    supportLevels:
+      structuralZones?.supportLevels ?? intelligence.supportLevels,
+    resistanceLevels:
+      structuralZones?.resistanceLevels ?? intelligence.resistanceLevels,
   };
 }
 
