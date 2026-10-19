@@ -266,6 +266,101 @@ export function getAutoTradeStructureZones(candles: Candle[]) {
   };
 }
 
+export function getRejectionEducation(
+  candles: Candle[],
+  timeframe: string
+): string | null {
+  if (candles.length < 5) return null;
+
+  const recent = candles;
+  const price = recent[recent.length - 1].close;
+
+  const lows = recent.map((c) => c.low);
+  const highs = recent.map((c) => c.high);
+
+  const currentPrice = recent[recent.length - 1].close;
+
+  const supportZones = groupZones(getSwingLows(recent));
+  const resistanceZones = groupZones(getSwingHighs(recent));
+
+  const supportZone = supportZones
+    .filter((zone) =>
+      zone.high <= currentPrice &&
+      zone.high >= currentPrice * 0.95
+    )
+    .sort((a, b) => b.high - a.high)[0];
+
+  const resistanceZone = resistanceZones
+    .filter((zone) =>
+      zone.low >= currentPrice &&
+      zone.low <= currentPrice * 1.05
+    )
+    .sort((a, b) => a.low - b.low)[0];
+
+  const support = supportZone
+    ? (supportZone.low + supportZone.high) / 2
+    : 0;
+
+  const resistance = resistanceZone
+    ? (resistanceZone.low + resistanceZone.high) / 2
+    : 0;
+
+  const tolerance = 0.005;
+
+  let supportDefenses = 0;
+  let supportTestActive = false;
+
+  for (const candle of recent) {
+    const nearSupport =
+      support > 0 &&
+      Math.abs(candle.low - support) / support <= tolerance;
+
+    if (nearSupport && candle.close > support) {
+      if (!supportTestActive) {
+        supportDefenses++;
+        supportTestActive = true;
+      }
+    } else if (candle.low > support * (1 + tolerance * 2)) {
+      supportTestActive = false;
+    }
+  }
+
+  let resistanceRejections = 0;
+  let resistanceTestActive = false;
+
+  for (const candle of recent) {
+    const nearResistance =
+      resistance > 0 &&
+      Math.abs(candle.high - resistance) / resistance <= tolerance;
+
+    if (nearResistance && candle.close < resistance) {
+      if (!resistanceTestActive) {
+        resistanceRejections++;
+        resistanceTestActive = true;
+      }
+    } else if (candle.high < resistance * (1 - tolerance * 2)) {
+      resistanceTestActive = false;
+    }
+  }
+
+  const context =
+    timeframe === "1M"
+      ? "This is a very short-term reaction."
+      : timeframe === "1D"
+      ? "This is a daily-chart development that may have broader significance."
+      : `This reaction applies to the ${timeframe} timeframe.`;
+
+  if (supportDefenses >= 2) {
+    return `Price has defended support near ${support.toFixed(2)} across ${supportDefenses} separate tests. This suggests selling pressure may be weakening and a bullish reversal could be developing. ${context} Confirmation requires buyers to reclaim nearby resistance.`;
+  }
+
+  if (resistanceRejections >= 2) {
+    return `Price has rejected resistance near ${resistance.toFixed(2)} across ${resistanceRejections} separate tests. This suggests buying pressure may be weakening and a bearish reversal could be developing. ${context} Confirmation requires sellers to break nearby support.`;
+  }
+
+  return null;
+}
+
 export function isPriceNearZone(price: number, zone: PriceZone | null, tolerancePercent = 0.0015): boolean {
   if (!zone) return false;
   const zoneMidpoint = (zone.low + zone.high) / 2;
