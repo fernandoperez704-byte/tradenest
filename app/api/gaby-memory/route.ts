@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { adminDb } from "@/lib/firebaseAdmin";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -50,6 +52,94 @@ function isValidCategory(value: unknown): value is MemoryCategory {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
+    if (body?.action === "SAVE_CONVERSATION") {
+      const { userId } = await auth();
+
+      if (!userId) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+
+      const question = body.question;
+      const answer = body.answer;
+      const topic = body.topic ?? null;
+
+      if (
+        typeof question !== "string" ||
+        typeof answer !== "string" ||
+        !question.trim() ||
+        !answer.trim()
+      ) {
+        return NextResponse.json(
+          { error: "Invalid conversation" },
+          { status: 400 }
+        );
+      }
+
+      await adminDb
+        .collection("gabyConversationHistory")
+        .doc(userId)
+        .collection("conversations")
+        .add({
+          question: question.trim(),
+          answer: answer.trim(),
+          topic: typeof topic === "string" ? topic : null,
+          createdAt: new Date(),
+        });
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (body?.action === "GET_CONVERSATIONS") {
+      const { userId } = await auth();
+
+      if (!userId) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+
+      const startDate = new Date(body.startDate);
+      const endDate = new Date(body.endDate);
+
+      if (
+        !Number.isFinite(startDate.getTime()) ||
+        !Number.isFinite(endDate.getTime()) ||
+        startDate > endDate
+      ) {
+        return NextResponse.json(
+          { error: "Invalid date range" },
+          { status: 400 }
+        );
+      }
+
+      const snapshot = await adminDb
+        .collection("gabyConversationHistory")
+        .doc(userId)
+        .collection("conversations")
+        .where("createdAt", ">=", startDate)
+        .where("createdAt", "<", endDate)
+        .orderBy("createdAt", "desc")
+        .limit(50)
+        .get();
+
+      const conversations = snapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        return {
+          question: data.question,
+          answer: data.answer,
+          topic: data.topic ?? null,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+        };
+      });
+
+      return NextResponse.json({ conversations });
+    }
 
     const userMessage =
       typeof body?.userMessage === "string"

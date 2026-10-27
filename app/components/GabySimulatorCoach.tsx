@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { GabyVoiceProcessor } from "@/app/simulator/voice/gabyVoice";
+import { getRejectionEducation } from "@/lib/gabyMarketIntelligence";
+import { saveGabyConversation, getGabyConversations } from "@/lib/gaby/memory/conversationStorage";
 import { usePendingBeginnerCoaching } from "@/lib/gabyCoaching/usePendingBeginnerCoaching";
 import { latestTradeNestXUpdate } from "@/lib/gaby/core/tradenestxUpdates";
 import { useClerk, useUser } from "@clerk/nextjs";
@@ -1122,6 +1124,19 @@ if (
 
     try {
 
+      let savedConversations: Awaited<ReturnType<typeof getGabyConversations>> = [];
+
+      if (user?.id && isPaid) {
+        try {
+          savedConversations = await getGabyConversations(
+            new Date(0),
+            new Date()
+          );
+        } catch (error) {
+          console.error("Gaby conversation retrieval failed:", error);
+        }
+      }
+
 console.log("GABY MARKET DEBUG", {
   direction: movingAverageAnalysis?.direction,
   structure: marketIntelligence?.structure,
@@ -1138,6 +1153,7 @@ console.log("GABY MARKET DEBUG", {
           lastReferencedLevel,
           lastReviewData: reviewSnapshot,
           conversationHistory: conversationHistory.slice(-8),
+          savedConversations,
 longTermMemory,
 simulatorContext: {
   userId,
@@ -1158,6 +1174,10 @@ balance,
   selectedTimeframe,
   currentPrice,
   history: history?.slice(-200) ?? [],
+  rejectionEducation:
+    selectedTimeframe && history?.length
+      ? getRejectionEducation(history, selectedTimeframe)
+      : null,
 priceLocation,
 strongestPattern,
 detectedTrendline,
@@ -1272,6 +1292,17 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
           gaby: gabyAnswer,
         },
       ]);
+
+      if (user?.id && isPaid && res.ok && !data.upgradeRequired) {
+        void saveGabyConversation({
+          userId: user.id,
+          question: finalQuestion,
+          answer: gabyAnswer,
+          topic: conversationSubject,
+        }).catch((error) => {
+          console.error("Failed to save Gaby conversation:", error);
+        });
+      }
 
       void processLongTermMemory(finalQuestion, gabyAnswer);
     }

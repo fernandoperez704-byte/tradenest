@@ -45,6 +45,7 @@ const {
   simulatorContext,
   lastReviewData,
   conversationHistory,
+  savedConversations,
   longTermMemory,
   lastReferencedLevel,
   lastTopic,
@@ -852,6 +853,7 @@ Current Price: $${formatPrice(currentPrice)}
 
 Market Direction: ${direction}
 Market Structure: ${structure || "UNKNOWN"}
+Rejection Education: ${marketFacts.rejectionEducation || "NONE"}
 
 Nearest Support:
 ${
@@ -876,9 +878,17 @@ Rules:
 - Mention the coin and selected timeframe.
 - Use ONLY the supplied TradeNestX engine facts.
 - Clearly state the Market Direction first.
-- Briefly explain the Market Direction.
-- Explain the Market Structure and how it relates to the current direction.
+- Explain Market Direction and Market Structure together in one natural sentence, without repeating the same directional information.
 - Mention the nearest Support and Resistance when available.
+- When Rejection Education is available, briefly explain the repeated price rejection automatically, even if the user only asks about overall market direction.
+- Explain whether the rejection suggests weakening selling pressure or weakening buying pressure.
+- Clearly distinguish a potential reversal from the confirmed overall market direction and structure.
+- Explain the established market direction and structure first, then naturally transition to any developing reversal indicated by Rejection Education.
+- Use appropriate contrasting language so the user understands that the reversal observation differs from the established trend.
+- Keep the explanation in one natural paragraph without forcing specific transition words or phrases.
+- Explain that rejection alone does not confirm a reversal and mention the confirmation needed.
+- Keep the explanation relevant to the selected timeframe.
+- When Rejection Education is NONE, do not invent rejection observations.
 - Describe Support and Resistance as areas or zones, not guaranteed exact prices.
 - If only one support or resistance value is supplied, treat it as a reference level within that area.
 - Support is the lower market area.
@@ -1212,6 +1222,12 @@ General Answer Rules:
 - If the cause is not verified, clearly say the cause is unknown from the available TradeNestX data.
 - Do not automatically summarize or combine unrelated Current Market Facts just because they are available.
 - Only discuss RSI, momentum, volume, support, resistance, structure, patterns, or other indicators when the user's question specifically requires them.
+- When the user asks about repeated price rejection, support defenses, resistance rejection, or possible reversals, use rejectionEducation when available.
+- Explain that repeated rejection can suggest weakening pressure, but does not confirm a reversal.
+- Explain confirmation and invalidation using only supplied TradeNestX facts.
+- Always relate the significance to the selected timeframe. A 1-minute reaction is short-term; a daily reaction may have broader significance.
+- Apply the same educational reasoning to bullish and bearish reversals.
+- Never turn rejection education into a buy, sell, long, or short signal.
 - For a simple current-market follow-up, answer the specific question first and keep the explanation focused on the market fact most directly relevant to it.
 - Use the Latest Reviewed Trade Facts only when the user is referring to their reviewed trade.
 - Use Personalized Reviewed Trade Facts when the user asks why their own entries, exits, trades, or results are succeeding or failing, or asks about a specific subset of their reviewed trades.
@@ -1242,6 +1258,17 @@ General Answer Rules:
 Recent Conversation:
 
 ${conversationHistory ? JSON.stringify(conversationHistory, null, 2) : "NONE"}
+
+Saved Conversation History:
+
+${Array.isArray(savedConversations) ? JSON.stringify(savedConversations, null, 2) : "NONE"}
+
+Saved Conversation Rules:
+- Use saved conversations when the user asks about previous lessons or discussions.
+- Use recorded timestamps to identify when a conversation happened.
+- Never invent a previous conversation or lesson.
+- If the requested conversation is not available, say so.
+- Prioritize the newest user question.
 
 Long-Term Gaby Memory:
 
@@ -1302,6 +1329,7 @@ ${includeCurrentMarketContext ? JSON.stringify(
     selectedTimeframe: marketFacts.selectedTimeframe,
     currentPrice: marketFacts.currentPrice,
     recentPriceMovements,
+    rejectionEducation: marketFacts.rejectionEducation ?? null,
     marketDirection: marketFacts.marketDirection,
     structure: marketFacts.structure,
     priceLocation: marketFacts.priceLocation,
