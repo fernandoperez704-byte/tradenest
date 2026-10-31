@@ -67,6 +67,7 @@ import {
   getPriceLocation,
   getEntryQuality,
   buildMarketAnalysisSummary,
+  getRejectionCandles,
 } from "@/lib/gabyMarketIntelligence";
 
 import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
@@ -466,6 +467,21 @@ const resistances =
         low: zone.low,
         high: zone.high,
       });
+
+      const supportLevel = (zone.low + zone.high) / 2;
+
+      getRejectionCandles(history, supportLevel, "SUPPORT").forEach(
+        (candle, candleIndex) => {
+          highlights.push({
+            id: `support-candle-${selectedSymbol}-${selectedTimeframe}-${index}-${candleIndex}`,
+            type: "CANDLE",
+            time: Number(candle.time),
+            high: candle.high,
+            low: candle.low,
+            reason: "Support defense",
+          });
+        }
+      );
     });
   }
 
@@ -477,11 +493,32 @@ const resistances =
         low: zone.low,
         high: zone.high,
       });
+
+      const resistanceLevel = (zone.low + zone.high) / 2;
+
+      getRejectionCandles(history, resistanceLevel, "RESISTANCE").forEach(
+        (candle, candleIndex) => {
+          highlights.push({
+            id: `resistance-candle-${selectedSymbol}-${selectedTimeframe}-${index}-${candleIndex}`,
+            type: "CANDLE",
+            time: Number(candle.time),
+            high: candle.high,
+            low: candle.low,
+            reason: "Resistance rejection",
+          });
+        }
+      );
     });
   }
 
 
-  setGabyChartHighlights(highlights);
+  setGabyChartHighlights((prev) => {
+    if (JSON.stringify(prev) === JSON.stringify(highlights)) {
+      return prev;
+    }
+
+    return highlights;
+  });
 }, [
   gabyAnnotations,
   gabyAnnotationCount,

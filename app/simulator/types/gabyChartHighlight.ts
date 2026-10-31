@@ -1,3 +1,4 @@
+
 export type GabyChartHighlight =
   | {
       id: string;
@@ -21,4 +22,12 @@ export type GabyChartHighlight =
         endTime: number;
         endPrice: number;
       };
+    }
+  | {
+      id: string;
+      type: "CANDLE";
+      time: number;
+      high: number;
+      low: number;
+      reason?: string;
     };

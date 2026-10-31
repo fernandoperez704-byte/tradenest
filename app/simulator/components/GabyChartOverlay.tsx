@@ -22,6 +22,15 @@ type OverlayItem =
       type: "TRENDLINE";
       upper: { x1: number; y1: number; x2: number; y2: number };
       lower: { x1: number; y1: number; x2: number; y2: number };
+    }
+  | {
+      id: string;
+      type: "CANDLE";
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+      reason?: string;
     };
 
 export default function GabyChartOverlay({
@@ -46,6 +55,29 @@ export default function GabyChartOverlay({
       const next: OverlayItem[] = [];
 
       for (const h of highlights) {
+        if (h.type === "CANDLE" && chart) {
+          const x = chart.timeScale().timeToCoordinate(
+            Math.floor(Number(h.time) / 1000) as any
+          );
+
+          const highY = series.priceToCoordinate(h.high);
+          const lowY = series.priceToCoordinate(h.low);
+
+          if (x == null || highY == null || lowY == null) continue;
+
+          next.push({
+            id: h.id,
+            type: "CANDLE",
+            left: x - 6,
+            top: Math.min(highY, lowY) - 4,
+            width: 12,
+            height: Math.abs(lowY - highY) + 8,
+            reason: h.reason,
+          });
+
+          continue;
+        }
+
         if (h.type === "SUPPORT" || h.type === "RESISTANCE") {
           const highY = series.priceToCoordinate(h.high);
           const lowY = series.priceToCoordinate(h.low);
@@ -115,13 +147,23 @@ export default function GabyChartOverlay({
     const observer = new ResizeObserver(update);
     observer.observe(container);
 
-return () => observer.disconnect();
-}, [
-  highlights,
-  candleSeriesRef,
-  chartContainerRef,
-  chartInstanceRef,
-]);
+    const handleChartChange = () => {
+      update();
+    };
+
+    const timeScale = chart?.timeScale();
+    timeScale?.subscribeVisibleLogicalRangeChange(handleChartChange);
+
+    return () => {
+      observer.disconnect();
+      timeScale?.unsubscribeVisibleLogicalRangeChange(handleChartChange);
+    };
+  }, [
+    highlights,
+    candleSeriesRef,
+    chartContainerRef,
+    chartInstanceRef,
+  ]);
 
   const lineStyle = (
     line: { x1: number; y1: number; x2: number; y2: number }
@@ -150,7 +192,27 @@ return () => observer.disconnect();
   return (
     <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
       {items.map((item) =>
-        item.type === "TRENDLINE" ? (
+        item.type === "CANDLE" ? (
+          <div
+            key={item.id}
+            className={`absolute flex items-center justify-center text-2xl font-bold ${
+              item.reason === "Resistance rejection"
+                ? "text-red-400"
+                : "text-yellow-400"
+            }`}
+            style={{
+              left: item.left + item.width / 2 - 12,
+              top:
+                item.reason === "Resistance rejection"
+                  ? item.top - 28
+                  : item.top + item.height + 4,
+              width: 24,
+              height: 28,
+            }}
+          >
+            {item.reason === "Resistance rejection" ? "↓" : "↑"}
+          </div>
+        ) : item.type === "TRENDLINE" ? (
           <div key={item.id}>
             <div
               className="absolute h-[2px] bg-cyan-400"

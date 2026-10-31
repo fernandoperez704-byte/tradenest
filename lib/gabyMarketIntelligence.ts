@@ -309,6 +309,7 @@ export function getRejectionEducation(
 
   let supportDefenses = 0;
   let supportTestActive = false;
+  const supportTestTimes: Candle["time"][] = [];
 
   for (const candle of recent) {
     const nearSupport =
@@ -318,6 +319,7 @@ export function getRejectionEducation(
     if (nearSupport && candle.close > support) {
       if (!supportTestActive) {
         supportDefenses++;
+        supportTestTimes.push(candle.time);
         supportTestActive = true;
       }
     } else if (candle.low > support * (1 + tolerance * 2)) {
@@ -327,6 +329,7 @@ export function getRejectionEducation(
 
   let resistanceRejections = 0;
   let resistanceTestActive = false;
+  const resistanceTestTimes: Candle["time"][] = [];
 
   for (const candle of recent) {
     const nearResistance =
@@ -336,6 +339,7 @@ export function getRejectionEducation(
     if (nearResistance && candle.close < resistance) {
       if (!resistanceTestActive) {
         resistanceRejections++;
+        resistanceTestTimes.push(candle.time);
         resistanceTestActive = true;
       }
     } else if (candle.high < resistance * (1 - tolerance * 2)) {
@@ -359,6 +363,55 @@ export function getRejectionEducation(
   }
 
   return null;
+}
+
+export type RejectionCandle = {
+  time: Candle["time"];
+  high: number;
+  low: number;
+};
+
+export function getRejectionCandles(
+  candles: Candle[],
+  level: number,
+  type: "SUPPORT" | "RESISTANCE"
+): RejectionCandle[] {
+  if (level <= 0 || candles.length === 0) return [];
+
+  const tolerance = 0.005;
+  const matches: RejectionCandle[] = [];
+  let testActive = false;
+
+  for (const candle of candles) {
+    const nearLevel =
+      type === "SUPPORT"
+        ? Math.abs(candle.low - level) / level <= tolerance
+        : Math.abs(candle.high - level) / level <= tolerance;
+
+    const defended =
+      type === "SUPPORT"
+        ? candle.close > level
+        : candle.close < level;
+
+    if (nearLevel && defended) {
+      if (!testActive) {
+        matches.push({
+          time: candle.time,
+          high: candle.high,
+          low: candle.low,
+        });
+        testActive = true;
+      }
+    } else if (
+      type === "SUPPORT"
+        ? candle.low > level * (1 + tolerance * 2)
+        : candle.high < level * (1 - tolerance * 2)
+    ) {
+      testActive = false;
+    }
+  }
+
+  return matches;
 }
 
 export function isPriceNearZone(price: number, zone: PriceZone | null, tolerancePercent = 0.0015): boolean {
