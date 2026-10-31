@@ -301,6 +301,8 @@ useEffect(() => {
   useState<GabyChartHighlight[]>([]);
   const [pinnedGabyChartHighlights, setPinnedGabyChartHighlights] =
   useState<GabyChartHighlight[]>([]);
+  const [gabyScenarioArrows, setGabyScenarioArrows] =
+  useState<GabyChartHighlight[]>([]);
 
 
 type GabyAnnotationKey =
@@ -402,6 +404,12 @@ useEffect(() => {
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
+useEffect(() => {
+  setGabyScenarioArrows((prev) =>
+    prev.length === 0 ? prev : []
+  );
+}, [marketMode, selectedSymbol, selectedTimeframe]);
+
 const [patternRecognitionEnabled, setPatternRecognitionEnabled] =
   useState(false);
 
@@ -445,7 +453,36 @@ const marketIntelligence = useMemo(
 useEffect(() => {
   const highlights: GabyChartHighlight[] = [
     ...pinnedGabyChartHighlights,
+    ...gabyScenarioArrows,
   ];
+
+  gabyScenarioArrows.forEach((arrow) => {
+    if (arrow.type !== "SCENARIO_ARROW") return;
+
+    const levels =
+      arrow.direction === "DOWN"
+        ? marketIntelligence?.supportLevels
+        : marketIntelligence?.resistanceLevels;
+
+    if (!levels) return;
+
+    [arrow.startPrice, arrow.targetPrice].forEach((price, index) => {
+      const zone = levels.find(
+        (level) =>
+          price >= level.low - 0.01 &&
+          price <= level.high + 0.01
+      );
+
+      if (!zone) return;
+
+      highlights.push({
+        id: `gaby-scenario-zone-${index}`,
+        type: arrow.direction === "DOWN" ? "SUPPORT" : "RESISTANCE",
+        low: zone.low,
+        high: zone.high,
+      });
+    });
+  });
 
 const supports =
   marketIntelligence?.supportLevels?.slice(
@@ -524,6 +561,7 @@ const resistances =
   gabyAnnotationCount,
   gabyAnnotationIndex,
   pinnedGabyChartHighlights,
+  gabyScenarioArrows,
   marketIntelligence?.supportLevels,
   marketIntelligence?.resistanceLevels,
   detectedTrendline,
@@ -2354,8 +2392,8 @@ handleScale: {
       timeVisible: false,
       secondsVisible: false,
       fixLeftEdge: true,
-      fixRightEdge: true,
-      rightOffset: 12,
+      fixRightEdge: false,
+      rightOffset: 30,
       barSpacing: 3,
       minBarSpacing: 1,
     },
@@ -4441,6 +4479,7 @@ strongestPattern={strongestPattern}
   onClick={() => {
     setShowSimulatorGaby(false);
     setGabyAnnotations(pinnedGabyAnnotations);
+    setGabyScenarioArrows([]);
   }}
   className="hidden xl:fixed xl:inset-0 xl:z-40 xl:block xl:bg-black/10"
 />
@@ -4455,6 +4494,7 @@ strongestPattern={strongestPattern}
   onClose={() => {
     setShowSimulatorGaby(false);
     setGabyAnnotations(pinnedGabyAnnotations);
+    setGabyScenarioArrows([]);
   }}
   traderDevelopmentEngines={traderDevelopmentEngines}
   normalizedTradeReviews={normalizedTradeReviews}
@@ -4536,10 +4576,100 @@ onInfoPanelCommand={(command) => {
 onChartCommand={(command) => {
   const action = command?.action;
   const target = command?.target;
-  const count = Math.max(
-    1,
-    Math.min(Number(command?.count) || 1, 3)
-  );
+
+  if (action === "SCENARIO_ARROW") {
+    const direction = command?.direction;
+
+    if (direction !== "UP" && direction !== "DOWN") {
+      return;
+    }
+
+    const levels =
+      direction === "DOWN"
+        ? marketIntelligence?.supportLevels
+        : marketIntelligence?.resistanceLevels;
+
+    if (!levels || levels.length < 2 || history.length === 0) {
+      return;
+    }
+
+    const prices = levels
+      .map((zone) => (zone.low + zone.high) / 2)
+      .filter((price) => Number.isFinite(price));
+
+    const priceNow = Number(currentPrice);
+
+    if (!Number.isFinite(priceNow) || priceNow <= 0) {
+      return;
+    }
+
+    const orderedPrices = [...new Set(prices)]
+      .filter((price) =>
+        direction === "DOWN"
+          ? price < priceNow
+          : price > priceNow
+      )
+      .sort((a, b) =>
+        direction === "DOWN" ? b - a : a - b
+      );
+
+    const startPrice =
+      Number.isFinite(Number(command?.startPrice)) &&
+      Number(command?.startPrice) > 0
+        ? Number(command.startPrice)
+        : orderedPrices[0];
+
+    const targetPrice =
+      Number.isFinite(Number(command?.targetPrice)) &&
+      Number(command?.targetPrice) > 0
+        ? Number(command.targetPrice)
+        : orderedPrices[1];
+
+    if (startPrice == null || targetPrice == null) {
+      return;
+    }
+
+    if (
+      direction === "DOWN"
+        ? targetPrice >= startPrice
+        : targetPrice <= startPrice
+    ) {
+      return;
+    }
+
+    const latestCandle = history[history.length - 1];
+    const startTime = Number(latestCandle.time);
+    const timeframeMs = getTimeframeMs(selectedTimeframe);
+
+    if (!Number.isFinite(startTime)) {
+      return;
+    }
+
+    const endTime = startTime + timeframeMs * 5;
+
+    setGabyScenarioArrows([
+      {
+        id: `gaby-scenario-${selectedSymbol}-${selectedTimeframe}`,
+        type: "SCENARIO_ARROW",
+        direction,
+        startTime,
+        startPrice,
+        endTime,
+        targetPrice,
+        label:
+          direction === "DOWN"
+            ? "If support breaks"
+            : "If resistance breaks",
+      },
+    ]);
+
+    return;
+  }
+
+  const count =
+    Number(command?.count) > 0
+      ? Math.floor(Number(command.count))
+      : 1;
 
 const targets: GabyAnnotationKey[] =
   target === "BOTH"
@@ -4648,7 +4778,23 @@ if (action === "PIN") {
 }
 
 if (action === "SHOW") {
-  setGabyAnnotationCount(count);
+  const availableCount =
+    target === "RESISTANCE"
+      ? marketIntelligence?.resistanceLevels?.length ?? 0
+      : target === "SUPPORT"
+      ? marketIntelligence?.supportLevels?.length ?? 0
+      : target === "BOTH"
+      ? Math.max(
+          marketIntelligence?.supportLevels?.length ?? 0,
+          marketIntelligence?.resistanceLevels?.length ?? 0
+        )
+      : count;
+
+  setGabyAnnotationCount(
+    count >= availableCount && availableCount > 0
+      ? availableCount
+      : count
+  );
 
 setGabyAnnotationIndex(
   Math.max(0, Number(command?.index) || 0)

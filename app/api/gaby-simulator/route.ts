@@ -333,7 +333,19 @@ const tradeLimit = tradeLimitMatch
   ? Number(tradeLimitMatch[1])
   : undefined;
 
-const traderDevelopmentReport = userId
+const isTraderReportQuestion =
+  normalizedQuestion.includes("trade report") ||
+  normalizedQuestion.includes("trades report") ||
+  normalizedQuestion.includes("trader report") ||
+  normalizedQuestion.includes("development report") ||
+  normalizedQuestion.includes("progress report") ||
+  /last\s+\d+\s+trades/.test(normalizedQuestion) ||
+  normalizedQuestion.includes("last ten trades") ||
+  normalizedQuestion.includes("last trades") ||
+  normalizedQuestion.includes("recent trades") ||
+  normalizedQuestion.includes("my last trades");
+
+const traderDevelopmentReport = userId && isTraderReportQuestion
   ? await buildTraderDevelopmentReport(userId, tradeLimit)
   : null;
 
@@ -540,10 +552,15 @@ return Response.json({
 });
 }
 
-// Handle next support
+// Handle simple next-support questions only
 const isNextSupportQuestion =
-  normalizedQuestion.includes("next support") ||
-  normalizedQuestion.includes("second support");
+  (
+    normalizedQuestion.includes("next support") ||
+    normalizedQuestion.includes("second support")
+  ) &&
+  !/\b(if|break|breaks|breaking|breakdown|below|above|scenario|happen|could|would|possible|potential|illustrate|draw)\b/.test(
+    normalizedQuestion
+  );
 
 if (isNextSupportQuestion && marketFacts.nextSupport) {
   const support = marketFacts.nextSupport;
@@ -557,7 +574,12 @@ if (isNextSupportQuestion && marketFacts.nextSupport) {
     chartCommand: {
       action: "SHOW",
       target: "SUPPORT",
-      count: 2,
+      count: 1,
+      index: marketFacts.supportLevels?.findIndex(
+        (zone: any) =>
+          zone.low === support.low &&
+          zone.high === support.high
+      ) ?? 0,
     },
   });
 }
@@ -660,6 +682,14 @@ return Response.json({
     action: "SHOW",
     target: "SUPPORT",
     count: 1,
+    index: Math.max(
+      0,
+      marketFacts.supportLevels?.findIndex(
+        (zone: any) =>
+          zone.low === support.low &&
+          zone.high === support.high
+      ) ?? 0
+    ),
   },
 });
 }
@@ -681,7 +711,12 @@ if (isNextResistanceQuestion && marketFacts.nextResistance) {
     chartCommand: {
       action: "SHOW",
       target: "RESISTANCE",
-      count: 2,
+      count: 1,
+      index: marketFacts.resistanceLevels?.findIndex(
+        (zone: any) =>
+          zone.low === resistance.low &&
+          zone.high === resistance.high
+      ) ?? 0,
     },
   });
 }
@@ -789,6 +824,14 @@ return Response.json({
     action: "SHOW",
     target: "RESISTANCE",
     count: 1,
+    index: Math.max(
+      0,
+      marketFacts.resistanceLevels?.findIndex(
+        (zone: any) =>
+          zone.low === resistance.low &&
+          zone.high === resistance.high
+      ) ?? 0
+    ),
   },
 });
 }
@@ -1448,10 +1491,14 @@ Return ONLY valid JSON in this shape:
   "answer": "Gaby's normal natural answer",
 
   "chartCommand": {
-    "action": "SHOW | PIN | REMOVE | CLEAR | NONE",
+    "action": "SHOW | PIN | REMOVE | CLEAR | SCENARIO_ARROW | NONE",
     "target": "SUPPORT | RESISTANCE | BOTH | TRENDLINE | null",
     "count": 1,
-    "index": 0
+    "index": 0,
+    "direction": "UP | DOWN | null",
+    "startPrice": null,
+    "targetPrice": null,
+    "label": null
   },
 
   "panelCommand": {
@@ -1602,6 +1649,16 @@ AUTOMATIC VISUAL EXAMPLES:
 - Do not invent current market facts inside educational panel content.
 - Current prices, support, resistance, indicators, market direction, or other live simulator facts must still come only from supplied TradeNestX engine facts.
 
+CONDITIONAL MARKET SCENARIO RULES:
+- Recognize natural conditional market questions such as "What happens if BTC breaks support?", "Where could BTC go if support breaks?", or "What if price breaks resistance?"
+- When the user asks about a possible move after a current support or resistance break, explain the scenario using verified TradeNestX market levels.
+- For a support breakdown scenario, return chartCommand action SCENARIO_ARROW with direction DOWN and target SUPPORT.
+- For a resistance breakout scenario, return chartCommand action SCENARIO_ARROW with direction UP and target RESISTANCE.
+- Return panelCommand action NONE for these current-market scenarios. Use the live chart instead of a generic educational diagram.
+- Only request SCENARIO_ARROW when the relevant starting level and next target level are available from TradeNestX.
+- Never invent price levels or present conditional scenarios as predictions or trade signals.
+- Keep educational Info Panel visuals available for general lessons such as "Teach me how breakdowns work."
+
 Chart command meanings:
 - If conversationIntent is PERSONALIZED_COACHING, return chartCommand action NONE unless the user explicitly asks to show, highlight, pin, remove, or clear something on the chart.
 - Do not change the chart merely because a personalized coaching answer discusses direction, structure, support, resistance, entries, exits, or other market concepts.
@@ -1609,6 +1666,16 @@ Chart command meanings:
 - PIN = leave the requested chart item displayed.
 - REMOVE = remove the requested chart item.
 - CLEAR = clear Gaby chart annotations.
+- SCENARIO_ARROW = illustrate a conditional educational price scenario.
+- Use SCENARIO_ARROW only when the user explicitly asks Gaby to illustrate a possible breakout, breakdown, or movement between market levels.
+- For DOWN scenarios, use a verified support level and the next lower support.
+- For UP scenarios, distinguish immediate resistance from major historical resistance.
+- Prioritize a verified major historical resistance zone when supported by repeated price rejections and structural strength.
+- Mention intermediate resistance separately when relevant instead of treating it as the major target.
+- Use the same selected resistance zone in the explanation and SCENARIO_ARROW targetPrice.
+- Never invent support, resistance, or target prices.
+- If verified levels are unavailable, use NONE.
+- An arrow represents a possibility only if the stated market condition occurs, not a prediction or trading signal.
 - NONE = no chart change.
 
 Chart awareness:

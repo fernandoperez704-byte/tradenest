@@ -1224,6 +1224,10 @@ futuresPositionManagement,
       });
 
 const data = await res.json();
+
+console.log("GABY CHART COMMAND:", data.chartCommand);
+console.log("GABY PANEL COMMAND:", data.panelCommand);
+
 const gabyAnswer =
   data.answer || "Gaby could not respond right now.";
 

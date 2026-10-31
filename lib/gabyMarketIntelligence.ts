@@ -239,23 +239,32 @@ function getSwingLows(candles: Candle[], lookback = 5): number[] {
   return swings;
 }
 
-function groupZones(levels: number[], tolerancePercent = 0.0015): PriceZone[] {
+function groupZones(levels: number[], tolerancePercent = 0.0025): PriceZone[] {
   const zones: PriceZone[] = [];
-  levels.forEach((level) => {
-    const existingZone = zones.find((zone) => {
-      const midpoint = (zone.low + zone.high) / 2;
-      const distancePercent = Math.abs(level - midpoint) / midpoint;
-      return distancePercent <= tolerancePercent;
-    });
 
-    if (existingZone) {
-      existingZone.low = Math.min(existingZone.low, level);
-      existingZone.high = Math.max(existingZone.high, level);
-      existingZone.strength += 1;
+  const sortedLevels = levels
+    .filter((level) => Number.isFinite(level) && level > 0)
+    .sort((a, b) => a - b);
+
+  for (const level of sortedLevels) {
+    const lastZone = zones[zones.length - 1];
+
+    if (!lastZone) {
+      zones.push({ low: level, high: level, strength: 1 });
+      continue;
+    }
+
+    const distancePercent =
+      (level - lastZone.high) / lastZone.high;
+
+    if (distancePercent <= tolerancePercent) {
+      lastZone.high = level;
+      lastZone.strength += 1;
     } else {
       zones.push({ low: level, high: level, strength: 1 });
     }
-  });
+  }
+
   return zones;
 }
 
@@ -1098,6 +1107,42 @@ strongestResistance: null,
 const supportZones = groupZones(getSwingLows(recentCandles));
 const resistanceZones = groupZones(getSwingHighs(recentCandles));
 
+const historicalSupportZones = supportZones.filter((zone) => {
+  const level = (zone.low + zone.high) / 2;
+
+  const supportTests = getRejectionCandles(
+    recentCandles,
+    level,
+    "SUPPORT"
+  ).length;
+
+  const resistanceTests = getRejectionCandles(
+    recentCandles,
+    level,
+    "RESISTANCE"
+  ).length;
+
+  return supportTests >= 2 && supportTests > resistanceTests;
+});
+
+const historicalResistanceZones = resistanceZones.filter((zone) => {
+  const level = (zone.low + zone.high) / 2;
+
+  const supportTests = getRejectionCandles(
+    recentCandles,
+    level,
+    "SUPPORT"
+  ).length;
+
+  const resistanceTests = getRejectionCandles(
+    recentCandles,
+    level,
+    "RESISTANCE"
+  ).length;
+
+  return resistanceTests >= 2 && resistanceTests > supportTests;
+});
+
 const STRUCTURAL_LEVEL_MIN_DISTANCE = 0.003; // 0.3%
 
 const supportLevels = supportZones
@@ -1119,18 +1164,111 @@ const resistanceLevels = resistanceZones
   .sort((a, b) => a.low - b.low);
 
 const nearestSupport = supportLevels[0] ?? null;
-const nextSupport = supportLevels[1] ?? null;
+
+const rankStructuralZones = (
+  zones: PriceZone[],
+  type: "SUPPORT" | "RESISTANCE"
+): PriceZone | null => {
+  if (zones.length === 0) return null;
+
+  return [...zones].sort((a, b) => {
+    const aMidpoint = (a.low + a.high) / 2;
+    const bMidpoint = (b.low + b.high) / 2;
+
+    const aTests = getRejectionCandles(
+      recentCandles,
+      aMidpoint,
+      type
+    ).length;
+
+    const bTests = getRejectionCandles(
+      recentCandles,
+      bMidpoint,
+      type
+    ).length;
+
+    return (
+      bTests - aTests ||
+      b.strength - a.strength ||
+      (type === "SUPPORT"
+        ? b.high - a.high
+        : a.low - b.low)
+    );
+  })[0];
+};
+
+const nextSupport =
+  rankStructuralZones(
+    supportLevels.filter(
+      (zone) =>
+        nearestSupport !== null &&
+        zone.high < nearestSupport.low
+    ),
+    "SUPPORT"
+  );
+
 const nearestResistance = resistanceLevels[0] ?? null;
-const nextResistance = resistanceLevels[1] ?? null;
+
+const nextResistance =
+  rankStructuralZones(
+    resistanceLevels.filter(
+      (zone) =>
+        nearestResistance !== null &&
+        zone.low > nearestResistance.high
+    ),
+    "RESISTANCE"
+  );
 
 const strongestSupport =
   supportLevels.length
-    ? [...supportLevels].sort((a, b) => b.strength - a.strength)[0]
+    ? [...supportLevels].sort((a, b) => {
+        const aMidpoint = (a.low + a.high) / 2;
+        const bMidpoint = (b.low + b.high) / 2;
+
+        const aTests = getRejectionCandles(
+          recentCandles,
+          aMidpoint,
+          "SUPPORT"
+        ).length;
+
+        const bTests = getRejectionCandles(
+          recentCandles,
+          bMidpoint,
+          "SUPPORT"
+        ).length;
+
+        return (
+          bTests - aTests ||
+          b.strength - a.strength ||
+          a.low - b.low
+        );
+      })[0]
     : null;
 
 const strongestResistance =
   resistanceLevels.length
-    ? [...resistanceLevels].sort((a, b) => b.strength - a.strength)[0]
+    ? [...resistanceLevels].sort((a, b) => {
+        const aMidpoint = (a.low + a.high) / 2;
+        const bMidpoint = (b.low + b.high) / 2;
+
+        const aTests = getRejectionCandles(
+          recentCandles,
+          aMidpoint,
+          "RESISTANCE"
+        ).length;
+
+        const bTests = getRejectionCandles(
+          recentCandles,
+          bMidpoint,
+          "RESISTANCE"
+        ).length;
+
+        return (
+          bTests - aTests ||
+          b.strength - a.strength ||
+          b.high - a.high
+        );
+      })[0]
     : null;
 
 const structure = getMarketStructure(recentCandles);

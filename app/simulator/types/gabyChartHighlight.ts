@@ -30,4 +30,14 @@ export type GabyChartHighlight =
       high: number;
       low: number;
       reason?: string;
+    }
+  | {
+      id: string;
+      type: "SCENARIO_ARROW";
+      direction: "UP" | "DOWN";
+      startTime: number;
+      startPrice: number;
+      endTime: number;
+      targetPrice: number;
+      label?: string;
     };

@@ -31,6 +31,16 @@ type OverlayItem =
       width: number;
       height: number;
       reason?: string;
+    }
+  | {
+      id: string;
+      type: "SCENARIO_ARROW";
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      direction: "UP" | "DOWN";
+      label?: string;
     };
 
 export default function GabyChartOverlay({
@@ -55,6 +65,56 @@ export default function GabyChartOverlay({
       const next: OverlayItem[] = [];
 
       for (const h of highlights) {
+        if (h.type === "SCENARIO_ARROW" && chart) {
+          const timeScale = chart.timeScale();
+
+          const x1 = timeScale.timeToCoordinate(
+            Math.floor(h.startTime / 1000) as any
+          );
+
+          const startLogical = timeScale.coordinateToLogical(x1 ?? 0);
+
+          const candleSpacingMs = Math.max(
+            1,
+            (h.endTime - h.startTime) / 5
+          );
+
+          const futureBars =
+            (h.endTime - h.startTime) / candleSpacingMs;
+
+          const x2 =
+            startLogical == null
+              ? null
+              : timeScale.logicalToCoordinate(
+                  startLogical + futureBars
+                );
+
+          const y1 = series.priceToCoordinate(h.startPrice);
+          const y2 = series.priceToCoordinate(h.targetPrice);
+
+          if (
+            x1 == null ||
+            x2 == null ||
+            y1 == null ||
+            y2 == null
+          ) {
+            continue;
+          }
+
+          next.push({
+            id: h.id,
+            type: "SCENARIO_ARROW",
+            x1,
+            y1,
+            x2,
+            y2,
+            direction: h.direction,
+            label: h.label,
+          });
+
+          continue;
+        }
+
         if (h.type === "CANDLE" && chart) {
           const x = chart.timeScale().timeToCoordinate(
             Math.floor(Number(h.time) / 1000) as any
@@ -223,6 +283,52 @@ export default function GabyChartOverlay({
               style={lineStyle(item.lower)}
             />
           </div>
+        ) : item.type === "SCENARIO_ARROW" ? (
+          <svg
+            key={item.id}
+            className="absolute inset-0 h-full w-full overflow-visible"
+          >
+            <defs>
+              <marker
+                id={`arrowhead-${item.id}`}
+                markerWidth="14"
+                markerHeight="14"
+                refX="12"
+                refY="5"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M0,0 L0,10 L12,5 z"
+                  fill={item.direction === "DOWN" ? "#fb7185" : "#34d399"}
+                />
+              </marker>
+            </defs>
+
+            <line
+              x1={item.x1}
+              y1={item.y1}
+              x2={item.x2}
+              y2={item.y2}
+              stroke={item.direction === "DOWN" ? "#fb7185" : "#34d399"}
+              strokeWidth="3"
+              strokeDasharray="8 5"
+              markerEnd={`url(#arrowhead-${item.id})`}
+            />
+
+            {item.label && (
+              <text
+                x={(item.x1 + item.x2) / 2}
+                y={(item.y1 + item.y2) / 2 - 12}
+                textAnchor="middle"
+                fill={item.direction === "DOWN" ? "#fb7185" : "#34d399"}
+                fontSize="12"
+                fontWeight="bold"
+              >
+                {item.label}
+              </text>
+            )}
+          </svg>
         ) : (
           <div
             key={item.id}
