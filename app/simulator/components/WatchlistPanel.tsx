@@ -16,6 +16,8 @@ type WatchlistPanelProps = {
 
 previousPrices: Partial<Record<AssetSymbol | StockSymbol, number>>;
 
+priceChanges24h: Partial<Record<AssetSymbol, number | null>>;
+
 searchTerm: string;
 setSearchTerm: (value: string) => void;
 
@@ -52,6 +54,7 @@ export default function WatchlistPanel({
   
   watchlist,
   previousPrices,
+  priceChanges24h,
 searchTerm,
 setSearchTerm,
 marketMode,
@@ -239,6 +242,7 @@ onError={(e) => {
   </div>
 </div>
 
+<div className="flex flex-col items-end gap-1">
 <p
 className={`text-xs font-bold ${
   previousPrices[coin.symbol] != null && coin.price != null
@@ -274,6 +278,21 @@ className={`text-xs font-bold ${
   })}`}
     
 </p>
+
+{marketMode !== "STOCKS" &&
+  priceChanges24h[coin.symbol as AssetSymbol] != null && (
+    <p
+      className={`text-xs font-bold ${
+        priceChanges24h[coin.symbol as AssetSymbol]! >= 0
+          ? "text-emerald-400"
+          : "text-red-400"
+      }`}
+    >
+      {priceChanges24h[coin.symbol as AssetSymbol]! > 0 ? "+" : ""}
+      {priceChanges24h[coin.symbol as AssetSymbol]!.toFixed(2)}%
+    </p>
+  )}
+</div>
 </div>
 
 

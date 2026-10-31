@@ -25,4 +25,10 @@ export const WATCHLIST: {
   { symbol: "NEAR", name: "NEAR Protocol" },
   { symbol: "SHIB", name: "Shiba Inu" },
   { symbol: "PEPE", name: "Pepe" },
+
+  { symbol: "OP", name: "Optimism" },
+  { symbol: "ENS", name: "Ethereum Name Service" },
+  { symbol: "RENDER", name: "Render" },
+  { symbol: "INJ", name: "Injective" },
+  { symbol: "ARB", name: "Arbitrum" },
 ];

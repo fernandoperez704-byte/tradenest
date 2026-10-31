@@ -22,6 +22,12 @@ const productMap = [
   { symbol: "NEARUSDT", productId: "NEAR-USD" },
   { symbol: "SHIBUSDT", productId: "SHIB-USD" },
   { symbol: "PEPEUSDT", productId: "PEPE-USD" },
+
+  { symbol: "OPUSDT", productId: "OP-USD" },
+  { symbol: "ENSUSDT", productId: "ENS-USD" },
+  { symbol: "RENDERUSDT", productId: "RENDER-USD" },
+  { symbol: "INJUSDT", productId: "INJ-USD" },
+  { symbol: "ARBUSDT", productId: "ARB-USD" },
 ];
 
 export async function GET() {
@@ -40,9 +46,37 @@ const response = await fetch(
 
 const data = await response.json();
 
+const currentPrice = Number(data.price);
+
+const statsResponse = await fetch(
+  `https://api.exchange.coinbase.com/products/${item.productId}/stats`,
+  {
+    next: { revalidate: 60 },
+    headers: {
+      "User-Agent": "TradeNestX",
+    },
+  }
+);
+
+const stats = statsResponse.ok
+  ? await statsResponse.json()
+  : null;
+
+const open24h = stats?.open != null
+  ? Number(stats.open)
+  : NaN;
+
+const change24h =
+  Number.isFinite(currentPrice) &&
+  Number.isFinite(open24h) &&
+  open24h > 0
+    ? ((currentPrice - open24h) / open24h) * 100
+    : null;
+
 return {
   symbol: item.symbol,
-  price: Number(data.price),
+  price: currentPrice,
+  change24h,
 };
       })
     );

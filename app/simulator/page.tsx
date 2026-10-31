@@ -131,6 +131,11 @@ const COINBASE_PRODUCT_IDS: Record<AssetSymbol, string> = {
   NEAR: "NEAR-USD",
   SHIB: "SHIB-USD",
   PEPE: "PEPE-USD",
+  OP: "OP-USD",
+  ENS: "ENS-USD",
+  RENDER: "RENDER-USD",
+  INJ: "INJ-USD",
+  ARB: "ARB-USD",
 };
 
 const emptyPositions: Record<AssetSymbol, number> = {
@@ -155,6 +160,11 @@ const emptyPositions: Record<AssetSymbol, number> = {
   NEAR: 0,
   SHIB: 0,
   PEPE: 0,
+  OP: 0,
+  ENS: 0,
+  RENDER: 0,
+  INJ: 0,
+  ARB: 0,
 };
 
 function buildTradePriceActionContext(history: any[], openedAt?: string) {
@@ -394,7 +404,7 @@ useEffect(() => {
 useEffect(() => {
   if (
     marketMode === "COINBASE_FUTURES" &&
-    (selectedCoin === "UNI" || selectedCoin === "ATOM")
+    ["UNI", "ATOM", "OP", "ENS", "RENDER", "INJ", "ARB"].includes(selectedCoin)
   ) {
     setSelectedCoin("BTC");
   }
@@ -431,6 +441,10 @@ const [selectedCandleDate, setSelectedCandleDate] = useState<string>("Hover a ca
   const [searchTerm, setSearchTerm] = useState("");
 const [prices, setPrices] = useState<
   Partial<Record<AssetSymbol, number>>
+>({});
+
+const [priceChanges24h, setPriceChanges24h] = useState<
+  Partial<Record<AssetSymbol, number | null>>
 >({});
 
 const { topOfBook, setTopOfBook } = useCoinbaseFuturesTopOfBook();
@@ -1463,6 +1477,29 @@ const priceUrl =
     if (!Array.isArray(data)) {
       throw new Error("Invalid price data");
     }
+
+    const changes24h = data.reduce(
+      (
+        acc: Partial<Record<AssetSymbol, number | null>>,
+        item: any
+      ) => {
+        const symbol = item.symbol.replace(
+          "USDT",
+          ""
+        ) as AssetSymbol;
+
+        acc[symbol] =
+          typeof item.change24h === "number" &&
+          Number.isFinite(item.change24h)
+            ? item.change24h
+            : null;
+
+        return acc;
+      },
+      {}
+    );
+
+    setPriceChanges24h(changes24h);
 
     const realPrices = data.reduce(
       (
@@ -2923,8 +2960,7 @@ if (activeStopLoss != null) {
 ]);
 
 useEffect(() => {
-  if (window.innerWidth >= 1280) return;
-  if (mobileView !== "TRADE") return;
+  if (window.innerWidth < 1280 && mobileView !== "TRADE") return;
   if (!candleSeriesRef.current) return;
 
   candleSeriesRef.current.applyOptions({
@@ -2938,10 +2974,24 @@ const zones = gabyChartHighlights.filter(
     "low" in x && "high" in x
 );
 
-if (zones.length === 0) return info;
+const scenarioPrices = gabyScenarioArrows.flatMap((arrow) =>
+  arrow.type === "SCENARIO_ARROW"
+    ? [arrow.startPrice, arrow.targetPrice].filter(
+        (price): price is number =>
+          typeof price === "number" && Number.isFinite(price)
+      )
+    : []
+);
 
-const low = Math.min(...zones.map((x) => x.low));
-const high = Math.max(...zones.map((x) => x.high));
+const allPrices = [
+  ...zones.flatMap((zone) => [zone.low, zone.high]),
+  ...scenarioPrices,
+];
+
+if (allPrices.length === 0) return info;
+
+const low = Math.min(...allPrices);
+const high = Math.max(...allPrices);
 
       const minValue = Math.min(info.priceRange.minValue, low);
       const maxValue = Math.max(info.priceRange.maxValue, high);
@@ -2960,7 +3010,7 @@ const high = Math.max(...zones.map((x) => x.high));
   chartInstanceRef.current
     ?.priceScale("right")
     .applyOptions({ autoScale: true });
-}, [gabyChartHighlights, mobileView]);
+}, [gabyChartHighlights, gabyScenarioArrows, mobileView]);
 
 function buildTradeContext() {
 
@@ -4376,7 +4426,7 @@ const watchlist = marketMode === "STOCKS"
       .filter(
         (coin) =>
           marketMode !== "COINBASE_FUTURES" ||
-          !["UNI", "ATOM"].includes(coin.symbol)
+          !["UNI", "ATOM", "OP", "ENS", "RENDER", "INJ", "ARB"].includes(coin.symbol)
       )
       .map((coin) => ({ ...coin, price: prices[coin.symbol] }));
 
@@ -4429,6 +4479,7 @@ return (
   
   watchlist={watchlist}
   previousPrices={marketMode === "STOCKS" ? previousStockPrices : previousPrices}
+  priceChanges24h={priceChanges24h}
   searchTerm={searchTerm}
   setSearchTerm={setSearchTerm}
   marketMode={marketMode}
@@ -4527,6 +4578,11 @@ setTrades={setTrades}
   currentEntryQuality={currentEntryQuality}
   selectedTimeframe={selectedTimeframe}
   currentPrice={currentPrice}
+  priceChange24h={
+    marketMode === "STOCKS"
+      ? null
+      : priceChanges24h[selectedCoin] ?? null
+  }
   history={history}
   priceLocation={priceLocation}
   strongestPattern={strongestPattern}

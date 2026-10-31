@@ -24,6 +24,11 @@ const productMap: Record<string, string> = {
   NEAR: "NEAR-USD",
   SHIB: "SHIB-USD",
   PEPE: "PEPE-USD",
+  OP: "OP-USD",
+  ENS: "ENS-USD",
+  RENDER: "RENDER-USD",
+  INJ: "INJ-USD",
+  ARB: "ARB-USD",
 };
 
 const granularityMap: Record<string, string> = {

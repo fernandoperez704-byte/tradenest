@@ -44,10 +44,20 @@ export async function GET() {
 
     const prices = (data.products || [])
       .filter((product: any) => productMap[product.product_id])
-      .map((product: any) => ({
-        symbol: productMap[product.product_id],
-        price: Number(product.price),
-      }));
+      .map((product: any) => {
+        const currentPrice = Number(product.price);
+        const rawChange24h = product.price_percentage_change_24h;
+const change24h =
+  rawChange24h != null && rawChange24h !== ""
+    ? Number(rawChange24h)
+    : NaN;
+
+        return {
+          symbol: productMap[product.product_id],
+          price: currentPrice,
+          change24h: Number.isFinite(change24h) ? change24h : null,
+        };
+      });
 
     return NextResponse.json(prices);
   } catch (error) {

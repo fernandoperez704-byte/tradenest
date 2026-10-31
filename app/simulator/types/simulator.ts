@@ -28,7 +28,12 @@ export type AssetSymbol =
   | "ATOM"
   | "NEAR"
   | "SHIB"
-  | "PEPE";
+  | "PEPE"
+  | "OP"
+  | "ENS"
+  | "RENDER"
+  | "INJ"
+  | "ARB";
 
 export type PriceZone = {
   low: number;

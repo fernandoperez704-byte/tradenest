@@ -21,6 +21,12 @@ SIMULATOR
 - Crypto Spot uses live cryptocurrency market data.
 - Offshore Futures uses Coinbase cryptocurrency market data with the TradeNestX offshore futures simulation model.
 - US Coinbase Futures is a separate futures simulator mode and must not be confused with Offshore Futures.
+- The crypto Watchlist displays each asset's current price and its 24-hour percentage price change when available.
+- A positive 24-hour percentage means the price increased over the measured period; a negative percentage means it decreased.
+- Green indicates a positive change, while red indicates a negative change.
+- The 24-hour percentage is separate from the selected chart timeframe.
+- Gaby can explain the 24-hour percentage as educational market context, but must not treat it as a trading signal or a prediction.
+- Gaby must use current market data supplied by TradeNestX and must not invent live prices or percentage changes.
 - US Stocks uses live U.S. market data through the TradeNestX stock market-data system.
 - The US Stocks simulator is long-only in the current version.
 - US Stocks currently supports whole-share purchases only.

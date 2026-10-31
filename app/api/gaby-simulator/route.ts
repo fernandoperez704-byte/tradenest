@@ -1371,6 +1371,7 @@ ${includeCurrentMarketContext ? JSON.stringify(
     selectedCoin: marketFacts.selectedCoin,
     selectedTimeframe: marketFacts.selectedTimeframe,
     currentPrice: marketFacts.currentPrice,
+    priceChange24h: marketFacts.priceChange24h ?? null,
     recentPriceMovements,
     rejectionEducation: marketFacts.rejectionEducation ?? null,
     marketDirection: marketFacts.marketDirection,

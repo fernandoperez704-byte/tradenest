@@ -59,6 +59,7 @@ futuresPositionManagement: any;
   currentEntryQuality?: string | null;
   selectedTimeframe?: string;
   currentPrice?: number;
+  priceChange24h?: number | null;
   history?: any[];
   priceLocation?: string | null;
   strongestPattern?: any;
@@ -114,6 +115,7 @@ setFuturesHistory,
   currentEntryQuality,
   selectedTimeframe,
   currentPrice,
+  priceChange24h,
   history,
   priceLocation,
   strongestPattern,
@@ -1173,6 +1175,7 @@ balance,
   marginUsed,
   selectedTimeframe,
   currentPrice,
+  priceChange24h,
   history: history?.slice(-200) ?? [],
   rejectionEducation:
     selectedTimeframe && history?.length
@@ -1331,6 +1334,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
   marginUsed,
   selectedTimeframe,
   currentPrice,
+  priceChange24h,
   history,
 priceLocation,
 strongestPattern,
