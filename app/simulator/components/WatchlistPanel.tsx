@@ -220,12 +220,38 @@ if (window.innerWidth < 1280) {
   src={
     marketMode === "STOCKS"
       ? `https://cdn.jsdelivr.net/gh/webclinic017/ticker-logo-icons@main/ticker_icons/${coin.symbol}.png`
+      : coin.symbol === "PEPE"
+      ? "https://coin-images.coingecko.com/coins/images/29850/large/pepe-token.jpeg?1696528776"
+      : coin.symbol === "RENDER"
+      ? "https://coin-images.coingecko.com/coins/images/11636/large/rndr.png"
+      : coin.symbol === "ARB"
+      ? "https://coin-images.coingecko.com/coins/images/16547/large/arb.jpg?1721358242"
+      : coin.symbol === "SUI"
+      ? "https://coin-images.coingecko.com/coins/images/26375/large/sui_asset.jpeg"
       : `https://cdn.jsdelivr.net/gh/prasangapokharel/crypto-icons@v1.0.0/crypto/${coin.symbol.replace("USDT", "").toLowerCase()}.svg`
   }
   alt=""
   className="h-7 w-7 shrink-0 rounded-full"
 onError={(e) => {
   const img = e.currentTarget;
+
+  const logoFallbacks: Record<string, string> = {
+    PEPE: "https://coin-images.coingecko.com/coins/images/29850/large/pepe-token.jpeg?1696528776",
+    RENDER: "https://coin-images.coingecko.com/coins/images/11636/large/rndr.png",
+    ARB: "https://coin-images.coingecko.com/coins/images/16547/large/arb.jpg?1721358242",
+  };
+
+  if (img.dataset.fallback !== "tried") {
+    img.dataset.fallback = "tried";
+
+    const fallbackUrl = logoFallbacks[coin.symbol];
+
+    if (fallbackUrl) {
+      img.src = fallbackUrl;
+      return;
+    }
+  }
+
   img.style.display = "none";
   const fallback = img.nextElementSibling as HTMLElement;
   if (fallback) fallback.style.display = "block";
