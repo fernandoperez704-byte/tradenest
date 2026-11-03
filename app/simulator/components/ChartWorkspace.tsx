@@ -461,11 +461,11 @@ return (
 
       <div className="mb-1.5 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap gap-2">
-          {["1M", "5M", "15M", "1H", "4H", "1D"].map((timeframe) => (
+          {["1M", "5M", "15M", "30M", "1H", "2H", "4H", "6H", "1D"].map((timeframe) => (
             <button
               key={timeframe}
               onClick={() => setSelectedTimeframe(timeframe)}
-              className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-bold transition-all ${
+              className={`rounded-md border px-2 py-1 text-[11px] font-bold transition-all ${
                 selectedTimeframe === timeframe
                   ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                   : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
@@ -491,7 +491,7 @@ return (
     )
   }
   title="Pattern Recognition (Beta)"
-  className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black transition-all ${
+  className={`rounded-md border px-2 py-1 text-[11px] font-black transition-all ${
     patternRecognitionEnabled
       ? "border-green-500 bg-green-500/15 text-green-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
@@ -529,7 +529,7 @@ return (
 <button
   onClick={() => setIndicatorPanel("VOLUME")}
   title="Volume"
-  className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black ${
+  className={`rounded-md border px-2 py-1 text-[11px] font-black ${
     indicatorPanel === "VOLUME"
       ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400"
@@ -541,7 +541,7 @@ return (
 
           <button
             onClick={() => setIndicatorPanel("RSI")}
-            className={`rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-black ${
+            className={`rounded-md border px-2 py-1 text-[11px] font-black ${
               indicatorPanel === "RSI"
                 ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                 : "border-zinc-700 bg-[#111827] text-zinc-400"
@@ -554,7 +554,7 @@ return (
             onClick={() =>
               chartInstanceRef.current?.timeScale().scrollToRealTime()
             }
-            className="rounded-md border px-2.5 py-1.5 sm:px-3 text-xs font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+            className="rounded-md border px-2 py-1 text-[11px] font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
           >
             Live
           </button>

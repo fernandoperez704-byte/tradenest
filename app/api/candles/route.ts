@@ -35,8 +35,11 @@ const granularityMap: Record<string, string> = {
   "1M": "ONE_MINUTE",
   "5M": "FIVE_MINUTE",
   "15M": "FIFTEEN_MINUTE",
+  "30M": "THIRTY_MINUTE",
   "1H": "ONE_HOUR",
+  "2H": "TWO_HOUR",
   "4H": "FOUR_HOUR",
+  "6H": "SIX_HOUR",
   "1D": "ONE_DAY",
 };
 
@@ -44,8 +47,11 @@ const timeframeSecondsMap: Record<string, number> = {
   "1M": 60,
   "5M": 300,
   "15M": 900,
+  "30M": 1800,
   "1H": 3600,
+  "2H": 7200,
   "4H": 14400,
+  "6H": 21600,
   "1D": 86400,
 };
 

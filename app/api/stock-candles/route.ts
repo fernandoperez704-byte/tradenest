@@ -7,8 +7,11 @@ const timeframeMap: Record<string, string> = {
   "1M": "1Min",
   "5M": "5Min",
   "15M": "15Min",
+  "30M": "30Min",
   "1H": "1Hour",
+  "2H": "2Hour",
   "4H": "4Hour",
+  "6H": "6Hour",
   "1D": "1Day",
 };
 
@@ -32,8 +35,11 @@ export async function GET(request: NextRequest) {
     if (timeframe === "1M") start.setDate(start.getDate() - 5);
     else if (timeframe === "5M") start.setDate(start.getDate() - 10);
     else if (timeframe === "15M") start.setDate(start.getDate() - 30);
+    else if (timeframe === "30M") start.setDate(start.getDate() - 60);
     else if (timeframe === "1H") start.setDate(start.getDate() - 120);
+    else if (timeframe === "2H") start.setDate(start.getDate() - 240);
     else if (timeframe === "4H") start.setFullYear(start.getFullYear() - 2);
+    else if (timeframe === "6H") start.setFullYear(start.getFullYear() - 2);
     else start.setFullYear(start.getFullYear() - 3);
 
     const url =
@@ -65,6 +71,8 @@ export async function GET(request: NextRequest) {
       const data = await response.json();
 
       bars.push(...(data.bars ?? []));
+
+      if (bars.length >= 500) break;
       pageToken = data.next_page_token ?? null;
     } while (pageToken);
 
