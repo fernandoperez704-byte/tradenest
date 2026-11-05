@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EngineSelector, EngineType } from "./EngineSelector";
 import { buildTrendAnalysis } from "../../../lib/traderDevelopment/trendAnalysis";
 import { buildRiskAnalysis } from "../../../lib/traderDevelopment/riskAnalysis";
@@ -79,8 +79,30 @@ tourStep,
 }: ChartWorkspaceProps) {
 
 const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
-
+const [toolsOpen, setToolsOpen] = useState(false);
+const [engineCloseSignal, setEngineCloseSignal] = useState(0);
+const toolsDropdownRef = useRef<HTMLDivElement>(null);
+const [selectedDrawingTools, setSelectedDrawingTools] = useState<string[]>([]);
 const [stockOpenCountdown, setStockOpenCountdown] = useState("");
+
+useEffect(() => {
+  if (!toolsOpen) return;
+
+  const handleClickOutside = (event: PointerEvent) => {
+    if (
+      toolsDropdownRef.current &&
+      !toolsDropdownRef.current.contains(event.target as Node)
+    ) {
+      setToolsOpen(false);
+    }
+  };
+
+  document.addEventListener("pointerdown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("pointerdown", handleClickOutside);
+  };
+}, [toolsOpen]);
 
 useEffect(() => {
   if (
@@ -478,6 +500,64 @@ return (
 
         <div className="flex flex-wrap gap-1.5">
 
+          <div ref={toolsDropdownRef} className="relative">
+            <button
+              onClick={() => {
+                if (!toolsOpen) setEngineCloseSignal((prev) => prev + 1);
+                setToolsOpen(!toolsOpen);
+              }}
+              className="flex h-full items-center gap-2 rounded-md border border-zinc-700 bg-[#1e293b] px-3 py-2 text-xs font-semibold text-white transition-all hover:border-cyan-500 hover:text-cyan-400"
+            >
+              <span>✎</span>
+              <span>Tools</span>
+              <span className="text-cyan-400">▾</span>
+            </button>
+
+            {toolsOpen && (
+              <div className="absolute left-0 top-full z-50 mt-2 w-60 max-w-[calc(100vw-32px)] rounded-xl border border-slate-700/50 bg-[#0f172a] p-2 shadow-2xl md:left-auto md:right-0">
+                {[
+                  { name: "Horizontal Line", icon: "━" },
+                  { name: "Trend Line", icon: "╱" },
+                  { name: "Fibonacci Retracement", icon: "≡" },
+                ].map((tool) => (
+                  <button
+                    key={tool.name}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDrawingTools((prev) =>
+                        prev.includes(tool.name)
+                          ? prev.filter((name) => name !== tool.name)
+                          : [...prev, tool.name]
+                      );
+                    }}
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-all duration-200 ease-out hover:scale-[1.02] hover:bg-cyan-500/15 hover:text-cyan-400 ${
+                      selectedDrawingTools.includes(tool.name)
+                        ? "scale-[1.01] bg-cyan-500/15 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.15)]"
+                        : "text-slate-200"
+                    }`}
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-lg text-cyan-400">
+                      {tool.icon}
+                    </span>
+                    <span className="flex-1 text-xs font-semibold">
+                      {tool.name}
+                    </span>
+
+                    <span
+                      className={`text-cyan-400 transition-all duration-200 ${
+                        selectedDrawingTools.includes(tool.name)
+                          ? "scale-100 opacity-100"
+                          : "scale-75 opacity-0"
+                      }`}
+                    >
+                      ✓
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
 <EngineSelector
   activeEngines={activeEngines}
   onToggleEngine={handleEngineToggle}
@@ -529,19 +609,18 @@ return (
 <button
   onClick={() => setIndicatorPanel("VOLUME")}
   title="Volume"
-  className={`rounded-md border px-2 py-1 text-[11px] font-black ${
+  className={`rounded-md border px-2 py-1 text-[11px] font-black transition-all hover:border-green-500 hover:text-green-400 ${
     indicatorPanel === "VOLUME"
       ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400"
   }`}
 >
-  <span className="sm:hidden">VOL</span>
-  <span className="hidden sm:inline">Volume</span>
+  VOL
 </button>
 
           <button
             onClick={() => setIndicatorPanel("RSI")}
-            className={`rounded-md border px-2 py-1 text-[11px] font-black ${
+            className={`rounded-md border px-2 py-1 text-[11px] font-black transition-all hover:border-green-500 hover:text-green-400 ${
               indicatorPanel === "RSI"
                 ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                 : "border-zinc-700 bg-[#111827] text-zinc-400"
