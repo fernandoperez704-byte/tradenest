@@ -4511,6 +4511,11 @@ reviews={tradeReviews}
 setSelectedCoin={handleSelectSymbol}
   selectedCoin={selectedSymbol}
   currentPrice={currentPrice}
+  priceChange24h={
+    marketMode === "STOCKS"
+      ? null
+      : priceChanges24h[selectedCoin] ?? null
+  }
   marketMode={marketMode}
   selectedTimeframe={selectedTimeframe}
   setSelectedTimeframe={setSelectedTimeframe}

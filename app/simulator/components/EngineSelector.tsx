@@ -1,12 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Sliders,
-  Shield,
-  TrendingUp,
-  
-  Target,
-  Check,
-} from "lucide-react";
+import { Shield, TrendingUp, Target, Check } from "lucide-react";
 
 export type EngineType =
   | "trendBias"
@@ -92,11 +85,11 @@ export const EngineSelector: React.FC<EngineSelectorProps> = ({
       <button
         type="button"
         onClick={() => { if (!isOpen) onOpen?.(); setIsOpen((prev) => !prev); }}
-        className="flex h-full items-center gap-1 rounded-md border border-slate-700 bg-[#111827] px-2 py-2 text-[11px] font-medium text-slate-200 transition-all hover:border-cyan-500 hover:text-cyan-400 sm:gap-2 sm:px-3 sm:text-xs"
+        className="flex h-full items-center gap-2 rounded-md border border-slate-700 bg-[#111827] px-3 py-2 text-[11px] font-bold text-zinc-400 transition-all hover:border-cyan-500 hover:text-cyan-400"
       >
-        <Sliders className="h-3.5 w-3.5" />
 
-        <span>Engines</span>
+
+        <span>ENGINES</span>
 
         <span className="text-cyan-400">▾</span>
       </button>
@@ -161,12 +154,12 @@ return (
       )}
     </button>
 
-<div className="pointer-events-none absolute right-full top-1/2 z-[100] mr-4 hidden w-[320px] min-w-[320px] max-w-none -translate-y-1/2 whitespace-normal rounded-xl border border-cyan-500/20 bg-[#111827] p-5 opacity-0 shadow-2xl transition-opacity duration-200 lg:block lg:group-hover:opacity-100">
+<div className="pointer-events-none absolute right-full top-1/2 z-[100] mr-3 hidden w-[260px] min-w-[260px] shrink-0 -translate-y-1/2 whitespace-normal rounded-lg border border-cyan-500/20 bg-[#111827] p-3 opacity-0 shadow-2xl transition-opacity duration-200 lg:block lg:group-hover:opacity-100">
   <p className="text-sm font-bold text-cyan-400">
     {engine.label}
   </p>
 
-  <p className="mt-2 text-sm leading-7 text-zinc-300">
+  <p className="mt-1 text-xs leading-5 text-zinc-300">
     {engine.description}
   </p>
 </div>

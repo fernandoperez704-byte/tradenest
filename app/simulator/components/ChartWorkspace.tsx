@@ -28,6 +28,7 @@ setSelectedCoin: (coin: any) => void;
 
   selectedCoin: string;
   currentPrice?: number;
+  priceChange24h?: number | null;
   marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   selectedTimeframe: string;
   setSelectedTimeframe: (timeframe: string) => void;
@@ -59,6 +60,7 @@ watchlist,
 setSelectedCoin,
 selectedCoin,
   currentPrice,
+  priceChange24h,
   marketMode,
 selectedTimeframe,
 setSelectedTimeframe,
@@ -401,6 +403,19 @@ return (
   {formattedPrice}
 </p>
 
+{priceChange24h != null && (
+  <span
+    className={`text-sm font-bold ${
+      priceChange24h >= 0
+        ? "text-green-400"
+        : "text-red-400"
+    }`}
+  >
+    {priceChange24h > 0 ? "+" : ""}
+    {priceChange24h.toFixed(2)}%
+  </span>
+)}
+
 {activeEngines.length > 0 && (
   <div className="ml-auto hidden flex-wrap justify-end gap-1.5 xl:flex">
     {activeEngines.map((engineId) => (
@@ -500,16 +515,15 @@ return (
 
         <div className="flex flex-wrap gap-1.5">
 
-          <div ref={toolsDropdownRef} className="relative">
+          <div ref={toolsDropdownRef} className="relative hidden xl:block">
             <button
               onClick={() => {
                 if (!toolsOpen) setEngineCloseSignal((prev) => prev + 1);
                 setToolsOpen(!toolsOpen);
               }}
-              className="flex h-full items-center gap-2 rounded-md border border-zinc-700 bg-[#1e293b] px-3 py-2 text-xs font-semibold text-white transition-all hover:border-cyan-500 hover:text-cyan-400"
+              className="flex h-full items-center gap-2 rounded-md border border-zinc-700 bg-[#111827] px-3 py-2 text-[11px] font-bold text-zinc-400 transition-all hover:border-cyan-500 hover:text-cyan-400"
             >
-              <span>✎</span>
-              <span>Tools</span>
+              <span>TOOLS</span>
               <span className="text-cyan-400">▾</span>
             </button>
 
@@ -571,7 +585,7 @@ return (
     )
   }
   title="Pattern Recognition (Beta)"
-  className={`rounded-md border px-2 py-1 text-[11px] font-black transition-all ${
+  className={`rounded-md border px-2 py-1 text-[11px] font-bold transition-all ${
     patternRecognitionEnabled
       ? "border-green-500 bg-green-500/15 text-green-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
@@ -609,7 +623,7 @@ return (
 <button
   onClick={() => setIndicatorPanel("VOLUME")}
   title="Volume"
-  className={`rounded-md border px-2 py-1 text-[11px] font-black transition-all hover:border-green-500 hover:text-green-400 ${
+  className={`rounded-md border px-2 py-1 text-[11px] font-bold transition-all hover:border-green-500 hover:text-green-400 ${
     indicatorPanel === "VOLUME"
       ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
       : "border-zinc-700 bg-[#111827] text-zinc-400"
@@ -620,7 +634,7 @@ return (
 
           <button
             onClick={() => setIndicatorPanel("RSI")}
-            className={`rounded-md border px-2 py-1 text-[11px] font-black transition-all hover:border-green-500 hover:text-green-400 ${
+            className={`rounded-md border px-2 py-1 text-[11px] font-bold transition-all hover:border-green-500 hover:text-green-400 ${
               indicatorPanel === "RSI"
                 ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
                 : "border-zinc-700 bg-[#111827] text-zinc-400"
@@ -635,7 +649,7 @@ return (
             }
             className="rounded-md border px-2 py-1 text-[11px] font-bold transition-all border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
           >
-            Live
+            LIVE
           </button>
         </div>
       </div>
