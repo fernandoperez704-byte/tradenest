@@ -219,52 +219,6 @@ if (Array.isArray(conversationHistory)) {
   });
 }
 
-    // 1. Instant Acknowledgement Handlers
-    const acknowledgementReplies: Record<string, string> = {
-      ok: "Great. What would you like to explore next?",
-      okay: "Great. What would you like to explore next?",
-      yes: "Perfect.",
-      yep: "Perfect.",
-      yup: "Perfect.",
-      cool: "Glad that helped.",
-      nice: "Happy to help.",
-      "got it": "Perfect.",
-      understood: "Excellent.",
-      "makes sense": "I'm glad it makes sense.",
-thanks: "You're welcome!",
-thank: "You're welcome!",
-"thank you": "You're very welcome!",
-ty: "You're welcome!",
-thx: "You're welcome!",
-thk: "You're welcome!",
-      hi: "Hi! What can I help you understand today?",
-      hello: "Hello! What would you like to explore today?",
-      hey: "Hey! What can I help you understand today?",
-      "good morning": "Good morning! Ready to learn something new?",
-      "good afternoon": "Good afternoon! What can I help you with today?",
-      "good evening": "Good evening! What would you like to discuss?",
-      bye: "Take care! Keep practicing, and I'll be here whenever you're ready.",
-      goodbye: "Take care! See you next time.",
-      "see you": "See you next time!",
-      "talk later": "Sounds good. I'll be here when you're back.",
-      "good night": "Good night! See you soon.",
-    };
-
-const hasActiveChartFollowUp =
-  marketFacts.chartHighlightState?.visible === true &&
-  marketFacts.chartHighlightState?.pinned !== true;
-
-const acknowledgementReply =
-  acknowledgementReplies[normalizedQuestion];
-
-if (
-  acknowledgementReply &&
-  !hasActiveChartFollowUp
-) {
-  return Response.json({
-    answer: acknowledgementReply,
-  });
-}
 
 const greetingMatch = normalizedQuestion.match(
   /^(hi|hello|hey)(\s+gaby)?[!.?]*$/
@@ -1252,6 +1206,12 @@ Conversation Instruction:
 - Use the previous conversation subject only when the newest message is clearly a follow-up.
 - If the newest question introduces a different subject, immediately switch to the new subject.
 - Do not continue discussing support, resistance, market direction, trade reviews, or any previous topic unless it is relevant to the newest question.
+- Interpret short conversational replies using the most recent relevant conversation context.
+- When Gaby has offered to perform an action and the user accepts that offer, carry out the offered action using the existing supported command system.
+- Do not treat acceptance of an offered action as a simple acknowledgement.
+- Do not perform an offered action if the user declines, changes the subject, or has not clearly accepted.
+- If the user's response is ambiguous, ask a brief clarifying question rather than assuming permission.
+- If the user is simply acknowledging an explanation, respond naturally without repeating the explanation.
 
 General Answer Rules:
 - Answer the user's exact question directly and only use the minimum information needed to answer it.
@@ -1286,6 +1246,24 @@ General Answer Rules:
 - Use the Market Analysis Summary only when it is relevant to the user's question.
 - If information is missing, clearly say you don't have enough information instead of guessing.
 - Never invent market facts, trade results, or TradeNestX features.
+- manualHorizontalLines contains the user's manually drawn horizontal lines on the current chart.
+- When asked about a manual horizontal line, use its exact price from manualHorizontalLines.
+- Clearly distinguish user-drawn lines from Gaby's automatic support and resistance highlights.
+- A manual line is a user-selected reference price, not automatically confirmed support or resistance.
+- If multiple manual lines exist, identify their prices without guessing which one the user means.
+- If manualHorizontalLines is empty, say no manual horizontal lines are available in the current chart data.
+- Never use manual horizontal lines as trading signals or as evidence of confirmed market structure.
+- When a manual line does not match an engine-identified support or resistance zone, answer briefly and offer to highlight the nearest relevant engine-identified area, if available.
+- Example: "Your line at $71,741.06 isn't within an identified support zone on the 1D chart. Want me to highlight the nearest support area for comparison?"
+- Do not automatically highlight the alternative area before the user agrees.
+- Do not add a separate Learning Point section.
+- When asked whether a manual line is support or resistance, compare its price against ALL supplied supportLevels and resistanceLevels, not only the nearest levels.
+- A manual line matches an engine zone only when its price falls within that zone's supplied low and high boundaries.
+- Never expand an engine zone or invent a percentage tolerance to make a manual line match.
+- If the line matches an engine zone, identify that zone and explain the match naturally.
+- If the line does not match, explain that the engines have not confirmed that price as part of an identified zone.
+- Do not claim historical candle reactions unless those observations are explicitly supplied by TradeNestX.
+- Keep the explanation short and natural without a separate Learning Point section.
 - When strongestPattern is provided, it is the authoritative current PAT BETA detection from the deterministic TradeNestX Pattern Recognition engine.
 - If the user asks what PAT currently detects, what pattern is showing, or about the displayed PAT result, use strongestPattern exactly.
 - Explain the supplied pattern type, status, confidence, and direction when those values are available.
@@ -1385,10 +1363,13 @@ nearestResistance: marketFacts.nearestResistance,
 nextResistance: marketFacts.nextResistance,
 resistanceLevels: marketFacts.resistanceLevels,
 
-strongestPattern: marketFacts.strongestPattern,
+    strongestPattern: marketFacts.strongestPattern,
 
-chartHighlightState:
-  marketFacts.chartHighlightState ?? null,
+    manualHorizontalLines:
+      marketFacts.manualHorizontalLines ?? [],
+
+    chartHighlightState:
+      marketFacts.chartHighlightState ?? null,
 
 momentumAnalysis: marketFacts.momentumAnalysis,
 volumeAnalysis: marketFacts.volumeAnalysis,
@@ -1696,6 +1677,11 @@ Chart awareness:
 - index 0 = nearest level, index 1 = second level, index 2 = third level, and so on.
 - If the user asks about a specific support or resistance, select the index of that exact supplied level.
 - Do not default to index 0 when the user is referring to a different supplied or pinned level.
+- When evaluating a manual horizontal line, highlight the matching engine support or resistance zone using its exact index.
+- If the manual line matches no engine zone, highlight a relevant engine-identified zone only when it directly helps answer the question.
+- Clearly explain when the highlighted zone differs from the user's manual line.
+- Never highlight an unrelated zone or invent a new support or resistance area.
+- Use chartCommand action SHOW for the selected engine zone without changing or removing the user's manual line.
 
 
 Examples:
