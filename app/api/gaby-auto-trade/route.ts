@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import admin from "firebase-admin";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 import {
   getMarketIntelligence,
@@ -521,8 +522,9 @@ console.log(
   );
 }
 
+
 function getFirebaseAdmin() {
-  if (!admin.apps.length) {
+  if (!getApps().length) {
     const projectId =
       process.env.FIREBASE_PROJECT_ID;
 
@@ -545,8 +547,8 @@ function getFirebaseAdmin() {
       );
     }
 
-    admin.initializeApp({
-      credential: admin.credential.cert({
+    initializeApp({
+      credential: cert({
         projectId,
         clientEmail,
         privateKey,
@@ -554,8 +556,9 @@ function getFirebaseAdmin() {
     });
   }
 
-  return admin.firestore();
+  return getFirestore();
 }
+
 
 function isAuthorized(
   request: NextRequest
@@ -757,7 +760,7 @@ if (shouldRunScanner) {
           position.openedAt,
 
         createdAt:
-          admin.firestore.FieldValue.serverTimestamp(),
+          FieldValue.serverTimestamp(),
       });
 
       transaction.set(
@@ -765,7 +768,7 @@ if (shouldRunScanner) {
         {
           activeTradeId: tradeRef.id,
           updatedAt:
-            admin.firestore.FieldValue.serverTimestamp(),
+            FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -801,7 +804,7 @@ if (openTrade) {
     .update({
       lastScanPrice: currentPrice,
       lastPriceUpdate:
-        admin.firestore.FieldValue.serverTimestamp(),
+        FieldValue.serverTimestamp(),
     });
 
   const position =
@@ -843,7 +846,7 @@ if (openTrade) {
           stopLoss: newStopLoss,
           initialStopLoss: originalStop,
           updatedAt:
-            admin.firestore.FieldValue.serverTimestamp(),
+            FieldValue.serverTimestamp(),
         });
 
       position.stopLoss = newStopLoss;
@@ -890,7 +893,7 @@ await db.runTransaction(
       closedAt: closedPosition.closedAt,
 
       updatedAt:
-        admin.firestore.FieldValue.serverTimestamp(),
+        FieldValue.serverTimestamp(),
     });
 
     transaction.set(
@@ -898,7 +901,7 @@ await db.runTransaction(
       {
         activeTradeId: null,
         updatedAt:
-          admin.firestore.FieldValue.serverTimestamp(),
+          FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -928,7 +931,7 @@ const lastReason =
 await stateRef.set(
   {
     lastCheck:
-      admin.firestore.FieldValue.serverTimestamp(),
+      FieldValue.serverTimestamp(),
     lastDecision,
     lastReason,
   },

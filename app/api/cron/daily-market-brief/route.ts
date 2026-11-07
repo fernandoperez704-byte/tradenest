@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import admin from "firebase-admin";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 import { getDailyLookBack } from "@/lib/news/getDailyLookBack";
 
@@ -34,7 +35,7 @@ type GeneratedMarketBrief = {
 };
 
 function getFirebaseAdmin() {
-  if (!admin.apps.length) {
+  if (!getApps().length) {
     const projectId =
       process.env.FIREBASE_PROJECT_ID;
 
@@ -57,8 +58,8 @@ function getFirebaseAdmin() {
       );
     }
 
-    admin.initializeApp({
-      credential: admin.credential.cert({
+    initializeApp({
+      credential: cert({
         projectId,
         clientEmail,
         privateKey,
@@ -66,7 +67,7 @@ function getFirebaseAdmin() {
     });
   }
 
-  return admin.firestore();
+  return getFirestore();
 }
 
 function getOpenAIClient() {
@@ -578,7 +579,7 @@ lookBack,
       },
 
 createdAt:
-  admin.firestore.FieldValue.serverTimestamp(),
+  FieldValue.serverTimestamp(),
 
 discordPostedAt: null,
 
