@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import GabySimulatorCoach from "../components/GabySimulatorCoach";
 import WatchlistPanel from "./components/WatchlistPanel";
 import ChartWorkspace from "./components/ChartWorkspace";
+import { addHorizontalLine, moveHorizontalLine, removeHorizontalLine, type HorizontalLine } from "./components/drawingTools/HorizontalLineTool";
 import TradingPanel from "./components/TradingPanel";
 import CoinbaseFuturesTradingPanel from "./components/CoinbaseFuturesTradingPanel";
 import AccountSummaryCard from "./components/AccountSummaryCard";
@@ -48,7 +49,7 @@ import {
 } from "./autoTrade/gabyAutoTradeStore";
 
 import { useClerk, useUser } from "@clerk/nextjs";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
   ColorType,
@@ -413,6 +414,11 @@ useEffect(() => {
 
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
+
+  const [selectedDrawingTools, setSelectedDrawingTools] = useState<string[]>([]);
+  const handleDrawingToolsChange = useCallback((tools: string[]) => {
+    setSelectedDrawingTools(tools);
+  }, []);
 
 useEffect(() => {
   setGabyScenarioArrows((prev) =>
@@ -1439,6 +1445,32 @@ const gabyLowerTrendlineSeriesRef = useRef<any>(null);
 const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
+
+const horizontalLinesRef = useRef<HorizontalLine[]>([]);
+const [manualHorizontalLines, setManualHorizontalLines] = useState<Array<{ price: number }>>([]);
+const selectedHorizontalLineRef = useRef<HorizontalLine | null>(null);
+const [horizontalLineDeletePosition, setHorizontalLineDeletePosition] = useState<{ x: number; y: number } | null>(null);
+
+const handleDeleteHorizontalLine = () => {
+  const selectedLine = selectedHorizontalLineRef.current;
+  const candleSeries = candleSeriesRef.current;
+
+  if (!selectedLine || !candleSeries) return;
+
+  removeHorizontalLine(candleSeries, selectedLine);
+
+  horizontalLinesRef.current = horizontalLinesRef.current.filter(
+    (drawing) => drawing.id !== selectedLine.id
+  );
+  setManualHorizontalLines(
+    horizontalLinesRef.current.map((drawing) => ({
+  price: Number(drawing.price.toFixed(2)),
+}))
+  );
+
+  selectedHorizontalLineRef.current = null;
+  setHorizontalLineDeletePosition(null);
+};
 
 useEffect(() => {
   indicatorPanelRef.current = indicatorPanel;
@@ -2619,6 +2651,88 @@ gabyLowerTrendlineSeriesRef.current = null;
 
   };
 }, []);
+
+useEffect(() => {
+  const chart = chartInstanceRef.current;
+  const candleSeries = candleSeriesRef.current;
+
+  if (!chart || !candleSeries) return;
+
+
+  const handleChartClick = (param: any) => {
+    if (!param.point) return;
+
+    const price = candleSeries.coordinateToPrice(param.point.y);
+
+    if (price === null || !Number.isFinite(price)) return;
+
+    const clickedLine = horizontalLinesRef.current.find((drawing) => {
+      const lineY = candleSeries.priceToCoordinate(drawing.price);
+      return lineY !== null && Math.abs(param.point.y - lineY) <= 6;
+    });
+
+    if (clickedLine) {
+      selectedHorizontalLineRef.current = clickedLine;
+
+      setHorizontalLineDeletePosition({
+        x: Math.max(8, param.point.x - 65),
+        y: param.point.y,
+      });
+
+      return;
+    }
+
+    selectedHorizontalLineRef.current = null;
+    setHorizontalLineDeletePosition(null);
+
+    if (!selectedDrawingTools.includes("Horizontal Line")) return;
+
+    const newLine = addHorizontalLine(candleSeries, price);
+    if (newLine) {
+      horizontalLinesRef.current.push(newLine);
+      setManualHorizontalLines(
+        horizontalLinesRef.current.map((drawing) => ({
+  price: Number(drawing.price.toFixed(2)),
+}))
+      );
+    }
+  };
+
+  chart.subscribeClick(handleChartClick);
+
+  const handleDeleteKey = (event: KeyboardEvent) => {
+    if (event.key !== "Delete" && event.key !== "Backspace") return;
+
+    const target = event.target as HTMLElement;
+    if (target.closest("input, textarea, [contenteditable='true']")) return;
+
+    const selectedLine = selectedHorizontalLineRef.current;
+    if (!selectedLine) return;
+
+    event.preventDefault();
+
+    removeHorizontalLine(candleSeries, selectedLine);
+
+    horizontalLinesRef.current = horizontalLinesRef.current.filter(
+      (drawing) => drawing.id !== selectedLine.id
+    );
+    setManualHorizontalLines(
+      horizontalLinesRef.current.map((drawing) => ({
+  price: Number(drawing.price.toFixed(2)),
+}))
+    );
+
+    selectedHorizontalLineRef.current = null;
+    setHorizontalLineDeletePosition(null);
+  };
+
+  window.addEventListener("keydown", handleDeleteKey);
+
+  return () => {
+    chart.unsubscribeClick(handleChartClick);
+    window.removeEventListener("keydown", handleDeleteKey);
+  };
+}, [selectedDrawingTools]);
 
 useEffect(() => {
   if (!chartRef.current || history.length === 0) return;
@@ -4530,6 +4644,9 @@ strongestPattern={strongestPattern}
   chartInstanceRef={chartInstanceRef}
   candleSeriesRef={candleSeriesRef}
   chartRef={chartRef}
+  horizontalLineDeletePosition={horizontalLineDeletePosition}
+  onDeleteHorizontalLine={handleDeleteHorizontalLine}
+  onDrawingToolsChange={handleDrawingToolsChange}
   setShowSimulatorGaby={setShowSimulatorGaby}
   gabyChartHighlights={gabyChartHighlights}
   tourStep={tourStep}
@@ -4598,6 +4715,7 @@ setTrades={setTrades}
   priceLocation={priceLocation}
   strongestPattern={strongestPattern}
   detectedTrendline={detectedTrendline}
+  manualHorizontalLines={manualHorizontalLines}
   chartHighlightState={chartHighlightState}
 
 onAnalysisComplete={(subject) => {

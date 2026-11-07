@@ -64,6 +64,7 @@ futuresPositionManagement: any;
   priceLocation?: string | null;
   strongestPattern?: any;
   detectedTrendline?: any;
+  manualHorizontalLines?: Array<{ price: number }>;
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
@@ -120,6 +121,7 @@ setFuturesHistory,
   priceLocation,
   strongestPattern,
 detectedTrendline,
+manualHorizontalLines,
 onAnalysisComplete,
 onChartCommand,
 onInfoPanelCommand,
@@ -1184,6 +1186,7 @@ balance,
 priceLocation,
 strongestPattern,
 detectedTrendline,
+manualHorizontalLines: manualHorizontalLines ?? [],
 
   chartHighlightState: chartHighlightState ?? {
     visible: false,
@@ -1237,15 +1240,12 @@ const gabyAnswer =
 setAnswer(gabyAnswer);
 setUpgradeRequired(Boolean(data.upgradeRequired));
 
-if (conversationIntent !== "PERSONALIZED_COACHING") {
-  if (
-    data.chartCommand &&
-    data.chartCommand.action !== "NONE"
-  ) {
-    onChartCommand?.(data.chartCommand);
-  } else {
-    onAnalysisComplete?.(conversationSubject);
-  }
+if (
+  conversationIntent !== "PERSONALIZED_COACHING" &&
+  data.chartCommand &&
+  data.chartCommand.action !== "NONE"
+) {
+  onChartCommand?.(data.chartCommand);
 }
 
 if (
@@ -1339,6 +1339,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
 priceLocation,
 strongestPattern,
 detectedTrendline,
+manualHorizontalLines,
 movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,

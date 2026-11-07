@@ -44,7 +44,10 @@ strongestPattern: DetectedPattern | null;
 
 chartInstanceRef: any;
 candleSeriesRef: any;
-chartRef: any;
+  chartRef: any;
+  horizontalLineDeletePosition: { x: number; y: number } | null;
+  onDeleteHorizontalLine: () => void;
+  onDrawingToolsChange: (tools: string[]) => void;
 setShowSimulatorGaby: (value: boolean) => void;
 gabyChartHighlights: GabyChartHighlight[];
 tourStep: number | null;
@@ -75,6 +78,9 @@ strongestPattern,
 chartInstanceRef,
 candleSeriesRef,
 chartRef,
+horizontalLineDeletePosition,
+onDeleteHorizontalLine,
+onDrawingToolsChange,
 setShowSimulatorGaby,
 gabyChartHighlights,
 tourStep,
@@ -85,6 +91,10 @@ const [toolsOpen, setToolsOpen] = useState(false);
 const [engineCloseSignal, setEngineCloseSignal] = useState(0);
 const toolsDropdownRef = useRef<HTMLDivElement>(null);
 const [selectedDrawingTools, setSelectedDrawingTools] = useState<string[]>([]);
+
+useEffect(() => {
+  onDrawingToolsChange(selectedDrawingTools);
+}, [selectedDrawingTools, onDrawingToolsChange]);
 const [stockOpenCountdown, setStockOpenCountdown] = useState("");
 
 useEffect(() => {
@@ -660,6 +670,22 @@ return (
     ref={chartRef}
     className="h-[420px] w-full xl:h-[470px]"
   />
+
+  {horizontalLineDeletePosition && (
+    <button
+      type="button"
+      onClick={onDeleteHorizontalLine}
+      style={{
+        position: "absolute",
+        left: horizontalLineDeletePosition.x,
+        top: horizontalLineDeletePosition.y,
+        transform: "translateY(-50%)",
+      }}
+      className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"
+    >
+      Delete
+    </button>
+  )}
 
 <GabyChartOverlay
   highlights={gabyChartHighlights}

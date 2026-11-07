@@ -1225,6 +1225,16 @@ General Answer Rules:
 - If the cause is not verified, clearly say the cause is unknown from the available TradeNestX data.
 - Do not automatically summarize or combine unrelated Current Market Facts just because they are available.
 - Only discuss RSI, momentum, volume, support, resistance, structure, patterns, or other indicators when the user's question specifically requires them.
+- When explaining why price could rise, decline, reverse, or struggle to move through an area, consider the supplied moving averages when they are relevant.
+- Mention only the moving average most relevant to the specific price behavior being explained.
+- Select the relevant moving average based on its relationship to price, market structure, and the scenario being discussed, not simply which moving average is closest.
+- Do not list all available moving averages unless the user explicitly asks to compare them.
+- If the supplied facts do not establish which moving average is relevant, do not guess or force one into the explanation.
+- Explain moving averages as potential dynamic support or resistance based on their verified values and relationship to current price.
+- A descending moving average above price may act as dynamic resistance, while a rising moving average below price may act as dynamic support, but neither guarantees a reaction.
+- Do not claim an MA rejection, breakout, or change in slope has occurred unless the supplied TradeNestX facts establish it.
+- Do not replace or override the engine-identified horizontal support and resistance zones with moving averages.
+- Do not force moving averages into unrelated questions or the separate overall market-direction explanation.
 - When the user asks about repeated price rejection, support defenses, resistance rejection, or possible reversals, use rejectionEducation when available.
 - Explain that repeated rejection can suggest weakening pressure, but does not confirm a reversal.
 - Explain confirmation and invalidation using only supplied TradeNestX facts.
@@ -1355,6 +1365,9 @@ ${includeCurrentMarketContext ? JSON.stringify(
     marketDirection: marketFacts.marketDirection,
     structure: marketFacts.structure,
     priceLocation: marketFacts.priceLocation,
+    ma7: marketFacts.ma7 ?? null,
+    ma25: marketFacts.ma25 ?? null,
+    ma99: marketFacts.ma99 ?? null,
 nearestSupport: marketFacts.nearestSupport,
 nextSupport: marketFacts.nextSupport,
 supportLevels: marketFacts.supportLevels,
