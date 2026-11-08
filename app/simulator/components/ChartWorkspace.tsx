@@ -47,6 +47,8 @@ candleSeriesRef: any;
   chartRef: any;
   horizontalLineDeletePosition: { x: number; y: number } | null;
   onDeleteHorizontalLine: () => void;
+  trendLineDeletePosition: { x: number; y: number } | null;
+  onDeleteTrendLine: () => void;
   onDrawingToolsChange: (tools: string[]) => void;
 setShowSimulatorGaby: (value: boolean) => void;
 gabyChartHighlights: GabyChartHighlight[];
@@ -80,6 +82,8 @@ candleSeriesRef,
 chartRef,
 horizontalLineDeletePosition,
 onDeleteHorizontalLine,
+trendLineDeletePosition,
+onDeleteTrendLine,
 onDrawingToolsChange,
 setShowSimulatorGaby,
 gabyChartHighlights,
@@ -538,7 +542,7 @@ return (
             </button>
 
             {toolsOpen && (
-              <div className="absolute left-0 top-full z-50 mt-2 w-60 max-w-[calc(100vw-32px)] rounded-xl border border-slate-700/50 bg-[#0f172a] p-2 shadow-2xl md:left-auto md:right-0">
+              <div className="absolute left-0 top-full z-50 mt-2 w-60 max-w-[calc(100vw-32px)] rounded-xl border border-white bg-[#0f172a] p-2 shadow-2xl md:left-auto md:right-0">
                 {[
                   { name: "Horizontal Line", icon: "━" },
                   { name: "Trend Line", icon: "╱" },
@@ -549,20 +553,24 @@ return (
                     type="button"
                     onClick={() => {
                       setSelectedDrawingTools((prev) =>
-                        prev.includes(tool.name)
-                          ? prev.filter((name) => name !== tool.name)
-                          : [...prev, tool.name]
+                        prev.includes(tool.name) ? [] : [tool.name]
                       );
                     }}
-                    className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-all duration-200 ease-out hover:scale-[1.02] hover:bg-cyan-500/15 hover:text-cyan-400 ${
-                      selectedDrawingTools.includes(tool.name)
-                        ? "scale-[1.01] bg-cyan-500/15 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.15)]"
-                        : "text-slate-200"
+                     className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                       selectedDrawingTools.includes(tool.name)
+                         ? "bg-cyan-500/10 text-cyan-400"
+                         : "text-slate-300 hover:bg-slate-800"
                     }`}
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-lg text-cyan-400">
-                      {tool.icon}
-                    </span>
+                     <span
+                       className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${
+                         selectedDrawingTools.includes(tool.name)
+                           ? "bg-cyan-500/15 text-cyan-400"
+                           : "bg-slate-800 text-cyan-400"
+                       }`}
+                     >
+                       {tool.icon}
+                     </span>
                     <span className="flex-1 text-xs font-semibold">
                       {tool.name}
                     </span>
@@ -679,6 +687,22 @@ return (
         position: "absolute",
         left: horizontalLineDeletePosition.x,
         top: horizontalLineDeletePosition.y,
+        transform: "translateY(-50%)",
+      }}
+      className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"
+    >
+      Delete
+    </button>
+  )}
+
+  {trendLineDeletePosition && (
+    <button
+      type="button"
+      onClick={onDeleteTrendLine}
+      style={{
+        position: "absolute",
+        left: trendLineDeletePosition.x,
+        top: trendLineDeletePosition.y,
         transform: "translateY(-50%)",
       }}
       className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"

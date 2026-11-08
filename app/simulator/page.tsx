@@ -4,7 +4,8 @@ import Navbar from "../components/Navbar";
 import GabySimulatorCoach from "../components/GabySimulatorCoach";
 import WatchlistPanel from "./components/WatchlistPanel";
 import ChartWorkspace from "./components/ChartWorkspace";
-import { addHorizontalLine, moveHorizontalLine, removeHorizontalLine, type HorizontalLine } from "./components/drawingTools/HorizontalLineTool";
+import { useHorizontalLineTool } from "./hooks/useHorizontalLineTool";
+import { useTrendLineTool } from "./hooks/useTrendLineTool";
 import TradingPanel from "./components/TradingPanel";
 import CoinbaseFuturesTradingPanel from "./components/CoinbaseFuturesTradingPanel";
 import AccountSummaryCard from "./components/AccountSummaryCard";
@@ -415,10 +416,17 @@ useEffect(() => {
   const [mobileView, setMobileView] = useState<"WATCHLIST" | "TRADE" | "ORDER">("WATCHLIST");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1M");
 
-  const [selectedDrawingTools, setSelectedDrawingTools] = useState<string[]>([]);
-  const handleDrawingToolsChange = useCallback((tools: string[]) => {
-    setSelectedDrawingTools(tools);
-  }, []);
+const [selectedDrawingTools, setSelectedDrawingTools] = useState<string[]>([]);
+
+const handleDrawingToolsChange = useCallback((tools: string[]) => {
+  setSelectedDrawingTools((previous) => {
+    const newlySelected = tools.find(
+      (tool) => !previous.includes(tool)
+    );
+
+    return newlySelected ? [newlySelected] : [];
+  });
+}, []);
 
 useEffect(() => {
   setGabyScenarioArrows((prev) =>
@@ -1446,31 +1454,26 @@ const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
 
-const horizontalLinesRef = useRef<HorizontalLine[]>([]);
-const [manualHorizontalLines, setManualHorizontalLines] = useState<Array<{ price: number }>>([]);
-const selectedHorizontalLineRef = useRef<HorizontalLine | null>(null);
-const [horizontalLineDeletePosition, setHorizontalLineDeletePosition] = useState<{ x: number; y: number } | null>(null);
+const {
+  manualHorizontalLines,
+  horizontalLineDeletePosition,
+  handleDeleteHorizontalLine,
+} = useHorizontalLineTool({
+  chartInstanceRef,
+  candleSeriesRef,
+  selectedDrawingTools,
+});
 
-const handleDeleteHorizontalLine = () => {
-  const selectedLine = selectedHorizontalLineRef.current;
-  const candleSeries = candleSeriesRef.current;
-
-  if (!selectedLine || !candleSeries) return;
-
-  removeHorizontalLine(candleSeries, selectedLine);
-
-  horizontalLinesRef.current = horizontalLinesRef.current.filter(
-    (drawing) => drawing.id !== selectedLine.id
-  );
-  setManualHorizontalLines(
-    horizontalLinesRef.current.map((drawing) => ({
-  price: Number(drawing.price.toFixed(2)),
-}))
-  );
-
-  selectedHorizontalLineRef.current = null;
-  setHorizontalLineDeletePosition(null);
-};
+const {
+  trendLinesRef,
+  pendingTrendLinePointRef,
+  trendLineDeletePosition,
+  handleDeleteTrendLine,
+} = useTrendLineTool({
+  chartInstanceRef,
+  candleSeriesRef,
+  selectedDrawingTools,
+});
 
 useEffect(() => {
   indicatorPanelRef.current = indicatorPanel;
@@ -2652,87 +2655,6 @@ gabyLowerTrendlineSeriesRef.current = null;
   };
 }, []);
 
-useEffect(() => {
-  const chart = chartInstanceRef.current;
-  const candleSeries = candleSeriesRef.current;
-
-  if (!chart || !candleSeries) return;
-
-
-  const handleChartClick = (param: any) => {
-    if (!param.point) return;
-
-    const price = candleSeries.coordinateToPrice(param.point.y);
-
-    if (price === null || !Number.isFinite(price)) return;
-
-    const clickedLine = horizontalLinesRef.current.find((drawing) => {
-      const lineY = candleSeries.priceToCoordinate(drawing.price);
-      return lineY !== null && Math.abs(param.point.y - lineY) <= 6;
-    });
-
-    if (clickedLine) {
-      selectedHorizontalLineRef.current = clickedLine;
-
-      setHorizontalLineDeletePosition({
-        x: Math.max(8, param.point.x - 65),
-        y: param.point.y,
-      });
-
-      return;
-    }
-
-    selectedHorizontalLineRef.current = null;
-    setHorizontalLineDeletePosition(null);
-
-    if (!selectedDrawingTools.includes("Horizontal Line")) return;
-
-    const newLine = addHorizontalLine(candleSeries, price);
-    if (newLine) {
-      horizontalLinesRef.current.push(newLine);
-      setManualHorizontalLines(
-        horizontalLinesRef.current.map((drawing) => ({
-  price: Number(drawing.price.toFixed(2)),
-}))
-      );
-    }
-  };
-
-  chart.subscribeClick(handleChartClick);
-
-  const handleDeleteKey = (event: KeyboardEvent) => {
-    if (event.key !== "Delete" && event.key !== "Backspace") return;
-
-    const target = event.target as HTMLElement;
-    if (target.closest("input, textarea, [contenteditable='true']")) return;
-
-    const selectedLine = selectedHorizontalLineRef.current;
-    if (!selectedLine) return;
-
-    event.preventDefault();
-
-    removeHorizontalLine(candleSeries, selectedLine);
-
-    horizontalLinesRef.current = horizontalLinesRef.current.filter(
-      (drawing) => drawing.id !== selectedLine.id
-    );
-    setManualHorizontalLines(
-      horizontalLinesRef.current.map((drawing) => ({
-  price: Number(drawing.price.toFixed(2)),
-}))
-    );
-
-    selectedHorizontalLineRef.current = null;
-    setHorizontalLineDeletePosition(null);
-  };
-
-  window.addEventListener("keydown", handleDeleteKey);
-
-  return () => {
-    chart.unsubscribeClick(handleChartClick);
-    window.removeEventListener("keydown", handleDeleteKey);
-  };
-}, [selectedDrawingTools]);
 
 useEffect(() => {
   if (!chartRef.current || history.length === 0) return;
@@ -4646,6 +4568,8 @@ strongestPattern={strongestPattern}
   chartRef={chartRef}
   horizontalLineDeletePosition={horizontalLineDeletePosition}
   onDeleteHorizontalLine={handleDeleteHorizontalLine}
+    trendLineDeletePosition={trendLineDeletePosition}
+  onDeleteTrendLine={handleDeleteTrendLine}
   onDrawingToolsChange={handleDrawingToolsChange}
   setShowSimulatorGaby={setShowSimulatorGaby}
   gabyChartHighlights={gabyChartHighlights}
@@ -4716,6 +4640,11 @@ setTrades={setTrades}
   strongestPattern={strongestPattern}
   detectedTrendline={detectedTrendline}
   manualHorizontalLines={manualHorizontalLines}
+  manualTrendLines={trendLinesRef.current.map((line) => ({
+    id: line.id,
+    start: line.start,
+    end: line.end,
+  }))}
   chartHighlightState={chartHighlightState}
 
 onAnalysisComplete={(subject) => {

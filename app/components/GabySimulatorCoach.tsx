@@ -65,6 +65,11 @@ futuresPositionManagement: any;
   strongestPattern?: any;
   detectedTrendline?: any;
   manualHorizontalLines?: Array<{ price: number }>;
+  manualTrendLines?: Array<{
+    id: string;
+    start: { time: any; price: number };
+    end: { time: any; price: number };
+  }>;
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
@@ -122,6 +127,7 @@ setFuturesHistory,
   strongestPattern,
 detectedTrendline,
 manualHorizontalLines,
+manualTrendLines,
 onAnalysisComplete,
 onChartCommand,
 onInfoPanelCommand,
@@ -1187,6 +1193,7 @@ priceLocation,
 strongestPattern,
 detectedTrendline,
 manualHorizontalLines: manualHorizontalLines ?? [],
+manualTrendLines: manualTrendLines ?? [],
 
   chartHighlightState: chartHighlightState ?? {
     visible: false,
@@ -1340,6 +1347,7 @@ priceLocation,
 strongestPattern,
 detectedTrendline,
 manualHorizontalLines,
+manualTrendLines,
 movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,

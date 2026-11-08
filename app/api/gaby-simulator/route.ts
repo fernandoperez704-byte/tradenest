@@ -1256,6 +1256,13 @@ General Answer Rules:
 - Use the Market Analysis Summary only when it is relevant to the user's question.
 - If information is missing, clearly say you don't have enough information instead of guessing.
 - Never invent market facts, trade results, or TradeNestX features.
+- manualTrendLines contains the user's manually drawn trendlines on the current chart.
+- Each manual trendline has an id, start time and price, and end time and price.
+- When asked about a manual trendline, use its exact supplied starting and ending points.
+- If manualTrendLines is empty, say no manual trendlines are available in the current chart data.
+- Never confuse manual trendlines with manual horizontal lines or Gaby's automatic trendline highlights.
+- Manual trendlines are user-created references, not confirmed market structure or trading signals.
+- Questions about manual trendline controls must not trigger automatic chart highlights.
 - manualHorizontalLines contains the user's manually drawn horizontal lines on the current chart.
 - When asked about a manual horizontal line, use its exact price from manualHorizontalLines.
 - Clearly distinguish user-drawn lines from Gaby's automatic support and resistance highlights.
@@ -1380,6 +1387,9 @@ resistanceLevels: marketFacts.resistanceLevels,
 
     manualHorizontalLines:
       marketFacts.manualHorizontalLines ?? [],
+
+    manualTrendLines:
+      marketFacts.manualTrendLines ?? [],
 
     chartHighlightState:
       marketFacts.chartHighlightState ?? null,
