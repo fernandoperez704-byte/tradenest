@@ -89,7 +89,7 @@ const savedResistance =
   null;
 
   return (
-                        <div className="mx-auto mt-3 w-full max-w-[1200px] rounded-xl border border-cyan-400/20 bg-[#0b1120] p-4 xl:relative xl:left-[350px]">
+                        <div className="mx-auto mt-3 w-full max-w-[1200px] rounded-xl border border-cyan-400/20 bg-[#0b1120] p-4 xl:ml-[540px] xl:w-[calc(100%-570px)] xl:max-w-none">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-cyan-400">Gaby Info</p>
