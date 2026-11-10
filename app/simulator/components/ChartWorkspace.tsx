@@ -9,6 +9,7 @@ import type { DetectedPattern } from "@/lib/patternRecognition";
 import type { GabyChartHighlight } from "../types/gabyChartHighlight";
 import PatternOverlay from "./PatternOverlay";
 import GabyChartOverlay from "./GabyChartOverlay";
+import FibonacciLabelsOverlay from "./drawingTools/FibonacciLabelsOverlay";
 
 type ChartWorkspaceProps = {
   reviews: any[];
@@ -49,6 +50,10 @@ candleSeriesRef: any;
   onDeleteHorizontalLine: () => void;
   trendLineDeletePosition: { x: number; y: number } | null;
   onDeleteTrendLine: () => void;
+  fibonacciDeletePosition: { x: number; y: number } | null;
+  onDeleteFibonacci: () => void;
+  fibonacciDrawingsRef: React.RefObject<any[]>;
+  pendingFibonacciPointRef: React.RefObject<any>;
   onDrawingToolsChange: (tools: string[]) => void;
 setShowSimulatorGaby: (value: boolean) => void;
 gabyChartHighlights: GabyChartHighlight[];
@@ -84,6 +89,10 @@ horizontalLineDeletePosition,
 onDeleteHorizontalLine,
 trendLineDeletePosition,
 onDeleteTrendLine,
+fibonacciDeletePosition,
+onDeleteFibonacci,
+fibonacciDrawingsRef,
+pendingFibonacciPointRef,
 onDrawingToolsChange,
 setShowSimulatorGaby,
 gabyChartHighlights,
@@ -679,6 +688,13 @@ return (
     className="h-[420px] w-full xl:h-[470px]"
   />
 
+  <FibonacciLabelsOverlay
+    chartInstanceRef={chartInstanceRef}
+    candleSeriesRef={candleSeriesRef}
+    fibonacciDrawingsRef={fibonacciDrawingsRef}
+    pendingFibonacciPointRef={pendingFibonacciPointRef}
+  />
+
   {horizontalLineDeletePosition && (
     <button
       type="button"
@@ -703,6 +719,22 @@ return (
         position: "absolute",
         left: trendLineDeletePosition.x,
         top: trendLineDeletePosition.y,
+        transform: "translateY(-50%)",
+      }}
+      className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"
+    >
+      Delete
+    </button>
+  )}
+
+  {fibonacciDeletePosition && (
+    <button
+      type="button"
+      onClick={onDeleteFibonacci}
+      style={{
+        position: "absolute",
+        left: fibonacciDeletePosition.x,
+        top: fibonacciDeletePosition.y,
         transform: "translateY(-50%)",
       }}
       className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"

@@ -6,6 +6,7 @@ import WatchlistPanel from "./components/WatchlistPanel";
 import ChartWorkspace from "./components/ChartWorkspace";
 import { useHorizontalLineTool } from "./hooks/useHorizontalLineTool";
 import { useTrendLineTool } from "./hooks/useTrendLineTool";
+import { useFibonacciRetracementTool } from "./hooks/useFibonacciRetracementTool";
 import TradingPanel from "./components/TradingPanel";
 import CoinbaseFuturesTradingPanel from "./components/CoinbaseFuturesTradingPanel";
 import AccountSummaryCard from "./components/AccountSummaryCard";
@@ -1470,6 +1471,18 @@ const {
   trendLineDeletePosition,
   handleDeleteTrendLine,
 } = useTrendLineTool({
+  chartInstanceRef,
+  candleSeriesRef,
+  selectedDrawingTools,
+});
+
+const {
+  fibonacciDrawingsRef,
+  pendingFibonacciPointRef,
+  selectedFibonacciRef,
+  fibonacciDeletePosition,
+  handleDeleteFibonacci,
+} = useFibonacciRetracementTool({
   chartInstanceRef,
   candleSeriesRef,
   selectedDrawingTools,
@@ -4568,8 +4581,12 @@ strongestPattern={strongestPattern}
   chartRef={chartRef}
   horizontalLineDeletePosition={horizontalLineDeletePosition}
   onDeleteHorizontalLine={handleDeleteHorizontalLine}
-    trendLineDeletePosition={trendLineDeletePosition}
+  trendLineDeletePosition={trendLineDeletePosition}
   onDeleteTrendLine={handleDeleteTrendLine}
+  fibonacciDeletePosition={fibonacciDeletePosition}
+  onDeleteFibonacci={handleDeleteFibonacci}
+  fibonacciDrawingsRef={fibonacciDrawingsRef}
+  pendingFibonacciPointRef={pendingFibonacciPointRef}
   onDrawingToolsChange={handleDrawingToolsChange}
   setShowSimulatorGaby={setShowSimulatorGaby}
   gabyChartHighlights={gabyChartHighlights}
