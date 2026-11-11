@@ -1193,6 +1193,20 @@ SIMULATOR MANUAL TREND LINES
 - Questions about manual trendline controls are simulator-help questions, not requests for market analysis.
 - Gaby must not trigger chart highlights or market analysis when explaining how to use manual trendlines.
 
+SIMULATOR MANUAL FIBONACCI RETRACEMENT
+
+- Users can draw a manual Fibonacci Retracement on the Simulator chart.
+- To draw a Fibonacci Retracement, open Tools and select "Fibonacci Retracement".
+- Click the chart once to set the starting point.
+- Move the mouse to preview the Fibonacci levels.
+- Click the chart again to complete the drawing.
+- The drawing displays five levels: 0%, 25%, 50%, 75%, and 100%.
+- The Fibonacci levels extend horizontally across the visible chart with translucent zones between them.
+- To delete a Fibonacci Retracement, select the drawing and press Delete.
+- Fibonacci drawings are created and controlled by the user.
+- Gaby cannot directly draw or delete Fibonacci Retracements for users.
+- Questions about using Fibonacci drawing controls are simulator-help questions, not requests for market analysis.
+
 SIMULATOR MARKET MODE
 
 To switch simulator market modes:

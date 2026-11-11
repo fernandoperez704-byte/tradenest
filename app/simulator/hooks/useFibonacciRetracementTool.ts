@@ -30,6 +30,21 @@ export function useFibonacciRetracementTool({
   const [fibonacciDeletePosition, setFibonacciDeletePosition] =
     useState<{ x: number; y: number } | null>(null);
 
+  const clearFibonacciDrawings = () => {
+    const chart = chartInstanceRef.current;
+
+    if (chart) {
+      fibonacciDrawingsRef.current.forEach((drawing) => {
+        removeFibonacciRetracement(chart, drawing);
+      });
+    }
+
+    fibonacciDrawingsRef.current = [];
+    pendingFibonacciPointRef.current = null;
+    selectedFibonacciRef.current = null;
+    setFibonacciDeletePosition(null);
+  };
+
   const handleDeleteFibonacci = () => {
     const drawing = selectedFibonacciRef.current;
     const chart = chartInstanceRef.current;
@@ -218,5 +233,6 @@ export function useFibonacciRetracementTool({
     selectedFibonacciRef,
     fibonacciDeletePosition,
     handleDeleteFibonacci,
+    clearFibonacciDrawings,
   };
 }

@@ -70,6 +70,12 @@ futuresPositionManagement: any;
     start: { time: any; price: number };
     end: { time: any; price: number };
   }>;
+  manualFibonacciDrawings?: Array<{
+    id: string;
+    start: { time: any; price: number };
+    end: { time: any; price: number };
+    levels: Array<{ ratio: number; price: number }>;
+  }>;
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
@@ -128,6 +134,7 @@ setFuturesHistory,
 detectedTrendline,
 manualHorizontalLines,
 manualTrendLines,
+manualFibonacciDrawings,
 onAnalysisComplete,
 onChartCommand,
 onInfoPanelCommand,
@@ -1194,6 +1201,7 @@ strongestPattern,
 detectedTrendline,
 manualHorizontalLines: manualHorizontalLines ?? [],
 manualTrendLines: manualTrendLines ?? [],
+manualFibonacciDrawings: manualFibonacciDrawings ?? [],
 
   chartHighlightState: chartHighlightState ?? {
     visible: false,
@@ -1348,6 +1356,7 @@ strongestPattern,
 detectedTrendline,
 manualHorizontalLines,
 manualTrendLines,
+manualFibonacciDrawings,
 movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,

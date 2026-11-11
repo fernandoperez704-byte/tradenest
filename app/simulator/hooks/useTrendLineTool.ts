@@ -28,6 +28,21 @@ export function useTrendLineTool({
   const [trendLineDeletePosition, setTrendLineDeletePosition] =
     useState<{ x: number; y: number } | null>(null);
 
+  const clearTrendLines = () => {
+    const chart = chartInstanceRef.current;
+
+    if (chart) {
+      trendLinesRef.current.forEach((drawing) => {
+        removeTrendLine(chart, drawing);
+      });
+    }
+
+    trendLinesRef.current = [];
+    pendingTrendLinePointRef.current = null;
+    selectedTrendLineRef.current = null;
+    setTrendLineDeletePosition(null);
+  };
+
   const handleDeleteTrendLine = () => {
     const selectedLine = selectedTrendLineRef.current;
     const chart = chartInstanceRef.current;
@@ -234,5 +249,6 @@ export function useTrendLineTool({
     selectedTrendLineRef,
     trendLineDeletePosition,
     handleDeleteTrendLine,
+    clearTrendLines,
   };
 }

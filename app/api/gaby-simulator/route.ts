@@ -1256,6 +1256,22 @@ General Answer Rules:
 - Use the Market Analysis Summary only when it is relevant to the user's question.
 - If information is missing, clearly say you don't have enough information instead of guessing.
 - Never invent market facts, trade results, or TradeNestX features.
+- manualFibonacciDrawings contains the user's manually drawn Fibonacci retracements on the current chart.
+- Each Fibonacci drawing contains an id, start and end points with time and price, and levels with ratio and price.
+- When asked about a manual Fibonacci drawing, explain its supplied anchor prices and Fibonacci levels.
+- The available Fibonacci levels are 0%, 25%, 50%, 75%, and 100%.
+- When asked to explain a manual Fibonacci retracement, describe all five supplied levels (0%, 25%, 50%, 75%, and 100%) and their exact prices.
+- Explain where the current market price sits between those levels.
+- Identify the nearest Fibonacci level and explain the significance of the surrounding levels as educational reference areas.
+- If the user asks about one specific Fibonacci level, focus only on that level.
+- Keep the explanation concise and natural without skipping levels requested by the user.
+- Fibonacci levels are user-created reference levels, not automatically confirmed support or resistance.
+- When comparing a Fibonacci level with support or resistance, use only the supplied TradeNestX engine zones.
+- Never invent price reactions, confirmations, or market structure from Fibonacci levels alone.
+- If manualFibonacciDrawings is empty, say no manual Fibonacci drawings are available on the current chart.
+- Keep manual Fibonacci drawings separate from manual horizontal lines, manual trendlines, and Gaby's automatic chart highlights.
+- Do not modify, remove, or automatically highlight manual Fibonacci drawings.
+- Do not treat Fibonacci drawings as trading signals.
 - manualTrendLines contains the user's manually drawn trendlines on the current chart.
 - Each manual trendline has an id, start time and price, and end time and price.
 - When asked about a manual trendline, use its exact supplied starting and ending points.
@@ -1390,6 +1406,9 @@ resistanceLevels: marketFacts.resistanceLevels,
 
     manualTrendLines:
       marketFacts.manualTrendLines ?? [],
+
+    manualFibonacciDrawings:
+      marketFacts.manualFibonacciDrawings ?? [],
 
     chartHighlightState:
       marketFacts.chartHighlightState ?? null,

@@ -1470,6 +1470,7 @@ const {
   pendingTrendLinePointRef,
   trendLineDeletePosition,
   handleDeleteTrendLine,
+  clearTrendLines,
 } = useTrendLineTool({
   chartInstanceRef,
   candleSeriesRef,
@@ -1482,11 +1483,24 @@ const {
   selectedFibonacciRef,
   fibonacciDeletePosition,
   handleDeleteFibonacci,
+  clearFibonacciDrawings,
 } = useFibonacciRetracementTool({
   chartInstanceRef,
   candleSeriesRef,
   selectedDrawingTools,
 });
+
+const previousChartAssetRef = useRef(`${marketMode}-${selectedSymbol}`);
+
+useEffect(() => {
+  const chartAsset = `${marketMode}-${selectedSymbol}`;
+
+  if (previousChartAssetRef.current !== chartAsset) {
+    clearFibonacciDrawings();
+    clearTrendLines();
+    previousChartAssetRef.current = chartAsset;
+  }
+}, [marketMode, selectedSymbol]);
 
 useEffect(() => {
   indicatorPanelRef.current = indicatorPanel;
@@ -4661,6 +4675,15 @@ setTrades={setTrades}
     id: line.id,
     start: line.start,
     end: line.end,
+  }))}
+  manualFibonacciDrawings={fibonacciDrawingsRef.current.map((drawing) => ({
+    id: drawing.id,
+    start: drawing.start,
+    end: drawing.end,
+    levels: drawing.levels.map((level) => ({
+      ratio: level.ratio,
+      price: level.price,
+    })),
   }))}
   chartHighlightState={chartHighlightState}
 
