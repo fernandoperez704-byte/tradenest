@@ -7,6 +7,7 @@ import ChartWorkspace from "./components/ChartWorkspace";
 import { useHorizontalLineTool } from "./hooks/useHorizontalLineTool";
 import { useTrendLineTool } from "./hooks/useTrendLineTool";
 import { useFibonacciRetracementTool } from "./hooks/useFibonacciRetracementTool";
+import { usePriceRangeMeasurementTool } from "./hooks/usePriceRangeMeasurementTool";
 import TradingPanel from "./components/TradingPanel";
 import CoinbaseFuturesTradingPanel from "./components/CoinbaseFuturesTradingPanel";
 import AccountSummaryCard from "./components/AccountSummaryCard";
@@ -1484,20 +1485,35 @@ const {
   fibonacciDeletePosition,
   handleDeleteFibonacci,
   clearFibonacciDrawings,
+
 } = useFibonacciRetracementTool({
   chartInstanceRef,
   candleSeriesRef,
   selectedDrawingTools,
 });
 
-const previousChartAssetRef = useRef(`${marketMode}-${selectedSymbol}`);
+const {
+  priceRangeDrawings,
+  priceRangePreview,
+  selectedPriceRangeRef,
+  priceRangeDeletePosition,
+  handleDeletePriceRange,
+  handleDeletePriceRangeById,
+  clearPriceRangeDrawings,
+} = usePriceRangeMeasurementTool({
+  chartInstanceRef,
+  candleSeriesRef,
+  selectedDrawingTools,
+});
 
+const previousChartAssetRef = useRef(`${marketMode}-${selectedSymbol}`);
 useEffect(() => {
   const chartAsset = `${marketMode}-${selectedSymbol}`;
 
   if (previousChartAssetRef.current !== chartAsset) {
     clearFibonacciDrawings();
     clearTrendLines();
+    clearPriceRangeDrawings();
     previousChartAssetRef.current = chartAsset;
   }
 }, [marketMode, selectedSymbol]);
@@ -4601,6 +4617,12 @@ strongestPattern={strongestPattern}
   onDeleteFibonacci={handleDeleteFibonacci}
   fibonacciDrawingsRef={fibonacciDrawingsRef}
   pendingFibonacciPointRef={pendingFibonacciPointRef}
+  priceRangeDrawings={priceRangeDrawings}
+  priceRangePreview={priceRangePreview}
+  priceRangeDeletePosition={priceRangeDeletePosition}
+  onDeletePriceRange={handleDeletePriceRange}
+  onDeletePriceRangeById={handleDeletePriceRangeById}
+  history={history}
   onDrawingToolsChange={handleDrawingToolsChange}
   setShowSimulatorGaby={setShowSimulatorGaby}
   gabyChartHighlights={gabyChartHighlights}
@@ -4685,6 +4707,7 @@ setTrades={setTrades}
       price: level.price,
     })),
   }))}
+  manualPriceRangeMeasurements={priceRangeDrawings}
   chartHighlightState={chartHighlightState}
 
 onAnalysisComplete={(subject) => {

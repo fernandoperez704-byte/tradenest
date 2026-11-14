@@ -76,6 +76,14 @@ futuresPositionManagement: any;
     end: { time: any; price: number };
     levels: Array<{ ratio: number; price: number }>;
   }>;
+  manualPriceRangeMeasurements?: Array<{
+    id: string;
+    start: { time: any; price: number };
+    end: { time: any; price: number };
+    priceChange: number;
+    percentageChange: number;
+    direction: "UP" | "DOWN" | "FLAT";
+  }>;
   onAnalysisComplete?: (
   subject: string | null
 ) => void;
@@ -135,6 +143,7 @@ detectedTrendline,
 manualHorizontalLines,
 manualTrendLines,
 manualFibonacciDrawings,
+manualPriceRangeMeasurements,
 onAnalysisComplete,
 onChartCommand,
 onInfoPanelCommand,
@@ -1202,6 +1211,7 @@ detectedTrendline,
 manualHorizontalLines: manualHorizontalLines ?? [],
 manualTrendLines: manualTrendLines ?? [],
 manualFibonacciDrawings: manualFibonacciDrawings ?? [],
+manualPriceRangeMeasurements: manualPriceRangeMeasurements ?? [],
 
   chartHighlightState: chartHighlightState ?? {
     visible: false,
@@ -1357,6 +1367,7 @@ detectedTrendline,
 manualHorizontalLines,
 manualTrendLines,
 manualFibonacciDrawings,
+manualPriceRangeMeasurements,
 movingAverageAnalysis,
   marketIntelligence,
   marketAnalysisSummary,

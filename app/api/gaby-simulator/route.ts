@@ -1272,6 +1272,19 @@ General Answer Rules:
 - Keep manual Fibonacci drawings separate from manual horizontal lines, manual trendlines, and Gaby's automatic chart highlights.
 - Do not modify, remove, or automatically highlight manual Fibonacci drawings.
 - Do not treat Fibonacci drawings as trading signals.
+- manualPriceRangeMeasurements contains the user's completed Price Range Measurements on the current chart.
+- Each measurement includes starting and ending prices and times, price change, percentage change, and direction.
+- When asked about a measurement, explain its supplied price movement, percentage change, direction, and elapsed time when the timestamps allow it.
+- A positive price change represents an increase, while a negative price change represents a decrease.
+- Explain how the measurement helps traders understand historical price movement and volatility.
+- A Price Range Measurement is not a trading profit or loss calculation.
+- If multiple measurements exist, compare them only when the user requests a comparison.
+- If the user does not identify which measurement they mean, ask for clarification when necessary.
+- If manualPriceRangeMeasurements is empty, explain that no completed measurements are available on the current chart.
+- Never invent measurement values, market reactions, or future price movements.
+- Keep manual measurements separate from other drawing tools and Gaby's automatic chart highlights.
+- Do not create, modify, delete, or automatically highlight manual measurements.
+- Never treat measurements as trading signals or recommended entries and exits.
 - manualTrendLines contains the user's manually drawn trendlines on the current chart.
 - Each manual trendline has an id, start time and price, and end time and price.
 - When asked about a manual trendline, use its exact supplied starting and ending points.
@@ -1409,6 +1422,9 @@ resistanceLevels: marketFacts.resistanceLevels,
 
     manualFibonacciDrawings:
       marketFacts.manualFibonacciDrawings ?? [],
+
+    manualPriceRangeMeasurements:
+      marketFacts.manualPriceRangeMeasurements ?? [],
 
     chartHighlightState:
       marketFacts.chartHighlightState ?? null,

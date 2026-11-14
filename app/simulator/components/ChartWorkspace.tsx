@@ -10,6 +10,9 @@ import type { GabyChartHighlight } from "../types/gabyChartHighlight";
 import PatternOverlay from "./PatternOverlay";
 import GabyChartOverlay from "./GabyChartOverlay";
 import FibonacciLabelsOverlay from "./drawingTools/FibonacciLabelsOverlay";
+import PriceRangeMeasurementOverlay from "./drawingTools/PriceRangeMeasurementOverlay";
+import type { PriceRangeMeasurement } from "./drawingTools/PriceRangeMeasurementTool";
+
 
 type ChartWorkspaceProps = {
   reviews: any[];
@@ -54,6 +57,12 @@ candleSeriesRef: any;
   onDeleteFibonacci: () => void;
   fibonacciDrawingsRef: React.RefObject<any[]>;
   pendingFibonacciPointRef: React.RefObject<any>;
+  priceRangeDrawings: PriceRangeMeasurement[];
+  priceRangePreview: PriceRangeMeasurement | null;
+  priceRangeDeletePosition: { x: number; y: number } | null;
+  onDeletePriceRange: () => void;
+  onDeletePriceRangeById: (id: string) => void;
+  history: { time: string | number }[];
   onDrawingToolsChange: (tools: string[]) => void;
 setShowSimulatorGaby: (value: boolean) => void;
 gabyChartHighlights: GabyChartHighlight[];
@@ -93,6 +102,12 @@ fibonacciDeletePosition,
 onDeleteFibonacci,
 fibonacciDrawingsRef,
 pendingFibonacciPointRef,
+priceRangeDrawings,
+priceRangePreview,
+priceRangeDeletePosition,
+onDeletePriceRange,
+onDeletePriceRangeById,
+history,
 onDrawingToolsChange,
 setShowSimulatorGaby,
 gabyChartHighlights,
@@ -556,6 +571,7 @@ return (
                   { name: "Horizontal Line", icon: "━" },
                   { name: "Trend Line", icon: "╱" },
                   { name: "Fibonacci Retracement", icon: "≡" },
+                  { name: "Price Range Measurement", icon: "↕" },
                 ].map((tool) => (
                   <button
                     key={tool.name}
@@ -695,6 +711,14 @@ return (
     pendingFibonacciPointRef={pendingFibonacciPointRef}
   />
 
+  <PriceRangeMeasurementOverlay
+    chartInstanceRef={chartInstanceRef}
+    candleSeriesRef={candleSeriesRef}
+    priceRangeDrawings={priceRangeDrawings}
+    priceRangePreview={priceRangePreview}
+    onDeletePriceRangeById={onDeletePriceRangeById}
+  />
+
   {horizontalLineDeletePosition && (
     <button
       type="button"
@@ -735,6 +759,22 @@ return (
         position: "absolute",
         left: fibonacciDeletePosition.x,
         top: fibonacciDeletePosition.y,
+        transform: "translateY(-50%)",
+      }}
+      className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"
+    >
+      Delete
+    </button>
+  )}
+
+  {priceRangeDeletePosition && (
+    <button
+      type="button"
+      onClick={onDeletePriceRange}
+      style={{
+        position: "absolute",
+        left: priceRangeDeletePosition.x,
+        top: priceRangeDeletePosition.y,
         transform: "translateY(-50%)",
       }}
       className="z-50 rounded-md border border-red-500/40 bg-[#111827] px-3 py-1.5 text-xs font-bold text-red-400 shadow-lg transition-all hover:border-red-400 hover:bg-red-500/10"
