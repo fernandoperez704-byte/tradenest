@@ -2391,7 +2391,20 @@ const candleKey =
     return;
   }
 
-const results = detectPatterns(history);
+const timeframeMs = getTimeframeMs(selectedTimeframe);
+const currentCandleStart =
+  Math.floor(Date.now() / timeframeMs) * timeframeMs;
+
+const completedHistory = history.filter((candle) => {
+  const candleTime = Number(candle.time);
+
+  return (
+    Number.isFinite(candleTime) &&
+    candleTime < currentCandleStart
+  );
+});
+
+const results = detectPatterns(completedHistory);
 
 console.log("PAT detected patterns:", results);
 console.log(

@@ -4,7 +4,7 @@ type ConfidenceInput = {
 };
 
 const SCORE = {
-  BASE: 70,
+  BASE: 60,
   SIMILARITY_EXCELLENT: 1,
   SIMILARITY_GOOD: 2,
   BREAKOUT_STRONG: 5,
@@ -29,5 +29,5 @@ export function calculatePatternConfidence({
     score += 5;
   }
 
-  return Math.min(score, 90);
+  return Math.min(score, 80);
 }

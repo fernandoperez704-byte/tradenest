@@ -160,9 +160,10 @@ export default function PatternOverlay({
   const ascendingResistanceTwo = overlayPoints.find(
     (point) => point.label === "Resistance 2"
   );
-  const ascendingEnd = overlayPoints.find(
-    (point) => point.label === "Current" || point.label === "Breakout"
-  );
+  const ascendingEnd =
+    overlayPoints.find(
+      (point) => point.label === "Current" || point.label === "Breakout"
+    ) ?? overlayPoints[overlayPoints.length - 1];
   const ascendingLows = overlayPoints.filter((point) =>
     point.label?.startsWith("Low ")
   );
@@ -192,12 +193,14 @@ export default function PatternOverlay({
   const descendingSupportTwo = overlayPoints.find(
     (point) => point.label === "Support 2"
   );
-  const descendingEnd = overlayPoints.find(
-    (point) => point.label === "Current" || point.label === "Breakdown"
-  );
+  const descendingEnd =
+    overlayPoints.find(
+      (point) => point.label === "Current" || point.label === "Breakdown"
+    ) ?? overlayPoints[overlayPoints.length - 1];
   const descendingHighs = overlayPoints.filter((point) =>
     point.label?.startsWith("High ")
   );
+  const descendingFirstHigh = descendingHighs[0];
   const descendingLastHigh = descendingHighs[descendingHighs.length - 1];
 
   const descendingSupportY =
@@ -205,16 +208,22 @@ export default function PatternOverlay({
       ? (descendingSupportOne.y + descendingSupportTwo.y) / 2
       : null;
 
+
   let descendingResistanceEndY: number | null = null;
 
-  if (descendingStart && descendingLastHigh && descendingEnd) {
-    const distance = descendingLastHigh.x - descendingStart.x;
+  if (
+    descendingFirstHigh &&
+    descendingLastHigh &&
+    descendingEnd &&
+    descendingLastHigh.x > descendingFirstHigh.x
+  ) {
+    const distance = descendingLastHigh.x - descendingFirstHigh.x;
+    const slope =
+      (descendingLastHigh.y - descendingFirstHigh.y) / distance;
 
-    if (distance > 0) {
-      const slope = (descendingLastHigh.y - descendingStart.y) / distance;
-      descendingResistanceEndY =
-        descendingStart.y + slope * (descendingEnd.x - descendingStart.x);
-    }
+    descendingResistanceEndY =
+      descendingFirstHigh.y +
+      slope * (descendingEnd.x - descendingFirstHigh.x);
   }
 
   return (
@@ -360,45 +369,50 @@ export default function PatternOverlay({
             )}
 
           {pattern.type === "DESCENDING_TRIANGLE" &&
-            descendingStart &&
-            descendingSupportOne &&
-            descendingSupportTwo &&
-            descendingEnd &&
-            descendingSupportY != null &&
-            descendingResistanceEndY != null && (
+            descendingEnd && (
               <>
-                <line
-                  x1={descendingSupportOne.x}
-                  y1={descendingSupportY}
-                  x2={descendingEnd.x}
-                  y2={descendingSupportY}
-                  stroke="rgba(255,255,255,0.95)"
-                  strokeWidth="1"
-                  strokeDasharray="5 4"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <line
-                  x1={descendingStart.x}
-                  y1={descendingStart.y}
-                  x2={descendingEnd.x}
-                  y2={descendingResistanceEndY}
-                  stroke="rgba(255,255,255,0.95)"
-                  strokeWidth="1"
-                  strokeDasharray="5 4"
-                  vectorEffect="non-scaling-stroke"
-                />
+                {descendingStart &&
+                  descendingSupportY != null && (
+                  <line
+                    x1={descendingStart.x}
+                    y1={descendingSupportY}
+                    x2={descendingEnd.x}
+                    y2={descendingSupportY}
+                    stroke="rgba(255,255,255,0.95)"
+                    strokeWidth="1.5"
+                    strokeDasharray="5 4"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
+
+                {descendingFirstHigh &&
+                  descendingResistanceEndY != null && (
+                    <line
+                      x1={descendingFirstHigh.x}
+                      y1={descendingFirstHigh.y}
+                      x2={descendingEnd.x}
+                      y2={descendingResistanceEndY}
+                      stroke="rgba(255,255,255,0.95)"
+                      strokeWidth="1.5"
+                      strokeDasharray="5 4"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
               </>
             )}
 
-          <polyline
-            points={overlayPoints.map((point) => `${point.x},${point.y}`).join(" ")}
-            fill="none"
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
+          {pattern.type !== "ASCENDING_TRIANGLE" &&
+            pattern.type !== "DESCENDING_TRIANGLE" && (
+              <polyline
+                points={overlayPoints.map((point) => `${point.x},${point.y}`).join(" ")}
+                fill="none"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
         </svg>
       </div>
     </div>

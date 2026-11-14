@@ -46,6 +46,7 @@ export function detectDescendingTriangle(
   const trianglePath = buildCandlePath(history, {
     lookback: 120,
     minimumMovePercent: 0.35,
+    useWicks: true,
   });
 
   if (trianglePath.length < 5) return null;
@@ -89,11 +90,21 @@ export function detectDescendingTriangle(
       }
     }
 
+    const lastPoint = segment[segment.length - 1];
+    const previousPoint = segment[segment.length - 2];
+
+    if (
+      lastPoint.direction === "DOWN" &&
+      lastPoint.price < previousPoint.price
+    ) {
+      localLows.push(lastPoint);
+    }
+
     if (localHighs.length < 2 || localLows.length < 2) {
       continue;
     }
 
-    const maxSupportDifferencePercent = 1.25;
+    const maxSupportDifferencePercent = 1.5;
     let supportTouches: CandlePathPoint[] = [];
 
     for (const anchorLow of localLows) {
@@ -108,12 +119,37 @@ export function detectDescendingTriangle(
       }
     }
 
-    if (supportTouches.length < 2) continue;
+    if (supportTouches.length < 2) {
+      continue;
+    }
 
     supportTouches.sort((first, second) => first.index - second.index);
 
-    const firstSupport = supportTouches[0];
-    const secondSupport = supportTouches[1];
+    const firstSupport = supportTouches[supportTouches.length - 2];
+    const secondSupport = supportTouches[supportTouches.length - 1];
+
+    const supportPriceAverage =
+      (firstSupport.price + secondSupport.price) / 2;
+
+    const supportZoneTolerance = 1.25;
+
+    const supportStructureLows = localLows.filter(
+      (low) =>
+        low.index >= firstSupport.index &&
+        low.index <= secondSupport.index
+    );
+
+    const hasHorizontalSupport = supportStructureLows.every(
+      (low) =>
+        percentDifference(low.price, supportPriceAverage) <=
+        supportZoneTolerance
+    );
+
+    if (!hasHorizontalSupport) continue;
+
+    if (secondSupport.index - firstSupport.index < 3) {
+      continue;
+    }
 
     const startSearchIndex = Math.max(0, firstSupport.index - 36);
 
@@ -131,6 +167,21 @@ export function detectDescendingTriangle(
 
 const supportPrice =
   (firstSupport.price + secondSupport.price) / 2;
+
+    const formationLows = localLows.filter(
+      (low) =>
+        low.index >= patternStart.index &&
+        low.index <= secondSupport.index
+    );
+
+    const hasStableSupport =
+      formationLows.filter(
+        (low) =>
+          percentDifference(low.price, supportPrice) <=
+          maxSupportDifferencePercent
+      ).length >= 2;
+
+    if (!hasStableSupport) continue;
 
     const supportZoneHalfPercent = maxSupportDifferencePercent / 2;
 
@@ -183,7 +234,15 @@ for (
 const confirmed =
   breakdownIndex !== -1;
 
-  
+const maximumCandlesSinceBreakdown = 8;
+
+if (
+  confirmed &&
+  history.length - 1 - breakdownIndex > maximumCandlesSinceBreakdown
+) {
+  continue;
+}
+
     const breakdownPathPoint = confirmed
       ? trianglePath.find((point) => point.index >= breakdownIndex) ??
         latestPathPoint
@@ -226,7 +285,19 @@ const confirmed =
     const patternWidth =
       formationEndPoint.index - patternStart.index;
 
-    if (patternWidth < 8) continue;
+    if (confirmed) {
+      if (patternWidth < 30) continue;
+
+      if (supportTouches.length < 3 || descendingHighs.length < 2) {
+        continue;
+      }
+    } else {
+      if (patternWidth < 12) continue;
+
+      if (supportTouches.length < 2 || descendingHighs.length < 2) {
+        continue;
+      }
+    }
 
     if (!confirmed && latestClose > lastDescendingHigh.price) {
       continue;
@@ -245,12 +316,17 @@ const confirmed =
 
     if (confirmed) confidence += 10;
 
-    confidence = Math.min(confirmed ? 100 : 79, confidence);
+    confidence = confirmed
+      ? Math.min(95, confidence)
+      : Math.min(79, Math.max(45, confidence - 20));
 
     const formationPoints = trianglePath.filter(
       (point) =>
         point.index >= patternStart.index &&
-        point.index <= formationEndPoint.index
+        point.index <= Math.max(
+          formationEndPoint.index,
+          secondSupport.index
+        )
     );
 
     const labels = new Map<number, string>();
@@ -259,14 +335,16 @@ const confirmed =
     labels.set(firstSupport.index, "Support 1");
     labels.set(secondSupport.index, "Support 2");
 
-    descendingHighs.slice(1, 4).forEach((high, index) => {
+    descendingHighs.slice(0, 4).forEach((high, index) => {
       labels.set(high.index, `High ${index + 1}`);
     });
 
-    labels.set(
-      formationEndPoint.index,
-      confirmed ? "Breakdown" : "Current"
-    );
+    if (!labels.has(formationEndPoint.index)) {
+      labels.set(
+        formationEndPoint.index,
+        confirmed ? "Breakdown" : "Current"
+      );
+    }
 
     const candidate: DetectedPattern = {
       id: `descending-triangle-${patternStart.time}-${firstSupport.time}-${secondSupport.time}`,

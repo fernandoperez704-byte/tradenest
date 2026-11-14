@@ -43,26 +43,54 @@ export function detectPatterns(history: PricePoint[]): DetectedPattern[] {
     ).values()
   );
 
-  uniquePatterns.sort((a, b) => {
+  const validPatterns = uniquePatterns.filter((pattern) => {
+    const candlesAfterPattern = history.slice(pattern.endIndex + 1);
+
+    if (pattern.type === "DOUBLE_BOTTOM") {
+      const support = pattern.supportZone?.low ?? pattern.lowPrice;
+
+      return !candlesAfterPattern.some(
+        (candle) => Number(candle.close) < support
+      );
+    }
+
+    if (pattern.type === "DOUBLE_TOP") {
+      const resistance = pattern.resistanceZone?.high ?? pattern.highPrice;
+
+      return !candlesAfterPattern.some(
+        (candle) => Number(candle.close) > resistance
+      );
+    }
+
+    if (pattern.type === "HEAD_AND_SHOULDERS") {
+      return !candlesAfterPattern.some(
+        (candle) => Number(candle.close) > pattern.highPrice
+      );
+    }
+
+    return true;
+  });
+
+  validPatterns.sort((a, b) => {
+    const endDifference = b.endIndex - a.endIndex;
+
+    if (endDifference !== 0) return endDifference;
+
     const statusDifference =
       Number(b.status === "CONFIRMED") -
       Number(a.status === "CONFIRMED");
 
     if (statusDifference !== 0) return statusDifference;
 
-    const endDifference = b.endIndex - a.endIndex;
+    const confidenceDifference = b.confidence - a.confidence;
 
-    if (endDifference !== 0) return endDifference;
+    if (confidenceDifference !== 0) return confidenceDifference;
 
-    const startDifference = b.startIndex - a.startIndex;
-
-    if (startDifference !== 0) return startDifference;
-
-    return b.confidence - a.confidence;
+    return b.startIndex - a.startIndex;
   });
 
-  return uniquePatterns.length > 0
-    ? [uniquePatterns[0]]
+  return validPatterns.length > 0
+    ? [validPatterns[0]]
     : [];
 }
 

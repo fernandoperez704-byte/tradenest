@@ -12,9 +12,26 @@ export type CandlePathPoint = {
 type BuildCandlePathOptions = {
   lookback?: number;
   minimumMovePercent?: number;
+  useWicks?: boolean;
 };
 
 const getPrice = (point: PricePoint) => Number(point.close);
+
+const getExtremePrice = (
+  point: PricePoint,
+  direction: "UP" | "DOWN",
+  useWicks: boolean
+): number => {
+  if (!useWicks) return getPrice(point);
+
+  const price = Number(
+    direction === "UP" ? point.high : point.low
+  );
+
+  return Number.isFinite(price) && price > 0
+    ? price
+    : getPrice(point);
+};
 
 const isValid = (price: number) =>
   Number.isFinite(price) && price > 0;
@@ -26,6 +43,7 @@ export function buildCandlePath(
   const {
     lookback = 50,
     minimumMovePercent = 0.75,
+    useWicks = false,
   } = options;
 
   if (!Array.isArray(history) || history.length < 3) {
@@ -63,33 +81,71 @@ export function buildCandlePath(
 
     if (!isValid(anchorPrice)) continue;
 
-    const movePercent =
-      ((price - anchorPrice) / anchorPrice) * 100;
-
     if (!activeDirection) {
-      if (Math.abs(movePercent) >= minimumMovePercent) {
-        activeDirection = movePercent > 0 ? "UP" : "DOWN";
+      const currentHigh = getExtremePrice(
+        data[index],
+        "UP",
+        useWicks
+      );
+
+      const currentLow = getExtremePrice(
+        data[index],
+        "DOWN",
+        useWicks
+      );
+
+      const upwardMovePercent =
+        ((currentHigh - anchorPrice) / anchorPrice) * 100;
+
+      const downwardMovePercent =
+        ((currentLow - anchorPrice) / anchorPrice) * 100;
+
+      if (
+        upwardMovePercent >= minimumMovePercent ||
+        downwardMovePercent <= -minimumMovePercent
+      ) {
+        activeDirection =
+          upwardMovePercent >= Math.abs(downwardMovePercent)
+            ? "UP"
+            : "DOWN";
+
         extremeIndex = index;
       }
 
       continue;
     }
 
-    const extremePrice = getPrice(data[extremeIndex]);
+    const extremePrice = getExtremePrice(
+      data[extremeIndex],
+      activeDirection,
+      useWicks
+    );
 
     if (!isValid(extremePrice)) continue;
 
     if (activeDirection === "UP") {
-      if (price >= extremePrice) {
+      const currentHigh = getExtremePrice(
+        data[index],
+        "UP",
+        useWicks
+      );
+
+      if (currentHigh >= extremePrice) {
         extremeIndex = index;
         continue;
       }
 
+      const currentLow = getExtremePrice(
+        data[index],
+        "DOWN",
+        useWicks
+      );
+
       const reversalPercent =
-        ((price - extremePrice) / extremePrice) * 100;
+        ((currentLow - extremePrice) / extremePrice) * 100;
 
       if (reversalPercent <= -minimumMovePercent) {
-        addPoint(path, data, startIndex, extremeIndex, "UP");
+        addPoint(path, data, startIndex, extremeIndex, "UP", useWicks);
 
         anchorIndex = extremeIndex;
         activeDirection = "DOWN";
@@ -99,16 +155,28 @@ export function buildCandlePath(
       continue;
     }
 
-    if (price <= extremePrice) {
+    const currentLow = getExtremePrice(
+      data[index],
+      "DOWN",
+      useWicks
+    );
+
+    if (currentLow <= extremePrice) {
       extremeIndex = index;
       continue;
     }
 
+    const currentHigh = getExtremePrice(
+      data[index],
+      "UP",
+      useWicks
+    );
+
     const reversalPercent =
-      ((price - extremePrice) / extremePrice) * 100;
+      ((currentHigh - extremePrice) / extremePrice) * 100;
 
     if (reversalPercent >= minimumMovePercent) {
-      addPoint(path, data, startIndex, extremeIndex, "DOWN");
+      addPoint(path, data, startIndex, extremeIndex, "DOWN", useWicks);
 
       anchorIndex = extremeIndex;
       activeDirection = "UP";
@@ -141,9 +209,13 @@ function addPoint(
   data: PricePoint[],
   offset: number,
   index: number,
-  direction: CandlePathDirection
+  direction: CandlePathDirection,
+  useWicks = false
 ): void {
-  const price = getPrice(data[index]);
+  const price =
+    direction === "UP" || direction === "DOWN"
+      ? getExtremePrice(data[index], direction, useWicks)
+      : getPrice(data[index]);
 
   if (!isValid(price)) return;
 

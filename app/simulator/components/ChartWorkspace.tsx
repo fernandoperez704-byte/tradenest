@@ -120,7 +120,18 @@ tourStep,
 
 const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
 const [toolsOpen, setToolsOpen] = useState(false);
+const [patInfoOpen, setPatInfoOpen] = useState(false);
 const [engineCloseSignal, setEngineCloseSignal] = useState(0);
+
+useEffect(() => {
+  if (!patInfoOpen) return;
+
+  const timeout = window.setTimeout(() => {
+    setPatInfoOpen(false);
+  }, 3000);
+
+  return () => window.clearTimeout(timeout);
+}, [patInfoOpen]);
 const toolsDropdownRef = useRef<HTMLDivElement>(null);
 const [selectedDrawingTools, setSelectedDrawingTools] = useState<string[]>([]);
 
@@ -348,33 +359,26 @@ function getEnginePercentColor(
 function formatPatternName(
   patternType: DetectedPattern["type"]
 ) {
-  switch (patternType) {
-    case "DOUBLE_BOTTOM":
-      return "Double Bottom";
+  const shortNames: Record<DetectedPattern["type"], string> = {
+    DOUBLE_TOP: "D.Top",
+    DOUBLE_BOTTOM: "D.Bot",
+    HEAD_AND_SHOULDERS: "H&S",
+    INVERSE_HEAD_AND_SHOULDERS: "I.H&S",
+    BULL_FLAG: "B.Flag",
+    BEAR_FLAG: "S.Flag",
+    ASCENDING_TRIANGLE: "A.T",
+    DESCENDING_TRIANGLE: "D.T",
+    SYMMETRICAL_TRIANGLE: "S.T",
+    RISING_WEDGE: "R.W",
+    FALLING_WEDGE: "F.W",
+  };
 
-    case "DOUBLE_TOP":
-      return "Double Top";
-
-    case "HEAD_AND_SHOULDERS":
-      return "Head and Shoulders";
-
-    case "INVERSE_HEAD_AND_SHOULDERS":
-      return "Inverse Head and Shoulders";
-
-    case "BULL_FLAG":
-      return "Bull Flag";
-
-    case "BEAR_FLAG":
-      return "Bear Flag";
-
-    default:
-      return patternType;
-  }
+  return shortNames[patternType] ?? patternType;
 }
 
 return (
   <div
-    className={`min-w-0 w-full bg-[#0f172a] border border-zinc-700 rounded-xl p-2 xl:rounded-2xl xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible xl:overflow-hidden ${
+    className={`min-w-0 w-full bg-[#0f172a] border border-zinc-700 rounded-xl p-2 xl:rounded-2xl xl:p-4 h-auto xl:h-[690px] flex flex-col overflow-visible ${
       mobileView === "TRADE" ? "flex" : "hidden xl:flex"
     } ${
       tourStep === 2
@@ -722,21 +726,50 @@ return (
   engineData={engineData}
 />
 
-<button
-  onClick={() =>
-    setPatternRecognitionEnabled(
-      !patternRecognitionEnabled
-    )
-  }
-  title="Pattern Recognition (Beta)"
-  className={`rounded-md border px-2 py-1 text-[11px] font-bold transition-all ${
-    patternRecognitionEnabled
-      ? "border-green-500 bg-green-500/15 text-green-400"
-      : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+<div className="group relative flex items-stretch">
+  <button
+    onClick={() => {
+      setPatternRecognitionEnabled(
+        !patternRecognitionEnabled
+      );
+
+      if (window.innerWidth < 1280) {
+        setPatInfoOpen(!patternRecognitionEnabled);
+      }
+    }}
+    aria-label="TradeNestX Pattern Analysis Tool Beta"
+    className={`h-full rounded-md border px-2 py-1 text-[11px] font-bold transition-all ${
+      patternRecognitionEnabled
+        ? "border-green-500 bg-green-500/15 text-green-400"
+        : "border-zinc-700 bg-[#111827] text-zinc-400 hover:border-green-500 hover:text-green-400"
+    }`}
+  >
+    {patternRecognitionEnabled ? "PAT ON" : "PAT OFF"}
+  </button>
+
+
+  <div
+  className={`pointer-events-none absolute top-full left-0 xl:left-auto xl:right-0 z-50 mt-2 w-64 max-w-[calc(100vw-32px)] rounded-lg border border-cyan-500/40 bg-[#020817] p-3 text-left shadow-2xl ${
+    patInfoOpen
+      ? "visible opacity-100"
+      : "invisible opacity-0 xl:group-hover:visible xl:group-hover:opacity-100"
   }`}
 >
-  PAT BETA
-</button>
+    <p className="mb-2 text-xs font-bold">
+      <span className="text-white">TradeNest</span>
+      <span className="text-cyan-400">X</span>
+      <span className="text-white"> · PAT Beta</span>
+    </p>
+    <p className="text-xs leading-relaxed text-slate-200">
+      PAT is currently in beta and under active development.
+      Pattern detection and analysis may be incomplete or
+      inaccurate as we continue improving the feature.
+    </p>
+    <p className="mt-2 text-[11px] text-zinc-400">
+      For educational purposes only.
+    </p>
+  </div>
+</div>
 
 {patternRecognitionEnabled && strongestPattern && (
   <div
@@ -748,13 +781,17 @@ return (
         : "border-yellow-500/40 bg-yellow-500/10 text-yellow-400"
     }`}
   >
-    {formatPatternName(strongestPattern.type)}
-    {" · "}
-    {strongestPattern.status === "CONFIRMED"
-      ? "Confirmed"
-      : "Forming"}
-    {" · "}
-    {strongestPattern.confidence}%
+    <span
+      title={`${strongestPattern.type.replaceAll("_", " ")} · ${
+        strongestPattern.status === "CONFIRMED"
+          ? "Confirmed"
+          : "Forming"
+      }`}
+    >
+      {formatPatternName(strongestPattern.type)}
+      {" · "}
+      {strongestPattern.confidence}%
+    </span>
   </div>
 )}
 

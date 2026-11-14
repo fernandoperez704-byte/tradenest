@@ -46,6 +46,7 @@ export function detectAscendingTriangle(
   const trianglePath = buildCandlePath(history, {
     lookback: 120,
     minimumMovePercent: 0.35,
+    useWicks: true,
   });
 
   if (trianglePath.length < 5) return null;
@@ -89,11 +90,21 @@ export function detectAscendingTriangle(
       }
     }
 
+    const lastPoint = segment[segment.length - 1];
+    const previousPoint = segment[segment.length - 2];
+
+    if (
+      lastPoint.direction === "UP" &&
+      lastPoint.price > previousPoint.price
+    ) {
+      localHighs.push(lastPoint);
+    }
+
     if (localHighs.length < 2 || localLows.length < 2) {
       continue;
     }
 
-    const maxResistanceDifferencePercent = 1.25;
+    const maxResistanceDifferencePercent = 1.5;
     let resistanceTouches: CandlePathPoint[] = [];
 
     for (const anchorHigh of localHighs) {
@@ -112,8 +123,8 @@ export function detectAscendingTriangle(
 
     resistanceTouches.sort((first, second) => first.index - second.index);
 
-    const firstResistance = resistanceTouches[0];
-    const secondResistance = resistanceTouches[1];
+    const firstResistance = resistanceTouches[resistanceTouches.length - 2];
+    const secondResistance = resistanceTouches[resistanceTouches.length - 1];
 
     const startSearchIndex = Math.max(0, firstResistance.index - 36);
 
@@ -132,6 +143,24 @@ export function detectAscendingTriangle(
     const resistancePrice =
       resistanceTouches.reduce((total, high) => total + high.price, 0) /
       resistanceTouches.length;
+
+    const formationHighs = localHighs.filter(
+      (high) =>
+        high.index >= patternStart.index &&
+        high.index <= secondResistance.index
+    );
+
+    const hasStableResistance = formationHighs.every(
+      (high) =>
+        percentDifference(high.price, resistancePrice) <=
+        maxResistanceDifferencePercent
+    );
+
+    if (!hasStableResistance) continue;
+
+    if (secondResistance.index - firstResistance.index < 3) {
+      continue;
+    }
 
     const resistanceZoneHalfPercent =
       maxResistanceDifferencePercent / 2;
@@ -153,6 +182,15 @@ export function detectAscendingTriangle(
     );
 
     const confirmed = breakoutIndex !== -1;
+
+    const maximumCandlesSinceBreakout = 8;
+
+    if (
+      confirmed &&
+      history.length - 1 - breakoutIndex > maximumCandlesSinceBreakout
+    ) {
+      continue;
+    }
 
     const breakoutPathPoint = confirmed
       ? trianglePath.find((point) => point.index >= breakoutIndex) ??
@@ -198,7 +236,19 @@ export function detectAscendingTriangle(
     const patternWidth =
       formationEndPoint.index - patternStart.index;
 
-    if (patternWidth < 8) continue;
+    if (confirmed) {
+      if (patternWidth < 30) continue;
+
+      if (resistanceTouches.length < 3 || risingLows.length < 2) {
+        continue;
+      }
+    } else {
+      if (patternWidth < 12) continue;
+
+      if (resistanceTouches.length < 2 || risingLows.length < 2) {
+        continue;
+      }
+    }
 
     if (!confirmed && latestClose < lastRisingLow.price) {
       continue;
@@ -217,15 +267,17 @@ export function detectAscendingTriangle(
 
     if (confirmed) confidence += 10;
 
-    confidence = Math.min(
-      confirmed ? 100 : 79,
-      confidence
-    );
+    confidence = confirmed
+      ? Math.min(95, confidence)
+      : Math.min(79, Math.max(45, confidence - 20));
 
     const formationPoints = trianglePath.filter(
       (point) =>
         point.index >= patternStart.index &&
-        point.index <= formationEndPoint.index
+        point.index <= Math.max(
+          formationEndPoint.index,
+          secondResistance.index
+        )
     );
 
     const labels = new Map<number, string>();
@@ -238,10 +290,12 @@ export function detectAscendingTriangle(
       labels.set(low.index, `Low ${index + 1}`);
     });
 
-    labels.set(
-      formationEndPoint.index,
-      confirmed ? "Breakout" : "Current"
-    );
+    if (!labels.has(formationEndPoint.index)) {
+      labels.set(
+        formationEndPoint.index,
+        confirmed ? "Breakout" : "Current"
+      );
+    }
 
     const candidate: DetectedPattern = {
       id: `ascending-triangle-${patternStart.time}-${firstResistance.time}-${secondResistance.time}`,
