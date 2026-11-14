@@ -47,15 +47,31 @@ export async function GET() {
       .map((product: any) => {
         const currentPrice = Number(product.price);
         const rawChange24h = product.price_percentage_change_24h;
-const change24h =
-  rawChange24h != null && rawChange24h !== ""
-    ? Number(rawChange24h)
-    : NaN;
+
+        const change24h =
+          rawChange24h != null && rawChange24h !== ""
+            ? Number(rawChange24h)
+            : NaN;
+
+        const rawHigh24h = product.high_24h;
+        const rawLow24h = product.low_24h;
+
+        const high24h =
+          rawHigh24h != null && rawHigh24h !== ""
+            ? Number(rawHigh24h)
+            : NaN;
+
+        const low24h =
+          rawLow24h != null && rawLow24h !== ""
+            ? Number(rawLow24h)
+            : NaN;
 
         return {
           symbol: productMap[product.product_id],
           price: currentPrice,
           change24h: Number.isFinite(change24h) ? change24h : null,
+          high24h: Number.isFinite(high24h) ? high24h : null,
+          low24h: Number.isFinite(low24h) ? low24h : null,
         };
       });
 
