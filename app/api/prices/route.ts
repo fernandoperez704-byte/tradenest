@@ -77,6 +77,14 @@ return {
   symbol: item.symbol,
   price: currentPrice,
   change24h,
+  high24h:
+    stats?.high != null && Number.isFinite(Number(stats.high))
+      ? Number(stats.high)
+      : null,
+  low24h:
+    stats?.low != null && Number.isFinite(Number(stats.low))
+      ? Number(stats.low)
+      : null,
 };
       })
     );

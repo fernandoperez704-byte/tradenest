@@ -463,6 +463,14 @@ const [priceChanges24h, setPriceChanges24h] = useState<
   Partial<Record<AssetSymbol, number | null>>
 >({});
 
+const [priceHighs24h, setPriceHighs24h] = useState<
+  Partial<Record<AssetSymbol, number | null>>
+>({});
+
+const [priceLows24h, setPriceLows24h] = useState<
+  Partial<Record<AssetSymbol, number | null>>
+>({});
+
 const { topOfBook, setTopOfBook } = useCoinbaseFuturesTopOfBook();
 
 const [previousPrices, setPreviousPrices] = useState<
@@ -1476,6 +1484,7 @@ const {
   chartInstanceRef,
   candleSeriesRef,
   selectedDrawingTools,
+  selectedTimeframe,
 });
 
 const {
@@ -1581,6 +1590,26 @@ const priceUrl =
     );
 
     setPriceChanges24h(changes24h);
+
+    const highs24h: Partial<Record<AssetSymbol, number | null>> = {};
+    const lows24h: Partial<Record<AssetSymbol, number | null>> = {};
+
+    data.forEach((item: any) => {
+      const symbol = item.symbol.replace("USDT", "") as AssetSymbol;
+
+      highs24h[symbol] =
+        typeof item.high24h === "number" && Number.isFinite(item.high24h)
+          ? item.high24h
+          : null;
+
+      lows24h[symbol] =
+        typeof item.low24h === "number" && Number.isFinite(item.low24h)
+          ? item.low24h
+          : null;
+    });
+
+    setPriceHighs24h(highs24h);
+    setPriceLows24h(lows24h);
 
     const realPrices = data.reduce(
       (
@@ -4595,6 +4624,16 @@ setSelectedCoin={handleSelectSymbol}
       ? null
       : priceChanges24h[selectedCoin] ?? null
   }
+  priceHigh24h={
+    marketMode === "STOCKS"
+      ? null
+      : priceHighs24h[selectedCoin] ?? null
+  }
+  priceLow24h={
+    marketMode === "STOCKS"
+      ? null
+      : priceLows24h[selectedCoin] ?? null
+  }
   marketMode={marketMode}
   selectedTimeframe={selectedTimeframe}
   setSelectedTimeframe={setSelectedTimeframe}
@@ -4631,15 +4670,6 @@ strongestPattern={strongestPattern}
 
 {showSimulatorGaby && (
   <>
-<div
-  onClick={() => {
-    setShowSimulatorGaby(false);
-    setGabyAnnotations(pinnedGabyAnnotations);
-    setGabyScenarioArrows([]);
-  }}
-  className="hidden xl:fixed xl:inset-0 xl:z-40 xl:block xl:bg-black/10"
-/>
-
 <div
   ref={mobileGabyRef}
   className="relative z-50 mt-3 w-full xl:fixed xl:bottom-[72px] xl:left-[24px] xl:mt-0 xl:w-[500px]"
@@ -4687,6 +4717,16 @@ setTrades={setTrades}
     marketMode === "STOCKS"
       ? null
       : priceChanges24h[selectedCoin] ?? null
+  }
+  priceHigh24h={
+    marketMode === "STOCKS"
+      ? null
+      : priceHighs24h[selectedCoin] ?? null
+  }
+  priceLow24h={
+    marketMode === "STOCKS"
+      ? null
+      : priceLows24h[selectedCoin] ?? null
   }
   history={history}
   priceLocation={priceLocation}

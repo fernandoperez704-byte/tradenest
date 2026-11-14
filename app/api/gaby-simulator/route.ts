@@ -1396,6 +1396,8 @@ ${includeCurrentMarketContext ? JSON.stringify(
     selectedTimeframe: marketFacts.selectedTimeframe,
     currentPrice: marketFacts.currentPrice,
     priceChange24h: marketFacts.priceChange24h ?? null,
+    priceHigh24h: marketFacts.priceHigh24h ?? null,
+    priceLow24h: marketFacts.priceLow24h ?? null,
     recentPriceMovements,
     rejectionEducation: marketFacts.rejectionEducation ?? null,
     marketDirection: marketFacts.marketDirection,

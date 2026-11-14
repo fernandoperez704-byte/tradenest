@@ -47,6 +47,7 @@ export function addTrendLine(
     priceLineVisible: false,
     lastValueVisible: false,
     crosshairMarkerVisible: false,
+    autoscaleInfoProvider: () => null,
   });
 
   series.setData(points);

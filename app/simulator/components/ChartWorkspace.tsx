@@ -33,6 +33,8 @@ setSelectedCoin: (coin: any) => void;
   selectedCoin: string;
   currentPrice?: number;
   priceChange24h?: number | null;
+  priceHigh24h?: number | null;
+  priceLow24h?: number | null;
   marketMode: "SPOT" | "FUTURES" | "COINBASE_FUTURES" | "STOCKS";
   selectedTimeframe: string;
   setSelectedTimeframe: (timeframe: string) => void;
@@ -80,6 +82,8 @@ setSelectedCoin,
 selectedCoin,
   currentPrice,
   priceChange24h,
+  priceHigh24h,
+  priceLow24h,
   marketMode,
 selectedTimeframe,
 setSelectedTimeframe,
@@ -431,9 +435,76 @@ return (
   </div>
 </div>
 
-<div className="mb-2 border-b border-zinc-800 pb-2">
+
+<div className="mb-2 border-b border-zinc-800 pb-2 xl:hidden">
+  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] grid-rows-[auto_auto_auto] items-center gap-x-2 gap-y-0.5">
+    <div className="flex items-center gap-2 whitespace-nowrap">
+      <h2 className="text-base font-black text-white">
+        {marketMode === "STOCKS" ? selectedCoin : `${selectedCoin}/USD`}
+      </h2>
+
+      {priceChange24h != null && (
+        <span
+          className={`text-xs font-bold ${
+            priceChange24h >= 0 ? "text-green-400" : "text-red-400"
+          }`}
+        >
+          {priceChange24h > 0 ? "+" : ""}
+          {priceChange24h.toFixed(2)}%
+        </span>
+      )}
+    </div>
+
+    <p className="whitespace-nowrap text-left text-xs text-zinc-400 justify-self-end w-[120px]">
+      {marketMode !== "STOCKS" && (
+        <>
+          24H High:{" "}
+          <span className="text-green-400">
+            {priceHigh24h != null
+              ? `$${priceHigh24h.toLocaleString(undefined, {
+                  maximumFractionDigits: priceHigh24h < 1 ? 8 : 2,
+                })}`
+              : "--"}
+          </span>
+        </>
+      )}
+    </p>
+
+    <p className="row-span-2 self-center whitespace-nowrap text-[clamp(1.4rem,6.5vw,2.25rem)] font-black tracking-tight text-white">
+      {formattedPrice}
+    </p>
+
+    <p className="whitespace-nowrap text-left text-xs text-zinc-400 justify-self-end w-[120px]">
+      {marketMode !== "STOCKS" && (
+        <>
+          24H Low:{" "}
+          <span className="text-red-400">
+            {priceLow24h != null
+              ? `$${priceLow24h.toLocaleString(undefined, {
+                  maximumFractionDigits: priceLow24h < 1 ? 8 : 2,
+                })}`
+              : "--"}
+          </span>
+        </>
+      )}
+    </p>
+
+    <p className="whitespace-nowrap text-right text-xs font-medium text-zinc-400">
+      {marketMode === "STOCKS"
+        ? "US Stock Market"
+        : marketMode === "SPOT"
+        ? "Spot Market"
+        : "Futures Market"}{" "}
+      · {selectedTimeframe} ·{" "}
+      {now ? now.toLocaleTimeString() : "--:--:--"}
+    </p>
+  </div>
+</div>
+
+<div className="mb-2 hidden border-b border-zinc-800 pb-2 xl:block">
+
   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-<h2 className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
+<h2 className="text-xl font-black text-white sm:text-2xl xl:text-2xl">
   {marketMode === "STOCKS" ? selectedCoin : `${selectedCoin}/USD`}
 </h2>
 
@@ -443,7 +514,7 @@ return (
 
 {priceChange24h != null && (
   <span
-    className={`text-sm font-bold ${
+    className={`text-sm font-bold max-xl:basis-full max-xl:ml-[105px] max-xl:-mt-1 ${
       priceChange24h >= 0
         ? "text-green-400"
         : "text-red-400"
@@ -530,8 +601,38 @@ return (
   <p className="text-sm text-zinc-500">
     {now ? now.toLocaleTimeString() : "--:--:--"}
   </p>
-</div>
 
+  {marketMode !== "STOCKS" && (
+    <div className="ml-auto flex flex-col items-end gap-1 xl:ml-0 xl:flex-row xl:items-center xl:gap-4">
+      <span className="hidden text-sm text-zinc-600 xl:inline">|</span>
+
+      <p className="text-sm text-zinc-400">
+        24H High:{" "}
+        <span className="text-green-400">
+          {priceHigh24h != null
+            ? `$${priceHigh24h.toLocaleString(undefined, {
+                maximumFractionDigits: priceHigh24h < 1 ? 8 : 2,
+              })}`
+            : "--"}
+        </span>
+      </p>
+
+      <span className="hidden text-sm text-zinc-600 xl:inline">|</span>
+
+      <p className="text-sm text-zinc-400">
+        24H Low:{" "}
+        <span className="text-red-400">
+          {priceLow24h != null
+            ? `$${priceLow24h.toLocaleString(undefined, {
+                maximumFractionDigits: priceLow24h < 1 ? 8 : 2,
+              })}`
+            : "--"}
+        </span>
+
+      </p>
+    </div>
+  )}
+</div>
       </div>
 
       <div className="mb-1.5 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">

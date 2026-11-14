@@ -14,12 +14,14 @@ type UseTrendLineToolProps = {
   chartInstanceRef: React.RefObject<any>;
   candleSeriesRef: React.RefObject<any>;
   selectedDrawingTools: string[];
+  selectedTimeframe: string;
 };
 
 export function useTrendLineTool({
   chartInstanceRef,
   candleSeriesRef,
   selectedDrawingTools,
+  selectedTimeframe,
 }: UseTrendLineToolProps) {
   const trendLinesRef = useRef<TrendLine[]>([]);
   const pendingTrendLinePointRef = useRef<TrendLinePoint | null>(null);
@@ -85,8 +87,42 @@ export function useTrendLineTool({
       const getPoint = (param: any): TrendLinePoint | null => {
         if (!param.point) return null;
 
-        const time = chart.timeScale().coordinateToTime(param.point.x);
+        const timeScale = chart.timeScale();
+        let time = timeScale.coordinateToTime(param.point.x);
         const price = candleSeries.coordinateToPrice(param.point.y);
+
+        if (time === null) {
+          const logical = timeScale.coordinateToLogical(param.point.x);
+          const lastCandle = candleSeries.data()?.at(-1);
+
+          if (logical !== null && lastCandle && typeof lastCandle.time === "number") {
+            const lastLogical = timeScale.timeToCoordinate(lastCandle.time);
+
+            if (lastLogical !== null) {
+              const barSpacing = timeScale.options().barSpacing;
+              const futureBars = Math.max(
+                0,
+                Math.round((param.point.x - lastLogical) / barSpacing)
+              );
+
+              const timeframeSeconds: Record<string, number> = {
+                "1M": 60,
+                "5M": 300,
+                "15M": 900,
+                "30M": 1800,
+                "1H": 3600,
+                "2H": 7200,
+                "4H": 14400,
+                "6H": 21600,
+                "1D": 86400,
+              };
+
+              const interval = timeframeSeconds[selectedTimeframe] ?? 3600;
+
+              time = (lastCandle.time + futureBars * interval) as any;
+            }
+          }
+        }
 
         if (
           time === null ||
@@ -119,6 +155,7 @@ export function useTrendLineTool({
             priceLineVisible: false,
             lastValueVisible: false,
             crosshairMarkerVisible: false,
+            autoscaleInfoProvider: () => null,
           });
         }
 
@@ -241,7 +278,7 @@ export function useTrendLineTool({
 
       cleanupListeners?.();
     };
-  }, [selectedDrawingTools, chartInstanceRef, candleSeriesRef]);
+  }, [selectedDrawingTools, selectedTimeframe, chartInstanceRef, candleSeriesRef]);
 
   return {
     trendLinesRef,
