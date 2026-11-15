@@ -1464,11 +1464,14 @@ const liquidationLinesRef = useRef<any[]>([]);
 const entryLinesRef = useRef<any[]>([]);
 const riskLinesRef = useRef<any[]>([]);
 
-const {
-  manualHorizontalLines,
-  horizontalLineDeletePosition,
-  handleDeleteHorizontalLine,
-} = useHorizontalLineTool({
+  const {
+    manualHorizontalLines,
+    horizontalLineDeletePosition,
+    handleDeleteHorizontalLine,
+    handleSaveHorizontalLineLabel,
+    handleStartHorizontalLineLabelEdit,
+    handleSetHorizontalLineLabelPosition,
+  } = useHorizontalLineTool({
   chartInstanceRef,
   candleSeriesRef,
   selectedDrawingTools,
@@ -4661,8 +4664,12 @@ strongestPattern={strongestPattern}
   chartInstanceRef={chartInstanceRef}
   candleSeriesRef={candleSeriesRef}
   chartRef={chartRef}
+  manualHorizontalLines={manualHorizontalLines}
   horizontalLineDeletePosition={horizontalLineDeletePosition}
   onDeleteHorizontalLine={handleDeleteHorizontalLine}
+  onSaveHorizontalLineLabel={handleSaveHorizontalLineLabel}
+onStartHorizontalLineLabelEdit={handleStartHorizontalLineLabelEdit}
+onSetHorizontalLineLabelPosition={handleSetHorizontalLineLabelPosition}
   trendLineDeletePosition={trendLineDeletePosition}
   onDeleteTrendLine={handleDeleteTrendLine}
   fibonacciDeletePosition={fibonacciDeletePosition}

@@ -10,6 +10,7 @@ import type { GabyChartHighlight } from "../types/gabyChartHighlight";
 import PatternOverlay from "./PatternOverlay";
 import GabyChartOverlay from "./GabyChartOverlay";
 import FibonacciLabelsOverlay from "./drawingTools/FibonacciLabelsOverlay";
+import HorizontalLineLabelsOverlay from "./drawingTools/HorizontalLineLabelsOverlay";
 import PriceRangeMeasurementOverlay from "./drawingTools/PriceRangeMeasurementOverlay";
 import type { PriceRangeMeasurement } from "./drawingTools/PriceRangeMeasurementTool";
 
@@ -48,11 +49,20 @@ patternRecognitionEnabled: boolean;
 setPatternRecognitionEnabled: (value: boolean) => void;
 strongestPattern: DetectedPattern | null;
 
-chartInstanceRef: any;
-candleSeriesRef: any;
+  chartInstanceRef: any;
+  candleSeriesRef: any;
   chartRef: any;
+  manualHorizontalLines: Array<{
+    id: string;
+    price: number;
+    label: string;
+    labelX: number | null;
+  }>;
   horizontalLineDeletePosition: { x: number; y: number } | null;
   onDeleteHorizontalLine: () => void;
+  onSaveHorizontalLineLabel: (id: string, label: string) => void;
+  onStartHorizontalLineLabelEdit: () => void;
+  onSetHorizontalLineLabelPosition: (id: string, x: number) => void;
   trendLineDeletePosition: { x: number; y: number } | null;
   onDeleteTrendLine: () => void;
   fibonacciDeletePosition: { x: number; y: number } | null;
@@ -98,8 +108,12 @@ strongestPattern,
 chartInstanceRef,
 candleSeriesRef,
 chartRef,
+manualHorizontalLines,
 horizontalLineDeletePosition,
 onDeleteHorizontalLine,
+onSaveHorizontalLineLabel,
+onStartHorizontalLineLabelEdit,
+onSetHorizontalLineLabelPosition,
 trendLineDeletePosition,
 onDeleteTrendLine,
 fibonacciDeletePosition,
@@ -840,6 +854,16 @@ return (
   <div
     ref={chartRef}
     className="h-[420px] w-full xl:h-[470px]"
+  />
+
+  <HorizontalLineLabelsOverlay
+    chartInstanceRef={chartInstanceRef}
+    candleSeriesRef={candleSeriesRef}
+    chartRef={chartRef}
+    horizontalLines={manualHorizontalLines}
+    onSaveLabel={onSaveHorizontalLineLabel}
+    onStartEditing={onStartHorizontalLineLabelEdit}
+    onSetLabelPosition={onSetHorizontalLineLabelPosition}
   />
 
   <FibonacciLabelsOverlay

@@ -9,6 +9,8 @@ export type HorizontalLine = {
   id: string;
   price: number;
   line: IPriceLine;
+  label: string;
+  labelX: number | null;
 };
 
 let nextLineId = 0;
@@ -32,6 +34,8 @@ export function addHorizontalLine(
     id: `horizontal-${++nextLineId}`,
     price,
     line,
+    label: "",
+    labelX: null,
   };
 }
 

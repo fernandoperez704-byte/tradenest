@@ -24,7 +24,7 @@ export function useHorizontalLineTool({
   const selectedHorizontalLineRef = useRef<HorizontalLine | null>(null);
 
   const [manualHorizontalLines, setManualHorizontalLines] = useState<
-    Array<{ price: number }>
+    Array<{ id: string; price: number; label: string; labelX: number | null }>
   >([]);
 
   const [
@@ -35,9 +35,39 @@ export function useHorizontalLineTool({
   const syncHorizontalLines = () => {
     setManualHorizontalLines(
       horizontalLinesRef.current.map((drawing) => ({
+        id: drawing.id,
         price: Number(drawing.price.toFixed(2)),
+        label: drawing.label,
+        labelX: drawing.labelX,
       }))
     );
+  };
+
+  const handleStartHorizontalLineLabelEdit = () => {
+    selectedHorizontalLineRef.current = null;
+    setHorizontalLineDeletePosition(null);
+  };
+
+  const handleSaveHorizontalLineLabel = (id: string, label: string) => {
+    const drawing = horizontalLinesRef.current.find(
+      (line) => line.id === id
+    );
+
+    if (!drawing) return;
+
+    drawing.label = label.trim();
+    syncHorizontalLines();
+  };
+
+  const handleSetHorizontalLineLabelPosition = (id: string, x: number) => {
+    const drawing = horizontalLinesRef.current.find(
+      (line) => line.id === id
+    );
+
+    if (!drawing) return;
+
+    drawing.labelX = x;
+    syncHorizontalLines();
   };
 
   const handleDeleteHorizontalLine = () => {
@@ -74,6 +104,7 @@ export function useHorizontalLineTool({
       }
 
     const handleChartClick = (param: any) => {
+      if (param.sourceEvent?.detail >= 2) return;
       if (!param.point) return;
 
       const price = candleSeries.coordinateToPrice(param.point.y);
@@ -156,5 +187,8 @@ export function useHorizontalLineTool({
     manualHorizontalLines,
     horizontalLineDeletePosition,
     handleDeleteHorizontalLine,
+    handleSaveHorizontalLineLabel,
+    handleStartHorizontalLineLabelEdit,
+    handleSetHorizontalLineLabelPosition,
   };
 }
