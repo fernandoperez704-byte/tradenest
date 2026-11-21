@@ -4920,6 +4920,8 @@ onChartCommand={(command) => {
 
     const endTime = startTime + timeframeMs * 5;
 
+    setGabyAnnotations(pinnedGabyAnnotations);
+
     setGabyScenarioArrows([
       {
         id: `gaby-scenario-${selectedSymbol}-${selectedTimeframe}`,
@@ -5051,6 +5053,8 @@ if (action === "PIN") {
 }
 
 if (action === "SHOW") {
+  setGabyScenarioArrows([]);
+
   const availableCount =
     target === "RESISTANCE"
       ? marketIntelligence?.resistanceLevels?.length ?? 0
