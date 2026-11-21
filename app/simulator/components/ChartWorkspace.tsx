@@ -134,6 +134,72 @@ tourStep,
 
 const [activeEngines, setActiveEngines] = useState<EngineType[]>([]);
 const [toolsOpen, setToolsOpen] = useState(false);
+const [timeframesOpen, setTimeframesOpen] = useState(false);
+const timeframesDropdownRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  if (!timeframesOpen) return;
+
+  const handleClickOutside = (event: PointerEvent) => {
+    if (
+      timeframesDropdownRef.current &&
+      !timeframesDropdownRef.current.contains(event.target as Node)
+    ) {
+      setTimeframesOpen(false);
+    }
+  };
+
+  document.addEventListener("pointerdown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("pointerdown", handleClickOutside);
+  };
+}, [timeframesOpen]);
+const [favoriteTimeframes, setFavoriteTimeframes] = useState<string[]>([
+  "1H",
+  "2H",
+  "4H",
+  "6H",
+  "1D",
+  "1W",
+  "1MO",
+]);
+
+useEffect(() => {
+  try {
+    const saved = window.localStorage.getItem("tradenestx-timeframe-favorites");
+
+    if (saved !== null) {
+      const parsed = JSON.parse(saved);
+
+      if (Array.isArray(parsed)) {
+        const validTimeframes = [
+          "1M", "5M", "15M", "30M",
+          "1H", "2H", "4H", "6H",
+          "1D", "1W", "1MO",
+        ];
+
+        setFavoriteTimeframes(
+          parsed.filter(
+            (timeframe): timeframe is string =>
+              typeof timeframe === "string" &&
+              validTimeframes.includes(timeframe)
+          )
+        );
+      }
+    }
+  } catch {
+    // Keep the default favorites if saved preferences are invalid.
+  }
+}, []);
+
+useEffect(() => {
+  window.localStorage.setItem(
+    "tradenestx-timeframe-favorites",
+    JSON.stringify(favoriteTimeframes)
+  );
+}, [favoriteTimeframes]);
+
 const [patInfoOpen, setPatInfoOpen] = useState(false);
 const [engineCloseSignal, setEngineCloseSignal] = useState(0);
 
@@ -654,8 +720,19 @@ return (
       </div>
 
       <div className="mb-1.5 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {["1M", "5M", "15M", "30M", "1H", "2H", "4H", "6H", "1D"].map((timeframe) => (
+        <div className="flex flex-wrap items-center gap-2">
+          {favoriteTimeframes
+            .filter(
+              (timeframe) =>
+                marketMode !== "STOCKS" ||
+                (timeframe !== "1W" && timeframe !== "1MO")
+            )
+            .sort(
+              (a, b) =>
+                ["1M", "5M", "15M", "30M", "1H", "2H", "4H", "6H", "1D", "1W", "1MO"].indexOf(a) -
+                ["1M", "5M", "15M", "30M", "1H", "2H", "4H", "6H", "1D", "1W", "1MO"].indexOf(b)
+            )
+            .map((timeframe) => (
             <button
               key={timeframe}
               onClick={() => setSelectedTimeframe(timeframe)}
@@ -668,6 +745,88 @@ return (
               {timeframe}
             </button>
           ))}
+
+          {!favoriteTimeframes.includes(selectedTimeframe) && (
+            <button
+              type="button"
+              onClick={() => setTimeframesOpen((prev) => !prev)}
+              className="rounded-md border border-cyan-500 bg-cyan-500/10 px-2 py-1 text-[11px] font-bold text-cyan-400"
+            >
+              {selectedTimeframe}
+            </button>
+          )}
+
+          <div ref={timeframesDropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setTimeframesOpen((prev) => !prev)}
+              className="rounded-md border border-zinc-700 bg-[#111827] px-3 py-1 text-[11px] font-bold text-zinc-400 hover:border-cyan-500 hover:text-cyan-400"
+            >
+              ▼
+            </button>
+
+            {timeframesOpen && (
+              <div className="absolute right-0 xl:left-0 xl:right-auto top-full z-50 mt-2 max-h-72 w-40 overflow-y-auto rounded-lg border border-zinc-700 bg-[#0f172a] p-1 shadow-xl [scrollbar-width:thin] [scrollbar-color:#334155_#0f172a] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#0f172a] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-700">
+                {(marketMode !== "STOCKS"
+                  ? ["1M", "5M", "15M", "30M", "1H", "2H", "4H", "6H", "1D", "1W", "1MO"]
+                  : ["1M", "5M", "15M", "30M", "1H", "2H", "4H", "6H", "1D"]
+                ).map((timeframe) => (
+                  <div
+                    key={timeframe}
+                    className="flex items-center rounded-md hover:bg-slate-800"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTimeframe(timeframe);
+                        setTimeframesOpen(false);
+                      }}
+                      className={`flex-1 px-3 py-2 text-left text-xs transition-colors ${
+                        selectedTimeframe === timeframe
+                          ? "text-cyan-400"
+                          : "text-zinc-300"
+                      }`}
+                    >
+                      {timeframe === "1MO"
+                        ? "1 month"
+                        : timeframe === "1W"
+                        ? "1 week"
+                        : timeframe.endsWith("M")
+                        ? `${timeframe.slice(0, -1)} minute${timeframe === "1M" ? "" : "s"}`
+                        : timeframe.endsWith("H")
+                        ? `${timeframe.slice(0, -1)} hour${timeframe === "1H" ? "" : "s"}`
+                        : "1 day"}
+                    </button>
+
+                    <button
+                      type="button"
+                      title={
+                        favoriteTimeframes.includes(timeframe)
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
+                      onClick={() => {
+                        setFavoriteTimeframes((prev) =>
+                          prev.includes(timeframe)
+                            ? prev.filter((item) => item !== timeframe)
+                            : prev.length < 7
+                            ? [...prev, timeframe]
+                            : prev
+                        );
+                      }}
+                      className={`px-3 py-2 text-base ${
+                        favoriteTimeframes.includes(timeframe)
+                          ? "text-yellow-400"
+                          : "text-zinc-500 hover:text-yellow-400"
+                      }`}
+                    >
+                      {favoriteTimeframes.includes(timeframe) ? "★" : "☆"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5">

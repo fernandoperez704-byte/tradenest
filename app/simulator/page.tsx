@@ -1545,14 +1545,33 @@ function getTimeframeMs(timeframe: string) {
     "4H": 4 * 60 * 60 * 1000,
     "6H": 6 * 60 * 60 * 1000,
     "1D": 24 * 60 * 60 * 1000,
+    "1W": 7 * 24 * 60 * 60 * 1000,
+    "1MO": 31 * 24 * 60 * 60 * 1000,
   };
 
   return map[timeframe] || 60 * 1000;
 }
 
 function getCurrentCandleStart(timeframe: string) {
-  const timeframeMs = getTimeframeMs(timeframe);
   const now = Date.now();
+
+  if (timeframe === "1MO") {
+    const date = new Date(now);
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
+  }
+
+  if (timeframe === "1W") {
+    const date = new Date(now);
+    const day = (date.getUTCDay() + 6) % 7;
+
+    return Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate() - day
+    );
+  }
+
+  const timeframeMs = getTimeframeMs(timeframe);
 
   return Math.floor(now / timeframeMs) * timeframeMs;
 }
@@ -1961,6 +1980,7 @@ useEffect(() => {
     try {
 setCandlesReadyFor("");
 setHistory([]);
+setTimeframeStructures({});
 
 initialRangeKeyRef.current = "";
 
@@ -2024,11 +2044,17 @@ const higherTimeframeMap: Record<string, string[]> = {
   "2H": ["4H", "6H"],
   "4H": ["6H", "1D"],
   "6H": ["1D"],
-  "1D": [],
+  "1D": ["1W"],
+  "1W": ["1MO"],
+  "1MO": [],
 };
 
 const higherTimeframes =
-  higherTimeframeMap[selectedTimeframe] ?? [];
+  marketMode === "STOCKS"
+    ? (higherTimeframeMap[selectedTimeframe] ?? []).filter(
+        (timeframe) => timeframe !== "1W" && timeframe !== "1MO"
+      )
+    : higherTimeframeMap[selectedTimeframe] ?? [];
 
 for (const timeframe of higherTimeframes) {
   const higherTimeframeUrl =
@@ -2260,9 +2286,20 @@ if (
           }
 
           const candleStart =
-            Math.floor(
-              tradeTime / timeframeMs
-            ) * timeframeMs;
+            selectedTimeframe === "1MO"
+              ? Date.UTC(
+                  new Date(tradeTime).getUTCFullYear(),
+                  new Date(tradeTime).getUTCMonth(),
+                  1
+                )
+              : selectedTimeframe === "1W"
+              ? Date.UTC(
+                  new Date(tradeTime).getUTCFullYear(),
+                  new Date(tradeTime).getUTCMonth(),
+                  new Date(tradeTime).getUTCDate() -
+                    ((new Date(tradeTime).getUTCDay() + 6) % 7)
+                )
+              : Math.floor(tradeTime / timeframeMs) * timeframeMs;
 
           const lastCandle =
             updatedHistory[
@@ -2394,9 +2431,8 @@ const candleKey =
     return;
   }
 
-const timeframeMs = getTimeframeMs(selectedTimeframe);
 const currentCandleStart =
-  Math.floor(Date.now() / timeframeMs) * timeframeMs;
+  getCurrentCandleStart(selectedTimeframe);
 
 const completedHistory = history.filter((candle) => {
   const candleTime = Number(candle.time);

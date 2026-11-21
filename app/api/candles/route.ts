@@ -41,6 +41,8 @@ const granularityMap: Record<string, string> = {
   "4H": "FOUR_HOUR",
   "6H": "SIX_HOUR",
   "1D": "ONE_DAY",
+  "1W": "ONE_WEEK",
+  "1MO": "ONE_MONTH",
 };
 
 const timeframeSecondsMap: Record<string, number> = {
@@ -53,8 +55,9 @@ const timeframeSecondsMap: Record<string, number> = {
   "4H": 14400,
   "6H": 21600,
   "1D": 86400,
+  "1W": 604800,
+  "1MO": 2678400,
 };
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -141,13 +144,13 @@ if (sparseOneMinute) {
 
   const recentStart = hasCustomRange
     ? requestedStart
-    : endTime - timeframeSeconds * 299;
+    : endTime - timeframeSeconds * (timeframe === "1MO" ? 290 : 299);
 
   const olderEnd =
     recentStart - timeframeSeconds;
 
   const olderStart =
-    olderEnd - timeframeSeconds * 299;
+    olderEnd - timeframeSeconds * (timeframe === "1MO" ? 290 : 299);
 
   const [olderCandles, recentCandles] =
     await Promise.all([

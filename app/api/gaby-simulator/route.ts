@@ -63,9 +63,14 @@ const timeframeMinutes: Record<string, number> = {
   "1M": 1,
   "5M": 5,
   "15M": 15,
+  "30M": 30,
   "1H": 60,
+  "2H": 120,
   "4H": 240,
+  "6H": 360,
   "1D": 1440,
+  "1W": 10080,
+  "1MO": 44640,
 };
 
 const candleMinutes =
@@ -561,6 +566,10 @@ if (isNearestSupportQuestion) {
     ? "4 Hours"
     : marketFacts.selectedTimeframe === "1D"
     ? "1 Day"
+    : marketFacts.selectedTimeframe === "1W"
+    ? "1 Week"
+    : marketFacts.selectedTimeframe === "1MO"
+    ? "1 Month"
     : marketFacts.selectedTimeframe || "Selected";
   const coin = marketFacts.selectedCoin || "the selected market";
   const currentPrice = marketFacts.currentPrice;
@@ -698,6 +707,10 @@ if (isNearestResistanceQuestion) {
     ? "4 Hours"
     : marketFacts.selectedTimeframe === "1D"
     ? "1 Day"
+    : marketFacts.selectedTimeframe === "1W"
+    ? "1 Week"
+    : marketFacts.selectedTimeframe === "1MO"
+    ? "1 Month"
     : marketFacts.selectedTimeframe || "Selected";
   const coin = marketFacts.selectedCoin || "the selected market";
   const currentPrice = marketFacts.currentPrice;
@@ -827,6 +840,10 @@ const currentPrice = marketFacts.currentPrice;
       ? "4 Hours"
       : marketFacts.selectedTimeframe === "1D"
       ? "1 Day"
+      : marketFacts.selectedTimeframe === "1W"
+      ? "1 Week"
+      : marketFacts.selectedTimeframe === "1MO"
+      ? "1 Month"
       : marketFacts.selectedTimeframe || "Selected";
 
   const coin =
@@ -1071,6 +1088,10 @@ const reviewTimeframe =
     ? "4 Hours"
     : reviewEngine?.timeframe === "1D"
     ? "1 Day"
+    : reviewEngine?.timeframe === "1W"
+    ? "1 Week"
+    : reviewEngine?.timeframe === "1MO"
+    ? "1 Month"
     : reviewEngine?.timeframe || "Unknown";
 
     // Safely structure condensed trade data to save token overhead

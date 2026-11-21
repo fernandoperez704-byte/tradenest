@@ -35,6 +35,8 @@ const granularityMap: Record<string, string> = {
   "4H": "FOUR_HOUR",
   "6H": "SIX_HOUR",
   "1D": "ONE_DAY",
+  "1W": "ONE_WEEK",
+  "1MO": "ONE_MONTH",
 };
 
 const timeframeSecondsMap: Record<string, number> = {
@@ -47,6 +49,8 @@ const timeframeSecondsMap: Record<string, number> = {
   "4H": 14400,
   "6H": 21600,
   "1D": 86400,
+  "1W": 604800,
+  "1MO": 2678400,
 };
 
 export async function GET(request: Request) {
