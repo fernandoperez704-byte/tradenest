@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
@@ -11,429 +10,347 @@ export default function FundamentalsPage() {
       <main className="min-h-screen bg-black px-6 py-8 text-white xl:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           {/* HEADER */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-4xl font-black">Fundamentals</h1>
+              <h1 className="text-4xl font-black">
+                Fundamentals
+              </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Learn how revenue, profit, cash flow, debt, valuation, and
-                financial strength help investors understand a company.
+              <p className="mt-2 text-sm leading-7 text-zinc-400">
+                Understand how investors evaluate
+                a company&apos;s financial performance,
+                financial strength, and stock valuation.
               </p>
             </div>
 
             <Link
               href="/market-education"
-              className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="w-fit shrink-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
               ← Market Education
             </Link>
           </div>
 
-          {/* ====================================================== */}
-          {/* WHAT ARE FUNDAMENTALS */}
-          {/* ====================================================== */}
+          {/* HERO IMAGE */}
+          <div className="relative mt-8 h-[220px] overflow-hidden rounded-2xl sm:h-[320px] md:h-[420px]">
+            <img
+              src="/market-education/fundamentals.png"
+              alt="Fundamental analysis and company financial performance"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          </div>
 
-          <section className="mt-8 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                What Are Fundamentals?
-              </p>
+          {/* INTRODUCTION */}
+          <section className="mt-8 px-1 pb-8 md:px-2">
+            <h2 className="text-2xl font-black">
+              Understanding Fundamental Analysis
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Understand the Business Behind the Stock
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Fundamental analysis looks at the company itself — how much
-                money it generates, what it spends, what it owns, what it owes,
-                and how the market values the business.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Business Performance", "Revenue, profit, margins, and growth."],
-                ["Financial Strength", "Cash flow, debt, and balance sheet health."],
-                ["Valuation", "What investors are paying for the company."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              No single metric tells the whole story. Fundamentals are most useful
-              when several pieces are evaluated together.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Fundamental analysis is the process
+              of examining a company&apos;s business,
+              financial statements, and economic
+              conditions to evaluate its financial
+              health and potential value.
             </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Unlike technical analysis, which
+              focuses on price movements and
+              trading volume, fundamental analysis
+              helps investors assess whether
+              a stock&apos;s price is reasonable
+              relative to the company&apos;s value.
+            </p>
+
           </section>
 
-          {/* ====================================================== */}
           {/* REVENUE AND PROFIT */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Business Performance
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Revenue & Profit
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Revenue, Profit, and Growth
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Is the Business Growing and Making Money?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Revenue represents the money
+              generated from a company&apos;s
+              business activities before
+              deducting expenses. Net income
+              is the profit remaining after
+              accounting for expenses and taxes.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Revenue shows how much money the company generates. Profit shows
-                how much remains after costs and expenses.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, a company generates
+              $100 million in revenue and
+              reports $75 million in total
+              expenses, including taxes.
+            </p>
 
-            <div className="mt-5 grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Revenue
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$100M</p>
-                <p className="mt-1 text-xs text-zinc-500">Money generated</p>
-              </div>
+            <p className="mt-4 text-sm font-bold text-white">
+              $100 million − $75 million = $25 million net income
+            </p>
 
-              <span className="text-center text-zinc-500">−</span>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Costs & Expenses
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$75M</p>
-                <p className="mt-1 text-xs text-zinc-500">Money spent</p>
-              </div>
-
-              <span className="text-center text-zinc-500">=</span>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Profit
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$25M</p>
-                <p className="mt-1 text-xs text-zinc-500">Money remaining</p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 border-t border-white/10 pt-3 md:grid-cols-2">
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Growing revenue:
-                </span>{" "}
-                can show increasing demand or business expansion.
-              </p>
-
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Growing profit:
-                </span>{" "}
-                shows the company is keeping more of what it generates.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Investors examine whether revenue
+              and profit are increasing over time.
+              Revenue growth may indicate stronger
+              sales, while profit growth can
+              reflect improving efficiency
+              or higher profit margins.
+            </p>
           </section>
 
-          {/* ====================================================== */}
           {/* CASH FLOW */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Cash Flow
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Cash Flow
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Is the Company Generating Cash?
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Is the Business Actually Generating Cash?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              A company can report accounting
+              profits without receiving the
+              same amount in cash. Cash flow
+              shows how money enters and
+              leaves the business.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                A company can report accounting profit while still struggling
-                with cash. Cash flow helps show how money actually moves through
-                the business.
-              </p>
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Operating Cash Flow
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Cash generated or used by
+                  the company&apos;s regular
+                  business operations.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Capital Expenditures
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Money spent on long-term
+                  assets such as equipment,
+                  buildings, and infrastructure.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Free Cash Flow
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  A commonly used measure of
+                  cash remaining after capital
+                  expenditures are subtracted
+                  from operating cash flow.
+                </p>
+              </div>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                [
-                  "Operating Cash Flow",
-                  "$30M",
-                  "Cash generated from normal business operations.",
-                ],
-                [
-                  "Capital Spending",
-                  "$10M",
-                  "Cash spent on equipment, buildings, or other long-term assets.",
-                ],
-                [
-                  "Free Cash Flow",
-                  "$20M",
-                  "Cash remaining after operating needs and capital spending.",
-                ],
-              ].map(([title, value, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-xs uppercase tracking-wider text-zinc-500">
-                    {title}
-                  </p>
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              For example, a company generates
+              $30 million in operating cash
+              flow and spends $10 million
+              on capital expenditures.
+            </p>
 
-                  <p className="mt-1 text-xl font-black text-white">{value}</p>
+            <p className="mt-4 text-sm font-bold text-white">
+              $30 million − $10 million = $20 million free cash flow
+            </p>
 
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-sm">
-              <span className="font-bold text-white">$30M Operating Cash Flow</span>
-              <span className="text-zinc-500">−</span>
-              <span className="font-bold text-white">$10M Capital Spending</span>
-              <span className="text-zinc-500">=</span>
-              <span className="font-black text-white">$20M Free Cash Flow</span>
-            </div>
-
-            <p className="mt-3 text-xs text-zinc-500">
-              Positive free cash flow can give a company more flexibility to
-              reinvest, reduce debt, repurchase shares, or pay dividends.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Positive free cash flow can
+              provide flexibility to reinvest
+              in the business, repay debt,
+              or return money to shareholders.
             </p>
           </section>
 
-          {/* ====================================================== */}
           {/* DEBT */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Financial Strength
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Debt
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Understanding Company Debt
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                How Much Does the Company Owe?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Companies borrow money to finance
+              operations, expansion, and
+              investments. Debt can support
+              growth, but excessive borrowing
+              increases financial risk.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Debt can help a company grow, but too much debt can make the
-                business more vulnerable when earnings weaken or interest costs rise.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              One useful measure is net debt,
+              which subtracts cash and cash
+              equivalents from total debt.
+            </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Cash
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$40M</p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Money available to the company
-                </p>
-              </div>
+            <p className="mt-4 text-sm font-bold text-white">
+              $60 million total debt − $40 million cash = $20 million net debt
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Total Debt
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$60M</p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Borrowed money the company owes
-                </p>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Investors also consider whether
+              the company generates enough
+              earnings and cash flow to
+              meet its debt payments and
+              interest obligations.
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Net Debt
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$20M</p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Debt remaining after available cash
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 border-t border-white/10 pt-3 md:grid-cols-2">
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Manageable debt:
-                </span>{" "}
-                can be useful when a company has strong earnings and cash flow.
-              </p>
-
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Heavy debt:
-                </span>{" "}
-                can create pressure when profits fall or borrowing becomes more expensive.
-              </p>
-            </div>
-
-            <p className="mt-3 text-xs text-zinc-500">
-              Debt should be compared with cash flow, earnings, interest costs,
-              and the type of business.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Debt levels should be evaluated
+              in the context of the company&apos;s
+              industry, financial stability,
+              and borrowing costs.
             </p>
           </section>
 
-          {/* ====================================================== */}
           {/* VALUATION */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Stock Valuation
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Valuation
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Understanding the P/E Ratio
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                What Are Investors Paying for the Earnings?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              The price-to-earnings ratio,
+              or P/E ratio, compares a company&apos;s
+              stock price with its earnings
+              per share. It helps investors
+              understand how much they are
+              paying for each dollar of earnings.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                The price-to-earnings ratio, or P/E, compares the stock price
-                with the company&apos;s earnings per share.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, a stock trades at
+              $50 per share and reports
+              $2.50 in annual earnings per share.
+            </p>
 
-            <div className="mt-5 grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Stock Price
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$50</p>
-              </div>
+            <p className="mt-4 text-sm font-bold text-white">
+              $50 stock price ÷ $2.50 EPS = 20× P/E ratio
+            </p>
 
-              <span className="text-center text-zinc-500">÷</span>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  EPS
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$2.50</p>
-              </div>
-
-              <span className="text-center text-zinc-500">=</span>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  P/E Ratio
-                </p>
-                <p className="mt-1 text-xl font-black text-white">20×</p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 border-t border-white/10 pt-3 md:grid-cols-2">
+            <div className="mt-6 space-y-5">
               <div>
-                <p className="text-sm font-black text-white">Higher P/E</p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Investors may expect stronger growth, but they are also paying
-                  more for each dollar of earnings.
+                <h3 className="text-lg font-bold">
+                  Higher P/E Ratio
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Investors may expect stronger
+                  future earnings growth, but
+                  the stock is also priced
+                  higher relative to current
+                  earnings.
                 </p>
               </div>
 
               <div>
-                <p className="text-sm font-black text-white">Lower P/E</p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  The stock may be cheaper relative to earnings, but the lower
-                  valuation can also reflect weaker expectations.
+                <h3 className="text-lg font-bold">
+                  Lower P/E Ratio
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  The stock may appear less
+                  expensive relative to earnings,
+                  but the lower valuation
+                  could reflect slower growth
+                  or additional business risks.
                 </p>
               </div>
             </div>
 
-            <p className="mt-3 text-xs text-zinc-500">
-              P/E should not be used alone. Compare companies with similar
-              businesses, growth rates, profitability, and financial strength.
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              P/E ratios are generally more
+              useful when comparing companies
+              with similar business models,
+              growth prospects, and profitability.
+              They are less informative when
+              earnings are negative.
             </p>
           </section>
 
-          {/* ====================================================== */}
-          {/* PUTTING IT TOGETHER */}
-          {/* ====================================================== */}
+          {/* COMPANY COMPARISON */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Comparing Companies
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Putting It Together
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Why One Financial Metric Is Not Enough
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Company Health Is More Than One Number
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Consider two hypothetical companies
+              operating in the same industry.
+              Company A has growing revenue,
+              rising profits, positive free
+              cash flow, and manageable debt,
+              but trades at a P/E ratio of 20.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Strong fundamentals usually come from several healthy pieces
-                working together.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Company B trades at a lower
+              P/E ratio of 12, but its revenue
+              is declining, profits are falling,
+              and debt obligations are higher.
+            </p>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Metric</span>
-                <span>Company A</span>
-                <span>Company B</span>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Although Company B appears cheaper
+              based on its P/E ratio, that
+              does not automatically make it
+              a better investment. Investors
+              should consider financial
+              performance and risk alongside
+              valuation.
+            </p>
 
-              {[
-                ["Revenue", "Growing", "Declining"],
-                ["Profit", "Growing", "Falling"],
-                ["Free Cash Flow", "Positive", "Weak"],
-                ["Debt", "Manageable", "Heavy"],
-                ["P/E", "20×", "12×"],
-              ].map(([label, a, b]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1.2fr_1fr_1fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="text-zinc-400">{label}</span>
-                  <span className="font-bold text-white">{a}</span>
-                  <span className="font-bold text-white">{b}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">Company A:</span>{" "}
-                stronger growth, cash flow, and debt profile, but investors are
-                paying a higher valuation.
-              </p>
-
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">Company B:</span>{" "}
-                cheaper valuation, but weaker business performance and greater
-                financial pressure.
-              </p>
-            </div>
-
-            <p className="mt-3 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              A lower valuation does not automatically mean a better company,
-              and strong growth does not automatically mean a stock is fairly priced.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              These figures are illustrative
+              and do not determine which
+              company is a suitable investment.
             </p>
           </section>
 
-          {/* FINAL LESSON */}
-          <section className="mt-6 border-t border-white/10 px-2 py-4">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-              <p className="shrink-0 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Key Lesson
-              </p>
+          {/* CONCLUSION */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Important to Understand
+            </span>
 
-              <p className="text-sm leading-5 text-zinc-400">
-                Strong fundamental analysis connects business performance,
-                financial strength, and valuation instead of relying on one metric.
-              </p>
-            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Strong financial performance
+              does not guarantee future returns,
+              and an attractive valuation
+              does not eliminate investment risk.
+            </p>
+
           </section>
         </div>
       </main>

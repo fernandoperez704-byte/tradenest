@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
@@ -11,394 +10,454 @@ export default function StockSplitsBuybacksPage() {
       <main className="min-h-screen bg-black px-6 py-8 text-white xl:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           {/* HEADER */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-4xl font-black">Stock Splits & Buybacks</h1>
+              <h1 className="text-4xl font-black">
+                Stock Splits &amp; Buybacks
+              </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Learn how stock splits, reverse splits, share repurchases, and
-                shares outstanding can affect how investors understand a company.
+              <p className="mt-2 text-sm leading-7 text-zinc-400">
+                Understand how stock splits, reverse splits,
+                share repurchases, and shares outstanding
+                affect investors and company valuations.
               </p>
             </div>
 
             <Link
               href="/market-education"
-              className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="w-fit shrink-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
               ← Market Education
             </Link>
           </div>
 
-          {/* STOCK SPLITS */}
-          <section className="mt-8 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Stock Splits
+          {/* HERO IMAGE */}
+          <div className="relative mt-8 h-[220px] overflow-hidden rounded-2xl sm:h-[320px] md:h-[420px]">
+            <img
+              src="/market-education/stock-splits-buybacks.png"
+              alt="Stock splits and share buybacks"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          </div>
+
+          {/* INTRODUCTION */}
+          <section className="mt-8 px-1 pb-8 md:px-2">
+            <h2 className="text-2xl font-black">
+              Understanding Stock Splits &amp; Buybacks
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Companies can change the number of
+              shares outstanding through corporate
+              actions such as stock splits and
+              share repurchases.
             </p>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              These actions can affect the share
+              price, ownership calculations, and
+              financial metrics without necessarily
+              changing the underlying profitability
+              of the business.
+            </p>
+          </section>
+
+          {/* STOCK SPLITS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Stock Splits
+            </span>
+
+            <h2 className="mt-2 text-2xl font-black">
               More Shares, Lower Price Per Share
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              A stock split increases the number of shares outstanding while
-              reducing the price per share proportionally.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              A forward stock split increases
+              the number of shares while
+              reducing the price per share
+              proportionally.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, an investor owns
+              one share worth $100 before
+              a 2-for-1 stock split.
+            </p>
+
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
+              <div>
+                <h3 className="text-sm font-bold text-white">
                   Before Split
-                </p>
-                <p className="mt-1 text-xl font-black text-white">
+                </h3>
+                <p className="mt-2 text-lg font-black text-cyan-300">
                   1 Share × $100
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  2-for-1 Split
-                </p>
-                <p className="mt-1 text-xl font-black text-white">
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  After 2-for-1 Split
+                </h3>
+                <p className="mt-2 text-lg font-black text-cyan-300">
                   2 Shares × $50
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Total Value
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  Total Position Value
+                </h3>
+                <p className="mt-2 text-lg font-black text-cyan-300">
+                  $100
                 </p>
-                <p className="mt-1 text-xl font-black text-white">$100</p>
               </div>
             </div>
 
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              A split changes the number of shares and price per share, but does
-              not by itself change the total value of the position.
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              The investor owns more shares,
+              but the split itself does not
+              increase the total value of
+              the investment.
             </p>
           </section>
 
           {/* WHY COMPANIES SPLIT */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Why Companies Split Shares
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              A Lower Share Price Can Be Easier to Access
+            <h2 className="mt-2 text-2xl font-black">
+              Making Shares More Accessible
             </h2>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                [
-                  "Accessibility",
-                  "A lower share price can make whole shares easier for some investors to purchase.",
-                ],
-                [
-                  "Liquidity",
-                  "More shares outstanding can sometimes support trading activity.",
-                ],
-                [
-                  "Market Perception",
-                  "Companies may prefer a share price that appears more accessible.",
-                ],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Companies may split their shares
+              to reduce the price of an
+              individual share, making whole
+              shares easier to purchase for
+              investors who do not use
+              fractional-share trading.
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              A lower quoted share price may
+              also influence investor perception
+              and trading activity, although
+              increased liquidity is not guaranteed.
+            </p>
           </section>
 
           {/* REVERSE SPLITS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Reverse Splits
-            </p>
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Reverse Stock Splits
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
+            <h2 className="mt-2 text-2xl font-black">
               Fewer Shares, Higher Price Per Share
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              A reverse stock split reduces the number of shares outstanding
-              while increasing the price per share proportionally.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              A reverse stock split combines
+              existing shares into a smaller
+              number of shares while increasing
+              the price per share proportionally.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Before
-                </p>
-                <p className="mt-1 text-xl font-black text-white">
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, an investor owns
+              10 shares worth $5 each before
+              a 1-for-5 reverse split.
+            </p>
+
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  Before Reverse Split
+                </h3>
+                <p className="mt-2 text-lg font-black text-cyan-300">
                   10 Shares × $5
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  1-for-5 Reverse Split
-                </p>
-                <p className="mt-1 text-xl font-black text-white">
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  After 1-for-5 Split
+                </h3>
+                <p className="mt-2 text-lg font-black text-cyan-300">
                   2 Shares × $25
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Total Value
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  Total Position Value
+                </h3>
+                <p className="mt-2 text-lg font-black text-cyan-300">
+                  $50
                 </p>
-                <p className="mt-1 text-xl font-black text-white">$50</p>
               </div>
             </div>
 
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Reverse splits can be used when a company wants to increase its
-              quoted share price, but the split itself does not improve the
-              underlying business.
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              Companies sometimes use reverse
+              splits to raise their quoted
+              share price or address stock
+              exchange listing requirements.
+              The action does not improve
+              the company&apos;s financial
+              condition by itself.
             </p>
           </section>
 
-          {/* BUYBACKS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          {/* SHARE BUYBACKS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Share Buybacks
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              A Company Can Repurchase Its Own Shares
+            <h2 className="mt-2 text-2xl font-black">
+              When Companies Repurchase Their Shares
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              A share buyback happens when a company uses cash to repurchase
-              some of its outstanding shares from the market.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              A share buyback occurs when a
+              company repurchases its own
+              stock, often through purchases
+              in the open market.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                [
-                  "Company Cash",
-                  "The business uses available cash to purchase shares.",
-                ],
-                [
-                  "Shares Repurchased",
-                  "Some publicly traded shares are bought back.",
-                ],
-                [
-                  "Shares Outstanding",
-                  "The number of shares remaining in the market may decrease.",
-                ],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Companies may use buybacks to
+              return capital to shareholders,
+              reduce the number of shares
+              outstanding, or offset dilution
+              from employee stock compensation.
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Repurchased shares may be held
+              as treasury stock or retired.
+              The effect on shares outstanding
+              depends on how the repurchases
+              and any new share issuances
+              are handled.
+            </p>
           </section>
 
           {/* SHARES OUTSTANDING */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Shares Outstanding
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              How Many Shares Exist?
+            <h2 className="mt-2 text-2xl font-black">
+              Understanding the Share Count
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              Shares outstanding are the shares currently held by investors,
-              insiders, and institutions.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Shares outstanding represent
+              the company&apos;s issued shares
+              held by shareholders, excluding
+              treasury shares.
             </p>
 
-            <div className="mt-5 grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Before Buyback
-                </p>
-                <p className="mt-1 text-xl font-black text-white">100M Shares</p>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Suppose a company has
+              100 million shares outstanding
+              and repurchases 10 million
+              shares without issuing new ones.
+            </p>
 
-              <span className="text-center text-zinc-500">−</span>
+            <p className="mt-5 text-lg font-black text-cyan-300">
+              100M − 10M = 90M Shares
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Repurchased
-                </p>
-                <p className="mt-1 text-xl font-black text-white">10M Shares</p>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Shareholders who do not sell
+              their shares may own a larger
+              percentage of the company
+              after the repurchase.
+            </p>
 
-              <span className="text-center text-zinc-500">=</span>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Remaining
-                </p>
-                <p className="mt-1 text-xl font-black text-white">90M Shares</p>
-              </div>
-            </div>
           </section>
 
           {/* EPS IMPACT */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Buybacks & EPS
-            </p>
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Earnings Per Share
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Fewer Shares Can Change Earnings Per Share
+            <h2 className="mt-2 text-2xl font-black">
+              How Buybacks Can Affect EPS
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              Earnings per share divides company profit by shares outstanding.
-              If profit stays the same while the share count falls, EPS can increase.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Earnings per share, or EPS,
+              measures how much company
+              profit is attributable to
+              each share. Basic EPS generally
+              uses the weighted-average
+              shares outstanding during
+              the reporting period.
             </p>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Metric</span>
-                <span>Before</span>
-                <span>After Buyback</span>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Consider a simplified example
+              in which a company earns
+              $100 million and the share
+              count decreases from
+              100 million to 90 million.
+            </p>
+
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Before Buyback
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  $100M profit ÷ 100M shares
+                </p>
+
+                <p className="mt-2 text-lg font-black text-cyan-300">
+                  EPS = $1.00
+                </p>
               </div>
 
-              {[
-                ["Net Income", "$100M", "$100M"],
-                ["Shares Outstanding", "100M", "90M"],
-                ["EPS", "$1.00", "$1.11"],
-              ].map(([metric, before, after]) => (
-                <div
-                  key={metric}
-                  className="grid grid-cols-[1.2fr_1fr_1fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{metric}</span>
-                  <span className="text-zinc-400">{before}</span>
-                  <span className="font-bold text-white">{after}</span>
-                </div>
-              ))}
+              <div>
+                <h3 className="text-lg font-bold">
+                  After Buyback
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  $100M profit ÷ 90M shares
+                </p>
+
+                <p className="mt-2 text-lg font-black text-cyan-300">
+                  EPS ≈ $1.11
+                </p>
+              </div>
             </div>
 
-            <p className="mt-4 text-xs text-zinc-500">
-              EPS growth created by a lower share count is different from EPS
-              growth created by higher company profits.
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              This simplified comparison
+              assumes the lower share count
+              applies throughout the relevant
+              period. Actual reported EPS
+              depends on weighted-average
+              shares and other accounting factors.
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              EPS can increase even when
+              total company profits remain
+              unchanged. Investors should
+              distinguish improvements in
+              business earnings from changes
+              caused by a smaller share count.
             </p>
           </section>
 
-          {/* WHY COMPANIES BUY BACK SHARES */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Why Buy Back Shares?
-            </p>
+          {/* EVALUATING CORPORATE ACTIONS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Evaluating Corporate Actions
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Companies Have Different Reasons
+            <h2 className="mt-2 text-2xl font-black">
+              What Investors Should Examine
             </h2>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                [
-                  "Return Capital",
-                  "A company may choose buybacks as one way to return capital to shareholders.",
-                ],
-                [
-                  "Reduce Share Count",
-                  "Repurchases can reduce shares outstanding and affect per-share metrics.",
-                ],
-                [
-                  "Offset Dilution",
-                  "Buybacks may offset new shares issued through employee compensation or other programs.",
-                ],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* WHAT TO CHECK */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              What Investors Should Check
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Corporate actions should be
+              evaluated alongside a company&apos;s
+              financial condition and
+              long-term business performance.
             </p>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Understand What Is Actually Changing
-            </h2>
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Split Ratio
+                </h3>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1fr_1.5fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Check</span>
-                <span>Why It Matters</span>
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Understand how the split
+                  changes the number of shares
+                  and the quoted price per share.
+                </p>
               </div>
 
-              {[
-                [
-                  "Split Ratio",
-                  "Shows how the number of shares and price per share will change.",
-                ],
-                [
-                  "Shares Outstanding",
-                  "Shows whether the company's share count is rising or falling.",
-                ],
-                [
-                  "Buyback Size",
-                  "Shows how significant the repurchase program is relative to the company.",
-                ],
-                [
-                  "Cash Position",
-                  "Shows whether the company can afford repurchases without weakening its finances.",
-                ],
-                [
-                  "Debt",
-                  "Heavy borrowing used for buybacks can increase financial risk.",
-                ],
-                [
-                  "EPS Growth",
-                  "Helps separate business growth from changes caused by a lower share count.",
-                ],
-              ].map(([label, meaning]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1fr_1.5fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{label}</span>
-                  <span className="text-zinc-400">{meaning}</span>
-                </div>
-              ))}
+              <div>
+                <h3 className="text-lg font-bold">
+                  Buyback Size
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Compare the amount of shares
+                  repurchased with the
+                  company&apos;s total share count.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Cash and Debt
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Examine whether repurchases
+                  are supported by available
+                  cash or financed through
+                  additional borrowing.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Share Issuance
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Check whether newly issued
+                  shares offset the reduction
+                  from company buybacks.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Business Performance
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Review revenue, profits,
+                  and cash flow to understand
+                  whether the underlying
+                  business is improving.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* FINAL LESSON */}
-          <section className="mt-6 border-t border-white/10 px-2 py-4">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-              <p className="shrink-0 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Key Lesson
-              </p>
+          {/* CONCLUSION */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Important to Understand
+            </span>
 
-              <p className="text-sm leading-5 text-zinc-400">
-                Stock splits change the number of shares and price per share,
-                while buybacks can change the number of shares outstanding.
-                Neither should be judged alone—always connect them back to the
-                company&apos;s fundamentals and financial condition.
-              </p>
-            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              A lower share price after a
+              split does not automatically
+              make a stock cheaper in terms
+              of valuation. Similarly,
+              a buyback does not guarantee
+              higher stock returns.
+            </p>
           </section>
         </div>
       </main>

@@ -191,6 +191,7 @@ Stop losses
 How the simulator works   `);
 
 const [loading, setLoading] = useState(false);
+const previousTimeframeRef = useRef(selectedTimeframe);
 const [upgradeRequired, setUpgradeRequired] = useState(false);
 const [listening, setListening] = useState(false);
 const [voiceMode, setVoiceMode] = useState(false);
@@ -232,6 +233,7 @@ const [longTermMemory, setLongTermMemory] = useState<GabyLongTermMemory>({
 });
 
 const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+const [lastMarketAnalysisQuestion, setLastMarketAnalysisQuestion] = useState<string | null>(null);
   const [lastReferencedLevel, setLastReferencedLevel] = useState<any>(null);
   const [lastTopic, setLastTopic] = useState<string | null>(null);
 
@@ -1016,6 +1018,13 @@ if (
     const originalQuestion = finalQuestion.trim().toLowerCase();
     let conversationIntent = getConversationIntent(finalQuestion);
 
+    if (
+      !options?.internal &&
+      /\b(support|resistance|direction|structure|trend|momentum|market view)\b/.test(originalQuestion)
+    ) {
+      setLastMarketAnalysisQuestion(finalQuestion);
+    }
+
 // If we're already in a conversation and this doesn't look like
 // a brand-new topic, keep using the current intent.
 if (
@@ -1391,9 +1400,27 @@ futuresPositionManagement,
   processLongTermMemory,
 
   onChartCommand,
-onInfoPanelCommand,
-chartHighlightState,
+  onInfoPanelCommand,
+  chartHighlightState,
 ]);
+
+useEffect(() => {
+  if (!selectedTimeframe) return;
+  if (previousTimeframeRef.current === selectedTimeframe) return;
+
+  if (!lastMarketAnalysisQuestion) {
+    previousTimeframeRef.current = selectedTimeframe;
+    return;
+  }
+
+  if (loading) return;
+
+  previousTimeframeRef.current = selectedTimeframe;
+
+  void askGaby(lastMarketAnalysisQuestion, undefined, {
+    internal: true,
+  });
+}, [selectedTimeframe, lastMarketAnalysisQuestion, loading, askGaby]);
 
 useEffect(() => {
   if (!user?.id || !isPaid || !gabyMemoryLoaded) return;

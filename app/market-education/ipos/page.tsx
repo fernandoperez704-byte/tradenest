@@ -1,7 +1,29 @@
-"use client";
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
+
+const ipoSteps = [
+  {
+    title: "Preparation",
+    description:
+      "The company works with advisors and prepares financial disclosures for potential investors.",
+  },
+  {
+    title: "Valuation",
+    description:
+      "The company and its underwriters assess the business and determine an estimated offering price range.",
+  },
+  {
+    title: "Pricing",
+    description:
+      "The final IPO offer price is established before shares begin trading publicly.",
+  },
+  {
+    title: "Public Trading",
+    description:
+      "Shares begin trading on a stock exchange, where market demand influences their price.",
+  },
+];
 
 export default function IPOsPage() {
   return (
@@ -11,112 +33,155 @@ export default function IPOsPage() {
       <main className="min-h-screen bg-black px-6 py-8 text-white xl:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           {/* HEADER */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-4xl font-black">IPOs</h1>
+              <h1 className="text-4xl font-black">
+                IPOs
+              </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Learn how companies go public, how IPO pricing works, what
-                happens on listing day, and what risks investors should understand.
+              <p className="mt-2 text-sm leading-7 text-zinc-400">
+                Understand how companies go public,
+                how IPO shares are priced, and what
+                investors should know about newly
+                listed stocks.
               </p>
             </div>
 
             <Link
               href="/market-education"
-              className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="w-fit shrink-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
               ← Market Education
             </Link>
           </div>
 
-          {/* WHAT IS AN IPO */}
-          <section className="mt-8 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          {/* HERO IMAGE */}
+          <div className="relative mt-8 h-[220px] overflow-hidden rounded-2xl sm:h-[320px] md:h-[420px]">
+            <img
+              src="/market-education/ipos.png"
+              alt="Initial public offering and stock market listing"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          </div>
+
+          {/* INTRODUCTION */}
+          <section className="mt-8 px-1 pb-8 md:px-2">
+            <h2 className="text-2xl font-black">
               What Is an IPO?
-            </p>
-
-            <h2 className="mt-1 text-2xl font-black text-white">
-              A Private Company Becomes Public
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              An initial public offering, or IPO, is the process of offering
-              shares of a private company to public investors for the first time.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              An initial public offering, or IPO,
+              is the process through which a private
+              company offers shares to public investors
+              for the first time.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Private Company", "Shares are not broadly traded on a public exchange."],
-                ["IPO", "Shares are offered to public investors."],
-                ["Public Company", "Shares can trade on a public stock exchange."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              After completing the offering and
+              listing process, the company&apos;s
+              shares can trade on a public stock
+              exchange. Public ownership also
+              brings ongoing financial reporting
+              and regulatory responsibilities.
+            </p>
+          </section>
+
+          {/* WHY COMPANIES GO PUBLIC */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Going Public
+            </span>
+
+            <h2 className="mt-2 text-2xl font-black">
+              Why Companies Choose an IPO
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Going public can provide a company
+              with opportunities that may not
+              be available while privately held.
+            </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Raising Capital
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  By issuing new shares, a company
+                  can raise funds to expand operations,
+                  invest in products, repay debt,
+                  or support other business needs.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Shareholder Liquidity
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Public trading can eventually
+                  provide founders, employees,
+                  and early investors with
+                  opportunities to sell shares,
+                  subject to applicable restrictions.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Greater Market Visibility
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  A public listing can increase
+                  recognition among investors,
+                  customers, and business partners.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* WHY GO PUBLIC */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Why Companies Go Public
-            </p>
-
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Public Markets Can Provide Access to Capital
-            </h2>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Raise Capital", "Companies can sell shares to raise money for growth, expansion, or other business needs."],
-                ["Create Liquidity", "Early investors and employees may eventually gain a way to sell shares."],
-                ["Increase Visibility", "Public companies can gain broader recognition and market access."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* HOW IPO WORKS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          {/* IPO PROCESS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               How an IPO Works
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              From Preparation to Public Trading
+            <h2 className="mt-2 text-2xl font-black">
+              From Private Company to Public Trading
             </h2>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-4">
-              {[
-                ["01", "Preparation", "The company prepares financial disclosures and works with advisors."],
-                ["02", "Valuation", "The company and underwriters estimate an appropriate valuation range."],
-                ["03", "Pricing", "An IPO offer price is set before public trading begins."],
-                ["04", "Listing", "Shares begin trading on a public exchange."],
-              ].map(([step, title, description]) => (
-                <div
-                  key={step}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-xs font-black text-zinc-600">{step}</p>
-                  <p className="mt-1 text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Going public involves financial
+              preparation, regulatory disclosures,
+              valuation, and pricing before
+              shares begin trading on an exchange.
+            </p>
+
+            <div className="mt-8 grid gap-6 md:grid-cols-4 md:gap-4">
+              {ipoSteps.map((step, index) => (
+                <div key={step.title} className="relative">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-400/40 text-sm font-black text-cyan-300">
+                      {index + 1}
+                    </span>
+
+                    {index < ipoSteps.length - 1 && (
+                      <div className="hidden h-px flex-1 bg-cyan-400/40 md:block" />
+                    )}
+                  </div>
+
+                  <h3 className="mt-4 text-base font-bold text-white">
+                    {step.title}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-7 text-zinc-400">
+                    {step.description}
                   </p>
                 </div>
               ))}
@@ -124,211 +189,252 @@ export default function IPOsPage() {
           </section>
 
           {/* IPO PRICING */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               IPO Pricing
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Offer Price and Market Price Are Different
+            <h2 className="mt-2 text-2xl font-black">
+              Offer Price vs. Market Price
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              The IPO offer price is the price assigned before public trading.
-              Once shares begin trading, supply and demand determine the market price.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              The IPO offer price is established
+              before public trading begins.
+              Once the shares start trading,
+              their market price is determined
+              by supply and demand.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  IPO Offer Price
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$20</p>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, a company sets its
+              IPO offer price at $20 per share,
+              but the first public trade occurs
+              at $26.
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Opening Trade
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$26</p>
-              </div>
+            <p className="mt-4 text-sm font-bold text-white">
+              $26 opening price − $20 offer price = $6 difference
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Difference
-                </p>
-                <p className="mt-1 text-xl font-black text-white">+$6</p>
-              </div>
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Public investors may not always be able to buy shares at the original IPO offer price.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              This represents a 30% increase
+              from the offering price. However,
+              investors buying at the public
+              opening price would pay $26,
+              not the original $20 offer price.
+              Access to IPO allocations varies
+              by brokerage and offering.
             </p>
           </section>
 
           {/* LISTING DAY */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Listing Day
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              The First Trading Day Can Be Volatile
+            <h2 className="mt-2 text-2xl font-black">
+              Why the First Trading Day Can Be Volatile
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              When public trading begins, buyers and sellers establish the first
-              market prices. Heavy demand or limited supply can create large moves.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Newly listed stocks can experience
+              sharp price movements as investors
+              react to the company&apos;s valuation,
+              business prospects, and available
+              supply of shares.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Strong Demand
-                </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  The opening price may trade above the IPO offer price.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Weak Demand
-                </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  The market price can fall toward or below the IPO offer price.
-                </p>
-              </div>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Strong demand may push the price
+              above the offering price, while
+              weaker demand can cause shares
+              to trade below it. The opening
+              price does not guarantee where
+              the stock will trade later.
+            </p>
           </section>
 
-          {/* LOCKUPS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          {/* LOCKUP PERIODS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Lockup Periods
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Some Insiders Cannot Sell Immediately
+            <h2 className="mt-2 text-2xl font-black">
+              When Can Insiders Sell Their Shares?
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              IPO lockup agreements can temporarily restrict founders,
-              employees, and early investors from selling certain shares.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              IPO lockup agreements may temporarily
+              prevent certain founders, employees,
+              and early investors from selling
+              their shares after the company
+              becomes publicly traded.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Before Expiration", "Some insider shares remain restricted from sale."],
-                ["Expiration", "Restrictions on certain shares may end."],
-                ["After Expiration", "More shares can potentially enter the public market."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Lockup periods vary by offering,
+              although 180 days is a common
+              example. When restrictions expire,
+              additional shares may become
+              eligible for sale.
+            </p>
 
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Lockup expiration does not guarantee selling, but it can increase
-              the number of shares that are eligible to be sold.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Lockup expiration does not mean
+              insiders will necessarily sell.
+              It simply changes when certain
+              shareholders are permitted
+              to sell their holdings.
             </p>
           </section>
 
           {/* IPO RISKS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               IPO Risks
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              New Public Companies Can Carry Extra Uncertainty
+            <h2 className="mt-2 text-2xl font-black">
+              Risks of Investing in Newly Public Companies
             </h2>
 
-            <div className="mt-5 grid gap-x-8 gap-y-3 border-t border-white/10 pt-4 md:grid-cols-2">
-              {[
-                ["Limited Public History", "There may be less public trading history available for evaluation."],
-                ["High Volatility", "Prices can move sharply as the market searches for a fair value."],
-                ["Valuation Uncertainty", "Growth expectations can make valuation difficult to judge."],
-                ["Early Selling Pressure", "More shares may become available after restrictions expire."],
-                ["Business Risk", "Some newly public companies may still be unprofitable or rapidly changing."],
-                ["Market Conditions", "Broader market sentiment can strongly affect IPO performance."],
-              ].map(([title, description], index) => (
-                <div key={title} className="flex gap-3">
-                  <span className="text-xs font-black text-zinc-600">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-
-                  <div>
-                    <p className="text-sm font-black text-white">{title}</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500">
-                      {description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* EVALUATING IPO */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Evaluating an IPO
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Investing in newly public companies
+              involves several risks that investors
+              should understand before making
+              decisions.
             </p>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Look Beyond the Listing-Day Excitement
-            </h2>
+            <div className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Valuation Risk
+                </h3>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              Evaluating an IPO still requires understanding the underlying business.
-            </p>
-
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1fr_1.5fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Check</span>
-                <span>Why It Matters</span>
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  High growth expectations may
+                  result in a stock price that
+                  is difficult to justify using
+                  current financial performance.
+                </p>
               </div>
 
-              {[
-                ["Revenue", "Shows the scale and direction of company sales."],
-                ["Profitability", "Shows whether the business is generating profit."],
-                ["Growth", "Helps evaluate how quickly the company is expanding."],
-                ["Debt", "Shows financial obligations and balance-sheet pressure."],
-                ["Valuation", "Helps compare the market value with company fundamentals."],
-                ["Use of Proceeds", "Explains how the company plans to use money raised in the IPO."],
-              ].map(([label, meaning]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1fr_1.5fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{label}</span>
-                  <span className="text-zinc-400">{meaning}</span>
-                </div>
-              ))}
+              <div>
+                <h3 className="text-lg font-bold">
+                  Limited Trading History
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Newly listed companies have
+                  little public price history,
+                  making historical trading
+                  patterns harder to evaluate.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Business Uncertainty
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Some newly public companies
+                  are still developing their
+                  business models or operating
+                  without consistent profits.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Market Conditions
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Changes in interest rates,
+                  investor sentiment, or broader
+                  market conditions can affect
+                  demand for newly listed stocks.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* FINAL LESSON */}
-          <section className="mt-6 border-t border-white/10 px-2 py-4">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-              <p className="shrink-0 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Key Lesson
-              </p>
+          {/* EVALUATING AN IPO */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Evaluating an IPO
+            </span>
 
-              <p className="text-sm leading-5 text-zinc-400">
-                An IPO marks a company&apos;s transition to public ownership.
-                The fact that a company is newly listed does not automatically
-                make it a strong or weak investment—the business, valuation,
-                risks, and financial condition still matter.
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              What Investors Should Examine
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Investors should look beyond
+              listing-day excitement and
+              evaluate the underlying business.
+            </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Financial Performance
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Review revenue growth,
+                  profitability, cash flow,
+                  and debt obligations.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Company Valuation
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Compare the company&apos;s
+                  valuation with its financial
+                  results, growth expectations,
+                  and similar businesses.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Use of IPO Proceeds
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Examine how the company plans
+                  to use the money raised,
+                  including investments,
+                  expansion, or debt repayment.
+                </p>
+              </div>
             </div>
+          </section>
+
+          {/* CONCLUSION */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Important to Understand
+            </span>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              An IPO gives investors an opportunity
+              to participate in a newly public
+              company, but a new listing does
+              not automatically make a stock
+              a good investment. Business
+              fundamentals, valuation, and
+              risks remain important.
+            </p>
           </section>
         </div>
       </main>

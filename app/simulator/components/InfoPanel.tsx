@@ -117,12 +117,16 @@ const savedResistance =
 
 {content.description && <p className="mt-4 text-sm leading-6 text-zinc-300">{content.description}</p>}
 
-{content.visual && (
-  <GabyEducationalVisual
-    type={content.visual.type}
-    example={content.visual.example}
-  />
-)}
+{content.visual &&
+  !(
+    /wallet/i.test(content.title) &&
+    (content.visual.example || content.visual.type) !== "WALLETS"
+  ) && (
+    <GabyEducationalVisual
+      type={content.visual.type}
+      example={content.visual.example}
+    />
+  )}
 
 {content.sections && content.sections.length > 0 && (
   <div className="mt-4 space-y-4">

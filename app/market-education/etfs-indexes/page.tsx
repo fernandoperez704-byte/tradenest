@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
@@ -11,364 +10,445 @@ export default function ETFsIndexesPage() {
       <main className="min-h-screen bg-black px-6 py-8 text-white xl:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           {/* HEADER */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-4xl font-black">ETFs & Indexes</h1>
+              <h1 className="text-4xl font-black">
+                ETFs &amp; Indexes
+              </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Learn how ETFs, indexes, diversification, sectors, and expense
-                ratios help investors understand broad market exposure.
+              <p className="mt-2 text-sm leading-7 text-zinc-400">
+                Understand how exchange-traded funds,
+                market indexes, diversification,
+                and fund expenses affect investing.
               </p>
             </div>
 
             <Link
               href="/market-education"
-              className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="w-fit shrink-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
               ← Market Education
             </Link>
           </div>
 
-          {/* ====================================================== */}
-          {/* WHAT IS AN ETF */}
-          {/* ====================================================== */}
+          {/* HERO IMAGE */}
+          <div className="relative mt-8 h-[220px] overflow-hidden rounded-2xl sm:h-[320px] md:h-[420px]">
+            <img
+              src="/market-education/etfs-indexes.png"
+              alt="Exchange-traded funds and stock market indexes"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          </div>
 
-          <section className="mt-8 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                What Is an ETF?
-              </p>
+          {/* INTRODUCTION */}
+          <section className="mt-8 px-1 pb-8 md:px-2">
+            <h2 className="text-2xl font-black">
+              Understanding ETFs and Indexes
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                One Fund Can Hold Many Investments
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Exchange-traded funds, or ETFs,
+              allow investors to buy shares
+              of a fund that holds a collection
+              of investments, such as stocks,
+              bonds, or other assets.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                An exchange-traded fund, or ETF, is an investment fund that
-                trades on an exchange and can hold stocks, bonds, commodities,
-                or other assets.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["ETF", "One fund investors can buy and sell like a stock."],
-                ["Holdings", "The investments owned inside the fund."],
-                ["Exposure", "The market, sector, region, or asset class the fund represents."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Buying one ETF can provide exposure to many investments at the same time.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              A market index measures the
+              performance of a selected group
+              of investments. Some ETFs are
+              designed to track an index,
+              while others follow different
+              investment strategies.
             </p>
           </section>
 
-          {/* ====================================================== */}
-          {/* WHAT IS AN INDEX */}
-          {/* ====================================================== */}
-
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                What Is an Index?
-              </p>
-
-              <h2 className="mt-1 text-2xl font-black text-white">
-                A Benchmark That Tracks a Group of Investments
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                An index measures the performance of a selected group of
-                investments. It is used as a benchmark for understanding how
-                part of the market is performing.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  S&P 500
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  Large U.S. Companies
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Nasdaq Composite
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  Nasdaq-Listed Companies
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Dow Jones
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
-                  30 Large U.S. Companies
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              An index itself is a measurement. Investors usually gain exposure through
-              products such as ETFs or index funds that track it.
-            </p>
-          </section>
-
-          {/* ====================================================== */}
           {/* ETF VS INDEX */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              ETF vs. Index
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                ETF vs. Index
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              What's the Difference?
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                They Are Related, but They Are Not the Same
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              The key difference is that an
+              ETF is a tradable investment
+              product, while an index serves
+              as a performance benchmark.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                An index is a benchmark. An ETF is an investment product that
-                may be designed to follow that benchmark.
-              </p>
-            </div>
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-bold">
+                  ETF
+                </h3>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Feature</span>
-                <span>Index</span>
-                <span>ETF</span>
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Investors can buy and sell
+                  ETF shares through a brokerage
+                  account. The fund owns or
+                  obtains exposure to assets
+                  according to its strategy.
+                </p>
               </div>
 
-              {[
-                ["What it is", "Benchmark", "Investment fund"],
-                ["Trades directly", "No", "Yes"],
-                ["Can hold assets", "No", "Yes"],
-                ["Can track a market", "Yes", "Yes"],
-              ].map(([label, indexValue, etfValue]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1.2fr_1fr_1fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="text-zinc-400">{label}</span>
-                  <span className="font-bold text-white">{indexValue}</span>
-                  <span className="font-bold text-white">{etfValue}</span>
-                </div>
-              ))}
+              <div>
+                <h3 className="text-lg font-bold">
+                  Index
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  An index cannot be purchased
+                  directly. Investors can gain
+                  exposure through products
+                  designed to follow it,
+                  including index ETFs
+                  and index mutual funds.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* ====================================================== */}
+          {/* MAJOR INDEXES */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Market Indexes
+            </span>
+
+            <h2 className="mt-2 text-2xl font-black">
+              Understanding Major U.S. Stock Indexes
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Different indexes represent
+              different groups of companies.
+              Their performance can help
+              investors understand trends
+              across parts of the stock market.
+            </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  S&amp;P 500
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Tracks approximately 500
+                  leading large-cap U.S.
+                  companies across major
+                  industries.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Nasdaq Composite
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Includes thousands of
+                  stocks listed on the Nasdaq
+                  exchange, with significant
+                  exposure to technology
+                  and growth-oriented companies.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Dow Jones Industrial Average
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Measures the performance
+                  of 30 established U.S.
+                  companies using a
+                  price-weighted methodology.
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* DIVERSIFICATION */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Diversification
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Diversification
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Spreading Investment Risk
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Spread Exposure Across More Than One Investment
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Diversification means spreading
+              investments across different
+              companies, industries, regions,
+              or asset classes rather than
+              depending heavily on one holding.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Diversification spreads exposure across multiple companies,
-                sectors, regions, or asset classes instead of relying on one investment.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, an investor who
+              owns shares of only one company
+              is highly exposed to that
+              company's performance.
+              A broad-market ETF may hold
+              hundreds of companies, reducing
+              dependence on any single stock.
+            </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Concentrated
-                </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  A portfolio focused heavily on one company, industry, or theme
-                  may be more affected by problems in that area.
-                </p>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              However, the number of holdings
+              alone does not determine how
+              diversified a fund is. If a few
+              companies represent most of its
+              value, their performance can
+              strongly influence the fund.
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Diversified
-                </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Exposure spread across many investments can reduce dependence
-                  on the performance of one company or sector.
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Diversification can reduce concentration risk, but it does not eliminate market risk.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Diversification can reduce
+              company-specific risk, but
+              it cannot eliminate the risk
+              of market-wide declines.
             </p>
           </section>
 
-          {/* ====================================================== */}
           {/* EXPENSE RATIOS */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Expense Ratios
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Expense Ratios
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Understanding ETF Costs
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                What Does the Fund Cost Each Year?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              An expense ratio represents
+              a fund's annual operating
+              expenses as a percentage
+              of its average net assets.
+              These costs are reflected
+              in the fund's performance
+              rather than charged as a
+              separate annual bill.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                The expense ratio is the annual operating cost of a fund,
-                expressed as a percentage of the amount invested.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, an investor holds
+              $10,000 in an ETF with a
+              0.20% annual expense ratio.
+            </p>
 
-            <div className="mt-5 grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Investment
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$10,000</p>
-              </div>
+            <p className="mt-4 text-sm font-bold text-white">
+              $10,000 × 0.20% = approximately $20 per year
+            </p>
 
-              <span className="text-center text-zinc-500">×</span>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              This is a simplified estimate
+              assuming the investment value
+              remains constant. Trading costs
+              and other expenses may also apply.
+            </p>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Expense Ratio
-                </p>
-                <p className="mt-1 text-xl font-black text-white">0.20%</p>
-              </div>
-
-              <span className="text-center text-zinc-500">=</span>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Approx. Annual Cost
-                </p>
-                <p className="mt-1 text-xl font-black text-white">$20</p>
-              </div>
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Lower fees leave more of the investment return with the investor,
-              but cost should be considered together with what the fund owns and how it is managed.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Lower fees can help preserve
+              long-term returns, but investors
+              should also evaluate the fund's
+              investment strategy and risks.
             </p>
           </section>
 
-          {/* ====================================================== */}
-          {/* TYPES OF ETFs */}
-          {/* ====================================================== */}
+          {/* TYPES OF ETFS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Types of ETFs
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Types of ETFs
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Different Funds, Different Exposure
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Different Funds Provide Different Exposure
-              </h2>
-            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              ETFs can follow different
+              investment strategies depending
+              on the assets and markets
+              they are designed to cover.
+            </p>
 
-            <div className="mt-5 grid gap-x-8 gap-y-3 border-t border-white/10 pt-4 md:grid-cols-2">
-              {[
-                ["Broad Market", "Tracks a large portion of the stock market."],
-                ["Sector", "Focuses on one industry such as technology or energy."],
-                ["Bond", "Holds government, corporate, or other fixed-income securities."],
-                ["International", "Provides exposure to companies outside the home country."],
-                ["Commodity", "Provides exposure related to commodities such as gold or oil."],
-                ["Thematic", "Focuses on a specific trend, technology, or investment theme."],
-              ].map(([title, description], index) => (
-                <div key={title} className="flex gap-3">
-                  <span className="text-xs font-black text-zinc-600">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+            <div className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Broad-Market ETFs
+                </h3>
 
-                  <div>
-                    <p className="text-sm font-black text-white">{title}</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500">
-                      {description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ====================================================== */}
-          {/* WHAT TO CHECK */}
-          {/* ====================================================== */}
-
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Evaluating an ETF
-              </p>
-
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Know What You Actually Own
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Two ETFs can look similar while providing very different exposure.
-              </p>
-            </div>
-
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1fr_1.5fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Check</span>
-                <span>Why It Matters</span>
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Provide exposure to a large
+                  portion of a stock market,
+                  often through an index.
+                </p>
               </div>
 
-              {[
-                ["Holdings", "Shows which investments are actually inside the fund."],
-                ["Index Tracked", "Explains the benchmark the ETF is designed to follow."],
-                ["Expense Ratio", "Shows the annual operating cost of the fund."],
-                ["Sector Weight", "Helps identify whether the fund is concentrated in one industry."],
-                ["Top Holdings", "Shows whether a few companies dominate the fund."],
-              ].map(([label, meaning]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1fr_1.5fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{label}</span>
-                  <span className="text-zinc-400">{meaning}</span>
-                </div>
-              ))}
+              <div>
+                <h3 className="text-lg font-bold">
+                  Sector ETFs
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Focus on a particular
+                  industry, such as technology,
+                  healthcare, or energy.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Bond ETFs
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Provide exposure to government,
+                  corporate, or other
+                  fixed-income securities.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  International ETFs
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Invest in companies or
+                  securities from markets
+                  outside the investor's
+                  home country.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Commodity ETFs
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Provide exposure to
+                  commodities such as gold
+                  or oil, sometimes through
+                  physical holdings or
+                  futures contracts.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Thematic ETFs
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Focus on specific investment
+                  themes, such as artificial
+                  intelligence, clean energy,
+                  or emerging technologies.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* FINAL LESSON */}
-          <section className="mt-6 border-t border-white/10 px-2 py-4">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-              <p className="shrink-0 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Key Lesson
-              </p>
+          {/* EVALUATING AN ETF */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Evaluating an ETF
+            </span>
 
-              <p className="text-sm leading-5 text-zinc-400">
-                Before evaluating an ETF, understand what it owns, what it tracks,
-                how concentrated it is, and what it costs.
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              What Investors Should Examine
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Two ETFs may have similar
+              names while holding different
+              investments or following
+              different strategies.
+            </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Fund Holdings
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Review which securities
+                  the ETF owns and whether
+                  a few large holdings
+                  dominate its portfolio.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Index or Strategy
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Understand which benchmark
+                  the fund tracks or which
+                  investment approach
+                  its managers follow.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Concentration
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Examine how much exposure
+                  the fund has to particular
+                  companies, sectors,
+                  or geographic regions.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Trading Liquidity
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Consider trading volume
+                  and bid-ask spreads,
+                  which can affect the
+                  cost of buying or
+                  selling ETF shares.
+                </p>
+              </div>
             </div>
+          </section>
+
+          {/* CONCLUSION */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Important to Understand
+            </span>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              ETFs are not guaranteed to
+              generate positive returns.
+              Their value can rise or fall
+              with the investments and
+              markets they represent.
+            </p>
+
           </section>
         </div>
       </main>

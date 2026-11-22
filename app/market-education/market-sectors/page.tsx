@@ -1,7 +1,87 @@
-"use client";
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
+
+const sectors = [
+  {
+    name: "Technology",
+    description:
+      "Software, semiconductors, computer hardware, and information technology services.",
+  },
+  {
+    name: "Healthcare",
+    description:
+      "Pharmaceuticals, biotechnology, medical devices, and healthcare services.",
+  },
+  {
+    name: "Financials",
+    description:
+      "Banks, insurance companies, brokerage firms, and financial services.",
+  },
+  {
+    name: "Consumer Discretionary",
+    description:
+      "Non-essential products and services, including automobiles, restaurants, and retail.",
+  },
+  {
+    name: "Consumer Staples",
+    description:
+      "Essential products such as food, beverages, household goods, and personal care items.",
+  },
+  {
+    name: "Energy",
+    description:
+      "Oil, natural gas, drilling, and energy-related equipment and services.",
+  },
+  {
+    name: "Industrials",
+    description:
+      "Manufacturing, transportation, aerospace, machinery, and industrial services.",
+  },
+  {
+    name: "Materials",
+    description:
+      "Chemicals, metals, mining, packaging, and construction materials.",
+  },
+  {
+    name: "Utilities",
+    description:
+      "Electricity, natural gas, water utilities, and related services.",
+  },
+  {
+    name: "Real Estate",
+    description:
+      "Property-related businesses and real estate investment trusts.",
+  },
+  {
+    name: "Communication Services",
+    description:
+      "Telecommunications, media, entertainment, and digital communication businesses.",
+  },
+];
+
+const rotationSteps = [
+  {
+    title: "Expectations Change",
+    description:
+      "Investors reassess economic growth, inflation, interest rates, or market risks.",
+  },
+  {
+    title: "Capital Shifts",
+    description:
+      "Investors increase or reduce their exposure to different sectors.",
+  },
+  {
+    title: "Leadership Changes",
+    description:
+      "Some sectors begin outperforming while others fall behind.",
+  },
+  {
+    title: "Investors Reevaluate",
+    description:
+      "Investors monitor whether the new sector leadership is supported by earnings and economic data.",
+  },
+];
 
 export default function MarketSectorsPage() {
   return (
@@ -11,92 +91,95 @@ export default function MarketSectorsPage() {
       <main className="min-h-screen bg-black px-6 py-8 text-white xl:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           {/* HEADER */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-4xl font-black">Market Sectors</h1>
+              <h1 className="text-4xl font-black">
+                Market Sectors
+              </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Learn how the stock market is divided into sectors, how different
-                industries behave, and why sector leadership changes over time.
+              <p className="mt-2 text-sm leading-7 text-zinc-400">
+                Understand how the stock market is
+                divided into sectors, how industries
+                respond to economic conditions,
+                and why market leadership changes.
               </p>
             </div>
 
             <Link
               href="/market-education"
-              className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="w-fit shrink-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
               ← Market Education
             </Link>
           </div>
 
-          {/* WHAT ARE MARKET SECTORS */}
-          <section className="mt-8 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              What Are Market Sectors?
-            </p>
+          {/* HERO IMAGE */}
+          <div className="relative mt-8 h-[220px] overflow-hidden rounded-2xl sm:h-[320px] md:h-[420px]">
+            <img
+              src="/market-education/market-sectors.png"
+              alt="Stock market sectors and industries"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          </div>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Companies Are Grouped by What They Do
+          {/* INTRODUCTION */}
+          <section className="mt-8 px-1 pb-8 md:px-2">
+            <h2 className="text-2xl font-black">
+              Understanding Market Sectors
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              Market sectors group companies with similar business activities.
-              This helps investors compare industries and understand which parts
-              of the economy are leading or weakening.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Market sectors group publicly traded
+              companies according to their primary
+              business activities. These classifications
+              help investors understand how different
+              parts of the economy are represented
+              in the stock market.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Sector", "A broad group of companies with similar business activity."],
-                ["Industry", "A more specific group inside a sector."],
-                ["Sector Performance", "Shows how one area of the market is performing relative to others."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              A sector is a broad category,
+              while an industry is a more
+              specific group within that sector.
+              For example, the Technology sector
+              includes the semiconductor industry
+              and the software industry.
+            </p>
           </section>
 
-          {/* 11 MARKET SECTORS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              The 11 Market Sectors
-            </p>
+          {/* ELEVEN SECTORS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Stock Market Classification
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Different Parts of the Economy
+            <h2 className="mt-2 text-2xl font-black">
+              The 11 Major Market Sectors
             </h2>
 
-            <div className="mt-5 grid gap-x-8 gap-y-3 border-t border-white/10 pt-4 md:grid-cols-2">
-              {[
-                ["Technology", "Software, semiconductors, hardware, and IT services."],
-                ["Healthcare", "Pharmaceuticals, biotech, medical devices, and healthcare services."],
-                ["Financials", "Banks, insurance companies, brokers, and financial services."],
-                ["Consumer Discretionary", "Non-essential products such as autos, retail, and entertainment."],
-                ["Consumer Staples", "Essential products such as food, beverages, and household goods."],
-                ["Energy", "Oil, natural gas, drilling, and energy services."],
-                ["Industrials", "Manufacturing, transportation, aerospace, and machinery."],
-                ["Materials", "Chemicals, metals, mining, packaging, and construction materials."],
-                ["Utilities", "Electricity, natural gas, and water utilities."],
-                ["Real Estate", "Property companies and real estate investment trusts."],
-                ["Communication Services", "Telecom, media, entertainment, and digital communication companies."],
-              ].map(([title, description], index) => (
-                <div key={title} className="flex gap-3">
-                  <span className="text-xs font-black text-zinc-600">
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              The Global Industry Classification
+              Standard, or GICS, organizes
+              companies into 11 broad sectors.
+              Each represents a different
+              area of economic activity.
+            </p>
+
+            <div className="mt-7 grid gap-x-10 gap-y-6 md:grid-cols-2">
+              {sectors.map((sector, index) => (
+                <div key={sector.name} className="flex gap-3">
+                  <span className="pt-1 text-xs font-bold text-cyan-400/70">
                     {String(index + 1).padStart(2, "0")}
                   </span>
 
                   <div>
-                    <p className="text-sm font-black text-white">{title}</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500">
-                      {description}
+                    <h3 className="text-lg font-bold text-white">
+                      {sector.name}
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-7 text-zinc-400">
+                      {sector.description}
                     </p>
                   </div>
                 </div>
@@ -104,204 +187,324 @@ export default function MarketSectorsPage() {
             </div>
           </section>
 
-          {/* CYCLICAL VS DEFENSIVE */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              Cyclical vs. Defensive
-            </p>
+          {/* CYCLICAL AND DEFENSIVE */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Economic Sensitivity
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Some Sectors React More to the Economy Than Others
+            <h2 className="mt-2 text-2xl font-black">
+              Cyclical vs. Defensive Sectors
             </h2>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Cyclical Sectors
-                </p>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Some sectors are more sensitive
+              to changes in economic activity
+              than others.
+            </p>
 
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Tend to be more sensitive to economic growth and consumer
-                  spending. Examples include consumer discretionary, industrials,
-                  financials, and materials.
+            <div className="mt-6 grid gap-7 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Cyclical Sectors
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  These sectors tend to benefit
+                  when the economy expands
+                  and consumer or business
+                  spending increases.
+                  Examples include Consumer
+                  Discretionary, Industrials,
+                  Financials, and Materials.
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
+              <div>
+                <h3 className="text-lg font-bold">
                   Defensive Sectors
-                </p>
+                </h3>
 
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Tend to provide products and services people continue using
-                  even when economic growth slows. Examples include utilities,
-                  consumer staples, and healthcare.
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  These sectors provide goods
+                  and services that people
+                  continue to need even
+                  during economic slowdowns.
+                  Examples include Consumer
+                  Staples, Utilities,
+                  and Healthcare.
                 </p>
               </div>
             </div>
 
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              These are broad tendencies, not guarantees. Individual companies
-              inside the same sector can behave very differently.
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              These classifications describe
+              general tendencies rather than
+              guaranteed performance.
+              Individual companies within
+              the same sector may behave
+              differently.
             </p>
           </section>
 
           {/* SECTOR PERFORMANCE */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Sector Performance
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Not Every Part of the Market Moves Together
+            <h2 className="mt-2 text-2xl font-black">
+              Why Sectors Perform Differently
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              Investors compare sectors to see which areas are outperforming or
-              underperforming the broader market.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Stock market sectors do not always
+              move in the same direction.
+              Their performance can differ
+              because each industry responds
+              to changing business conditions,
+              investor expectations, and
+              economic developments.
             </p>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1.2fr_1fr_1.5fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Sector</span>
-                <span>Example Move</span>
-                <span>Possible Driver</span>
-              </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              For example, rising oil prices
+              may support profits for some
+              Energy companies, while
+              increasing fuel costs may
+              pressure Transportation companies.
+            </p>
 
-              {[
-                ["Technology", "+8%", "Strong earnings or growth expectations"],
-                ["Energy", "+5%", "Higher oil and gas prices"],
-                ["Utilities", "-2%", "Changing interest-rate expectations"],
-                ["Consumer Discretionary", "-4%", "Weak consumer spending expectations"],
-              ].map(([sector, move, driver]) => (
-                <div
-                  key={sector}
-                  className="grid grid-cols-[1.2fr_1fr_1.5fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{sector}</span>
-                  <span className="font-bold text-white">{move}</span>
-                  <span className="text-zinc-400">{driver}</span>
-                </div>
-              ))}
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Investors often compare sector
+              returns with a broad-market
+              benchmark to identify relative
+              strength or weakness.
+              Outperformance means a sector
+              has delivered a higher return
+              than the benchmark over
+              the period being measured.
+            </p>
           </section>
 
           {/* SECTOR ROTATION */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Sector Rotation
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Market Leadership Can Change
+            <h2 className="mt-2 text-2xl font-black">
+              How Market Leadership Changes
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-              Sector rotation describes money shifting between different areas
-              of the market as expectations for growth, inflation, interest
-              rates, and risk change.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Sector rotation describes changes
+              in investor allocation and relative
+              performance among different
+              sectors as market expectations
+              evolve.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-4">
-              {[
-                ["01", "Expectations Change", "Economic or market expectations begin to shift."],
-                ["02", "Capital Moves", "Investors increase or reduce exposure to certain sectors."],
-                ["03", "Leadership Changes", "Some sectors begin outperforming others."],
-                ["04", "Market Reprices", "Relative sector performance adjusts to the new environment."],
-              ].map(([step, title, description]) => (
-                <div
-                  key={step}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-xs font-black text-zinc-600">{step}</p>
-                  <p className="mt-1 text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
+            {/* ROTATION PROCESS */}
+            <div className="mt-8 grid gap-6 md:grid-cols-4 md:gap-4">
+              {rotationSteps.map((step, index) => (
+                <div key={step.title}>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-400/40 text-sm font-black text-cyan-300">
+                      {index + 1}
+                    </span>
+
+                    {index < rotationSteps.length - 1 && (
+                      <div className="hidden h-px flex-1 bg-cyan-400/40 md:block" />
+                    )}
+                  </div>
+
+                  <h3 className="mt-4 text-base font-bold text-white">
+                    {step.title}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-7 text-zinc-400">
+                    {step.description}
                   </p>
                 </div>
               ))}
             </div>
+
+            <p className="mt-6 text-sm leading-7 text-zinc-400">
+              This is a simplified illustration.
+              Sector rotation does not always
+              follow a predictable sequence,
+              and several sectors can lead
+              or decline at the same time.
+            </p>
           </section>
 
-          {/* WHAT CAN AFFECT SECTORS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-              What Affects Sectors?
-            </p>
+          {/* ECONOMIC INFLUENCES */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Economic Influences
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Different Sectors Respond to Different Forces
+            <h2 className="mt-2 text-2xl font-black">
+              What Can Affect Sector Performance?
             </h2>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Interest Rates", "Can affect borrowing costs, valuations, banks, utilities, and real estate."],
-                ["Commodity Prices", "Can strongly influence energy and materials companies."],
-                ["Consumer Spending", "Can affect retailers, travel companies, restaurants, and other consumer businesses."],
-                ["Economic Growth", "Can influence industrials, financials, materials, and cyclical businesses."],
-                ["Technology Trends", "Can create growth opportunities or disrupt existing industries."],
-                ["Government Policy", "Regulation, taxes, and spending can affect certain sectors differently."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
+            <div className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Interest Rates
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Changes in borrowing costs
+                  and discount rates can affect
+                  valuations, banks,
+                  Utilities, and Real Estate.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Commodity Prices
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Changes in oil, natural gas,
+                  metals, and raw material
+                  prices can influence Energy
+                  and Materials companies.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Consumer Spending
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Household spending patterns
+                  can influence retailers,
+                  restaurants, travel companies,
+                  and other consumer businesses.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Economic Growth
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Changes in business activity
+                  can affect demand for
+                  manufacturing, construction,
+                  and financial services.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Technology Trends
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Innovation can create new
+                  opportunities while disrupting
+                  established companies
+                  and industries.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Government Policy
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Regulation, taxation,
+                  and government spending
+                  can affect business
+                  conditions across sectors.
+                </p>
+              </div>
             </div>
           </section>
 
           {/* COMPARING SECTORS */}
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
               Comparing Sectors
-            </p>
+            </span>
 
-            <h2 className="mt-1 text-2xl font-black text-white">
-              Look at More Than Price Performance
+            <h2 className="mt-2 text-2xl font-black">
+              Looking Beyond Price Performance
             </h2>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1fr_1.5fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Check</span>
-                <span>Why It Matters</span>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Strong recent performance does
+              not necessarily mean a sector
+              will continue outperforming.
+              Investors can examine additional
+              information to understand what
+              may be driving its valuation.
+            </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Earnings Growth
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Examine whether companies
+                  in the sector are reporting
+                  improving profits.
+                </p>
               </div>
 
-              {[
-                ["Relative Performance", "Shows whether the sector is leading or lagging the broader market."],
-                ["Earnings Growth", "Shows whether companies in the sector are improving financially."],
-                ["Valuation", "Helps determine how much investors are paying for sector earnings or assets."],
-                ["Economic Sensitivity", "Shows how dependent the sector may be on economic conditions."],
-                ["Sector Weight", "Shows how much influence the sector has inside a broad market index."],
-              ].map(([label, meaning]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1fr_1.5fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{label}</span>
-                  <span className="text-zinc-400">{meaning}</span>
-                </div>
-              ))}
+              <div>
+                <h3 className="text-lg font-bold">
+                  Valuation
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Compare stock prices
+                  with company earnings,
+                  assets, or other relevant
+                  financial measures.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Sector Weight
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Consider how much of a
+                  broad-market index is
+                  represented by the sector.
+                  Larger weights can have
+                  a greater influence on
+                  index performance.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* FINAL LESSON */}
-          <section className="mt-6 border-t border-white/10 px-2 py-4">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-              <p className="shrink-0 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Key Lesson
-              </p>
+          {/* CONCLUSION */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Important to Understand
+            </span>
 
-              <p className="text-sm leading-5 text-zinc-400">
-                The stock market is made up of different sectors, and leadership
-                changes as economic conditions and investor expectations change.
-                Understanding sectors helps explain what is driving the broader market.
-              </p>
-            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Sector trends can provide
+              useful context about market
+              conditions, but they do not
+              guarantee the future performance
+              of individual stocks or industries.
+            </p>
           </section>
         </div>
       </main>

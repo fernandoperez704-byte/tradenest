@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
@@ -11,398 +10,382 @@ export default function EconomicEventsPage() {
       <main className="min-h-screen bg-black px-6 py-8 text-white xl:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           {/* HEADER */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-4xl font-black">Economic Events</h1>
+              <h1 className="text-4xl font-black">
+                Economic Events
+              </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Learn how inflation, interest rates, Fed decisions, jobs reports,
-                and GDP can influence financial markets.
+              <p className="mt-2 text-sm leading-7 text-zinc-400">
+                Understand how major economic reports, central bank
+                decisions, and changing expectations influence
+                financial markets.
               </p>
             </div>
 
             <Link
               href="/market-education"
-              className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
+              className="w-fit shrink-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm font-bold text-zinc-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
               ← Market Education
             </Link>
           </div>
 
-          {/* ====================================================== */}
-          {/* WHAT ARE ECONOMIC EVENTS */}
-          {/* ====================================================== */}
+          {/* HERO IMAGE */}
+          <div className="relative mt-8 h-[220px] overflow-hidden rounded-2xl sm:h-[320px] md:h-[420px]">
+            <img
+              src="/market-education/economic-events.png"
+              alt="Economic events calendar showing major economic indicators"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          </div>
 
-          <section className="mt-8 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                What Are Economic Events?
-              </p>
+          {/* INTRODUCTION */}
+          <section className="mt-8 px-1 pb-8 md:px-2">
+            <h2 className="text-2xl font-black">
+              Understanding Economic Events
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Data Releases Can Change Market Expectations
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Economic reports help investors understand inflation, growth,
-                employment, and interest-rate conditions. Markets often react
-                when the data differs from what investors expected.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Economic Data", "Measures conditions such as inflation, jobs, and growth."],
-                ["Expectations", "Investors compare reported data with forecasts."],
-                ["Market Reaction", "Prices may move when expectations change."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              The number itself matters, but the difference between the result
-              and market expectations often matters just as much.
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-zinc-400">
+              Economic events include scheduled data releases,
+              government reports, and central bank announcements
+              that provide insight into the condition of an economy.
+              Investors follow these events to understand changes
+              in inflation, employment, economic growth, and
+              monetary policy.
             </p>
+
+
           </section>
 
-          {/* ====================================================== */}
           {/* INFLATION */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Inflation Indicators
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Inflation
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Consumer Price Index and PCE Inflation
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                How Fast Are Prices Rising?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Inflation measures how the general level of
+              prices changes over time. Two widely followed
+              U.S. inflation indicators are the Consumer
+              Price Index (CPI) and the Personal Consumption
+              Expenditures (PCE) price index.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Inflation measures how prices change over time. Common reports
-                include CPI and PCE inflation data.
-              </p>
-            </div>
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Consumer Price Index (CPI)
+                </h3>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Previous
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  CPI tracks changes in prices paid by urban
+                  consumers for a basket of goods and services,
+                  including housing, food, transportation,
+                  and medical care.
                 </p>
-                <p className="mt-1 text-xl font-black text-white">3.2%</p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Expected
-                </p>
-                <p className="mt-1 text-xl font-black text-white">3.1%</p>
-              </div>
+              <div>
+                <h3 className="text-lg font-bold">
+                  Personal Consumption Expenditures (PCE)
+                </h3>
 
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Actual
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  The PCE price index measures price changes
+                  across a broader range of consumer spending
+                  and is the Federal Reserve&apos;s preferred
+                  inflation measure for its 2% target.
                 </p>
-                <p className="mt-1 text-xl font-black text-white">3.4%</p>
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 border-t border-white/10 pt-3 md:grid-cols-2">
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Higher-than-expected inflation:
-                </span>{" "}
-                can increase expectations for tighter monetary policy.
-              </p>
-
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Lower-than-expected inflation:
-                </span>{" "}
-                can reduce pressure for restrictive policy.
-              </p>
-            </div>
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              Higher-than-expected inflation may increase
+              expectations that interest rates will remain
+              elevated, while softer inflation may reduce
+              pressure for restrictive monetary policy.
+            </p>
           </section>
 
-          {/* ====================================================== */}
           {/* INTEREST RATES */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Monetary Policy
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Interest Rates
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              How Interest Rates Influence the Economy
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                The Cost of Borrowing Affects the Economy
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Interest rates influence borrowing, spending, investment, and
-                the value investors place on future earnings.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Higher Rates
-                </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Borrowing becomes more expensive, which can slow spending and
-                  business investment.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  Lower Rates
-                </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Borrowing becomes cheaper, which can support spending and
-                  investment.
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Markets care about both the current rate and what investors expect
-              rates to do next.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Interest rates influence borrowing costs,
+              savings returns, and how investors value
+              financial assets.
             </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Higher Interest Rates
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Higher borrowing costs can discourage
+                  spending and investment, potentially
+                  slowing economic activity and reducing
+                  inflationary pressure.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Lower Interest Rates
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Lower borrowing costs can encourage
+                  lending, spending, and investment,
+                  although their effects depend on
+                  broader economic conditions.
+                </p>
+              </div>
+            </div>
           </section>
 
-          {/* ====================================================== */}
           {/* FED DECISIONS */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Federal Reserve
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Fed Decisions
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              FOMC Meetings and Federal Reserve Decisions
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Hold, Raise, or Cut?
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                The Federal Reserve adjusts monetary policy based on inflation,
-                employment, growth, and financial conditions.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {[
-                ["Raise", "Rates move higher to make financial conditions tighter."],
-                ["Hold", "Policy stays unchanged while the Fed evaluates new data."],
-                ["Cut", "Rates move lower to make financial conditions easier."],
-              ].map(([title, description]) => (
-                <div
-                  key={title}
-                  className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3"
-                >
-                  <p className="text-sm font-black text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              Markets can react not only to the rate decision, but also to the
-              Fed&apos;s statement, projections, and comments about future policy.
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              The Federal Open Market Committee (FOMC)
+              makes important U.S. monetary policy decisions,
+              including setting the target range for the
+              federal funds rate. Its decisions are influenced
+              by inflation, employment, and economic conditions.
             </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              At scheduled meetings, the committee may raise,
+              lower, or maintain its policy rate. Investors
+              also examine the accompanying statement,
+              economic projections when released, and
+              comments from the Federal Reserve chair
+              for clues about future policy.
+            </p>
+
+
           </section>
 
-          {/* ====================================================== */}
-          {/* JOBS REPORT */}
-          {/* ====================================================== */}
+          {/* EMPLOYMENT */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Labor Market
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Jobs Reports
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Employment Reports and Unemployment
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                How Strong Is the Labor Market?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Employment reports help measure the strength
+              of the labor market. In the United States,
+              the monthly Employment Situation report
+              provides several indicators that investors
+              closely monitor.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Employment reports help show whether businesses are hiring,
-                unemployment is rising or falling, and wage pressure is changing.
-              </p>
-            </div>
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Nonfarm Payrolls (NFP)
+                </h3>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-white/10">
-              <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-[#111827] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500">
-                <span>Metric</span>
-                <span>What It Shows</span>
-                <span>Example</span>
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Measures the monthly change in the number
+                  of paid employees across most nonfarm
+                  industries. Strong job growth can indicate
+                  expanding economic activity.
+                </p>
               </div>
 
-              {[
-                ["Payrolls", "Jobs added or lost", "+180K"],
-                ["Unemployment Rate", "Share of labor force unemployed", "4.0%"],
-                ["Wage Growth", "Change in worker earnings", "3.8%"],
-              ].map(([label, meaning, example]) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-[1.2fr_1fr_1fr] border-t border-white/10 px-4 py-3 text-sm"
-                >
-                  <span className="font-bold text-white">{label}</span>
-                  <span className="text-zinc-400">{meaning}</span>
-                  <span className="font-bold text-white">{example}</span>
-                </div>
-              ))}
-            </div>
+              <div>
+                <h3 className="text-lg font-bold">
+                  Unemployment Rate
+                </h3>
 
-            <p className="mt-4 text-xs text-zinc-500">
-              A very strong labor market can support economic growth, but it can
-              also contribute to wage and inflation pressure.
-            </p>
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Represents the percentage of the labor
+                  force that is unemployed, available
+                  for work, and actively seeking employment.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Average Hourly Earnings
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  Tracks changes in average hourly pay
+                  for employees covered by the payroll
+                  survey. Wage growth can provide
+                  information about labor costs and
+                  potential inflationary pressures.
+                </p>
+              </div>
+            </div>
           </section>
 
-          {/* ====================================================== */}
           {/* GDP */}
-          {/* ====================================================== */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Economic Growth
+            </span>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                GDP
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Gross Domestic Product (GDP)
+            </h2>
 
-              <h2 className="mt-1 text-2xl font-black text-white">
-                How Fast Is the Economy Growing?
-              </h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Gross domestic product measures the value
+              of final goods and services produced within
+              an economy over a specific period. It is
+              one of the main indicators used to evaluate
+              economic activity and growth.
+            </p>
 
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Gross domestic product measures the value of goods and services
-                produced in the economy.
-              </p>
-            </div>
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Stronger GDP growth may reflect increased
+              consumer spending, business investment,
+              or other economic activity. Weak growth
+              can indicate slowing demand, while a
+              sustained contraction may raise concerns
+              about a recession.
+            </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Previous
-                </p>
-                <p className="mt-1 text-xl font-black text-white">2.4%</p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Expected
-                </p>
-                <p className="mt-1 text-xl font-black text-white">2.0%</p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-xs uppercase tracking-wider text-zinc-500">
-                  Actual
-                </p>
-                <p className="mt-1 text-xl font-black text-white">1.6%</p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 border-t border-white/10 pt-3 md:grid-cols-2">
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Stronger growth:
-                </span>{" "}
-                can support corporate revenue and employment.
-              </p>
-
-              <p className="text-sm text-zinc-400">
-                <span className="font-black text-white">
-                  Weaker growth:
-                </span>{" "}
-                can signal slower demand and economic activity.
-              </p>
-            </div>
-          </section>
-
-          {/* ====================================================== */}
-          {/* HOW MARKETS REACT */}
-          {/* ====================================================== */}
-
-          <section className="mt-6 rounded-2xl border border-white/10 bg-[#020617] px-6 py-5 md:px-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                How Markets React
-              </p>
-
-              <h2 className="mt-1 text-2xl font-black text-white">
-                Expectations Connect the Data to Price Movement
-              </h2>
-
-              <p className="mt-2 max-w-3xl text-sm leading-5 text-zinc-400">
-                Markets are forward-looking. Investors use economic data to
-                update expectations for growth, inflation, interest rates, and
-                company earnings.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  1. Forecast
-                </p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Investors form expectations before the release.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  2. Actual Data
-                </p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  The official result is released.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#111827] px-4 py-3">
-                <p className="text-sm font-black text-white">
-                  3. New Expectations
-                </p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Markets adjust expectations based on the difference.
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
-              The same economic number can produce different market reactions
-              depending on what investors expected beforehand.
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              GDP figures are often revised as additional
+              information becomes available, so investors
+              consider both initial estimates and later
+              revisions.
             </p>
           </section>
 
-          {/* FINAL LESSON */}
-          <section className="mt-6 border-t border-white/10 px-2 py-4">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
-              <p className="shrink-0 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                Key Lesson
-              </p>
+          {/* EXPECTATIONS */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Market Expectations
+            </span>
 
-              <p className="text-sm leading-5 text-zinc-400">
-                Economic events matter because they can change expectations for
-                inflation, growth, interest rates, and future company performance.
-              </p>
+            <h2 className="mt-2 text-2xl font-black">
+              Forecasts, Actual Results, and Market Reactions
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Before an economic report is published,
+              analysts develop forecasts based on
+              available information. Financial markets
+              may already reflect those expectations
+              before the official numbers are released.
+            </p>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Previous
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  The reported figure from an earlier
+                  period, which provides historical
+                  context and may be revised.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Forecast
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  The expected result, often represented
+                  by a consensus of economic analysts.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold">
+                  Actual
+                </h3>
+
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  The official result published when
+                  the economic report is released.
+                </p>
+              </div>
             </div>
+
+            <p className="mt-5 text-sm leading-7 text-zinc-400">
+              The difference between forecasts and actual
+              results can change expectations for future
+              economic conditions. Market reactions are
+              not always predictable because positioning,
+              revisions, and broader financial conditions
+              also influence price movements.
+            </p>
+          </section>
+
+          {/* ECONOMIC CALENDAR */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Following Economic Releases
+            </span>
+
+            <h2 className="mt-2 text-2xl font-black">
+              Understanding the Economic Calendar
+            </h2>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              An economic calendar helps investors track
+              upcoming data releases and central bank
+              announcements, including their scheduled
+              dates, times, and reporting countries.
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              Some calendars also assign an expected
+              impact level to each event. These labels
+              indicate potential market sensitivity,
+              not a guaranteed direction or size
+              of price movement.
+            </p>
+          </section>
+
+          {/* CONCLUSION */}
+          <section className="border-t border-white/10 px-1 py-8 md:px-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              Important to Understand
+            </span>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-400">
+              Before making trading decisions, check the
+              economic calendar for upcoming releases.
+              Major announcements can increase market
+              volatility, and their impact is not always
+              predictable.
+            </p>
           </section>
         </div>
       </main>

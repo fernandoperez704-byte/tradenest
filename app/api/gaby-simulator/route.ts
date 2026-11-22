@@ -1571,10 +1571,7 @@ Return ONLY valid JSON in this shape:
       "title": "panel title",
       "subtitle": "optional subtitle",
       "description": "optional short introduction",
-      "visual": {
-        "type": "EDUCATIONAL",
-        "example": "UPTREND"
-      },
+      "visual": null,
 
       "sections": [
         {
@@ -1609,6 +1606,10 @@ VISUAL TEACHING RULES:
 - Do not show an unrelated visual.
 - Normally use one visual for the main concept.
 - If no supported visual matches the concept, do not invent a visual type or example.
+- Set panelCommand.content.visual to null by default.
+- Include a supported educational visual only when it directly illustrates the main subject of the user's question.
+- Never choose a visual merely to fill the visual field.
+- If no existing educational visual directly matches the subject, keep visual null and provide the educational explanation and sections normally.
 - The visual supplements Gaby's explanation. It does not replace Gaby's normal answer or educational sections.
 
 SUPPORTED EDUCATIONAL VISUALS:
