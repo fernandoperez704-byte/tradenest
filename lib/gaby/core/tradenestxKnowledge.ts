@@ -782,7 +782,7 @@ PLATFORM
 - TradeNestX currently includes Learn, Simulator, Market Education, News, Support, Community, and Gaby.
 - TradeNestX is actively being improved with new educational features.
 - TradeNestX includes a Market Education section for learning how companies, investments, and financial markets work.
-- Market Education currently includes 13 completed topics across Crypto Market, Stock Market, and Economic Calendar: Blockchain Technology, Stablecoins, Cryptocurrency Wallets, Tokenomics, Dividends, Earnings, IPOs, Fundamentals, ETFs & Indexes, Market Sectors, Stock Splits & Buybacks, Economic Events, and Bonds & Treasuries.
+- Market Education currently includes 15 completed topics across Crypto Market, Stock Market, and Economic Calendar: Blockchain Technology, Stablecoins, Cryptocurrency Wallets, Tokenomics, NFTs, Decentralized Finance (DeFi), Dividends, Earnings, IPOs, Fundamentals, ETFs & Indexes, Market Sectors, Stock Splits & Buybacks, Economic Events, and Bonds & Treasuries.
 
 HOMEPAGE & HERO
 
@@ -806,11 +806,13 @@ MARKET EDUCATION
 - Market Education does not require users to sign in to read the educational content.
 - Market Education teaches broader financial-market concepts beyond the structured Beginner and Advanced Academies.
 - The Market Education page is opened by selecting "Market Education" from the main navigation.
-- The Market Education landing page currently includes 13 completed educational topics:
+- The Market Education landing page currently includes 15 completed educational topics:
   • Blockchain Technology
   • Stablecoins
   • Cryptocurrency Wallets
   • Tokenomics
+  • NFTs
+  • Decentralized Finance (DeFi)
   • Dividends
   • Earnings
   • IPOs
@@ -820,7 +822,7 @@ MARKET EDUCATION
   • Stock Splits & Buybacks
   • Economic Events
   • Bonds & Treasuries
-- All 13 current Market Education topics are available.
+- All 15 current Market Education topics are available.
 - Each topic appears as a card on the Market Education landing page.
 - Selecting an available topic opens its dedicated educational page.
 - Market Education landing page: /market-education.
@@ -828,6 +830,8 @@ MARKET EDUCATION
 - Stablecoins lesson: /market-education/stablecoins.
 - Cryptocurrency Wallets lesson: /market-education/cryptocurrency-wallets.
 - Tokenomics lesson: /market-education/tokenomics.
+- NFTs lesson: /market-education/nfts.
+- Decentralized Finance (DeFi) lesson: /market-education/defi.
 - Dividends lesson: /market-education/dividends.
 - Earnings lesson: /market-education/earnings.
 - IPOs lesson: /market-education/ipos.
@@ -961,6 +965,96 @@ TOKENOMICS EDUCATION
 - Gaby should explain how supply, demand, utility, distribution, and unlock schedules work together rather than evaluating a cryptocurrency using one metric alone.
 - Gaby must not invent current token supply, market capitalization, fully diluted valuation, unlock dates, or token distribution information when verified data has not been supplied.
 - Gaby must not recommend buying or selling a cryptocurrency based on its tokenomics.
+
+NFTS EDUCATION
+
+- The NFTs lesson teaches:
+  • What non-fungible tokens are
+  • Fungible versus non-fungible assets
+  • Token identifiers
+  • Metadata and provenance
+  • NFT minting
+  • On-chain and off-chain storage
+  • Token ownership, copyright, and usage rights
+  • NFT marketplaces
+  • Floor prices, rarity, and creator royalties
+  • Market liquidity
+  • Real-world applications of NFTs
+  • Risks associated with NFTs
+- An NFT is a digital token that represents an individually identifiable asset, entitlement, or record.
+- Fungible assets have interchangeable units, while non-fungible assets have individually distinguishable characteristics or identities.
+- An NFT is generally identified by its blockchain network, contract address, and token identifier.
+- Metadata describes the content and attributes associated with an NFT.
+- Provenance describes recorded asset history but does not automatically establish authenticity.
+- Minting is the process of creating an NFT within a blockchain contract.
+- NFT content may be stored directly on the blockchain or referenced through external storage systems.
+- Ownership of an NFT does not automatically transfer copyright or intellectual property rights.
+- Usage rights depend on the applicable licenses and agreements.
+- The floor price represents the lowest active asking price within a collection on a marketplace.
+- A floor price does not guarantee an achievable selling price.
+- Rarity does not guarantee demand or financial value.
+- Creator royalty enforcement varies between contracts, marketplaces, and transaction methods.
+- NFTs can be used for artwork, collectibles, gaming assets, tickets, memberships, credentials, physical asset representation, and product authentication.
+- NFT risks include limited liquidity, counterfeit collections, wash trading, metadata changes, unavailable content, project abandonment, and legal uncertainty.
+- Gaby should distinguish token ownership from legal ownership of the associated content.
+- Gaby must not invent current NFT prices, floor prices, trading volume, rarity rankings, or collection information.
+- Gaby must not recommend purchasing or selling a specific NFT.
+
+DECENTRALIZED FINANCE EDUCATION
+
+- The Decentralized Finance (DeFi) lesson teaches:
+  • What decentralized finance is
+  • Traditional finance versus decentralized finance
+  • Decentralized exchanges (DEXs)
+  • Order book exchanges
+  • Automated market makers (AMMs)
+  • Liquidity pools and liquidity providers
+  • Constant-product pool pricing
+  • Price impact and slippage
+  • Lending and borrowing protocols
+  • Utilization rates and interest rate models
+  • Loan-to-value ratios
+  • Liquidation thresholds
+  • Yield farming and sources of returns
+  • Annual Percentage Rate (APR)
+  • Annual Percentage Yield (APY)
+  • Impermanent loss
+  • Price oracles
+  • Arbitrage
+  • Composability
+  • Flash loans
+  • DeFi protocol risks
+- DeFi uses blockchain-based financial protocols to provide services such as trading, lending, borrowing, and asset management.
+- The degree of decentralization varies between protocols.
+- Decentralized exchanges allow participants to exchange digital assets through financial protocols without necessarily using centralized exchange accounts.
+- Automated market makers use available reserves and mathematical pricing models to facilitate asset exchanges.
+- Liquidity pools contain assets committed to support financial operations.
+- A common constant-product AMM uses the formula x × y = k in an idealized swap without fees.
+- Price impact describes how a transaction affects the exchange price.
+- Slippage describes the difference between expected and actual execution prices.
+- Lending protocols allow participants to supply assets that borrowers can access under applicable protocol rules.
+- Utilization measures the proportion of supplied liquidity currently borrowed.
+- Borrowing costs and lending returns may change according to utilization.
+- Loan-to-value ratio equals loan value divided by collateral value multiplied by 100.
+- Liquidation may occur when a borrowing position reaches or breaches its applicable liquidation threshold.
+- DeFi liquidation mechanics must not be confused with TradeNestX futures simulator liquidation mechanics.
+- Yield farming involves allocating assets across DeFi protocols to pursue financial returns.
+- DeFi returns may originate from trading fees, borrowing interest, or protocol incentives.
+- APR expresses an annualized rate without compounding.
+- APY includes the effect of compounding.
+- Advertised APR and APY do not guarantee actual financial returns.
+- Impermanent loss describes the underperformance of a liquidity position compared with holding the original assets, before accounting for fees and rewards.
+- Impermanent loss can occur even when a liquidity position increases in monetary value.
+- Price oracles provide asset valuation data to financial protocols.
+- Arbitrage helps align prices across different markets.
+- Composability allows compatible financial protocols to interact with one another.
+- Flash loans require repayment of borrowed assets and applicable fees within the same atomic transaction.
+- DeFi risks include smart contract vulnerabilities, oracle failures, protocol dependencies, administrative control, transaction ordering, protocol insolvency, and regulatory uncertainty.
+- Gaby should explain DeFi concepts using beginner-friendly educational examples.
+- Gaby should explain the economic source of financial returns rather than evaluating opportunities from advertised yields alone.
+- Gaby must not describe DeFi deposits as guaranteed or insured bank deposits.
+- Gaby must not invent current protocol yields, liquidity, interest rates, collateral requirements, or liquidation thresholds.
+- Gaby must not recommend depositing, borrowing, lending, or investing in a specific DeFi protocol.
 
 DIVIDENDS EDUCATION
 - The Dividends lesson teaches:
@@ -1595,6 +1689,12 @@ To open Market Education:
 1. Select "Market Education" from the main navigation.
 2. The Market Education landing page displays the available financial-market education topics.
 3. Current topics are:
+   • Blockchain Technology
+   • Stablecoins
+   • Cryptocurrency Wallets
+   • Tokenomics
+   • NFTs
+   • Decentralized Finance (DeFi)
    • Dividends
    • Earnings
    • IPOs
@@ -1604,12 +1704,12 @@ To open Market Education:
    • Market Sectors
    • Stock Splits & Buybacks
    • Bonds & Treasuries
-4. Select a topic card or "Start Learning" to open that lesson.
+4. Select a topic card to open that lesson.
 
 To open a specific Market Education lesson:
 1. Select "Market Education" from the main navigation.
 2. Find the desired topic card.
-3. Select the card or "Start Learning".
+3. Select the card.
 4. TradeNestX opens that topic's educational page.
 
 - All current Market Education topics are available.

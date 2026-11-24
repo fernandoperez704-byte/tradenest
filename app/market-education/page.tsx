@@ -45,6 +45,26 @@ const topics = [
 },
 
 {
+  title: "NFTs",
+  category: "crypto",
+  description:
+    "Understand non-fungible tokens, digital ownership, minting, marketplaces, real-world applications, and risks.",
+  href: "/market-education/nfts",
+  available: true,
+  backgroundImage: "/market-education/nfts.png",
+},
+
+{
+  title: "Decentralized Finance (DeFi)",
+  category: "crypto",
+  description:
+    "Learn how decentralized exchanges, liquidity pools, lending, borrowing, yield farming, and financial protocols work.",
+  href: "/market-education/defi",
+  available: true,
+  backgroundImage: "/market-education/defi.png",
+},
+
+{
   title: "Dividends",
   category: "stocks",
   description:
