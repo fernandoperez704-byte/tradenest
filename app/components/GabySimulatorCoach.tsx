@@ -1829,7 +1829,7 @@ data: {
       </div>
 
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+      <div className="mt-4 flex items-center gap-2">
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
@@ -1841,20 +1841,20 @@ onKeyDown={(e) => {
   askGaby();
 }}
           placeholder="Ask me about the simulator or review a practice trade."
-          className="h-30 xl:h-11 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-4 text-base xl:text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400"
+          className="h-10 min-w-0 flex-1 rounded-xl border border-zinc-800 bg-[#020617] px-3 text-base text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400 xl:h-11 xl:px-4 xl:text-sm"
         />
 
-<div className="flex gap-2 sm:contents">
-  <div className="group relative w-[34%] sm:w-auto">
+<div className="contents">
+  <div className="group relative shrink-0">
   <button
     onClick={toggleVoiceMode}
-    className={`h-11 w-full rounded-xl border px-4 text-sm font-bold transition ${
+    className={`h-10 w-10 rounded-xl border text-sm font-bold transition xl:h-11 xl:w-auto xl:px-4 ${
       voiceMode
                   ? "border-[#ff0000] bg-[#111827] text-[#ff0000]"
         : "border-cyan-500/40 bg-[#111827] text-cyan-300 hover:border-cyan-400"
     }`}
   >
-    🎙️ Voice
+    🎙️<span className="hidden xl:inline"> Voice</span>
   </button>
 
 <div className="hidden xl:block">
@@ -1875,7 +1875,7 @@ onKeyDown={(e) => {
     askGaby();
   }}
   disabled={loading}
-  className="h-11 w-full sm:w-auto rounded-xl bg-cyan-500 px-4 text-sm font-black text-black hover:bg-cyan-400 disabled:opacity-50"
+  className="h-10 shrink-0 rounded-xl bg-cyan-500 px-3 text-xs font-black text-black hover:bg-cyan-400 disabled:opacity-50 xl:h-11 xl:px-4 xl:text-sm"
 >
   Ask
 </button>

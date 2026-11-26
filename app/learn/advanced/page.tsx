@@ -9,10 +9,6 @@ import RsiMomentumLesson from "./modules/RsiMomentumLesson";
 import ReadingMarketContextLesson from "./modules/ReadingMarketContextLesson";
 import FuturesLeverageLesson from "./modules/FuturesLeverageLesson";
 
-
-
-
-
 const advancedLessons = [
   { id: "moving-averages", label: "Moving Averages" },
   { id: "market-structure", label: "Market Structure" },
@@ -23,33 +19,64 @@ const advancedLessons = [
 
 export default function AdvancedLearnPage() {
   const [activeLesson, setActiveLesson] = useState("moving-averages");
+  const [mobileLessonOpen, setMobileLessonOpen] = useState(false);
+
+  function handleSelectLesson(lesson: string) {
+    setActiveLesson(lesson);
+    setMobileLessonOpen(true);
+  }
 
   return (
     <>
       <Navbar />
 
-<main className="page-shell !pt-0 xl:h-[calc(100dvh-78px)] xl:overflow-hidden">
-  <div className="mx-auto h-full w-full max-w-[1780px] px-1 xl:px-6">
-    <div className="grid h-full min-h-0 grid-cols-1 gap-4 pt-2 xl:grid-cols-[220px_minmax(0,1fr)] xl:overflow-hidden">
+      <main className="page-shell !pt-0 !min-h-0 h-[calc(100dvh-78px)] overflow-hidden">
+        <div className="mx-auto h-full w-full max-w-[1780px] px-1 xl:px-6">
+          <div className="grid h-full min-h-0 grid-cols-1 grid-rows-[minmax(0,1fr)] gap-4 overflow-hidden pt-2 xl:grid-cols-[220px_minmax(0,1fr)]">
 
-            <LearnSidebar
-              mode="ADVANCED"
-              lessons={advancedLessons}
-              activeLesson={activeLesson}
-              setActiveLesson={setActiveLesson}
-              isAdvancedUnlocked={true}
-            />
-          
-<section className="min-h-0 min-w-0 overflow-y-auto px-0 pb-6 xl:pr-2 scrollbar-hide">
+            {/* Lesson Selection */}
 
-{activeLesson === "moving-averages" && <MovingAverageLesson />}
-{activeLesson === "market-structure" && <MarketStructureLesson />}
-{activeLesson === "rsi-momentum" && <RsiMomentumLesson />}
-{activeLesson === "market-context" && <ReadingMarketContextLesson />}
-{activeLesson === "futures-leverage" && <FuturesLeverageLesson />}
+            <div
+              className={`min-h-0 min-w-0 overflow-y-auto education-scrollbar ${
+                mobileLessonOpen ? "hidden xl:block" : "block"
+              }`}
+            >
+              <LearnSidebar
+                mode="ADVANCED"
+                lessons={advancedLessons}
+                activeLesson={activeLesson}
+                setActiveLesson={handleSelectLesson}
+                isAdvancedUnlocked={true}
+              />
+            </div>
 
+            {/* Lesson Content */}
 
-</section>
+            <section
+              className={`min-h-0 min-w-0 overflow-y-auto bg-black px-0 xl:pr-2 education-scrollbar ${
+                mobileLessonOpen ? "block" : "hidden xl:block"
+              }`}
+            >
+
+              {/* Mobile Back Navigation */}
+
+              <div className="px-3 pt-3 xl:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileLessonOpen(false)}
+                  className="text-sm font-medium text-cyan-400 transition hover:text-cyan-300"
+                >
+                  ← Back to Lessons
+                </button>
+              </div>
+
+              {activeLesson === "moving-averages" && <MovingAverageLesson />}
+              {activeLesson === "market-structure" && <MarketStructureLesson />}
+              {activeLesson === "rsi-momentum" && <RsiMomentumLesson />}
+              {activeLesson === "market-context" && <ReadingMarketContextLesson />}
+              {activeLesson === "futures-leverage" && <FuturesLeverageLesson />}
+
+            </section>
 
           </div>
         </div>

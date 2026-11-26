@@ -263,7 +263,7 @@ if (isPaid) {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-black px-4 py-10 text-white">
+      <main className="min-h-screen bg-black px-4 py-10 pb-28 text-white md:pb-10">
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h1 className="text-4xl font-black md:text-5xl">
@@ -276,8 +276,8 @@ if (isPaid) {
             </p>
           </div>
 
-          <div className="mt-10 border-t border-white/10 px-1 py-8 md:px-2">
-            <div>
+          <div className="md:mt-10 md:border-t md:border-white/10 md:px-2 md:py-8">
+            <div className="hidden md:block">
               <p className="text-xl font-black text-cyan-300">
                 Ask Gaby
               </p>
@@ -297,34 +297,54 @@ if (isPaid) {
 
             </div>
 
-{(answer || loading) && (
-  <div className="mt-5 border-t border-white/10 py-4">
-    <p className="whitespace-pre-line text-sm leading-6 text-zinc-200">
-      {loading ? "Gaby is helping..." : answer}
-    </p>
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800 bg-black px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] md:static md:z-auto md:border-0 md:bg-transparent md:p-0">
 
+              {(answer || loading) && (
+                <div className="mb-3 rounded-xl border border-zinc-600 bg-black p-3 md:mb-0 md:mt-5 md:rounded-none md:border-0 md:border-t md:border-white/10 md:px-0 md:py-4">
 
-  </div>
-)}
+                  <div className="mb-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setAnswer("")}
+                      disabled={loading}
+                      className="text-xs font-medium text-zinc-400 transition hover:text-white disabled:opacity-50"
+                    >
+                      Close
+                    </button>
+                  </div>
 
-            <div className="mt-4 flex items-center gap-2">
-              <input
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") askGaby();
-                }}
-                placeholder="Ask Gaby a support question..."
-                className="h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-transparent px-3 text-sm text-white outline-none focus:border-cyan-400 sm:h-12 sm:px-4"
-              />
+                  <div
+                    aria-live="polite"
+                    className="max-h-[35dvh] overflow-y-auto whitespace-pre-line text-sm leading-6 text-zinc-200 education-scrollbar md:max-h-none"
+                  >
+                    {loading
+                      ? "Gaby is helping..."
+                      : answer.replace(/\n{2,}/g, "\n")}
+                  </div>
 
-              <button
-                onClick={() => askGaby()}
-                disabled={loading}
-                className="h-10 shrink-0 whitespace-nowrap rounded-xl bg-cyan-400 px-3 text-xs font-black text-black disabled:opacity-50 sm:h-12 sm:px-6 sm:text-sm"
-              >
-                {loading ? "Thinking..." : "Ask Gaby"}
-              </button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 md:mt-4">
+                <input
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") askGaby();
+                  }}
+                  placeholder="Ask Gaby a support question..."
+                  className="h-10 min-w-0 flex-1 rounded-lg border border-cyan-500/30 bg-black px-3 text-base text-white outline-none placeholder:text-zinc-500 shadow-[0_0_8px_rgba(34,211,238,0.12)] transition-all duration-200 hover:border-cyan-500/60 focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.25)] sm:h-12 sm:text-sm"
+                />
+
+                <button
+                  onClick={() => askGaby()}
+                  disabled={loading}
+                  className="h-10 shrink-0 whitespace-nowrap rounded-lg bg-cyan-400 px-4 text-sm font-bold text-black transition hover:bg-cyan-300 disabled:opacity-50 sm:h-12"
+                >
+                  {loading ? "Wait..." : "Ask"}
+                </button>
+              </div>
+
             </div>
           </div>
 

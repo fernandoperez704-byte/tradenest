@@ -24,88 +24,87 @@ export default function LearnSidebar({
   completedLessons = [],
   isAdvancedUnlocked = false,
 }: LearnSidebarProps) {
-return (
-  <aside
-  className={`flex h-fit self-start flex-col rounded-2xl border border-zinc-700 bg-[#111827] p-4 xl:sticky xl:top-[8px] ${
-    mode === "ADVANCED" ? "xl:-translate-y-2" : ""
-  }`}
->
+  return (
+    <aside className="flex h-fit min-w-0 self-start flex-col bg-black px-3 py-4 xl:sticky xl:top-0 xl:border-r xl:border-zinc-800 xl:pr-4">
 
+      {/* Sidebar Header */}
 
-    {/* Fixed Header */}
-    <div className="shrink-0">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-sm font-black tracking-wide text-zinc-500">
-          LESSONS
-        </p>
-
-        {mode === "BASIC" && (
-          <p className="shrink-0 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-sm font-black text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
-            {completedLessons.length}/14
+      <div className="shrink-0">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-cyan-400">
+            Lessons
           </p>
-        )}
-      </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-2">
-        <Link
-          href="/learn"
-          className={`rounded-xl border px-3 py-2 text-center text-xs font-black transition-all ${
-            mode === "BASIC"
-              ? "border-cyan-400 bg-cyan-400 text-black"
-              : "border-white/10 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/40 hover:text-cyan-300"
-          }`}
-        >
-          Basic
-        </Link>
+          {mode === "BASIC" && (
+            <p className="shrink-0 text-xs font-bold text-cyan-400">
+              {completedLessons.length}/14
+            </p>
+          )}
+        </div>
 
-        <Link
-          href={isAdvancedUnlocked ? "/learn/advanced" : "#"}
-          className={`rounded-xl border px-3 py-2 text-center text-xs font-black transition-all ${
-            mode === "ADVANCED"
-              ? "border-cyan-400 bg-cyan-400 text-black"
-              : isAdvancedUnlocked
-              ? "border-white/10 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/40 hover:text-cyan-300"
-              : "cursor-not-allowed border-white/5 bg-[#0b0f1a] text-zinc-600"
-          }`}
-        >
-        Advanced
-      </Link>
-    </div>
-  </div>
+        {/* Learning Mode */}
 
-  {/* Scrollable Lessons */}
-  <div className="w-full pr-1">
-    <div className="w-full space-y-2">
-      {lessons.map((lesson) => {
-        const isCompleted = completedLessons.includes(lesson.id);
-        const isActive = activeLesson === lesson.id;
-
-        return (
-          <button
-            key={lesson.id}
-            onClick={() => setActiveLesson(lesson.id)}
-            className={`block w-full overflow-hidden rounded-2xl border px-4 py-4 text-left text-sm font-black tracking-wide transition-all duration-300 ${
-              isActive
-                ? "border-cyan-400 bg-cyan-400 text-black shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-                : "border-white/5 bg-[#0f172a] text-zinc-400 hover:border-cyan-400/30 hover:bg-[#131c2b] hover:text-cyan-300"
+        <div className="mb-4 grid grid-cols-2 gap-2 border-b border-zinc-800 pb-4">
+          <Link
+            href="/learn"
+            className={`rounded-md border px-2 py-2 text-center text-xs font-bold transition ${
+              mode === "BASIC"
+                ? "border-cyan-400 bg-cyan-400 text-black"
+                : "border-zinc-700 text-zinc-400 hover:border-cyan-400 hover:text-cyan-400"
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="leading-5">
-                {lesson.label}
-              </span>
+            Basic
+          </Link>
 
-              {mode === "BASIC" && isCompleted && (
-                <span className="shrink-0 font-black text-emerald-400">
-                  ✓
+          <Link
+            href={isAdvancedUnlocked ? "/learn/advanced" : "#"}
+            className={`rounded-md border px-2 py-2 text-center text-xs font-bold transition ${
+              mode === "ADVANCED"
+                ? "border-cyan-400 bg-cyan-400 text-black"
+                : isAdvancedUnlocked
+                ? "border-zinc-700 text-zinc-400 hover:border-cyan-400 hover:text-cyan-400"
+                : "cursor-not-allowed border-zinc-800 text-zinc-600"
+            }`}
+          >
+            Advanced
+          </Link>
+        </div>
+      </div>
+
+      {/* Lesson Navigation */}
+
+      <nav className="w-full space-y-1">
+        {lessons.map((lesson) => {
+          const isCompleted = completedLessons.includes(lesson.id);
+          const isActive = activeLesson === lesson.id;
+
+          return (
+            <button
+              key={lesson.id}
+              type="button"
+              onClick={() => setActiveLesson(lesson.id)}
+              aria-current={isActive ? "page" : undefined}
+              className={`block w-full rounded-r-md border-l-[3px] px-3 py-3 text-left text-sm font-medium transition-colors ${
+                isActive
+                  ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
+                  : "border-transparent text-zinc-400 hover:bg-zinc-900 hover:text-white"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="leading-5">
+                  {lesson.label}
                 </span>
-              )}
-            </div>
-          </button>
-        );
-      })}
-    </div>
-  </div>
-</aside>
-);
+
+                {mode === "BASIC" && isCompleted && (
+                  <span className="shrink-0 font-bold text-emerald-400">
+                    ✓
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
+  );
 }

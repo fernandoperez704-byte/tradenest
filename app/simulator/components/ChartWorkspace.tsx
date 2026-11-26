@@ -1124,17 +1124,17 @@ return (
 
 </div>
 
-<div className="mt-4 grid grid-cols-2 gap-2 xl:hidden">
+<div className="mt-2 grid grid-cols-2 gap-2 xl:hidden">
   <button
     onClick={() => setMobileView("ORDER")}
-    className="flex h-[52px] items-center justify-center rounded-2xl bg-cyan-500 px-4 text-xl font-black text-black shadow-[0_0_18px_rgba(6,182,212,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-cyan-400 hover:shadow-[0_0_28px_rgba(6,182,212,0.45)] active:translate-y-0 active:scale-[0.97] active:bg-cyan-600"
+    className="flex h-[40px] items-center justify-center rounded-xl bg-cyan-500 px-4 text-base font-black text-black shadow-[0_0_18px_rgba(6,182,212,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-cyan-400 hover:shadow-[0_0_28px_rgba(6,182,212,0.45)] active:translate-y-0 active:scale-[0.97] active:bg-cyan-600"
   >
     Trade
   </button>
 
   <button
     onClick={() => setShowSimulatorGaby(true)}
-    className="flex h-[52px] items-center justify-center rounded-2xl border border-cyan-500/40 bg-cyan-500/10 px-4 text-lg font-black text-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-500/20 hover:shadow-[0_0_26px_rgba(34,211,238,0.28)] active:translate-y-0 active:scale-[0.97] active:bg-cyan-500/25"
+    className="flex h-[40px] items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 text-base font-black text-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-500/20 hover:shadow-[0_0_26px_rgba(34,211,238,0.28)] active:translate-y-0 active:scale-[0.97] active:bg-cyan-500/25"
   >
     Ask Gaby
   </button>
