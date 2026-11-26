@@ -65,6 +65,56 @@ const topics = [
 },
 
 {
+  title: "Bitcoin Halving",
+  category: "crypto",
+  description:
+    "Understand Bitcoin halving, historical events, mining economics, issuance schedules, and market expectations.",
+  href: "/market-education/bitcoin-halving",
+  available: true,
+  backgroundImage: "/market-education/bitcoin-halving.png",
+},
+
+{
+  title: "Crypto Staking",
+  category: "crypto",
+  description:
+    "Understand staking methods, validator rewards, withdrawal conditions, liquid staking, and financial risks.",
+  href: "/market-education/crypto-staking",
+  available: true,
+  backgroundImage: "/market-education/crypto-staking.png",
+},
+
+{
+  title: "Crypto Scams & Fraud",
+  category: "crypto",
+  description:
+    "Understand cryptocurrency scams, fraudulent investment schemes, market manipulation, warning signs, and project verification.",
+  href: "/market-education/crypto-scams",
+  available: true,
+  backgroundImage: "/market-education/crypto-scams.png",
+},
+
+{
+  title: "Meme Coins",
+  category: "crypto",
+  description:
+    "Understand meme coins, internet culture, community dynamics, speculative demand, popularity cycles, and financial risks.",
+  href: "/market-education/meme-coins",
+  available: true,
+  backgroundImage: "/market-education/meme-coins.png",
+},
+
+{
+  title: "Cryptocurrency White Papers",
+  category: "crypto",
+  description:
+    "Learn how to interpret white papers, evaluate technical proposals, understand development roadmaps, and verify project claims.",
+  href: "/market-education/white-papers",
+  available: true,
+  backgroundImage: "/market-education/white-papers.png",
+},
+
+{
   title: "Dividends",
   category: "stocks",
   description:
