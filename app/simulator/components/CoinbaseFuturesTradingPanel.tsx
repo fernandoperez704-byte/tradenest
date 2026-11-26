@@ -138,7 +138,7 @@ const slPnl = estimatePnl(
 );
 
   return (
-    <div className="rounded-2xl border border-zinc-700 bg-[#111827] p-4">
+    <div className="rounded-2xl border border-zinc-700 bg-[#111827] p-4 md:max-h-[calc(100dvh-240px)] md:overflow-y-auto education-scrollbar">
 <div className="flex items-center gap-2">
 <button
   onClick={() => setMobileView("TRADE")}
@@ -192,14 +192,14 @@ const slPnl = estimatePnl(
       )
     }
     placeholder="0"
-    className="h-[46px] w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 text-center font-bold text-white focus:border-cyan-500 focus:outline-none"
+    className="h-[34px] w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 text-center font-bold text-white focus:border-cyan-500 focus:outline-none"
   />
 </div>
 
   <div>
     <p className="mb-1 text-xs font-bold text-zinc-500">LEVERAGE</p>
     <select value={effectiveLeverage} onChange={(e) => setLeverage(Number(e.target.value))}
-      className="h-[46px] w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 text-center font-bold text-cyan-400 focus:border-cyan-500 focus:outline-none">
+      className="h-[34px] w-full rounded-xl border border-zinc-700 bg-[#0f172a] px-3 text-center font-bold text-cyan-400 focus:border-cyan-500 focus:outline-none">
       {Array.from({ length: leverageRange.max - leverageRange.min + 1 }, (_, i) => leverageRange.min + i)
         .map((lev) => <option key={lev} value={lev}>{lev}x</option>)}
     </select>

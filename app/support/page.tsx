@@ -276,7 +276,7 @@ if (isPaid) {
             </p>
           </div>
 
-          <div className="mt-10 rounded-[28px] border border-cyan-400/30 bg-[#020617] p-5 md:p-7">
+          <div className="mt-10 border-t border-white/10 px-1 py-8 md:px-2">
             <div>
               <p className="text-xl font-black text-cyan-300">
                 Ask Gaby
@@ -298,7 +298,7 @@ if (isPaid) {
             </div>
 
 {(answer || loading) && (
-  <div className="mt-5 rounded-2xl border border-white/10 bg-[#0f172a] p-4">
+  <div className="mt-5 border-t border-white/10 py-4">
     <p className="whitespace-pre-line text-sm leading-6 text-zinc-200">
       {loading ? "Gaby is helping..." : answer}
     </p>
@@ -307,7 +307,7 @@ if (isPaid) {
   </div>
 )}
 
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-4 flex items-center gap-2">
               <input
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
@@ -315,24 +315,24 @@ if (isPaid) {
                   if (e.key === "Enter") askGaby();
                 }}
                 placeholder="Ask Gaby a support question..."
-                className="h-12 flex-1 rounded-xl border border-zinc-800 bg-[#111827] px-4 text-sm text-white outline-none focus:border-cyan-400"
+                className="h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-transparent px-3 text-sm text-white outline-none focus:border-cyan-400 sm:h-12 sm:px-4"
               />
 
               <button
                 onClick={() => askGaby()}
                 disabled={loading}
-                className="h-12 rounded-xl bg-cyan-400 px-6 text-sm font-black text-black disabled:opacity-50"
+                className="h-10 shrink-0 whitespace-nowrap rounded-xl bg-cyan-400 px-3 text-xs font-black text-black disabled:opacity-50 sm:h-12 sm:px-6 sm:text-sm"
               >
                 {loading ? "Thinking..." : "Ask Gaby"}
               </button>
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid gap-8 md:grid-cols-2 md:gap-x-12">
             {sections.map((section) => (
               <div
                 key={section.title}
-                className="rounded-2xl border border-white/10 bg-[#0f172a] p-5"
+                className="border-t border-white/10 px-1 py-8 md:px-2"
               >
                 <h2 className="text-xl font-black text-white">
                   {section.title}
@@ -352,14 +352,14 @@ if (isPaid) {
                           onClick={() =>
                             setOpen(open === key ? null : key)
                           }
-                          className="flex w-full items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-[#111827] px-4 py-3 text-left text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-300"
+                          className="flex w-full items-center justify-between gap-4 border-b border-white/10 py-4 text-left text-sm font-bold transition hover:text-cyan-300"
                         >
                           <span>{question}</span>
                           <span>{open === key ? "−" : "+"}</span>
                         </button>
 
                         {open === key && (
-                          <p className="px-4 py-3 text-sm leading-6 text-zinc-400">
+                          <p className="py-3 text-sm leading-7 text-zinc-400">
                             {answer}
                           </p>
                         )}
@@ -371,7 +371,7 @@ if (isPaid) {
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-white/10 bg-[#111827] p-6 text-center">
+          <div className="mt-8 border-t border-white/10 px-1 py-8 text-center md:px-2">
             <h2 className="text-xl font-black">
               Still need help?
             </h2>

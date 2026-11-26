@@ -279,7 +279,7 @@ setMessage,
   </p>
 </div>
 
-              <div className="flex shrink-0 justify-end">
+              <div className="col-span-full mt-2 flex shrink-0 justify-end xl:col-span-1 xl:mt-0">
                 <button
                   onClick={() => {
                     const current =
@@ -301,7 +301,7 @@ setMessage,
                       `Closed ${position.side} ${position.coin} manually`
                     );
                   }}
-                  className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
+                  className="h-[34px] w-full rounded-lg bg-red-500 px-3 text-xs font-bold text-white transition-all hover:bg-red-400 xl:h-auto xl:w-auto xl:py-1.5"
                 >
                   Close
                 </button>
@@ -312,7 +312,7 @@ setMessage,
 
       {(marketMode === "FUTURES" || marketMode === "COINBASE_FUTURES") &&
         futuresPositions.length === 0 && (
-<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-2 text-center">
   <p className="text-base font-bold text-zinc-300">
     No Futures Positions
   </p>
@@ -440,7 +440,7 @@ const pnl =
                     })()}
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="col-span-full mt-2 flex justify-end xl:col-span-1 xl:mt-0">
                     <button
                       onClick={() => {
                         if (!currentPrice) return;
@@ -452,7 +452,7 @@ const pnl =
                           reason: "MANUAL",
                         });
                       }}
-                      className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
+                      className="h-[34px] w-full rounded-lg bg-red-500 px-3 text-xs font-bold text-white transition-all hover:bg-red-400 xl:h-auto xl:w-auto xl:py-1.5"
                     >
                       Close
                     </button>
@@ -466,7 +466,7 @@ const pnl =
         Object.values(positions).every(
           (qty) => Number(qty) === 0
         ) && (
-          <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+          <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-2 text-center">
             <p className="text-base font-bold text-zinc-300">
               No Open Positions
             </p>
@@ -525,10 +525,10 @@ const pnl =
               </p>
             </div>
 
-<div className="flex justify-end">
+<div className="col-span-full mt-2 flex justify-end xl:col-span-1 xl:mt-0">
   <button
     onClick={() => closeStockPosition(stock, current)}
-    className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-400"
+    className="h-[34px] w-full rounded-lg bg-red-500 px-3 text-xs font-bold text-white transition-all hover:bg-red-400 xl:h-auto xl:w-auto xl:py-1.5"
   >
     Close
   </button>
@@ -541,7 +541,7 @@ const pnl =
 
 {marketMode === "STOCKS" &&
   Object.values(stockPositions).every((qty) => Number(qty) === 0) && (
-    <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+    <div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-2 text-center">
       <p className="text-base font-bold text-zinc-300">No Stock Positions</p>
       <p className="mt-1 text-sm text-zinc-500">Your open stock positions will appear here.</p>
     </div>

@@ -8,7 +8,9 @@ import { useHorizontalLineTool } from "./hooks/useHorizontalLineTool";
 import { useTrendLineTool } from "./hooks/useTrendLineTool";
 import { useFibonacciRetracementTool } from "./hooks/useFibonacciRetracementTool";
 import { usePriceRangeMeasurementTool } from "./hooks/usePriceRangeMeasurementTool";
-import TradingPanel from "./components/TradingPanel";
+import StockTradingPanel from "./components/StockTradingPanel";
+import SpotTradingPanel from "./components/SpotTradingPanel";
+import OffshoreFuturesTradingPanel from "./components/OffshoreFuturesTradingPanel";
 import CoinbaseFuturesTradingPanel from "./components/CoinbaseFuturesTradingPanel";
 import AccountSummaryCard from "./components/AccountSummaryCard";
 import PortfolioPanel from "./components/PortfolioPanel";
@@ -797,6 +799,8 @@ useEffect(() => {
   const [message, setMessage] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
 const [tradeAmount, setTradeAmount] = useState<number | "">("");
+const [offshoreTradeAmount, setOffshoreTradeAmount] =
+  useState<number | "">("");
 const [stockTradeAmount, setStockTradeAmount] =
   useState<number | "">("");
 const [coinbaseContracts, setCoinbaseContracts] =
@@ -807,6 +811,16 @@ const [stopLoss, setStopLoss] = useState<number | "">("");
 const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
 const [leverage, setLeverage] = useState(1);
 const [offshoreLeverage, setOffshoreLeverage] = useState(1);
+
+useEffect(() => {
+  setTradeAmount("");
+  setOffshoreTradeAmount("");
+  setCoinbaseContracts("");
+  setStockTradeAmount("");
+  setTakeProfit("");
+  setStopLoss("");
+  setLimitPrice("");
+}, [marketMode]);
 
 useEffect(() => {
   if (marketMode !== "COINBASE_FUTURES") return;
@@ -1108,6 +1122,8 @@ if (data.pendingFuturesLimitOrder) setPendingFuturesLimitOrder(data.pendingFutur
 if (data.pendingCoinbaseFuturesLimitOrder)
   setPendingCoinbaseFuturesLimitOrder(data.pendingCoinbaseFuturesLimitOrder);
 if (data.tradeAmount !== undefined) setTradeAmount(data.tradeAmount);
+if (data.offshoreTradeAmount !== undefined)
+  setOffshoreTradeAmount(data.offshoreTradeAmount);
 if (data.coinbaseContracts !== undefined) setCoinbaseContracts(data.coinbaseContracts);
 if (data.offshoreLeverage) setOffshoreLeverage(data.offshoreLeverage);
   if (data.takeProfit !== undefined) setTakeProfit(data.takeProfit);
@@ -1146,6 +1162,7 @@ pendingLimitOrder,
 pendingFuturesLimitOrder,
 pendingCoinbaseFuturesLimitOrder,
 tradeAmount,
+offshoreTradeAmount,
 coinbaseContracts,
 offshoreLeverage,
 takeProfit,
@@ -1175,7 +1192,8 @@ futuresHistory,
 pendingLimitOrder,
 pendingFuturesLimitOrder,
 pendingCoinbaseFuturesLimitOrder,
-tradeAmount,  
+tradeAmount,
+offshoreTradeAmount,
 coinbaseContracts,
 offshoreLeverage,
 takeProfit,
@@ -1831,7 +1849,7 @@ if (savedOrder.mode === "COINBASE_FUTURES") {
   setCoinbaseContracts(savedOrder.amount);
   setLeverage(savedOrder.leverage || 1);
 } else {
-  setTradeAmount(savedOrder.amount);
+  setOffshoreTradeAmount(savedOrder.amount);
   setOffshoreLeverage(savedOrder.leverage || 1);
 }
 
@@ -1864,7 +1882,7 @@ if (savedOrder.mode === "COINBASE_FUTURES") {
   setCoinbaseContracts(savedOrder.amount);
   setLeverage(savedOrder.leverage || 1);
 } else {
-  setTradeAmount(savedOrder.amount);
+  setOffshoreTradeAmount(savedOrder.amount);
   setOffshoreLeverage(savedOrder.leverage || 1);
 }
 
@@ -4121,7 +4139,7 @@ const activeTradeAmount =
   orderAmount ??
   (marketMode === "COINBASE_FUTURES"
     ? coinbaseContracts
-    : tradeAmount);
+    : offshoreTradeAmount);
 
 if (!activeTradeAmount || Number(activeTradeAmount) <= 0) {
   setMessage(
@@ -4471,6 +4489,7 @@ function resetAccount() {
   setFuturesHistory([]);
   resetStockTrading();
   setTradeAmount("");
+  setOffshoreTradeAmount("");
   setStockTradeAmount("");
 setCoinbaseContracts("");
   setTakeProfit("");
@@ -5099,8 +5118,8 @@ setGabyAnnotations((prev) => {
 )}
 
 <div
-  className={`xl:col-span-1 xl:flex xl:h-[690px] xl:flex-col xl:gap-2 ${
-    mobileView === "ORDER" ? "block" : "hidden xl:flex"
+  className={`flex-col gap-2 xl:col-span-1 xl:flex xl:h-[690px] ${
+    mobileView === "ORDER" ? "flex" : "hidden xl:flex"
   }`}
 >
 
@@ -5131,32 +5150,81 @@ setTradeAmount={setCoinbaseContracts}
     message={message} openFuturesPosition={openFuturesPosition}
 resetAccount={() => setShowResetModal(true)}
   />
-) : (
-  <TradingPanel
-    mobileView={mobileView} setMobileView={setMobileView} tourStep={tourStep}
-    tradeAmount={marketMode === "STOCKS" ? stockTradeAmount : tradeAmount}
-setTradeAmount={marketMode === "STOCKS" ? setStockTradeAmount : setTradeAmount}
-    takeProfit={takeProfit} setTakeProfit={setTakeProfit}
-    stopLoss={stopLoss} setStopLoss={setStopLoss}
-    orderType={orderType} setOrderType={setOrderType}
-    limitPrice={limitPrice} setLimitPrice={setLimitPrice}
-    marketMode={marketMode} selectedCoin={selectedSymbol} currentPrice={currentPrice}
+) : marketMode === "SPOT" ? (
+  <SpotTradingPanel
+    setMobileView={setMobileView}
+    tourStep={tourStep}
+    tradeAmount={tradeAmount}
+    setTradeAmount={setTradeAmount}
+    takeProfit={takeProfit}
+    setTakeProfit={setTakeProfit}
+    stopLoss={stopLoss}
+    setStopLoss={setStopLoss}
+    orderType={orderType}
+    setOrderType={setOrderType}
+    limitPrice={limitPrice}
+    setLimitPrice={setLimitPrice}
+    selectedCoin={selectedSymbol}
+    currentPrice={currentPrice}
+    balance={balance}
+    message={message}
+    buyCoin={buyCoin}
+    sellCoin={sellCoin}
+    setShowResetModal={setShowResetModal}
+  />
+) : marketMode === "FUTURES" ? (
+  <OffshoreFuturesTradingPanel
+    setMobileView={setMobileView}
+    tourStep={tourStep}
+    tradeAmount={offshoreTradeAmount}
+    setTradeAmount={setOffshoreTradeAmount}
+    takeProfit={takeProfit}
+    setTakeProfit={setTakeProfit}
+    stopLoss={stopLoss}
+    setStopLoss={setStopLoss}
+    orderType={orderType}
+    setOrderType={setOrderType}
+    limitPrice={limitPrice}
+    setLimitPrice={setLimitPrice}
+    selectedCoin={selectedSymbol}
+    currentPrice={currentPrice}
     leverage={offshoreLeverage}
-setLeverage={setOffshoreLeverage}
-    showLeverageMenu={showLeverageMenu} setShowLeverageMenu={setShowLeverageMenu}
-    balance={balance} marginUsed={marginUsed}
+    setLeverage={setOffshoreLeverage}
+    showLeverageMenu={showLeverageMenu}
+    setShowLeverageMenu={setShowLeverageMenu}
+    balance={balance}
     estimatedLongLiquidation={estimatedLongLiquidation}
     estimatedShortLiquidation={estimatedShortLiquidation}
-    feeRate={marketMode === "STOCKS" ? 0 : feeRate}
+    feeRate={feeRate}
     message={message}
-    buyCoin={marketMode === "STOCKS" ? buyStock : buyCoin}
-    sellCoin={marketMode === "STOCKS" ? sellStock : sellCoin}
     openFuturesPosition={openFuturesPosition}
-    setPositionType={setPositionType} setShowResetModal={setShowResetModal}
+    setPositionType={setPositionType}
+    setShowResetModal={setShowResetModal}
+  />
+) : (
+  <StockTradingPanel
+    setMobileView={setMobileView}
+    tourStep={tourStep}
+    tradeAmount={stockTradeAmount}
+    setTradeAmount={setStockTradeAmount}
+    takeProfit={takeProfit}
+    setTakeProfit={setTakeProfit}
+    stopLoss={stopLoss}
+    setStopLoss={setStopLoss}
+    orderType={orderType}
+    setOrderType={setOrderType}
+    limitPrice={limitPrice}
+    setLimitPrice={setLimitPrice}
+    selectedCoin={selectedSymbol}
+    currentPrice={currentPrice}
+    balance={balance}
+    message={message}
+    buyCoin={buyStock}
+    sellCoin={sellStock}
+    setShowResetModal={setShowResetModal}
   />
 )}
 
-</div>
 </div>
 
 <PortfolioPanel
@@ -5228,6 +5296,7 @@ closeStockPosition={closeStockPosition}
 )}
 
 </PortfolioPanel>
+</div>
 
 <div ref={infoPanelRef}>
   <InfoPanel

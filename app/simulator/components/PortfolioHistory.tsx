@@ -20,7 +20,7 @@ export default function PortfolioHistory({
       {marketMode === "FUTURES" ||
  marketMode === "COINBASE_FUTURES" ? (
         futuresHistory.length === 0 ? (
-<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-2 text-center">
   <p className="text-base font-bold text-zinc-300">No Futures History</p>
   <p className="mt-1 text-sm text-zinc-500">Completed futures trades will appear here.</p>
 </div>
@@ -32,8 +32,8 @@ export default function PortfolioHistory({
             >
               <div className={
   marketMode === "COINBASE_FUTURES"
-    ? "grid grid-cols-2 md:grid-cols-4 xl:flex xl:justify-between xl:gap-4 xl:items-start"
-    : "grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center"
+    ? "grid grid-cols-2 gap-x-4 gap-y-3 items-start md:grid-cols-4 xl:flex xl:justify-between xl:gap-4"
+    : "grid grid-cols-2 gap-x-4 gap-y-3 items-start md:grid-cols-4 xl:grid-cols-8 xl:gap-3 xl:items-center"
 }>
 
                 <div>
@@ -185,7 +185,7 @@ export default function PortfolioHistory({
   )}
 </div>
 
-                <div className="text-right">
+                <div className="text-left xl:text-right">
                   <p className="text-zinc-500 text-xs">
                     Time
                   </p>
@@ -201,7 +201,7 @@ export default function PortfolioHistory({
         )
       ) : marketMode === "STOCKS" ? (
         stockHistory.length === 0 ? (
-<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-2 text-center">
   <p className="text-base font-bold text-zinc-300">No Stock History</p>
   <p className="mt-1 text-sm text-zinc-500">Completed stock trades will appear here.</p>
 </div>
@@ -211,7 +211,7 @@ export default function PortfolioHistory({
               key={index}
               className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
             >
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 items-center">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 items-start md:grid-cols-4 xl:grid-cols-7 xl:gap-3 xl:items-center">
                 <div>
                   <p className={`text-base font-black ${trade.type === "BUY" ? "text-green-400" : "text-red-400"}`}>
                     {trade.type}
@@ -252,7 +252,7 @@ export default function PortfolioHistory({
                   </p>
                 </div>
 
-                <div className="text-right">
+                <div className="text-left xl:text-right">
                   <p className="text-zinc-500 text-xs">Time</p>
                   <p className="text-sm font-bold text-white">{trade.time}</p>
                 </div>
@@ -262,7 +262,7 @@ export default function PortfolioHistory({
         )
       ) : (
         trades.length === 0 ? (
-<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-6 text-center">
+<div className="rounded-xl border border-zinc-800 bg-[#18181b] px-4 py-2 text-center">
   <p className="text-base font-bold text-zinc-300">No Spot History</p>
   <p className="mt-1 text-sm text-zinc-500">Completed spot trades will appear here.</p>
 </div>
@@ -272,7 +272,7 @@ export default function PortfolioHistory({
               key={index}
               className="bg-[#0f172a] border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-500/40 transition-all duration-300"
             >
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-center">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 items-start md:grid-cols-4 xl:grid-cols-8 xl:gap-3 xl:items-center">
 
                 <div>
                   <p
@@ -393,7 +393,7 @@ export default function PortfolioHistory({
   )}
 </div>
 
-                <div className="text-right">
+                <div className="text-left xl:text-right">
                   <p className="text-zinc-500 text-xs">Time</p>
 
                   <p className="text-sm font-bold text-white">
