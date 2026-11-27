@@ -19,7 +19,9 @@ export default function MovingAverageLesson() {
 
             "Moving average periods depend on the selected timeframe. For example, MA 7 on a 4-hour chart represents seven 4-hour candles, covering 28 hours in a continuously traded market, while MA 7 on a daily chart covers seven daily candles.",
 
-            "Moving averages are lagging indicators because they use historical prices. They reflect existing market behavior rather than predict future price movements.",
+            "When price trades above a moving average, it is trading above its recent average closing price. When price trades below a moving average, it is trading below that average. Comparing price with multiple moving averages helps traders evaluate short-term momentum and broader market conditions.",
+
+            "Moving averages are lagging indicators because they use historical prices. They reflect existing market behavior rather than predict future price movements. Price moving above or below a moving average does not independently confirm a change in trend.",
           ],
           points: [
             {
@@ -56,6 +58,8 @@ export default function MovingAverageLesson() {
             "Notice how MA 7 and MA 25 slope upward and separate from MA 99 as price advances. The increasing separation reflects stronger recent price performance.",
 
             "Bullish alignment becomes more meaningful when supported by higher highs and higher lows in the market structure. Temporary pullbacks can still occur within an established uptrend.",
+
+            "During an uptrend, moving averages may act as dynamic support, where price temporarily pulls back before recovering. Traders can observe price reactions around these averages to evaluate whether the trend remains healthy. Moving averages are potential reaction areas, not guaranteed support levels.",
           ],
         },
 
@@ -69,7 +73,9 @@ export default function MovingAverageLesson() {
 
             "Notice how MA 7 and MA 25 slope downward while MA 99 remains relatively flat. This reflects weakening short-term and intermediate market conditions.",
 
-            "Although price begins consolidating near the bottom, the moving averages remain in bearish alignment. A temporary recovery does not necessarily indicate that the broader downtrend has ended.",
+            "Bearish alignment becomes more meaningful when supported by lower highs and lower lows in the market structure. Although price begins consolidating near the bottom, a temporary recovery does not necessarily indicate that the broader downtrend has ended.",
+
+            "During a downtrend, moving averages may act as dynamic resistance, where temporary price recoveries encounter resistance before declining again. Traders can observe these reactions to evaluate whether bearish conditions remain intact. Moving averages are potential reaction areas, not guaranteed resistance levels.",
           ],
         },
 
@@ -85,6 +91,8 @@ export default function MovingAverageLesson() {
 
             "Convergence, flattening slopes, and crossovers can indicate weakening momentum, consolidation, or a potential change in market direction.",
 
+            "During sideways markets, moving averages may flatten, overlap, and repeatedly cross one another as price fluctuates within a range. These conditions can produce misleading indications of trend changes. Recognizing this behavior helps traders avoid interpreting every crossover as the beginning of a new trend.",
+
             "A moving average crossover alone does not confirm a reversal. Traders should evaluate market structure, support and resistance, and higher timeframe conditions before drawing conclusions.",
           ],
         },
@@ -94,11 +102,11 @@ export default function MovingAverageLesson() {
         "Why does TradeNestX use MA 7, 25, and 99?",
         "How is a Simple Moving Average calculated?",
         "How do timeframes affect moving averages?",
-        "How do moving averages identify bullish and bearish trends?",
-        "What is a transition market?",
-        "How does the simulator determine trend?",
-        "Why do moving averages lag behind price?",
-        "Does a moving average crossover confirm a reversal?",
+        "How do I interpret price above or below moving averages?",
+        "How do I identify bullish and bearish moving average alignment?",
+        "How can moving averages act as dynamic support and resistance?",
+        "How do I recognize a weakening trend using moving averages?",
+        "Why can moving average crossovers be misleading?",
       ]}
     />
   );

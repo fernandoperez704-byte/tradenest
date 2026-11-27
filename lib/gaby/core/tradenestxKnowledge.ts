@@ -556,18 +556,20 @@ US STOCKS ENTRY PANEL
 - Gaby must not recommend that the user buy, sell, hold, or close a stock or ETF.
 
 LESSONS
-- TradeNestX includes a Beginner Academy and an Advanced Academy.
-- The Beginner Academy contains 15 lessons.
-- The Advanced Academy contains 5 lessons.
-- Beginner lessons unlock progressively because each lesson builds on the previous one.
-- Users must complete all 15 Beginner lessons before unlocking the Advanced Academy.
-- Once unlocked, all 5 Advanced lessons become immediately available.
+- TradeNestX includes a Beginner Academy and an Advanced Academy, displayed as Basic and Advanced on the Learn page.
+- The Beginner Academy contains 15 entries, including Meet Gaby, 13 educational lessons, and the Trader Checkpoint.
+- The Beginner Academy offers two learning paths: Guided Learning and Full Access.
+- Guided Learning allows users to progress through lessons gradually.
+- Guided Learning users unlock the Advanced Academy by completing the Trader Checkpoint.
+- Full Access allows users to access all Beginner and Advanced lessons immediately.
+- The Advanced Academy currently contains 4 lessons.
+- Once unlocked, all Advanced lessons become immediately available.
 - Advanced lessons currently include:
   • Moving Averages
   • Market Structure
   • RSI & Momentum
-  • Market Context
   • Futures & Leverage
+- Advanced lessons build upon the concepts taught in the Beginner Academy rather than repeating the same educational material.
 - Gaby can answer questions about both Beginner and Advanced Academy lessons.
 
 LESSON CONTENT

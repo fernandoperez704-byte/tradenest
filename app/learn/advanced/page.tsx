@@ -1,25 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Navbar from "@/app/components/Navbar";
 import LearnSidebar from "../components/LearnSidebar";
 import MovingAverageLesson from "./modules/MovingAverageLesson";
 import MarketStructureLesson from "./modules/MarketStructureLesson";
 import RsiMomentumLesson from "./modules/RsiMomentumLesson";
-import ReadingMarketContextLesson from "./modules/ReadingMarketContextLesson";
+
 import FuturesLeverageLesson from "./modules/FuturesLeverageLesson";
 
 const advancedLessons = [
   { id: "moving-averages", label: "Moving Averages" },
   { id: "market-structure", label: "Market Structure" },
   { id: "rsi-momentum", label: "RSI & Momentum" },
-  { id: "market-context", label: "Market Context" },
+
   { id: "futures-leverage", label: "Futures & Leverage" },
 ];
 
 export default function AdvancedLearnPage() {
   const [activeLesson, setActiveLesson] = useState("moving-averages");
   const [mobileLessonOpen, setMobileLessonOpen] = useState(false);
+
+  const lessonContentRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (lessonContentRef.current) {
+      lessonContentRef.current.scrollTop = 0;
+    }
+  }, [activeLesson, mobileLessonOpen]);
 
   function handleSelectLesson(lesson: string) {
     setActiveLesson(lesson);
@@ -53,6 +61,7 @@ export default function AdvancedLearnPage() {
             {/* Lesson Content */}
 
             <section
+              ref={lessonContentRef}
               className={`min-h-0 min-w-0 overflow-y-auto bg-black px-0 xl:pr-2 education-scrollbar ${
                 mobileLessonOpen ? "block" : "hidden xl:block"
               }`}
@@ -73,7 +82,7 @@ export default function AdvancedLearnPage() {
               {activeLesson === "moving-averages" && <MovingAverageLesson />}
               {activeLesson === "market-structure" && <MarketStructureLesson />}
               {activeLesson === "rsi-momentum" && <RsiMomentumLesson />}
-              {activeLesson === "market-context" && <ReadingMarketContextLesson />}
+
               {activeLesson === "futures-leverage" && <FuturesLeverageLesson />}
 
             </section>
