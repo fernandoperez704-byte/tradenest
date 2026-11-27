@@ -73,7 +73,7 @@ export default function LearnSidebar({
 
       {/* Lesson Navigation */}
 
-      <nav className="w-full space-y-1">
+      <nav className="w-full space-y-5 xl:space-y-1">
         {lessons.map((lesson) => {
           const isCompleted = completedLessons.includes(lesson.id);
           const isActive = activeLesson === lesson.id;
@@ -84,10 +84,10 @@ export default function LearnSidebar({
               type="button"
               onClick={() => setActiveLesson(lesson.id)}
               aria-current={isActive ? "page" : undefined}
-              className={`block w-full rounded-r-md border-l-[3px] px-3 py-3 text-left text-sm font-medium transition-colors ${
+              className={`block min-h-[48px] w-full border-b border-white/10 px-1 py-3 text-left text-base font-black transition-colors xl:min-h-0 xl:rounded-r-md xl:border-b-0 xl:border-l-[3px] xl:px-3 xl:text-sm xl:font-medium ${
                 isActive
-                  ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
-                  : "border-transparent text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                  ? "text-cyan-400 xl:border-cyan-400 xl:bg-cyan-400/10"
+                  : "text-white hover:text-cyan-400 xl:border-transparent xl:text-zinc-400 xl:hover:bg-zinc-900 xl:hover:text-white"
               }`}
             >
               <div className="flex items-center justify-between gap-2">

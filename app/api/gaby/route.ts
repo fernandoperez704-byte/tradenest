@@ -260,8 +260,10 @@ TradeNestX Advanced Academy currently teaches:
 1. Moving Averages
 2. Market Structure
 3. RSI & Momentum
-4. Market Context
-5. Futures & Leverage
+4. Futures & Leverage
+5. Fibonacci Retracement
+6. Trend Lines
+7. Market Corrections
 
 TradeNestX Simulator currently supports:
 - Crypto spot trading

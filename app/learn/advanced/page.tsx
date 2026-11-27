@@ -6,8 +6,11 @@ import LearnSidebar from "../components/LearnSidebar";
 import MovingAverageLesson from "./modules/MovingAverageLesson";
 import MarketStructureLesson from "./modules/MarketStructureLesson";
 import RsiMomentumLesson from "./modules/RsiMomentumLesson";
-
 import FuturesLeverageLesson from "./modules/FuturesLeverageLesson";
+import FibonacciRetracementLesson from "./modules/FibonacciRetracementLesson";
+import TrendLinesLesson from "./modules/TrendLinesLesson";
+import MarketCorrectionsLesson from "./modules/MarketCorrectionsLesson";
+
 
 const advancedLessons = [
   { id: "moving-averages", label: "Moving Averages" },
@@ -15,6 +18,9 @@ const advancedLessons = [
   { id: "rsi-momentum", label: "RSI & Momentum" },
 
   { id: "futures-leverage", label: "Futures & Leverage" },
+  { id: "fibonacci-retracement", label: "Fibonacci Retracement" },
+  { id: "trend-lines", label: "Trend Lines" },
+  { id: "market-corrections", label: "Market Corrections" },
 ];
 
 export default function AdvancedLearnPage() {
@@ -38,7 +44,7 @@ export default function AdvancedLearnPage() {
     <>
       <Navbar />
 
-      <main className="page-shell !pt-0 !min-h-0 h-[calc(100dvh-78px)] overflow-hidden">
+      <main className="page-shell !pt-0 !min-h-0 !pb-0 h-[calc(100dvh/0.9-78px)] overflow-hidden xl:!pb-8 xl:h-[calc(100dvh-78px)]">
         <div className="mx-auto h-full w-full max-w-[1780px] px-1 xl:px-6">
           <div className="grid h-full min-h-0 grid-cols-1 grid-rows-[minmax(0,1fr)] gap-4 overflow-hidden pt-2 xl:grid-cols-[220px_minmax(0,1fr)]">
 
@@ -84,6 +90,9 @@ export default function AdvancedLearnPage() {
               {activeLesson === "rsi-momentum" && <RsiMomentumLesson />}
 
               {activeLesson === "futures-leverage" && <FuturesLeverageLesson />}
+              {activeLesson === "fibonacci-retracement" && <FibonacciRetracementLesson />}
+              {activeLesson === "trend-lines" && <TrendLinesLesson />}
+              {activeLesson === "market-corrections" && <MarketCorrectionsLesson />}
 
             </section>
 

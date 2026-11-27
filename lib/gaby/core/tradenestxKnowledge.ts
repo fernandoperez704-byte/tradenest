@@ -562,15 +562,71 @@ LESSONS
 - Guided Learning allows users to progress through lessons gradually.
 - Guided Learning users unlock the Advanced Academy by completing the Trader Checkpoint.
 - Full Access allows users to access all Beginner and Advanced lessons immediately.
-- The Advanced Academy currently contains 4 lessons.
+- The Advanced Academy currently contains 7 lessons.
 - Once unlocked, all Advanced lessons become immediately available.
 - Advanced lessons currently include:
   • Moving Averages
   • Market Structure
   • RSI & Momentum
   • Futures & Leverage
+  • Fibonacci Retracement
+  • Trend Lines
+  • Market Corrections
 - Advanced lessons build upon the concepts taught in the Beginner Academy rather than repeating the same educational material.
 - Gaby can answer questions about both Beginner and Advanced Academy lessons.
+
+ADVANCED FIBONACCI RETRACEMENT EDUCATION
+
+- Fibonacci Retracement measures how much of a selected price movement has been retraced.
+- Traditional Fibonacci retracement levels commonly include 23.6%, 38.2%, 50%, 61.8%, and 78.6%.
+- The 50% level represents the midpoint rather than a traditional Fibonacci ratio.
+- TradeNestX uses simplified, equally spaced measurement levels at 0%, 25%, 50%, 75%, and 100%.
+- For an upward movement, place the first anchor at the swing high and the second anchor at the swing low.
+- For a downward movement, place the first anchor at the swing low and the second anchor at the swing high.
+- The 0% level represents the ending extreme of the measured movement, while 100% represents its starting extreme.
+- The 0% to 25% zone represents a shallow retracement.
+- The 25% to 50% zone represents a moderate retracement.
+- The 50% to 75% zone represents a deeper retracement.
+- The 75% to 100% zone represents a substantial retracement.
+- Gaby should explain retracement depth in relation to the selected price movement.
+- Gaby should explain that retracement measurements can be updated when price establishes a new extreme.
+- Gaby must not describe retracement percentages as guaranteed support, resistance, or reversal levels.
+
+ADVANCED TREND LINES EDUCATION
+
+- A trend line connects significant price extremes to create a diagonal market reference.
+- Ascending trend lines connect rising swing lows.
+- Descending trend lines connect falling swing highs.
+- Unlike horizontal support and resistance, a trend line's reference price changes over time.
+- Two meaningful anchor points establish a trend line.
+- Additional independent price reactions can provide evidence that the trend line remains relevant.
+- Multiple adjacent candles touching a trend line may represent a single reaction rather than several independent tests.
+- Gaby should explain the importance of consistent anchor selection using candle wicks or bodies.
+- Gaby should explain how changes in trend line slope can reflect acceleration or deceleration when evaluated on a consistent chart scale and timeframe.
+- A candle wick crossing a trend line does not automatically confirm a meaningful break.
+- Candle closes and subsequent price behavior provide additional context when evaluating a break.
+- A trend line break can indicate a change in the pace of a movement without confirming a market structure reversal.
+- Gaby should explain trend lines together with significant structural price levels.
+- Gaby should discourage forcing or continuously repositioning trend lines to fit price behavior.
+
+ADVANCED MARKET CORRECTIONS EDUCATION
+
+- A corrective movement develops against an established market direction or through a period of sideways adjustment.
+- Corrections can develop through profit-taking, changing market expectations, or weakening participation.
+- Upward trends can experience downward corrections.
+- Downward trends can experience temporary corrective recoveries.
+- In conventional financial markets, a correction commonly refers to a decline of approximately 10% or more from a recent peak, generally before reaching bear-market territory.
+- Corrective movements in technical analysis do not require a universal percentage threshold.
+- A sharp correction develops rapidly, often with larger candles and increased price fluctuations.
+- A gradual correction develops through smaller movements over a longer period.
+- A sideways correction develops through consolidation and limited directional progress.
+- Markets can correct through price, time, or a combination of both.
+- Gaby should evaluate correction speed, duration, and behavior relative to the preceding market movement.
+- A correction can occur without invalidating the established market structure.
+- Breaking significant structural levels and repeatedly failing to resume the previous trend can indicate a developing broader directional change.
+- Correction depth alone does not establish whether a reversal is developing.
+- Gaby should explain whether corrective movements are strengthening or weakening when sufficient market facts are supplied.
+- Gaby must not assume that every correction represents a trading opportunity or predict where or when a correction will end.
 
 LESSON CONTENT
 
