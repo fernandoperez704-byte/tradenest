@@ -827,41 +827,65 @@ useEffect(() => {
 }, [user?.id, subscriptionLoaded, isPaid]);
 
 useEffect(() => {
+  if (!user?.id || !subscriptionLoaded || !isPaid) return;
+
+  const accountId = user.id;
+  const controller = new AbortController();
+
   async function loadTrades() {
-    if (!user || !subscriptionLoaded || !isPaid) return;
-
-    const snap = await getDocs(
-      query(collection(db, "trades"), where("userId", "==", user.id))
-    );
-
-    const loadedTrades = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    setTrades((prev) => {
-      const merged = [...prev];
-
-      loadedTrades.forEach((loaded: any) => {
-        const exists = merged.some(
-          (trade: any) =>
-            (trade.tradeId &&
-              loaded.tradeId &&
-              trade.tradeId === loaded.tradeId) ||
-            (trade.snapshotId &&
-              loaded.snapshotId &&
-              trade.snapshotId === loaded.snapshotId)
-        );
-
-        if (!exists) merged.push(loaded as any);
+    try {
+      const response = await fetch("/api/simulator-trades", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          action: "GET_TRADES",
+          expectedUserId: accountId,
+        }),
       });
 
-      return merged;
-    });
+      if (!response.ok) {
+        throw new Error("Trade history loading failed");
+      }
+
+      const result = await response.json();
+
+      if (controller.signal.aborted) return;
+
+      const loadedTrades = result.trades;
+
+      setTrades((prev) => {
+        const merged = [...prev];
+
+        loadedTrades.forEach((loaded: any) => {
+          const exists = merged.some(
+            (trade: any) =>
+              (trade.tradeId &&
+                loaded.tradeId &&
+                trade.tradeId === loaded.tradeId) ||
+              (trade.snapshotId &&
+                loaded.snapshotId &&
+                trade.snapshotId === loaded.snapshotId)
+          );
+
+          if (!exists) merged.push(loaded as any);
+        });
+
+        return merged;
+      });
+    } catch (error) {
+      if (controller.signal.aborted) return;
+
+      console.error("Failed to load trade history:", error);
+    }
   }
 
   loadTrades();
-}, [user, subscriptionLoaded, isPaid]);
+
+  return () => controller.abort();
+}, [user?.id, subscriptionLoaded, isPaid]);
 
 useEffect(() => {
   async function loadTradeReviews() {
@@ -3884,52 +3908,67 @@ management: automaticReview.engine.management,
   }
 
 if (user && isPaid) {
-    await addDoc(collection(db, "trades"), {
-      userId: user.id,
-      userName: user.firstName || "Trader",
-      snapshotId,
+    try {
+      const response = await fetch("/api/simulator-trades", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "SAVE_TRADE",
+          expectedUserId: user.id,
+          trade: {
+            snapshotId,
 
-      type:
-        reason === "TP"
-          ? "TAKE PROFIT"
-          : reason === "SL"
-          ? "STOP LOSS"
-          : "SELL",
+            type:
+              reason === "TP"
+                ? "TAKE PROFIT"
+                : reason === "SL"
+                ? "STOP LOSS"
+                : "SELL",
 
-coin,
-amount: sellValue,
-price: currentPrice,
+            coin,
+            amount: sellValue,
+            price: currentPrice,
 
-entryPrice: avgEntryPrice,
-exitPrice: currentPrice,
+            entryPrice: avgEntryPrice,
+            exitPrice: currentPrice,
 
-stopLoss: spotRiskSettings[coin]?.stopLoss ?? null,
-takeProfit: spotRiskSettings[coin]?.takeProfit ?? null,
+            stopLoss: spotRiskSettings[coin]?.stopLoss ?? null,
+            takeProfit: spotRiskSettings[coin]?.takeProfit ?? null,
 
-pnl: spotPnl,
-      grossPnl: grossSpotPnl,
-      entryFee: spotEntryFeePaid,
-      exitFee: spotExitFee,
-      totalFees: spotEntryFeePaid + spotExitFee,
+            pnl: spotPnl,
+            grossPnl: grossSpotPnl,
+            entryFee: spotEntryFeePaid,
+            exitFee: spotExitFee,
+            totalFees: spotEntryFeePaid + spotExitFee,
 
-management: automaticReview.engine.management,
+            management: automaticReview.engine.management,
 
-status:
-  reason === "TP"
-    ? "TAKE PROFIT"
-    : reason === "SL"
-    ? "STOP LOSS"
-    : "MANUAL CLOSE",
+            status:
+              reason === "TP"
+                ? "TAKE PROFIT"
+                : reason === "SL"
+                ? "STOP LOSS"
+                : "MANUAL CLOSE",
 
-closedReason: reason,
-closedAt: new Date().toISOString(),
+            closedReason: reason,
+            closedAt: new Date().toISOString(),
 
-      tradeContext,
-      automaticReview,
-      review: automaticReview,
+            tradeContext,
+            automaticReview,
+            review: automaticReview,
+          },
+        }),
+      });
 
-      created: new Date(),
-    });
+      if (!response.ok) {
+        throw new Error("Trade saving failed");
+      }
+    } catch (error) {
+      console.error("Failed to save Spot sale:", error);
+      setMessage("Trade completed, but cloud trade saving failed.");
+    }
   }
 
 if (user && isPaid) {
@@ -4195,23 +4234,34 @@ price: executionPrice,
 ]);
 
 if (user && isPaid) {
-addDoc(collection(db, "trades"), {
-  userId: user.id,
-  userName: user.firstName || "Trader",
-
-  tradeId,
-
-  type: "BUY",
-coin: executionCoin,
-amount: executionAmount,
-price: executionPrice,
-
-  entryFee: spotEntryFee,
-
-tradeContext,
-
-  created: new Date(),
-});
+  fetch("/api/simulator-trades", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "SAVE_TRADE",
+      expectedUserId: user.id,
+      trade: {
+        tradeId,
+        type: "BUY",
+        coin: executionCoin,
+        amount: executionAmount,
+        price: executionPrice,
+        entryFee: spotEntryFee,
+        tradeContext,
+      },
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Trade saving failed");
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to save Spot purchase:", error);
+      setMessage("Trade completed, but cloud trade saving failed.");
+    });
 }
 
     setMessage(`Bought $${executionAmount} of ${executionCoin}`);
@@ -4656,16 +4706,25 @@ if (user && isPaid) {
       setMessage("Practice account reset, but cloud portfolio reset failed.");
     });
 
-  const q = query(
-    collection(db, "trades"),
-    where("userId", "==", user.id)
-  );
-
-  getDocs(q).then((snapshot) => {
-    snapshot.docs.forEach((tradeDoc) => {
-      deleteDoc(doc(db, "trades", tradeDoc.id));
+  fetch("/api/simulator-trades", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "RESET_TRADES",
+      expectedUserId: user.id,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Trade history reset failed");
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to reset cloud trade history:", error);
+      setMessage("Practice account reset, but cloud trade history reset failed.");
     });
-  });
 }
 }
 
