@@ -2,17 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
-import { db } from "../firebase";
+
 import { useUser } from "@clerk/nextjs";
 import Navbar from "../components/Navbar";
 import GabyCoach from "../components/GabyCoach";
@@ -134,16 +124,25 @@ useEffect(() => {
     }
 
     try {
-      const progressRef = doc(
-        db,
-        "lessonProgress",
-        user.id
-      );
+      const response = await fetch("/api/lesson-progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "GET_PROGRESS",
+          expectedUserId: user.id,
+        }),
+      });
 
-      const progressSnap = await getDoc(progressRef);
+      if (!response.ok) {
+        throw new Error("Failed to load lesson progress");
+      }
 
-      if (progressSnap.exists()) {
-        const data = progressSnap.data();
+      const result = await response.json();
+
+      if (result.progress) {
+        const data = result.progress;
 
         setCompletedLessons(
           data.completedLessons || []
@@ -181,13 +180,13 @@ useEffect(() => {
         setOnboardingCompleted(false);
         setActiveLesson("roadmap");
       }
+      setProgressLoaded(true);
     } catch (error) {
       console.error(
         "Failed to load lesson progress:",
         error
       );
-    } finally {
-      setProgressLoaded(true);
+      setProgressLoaded(false);
     }
   }
 
@@ -212,25 +211,31 @@ async function saveProgress() {
       JSON.stringify(lessonCompletionDates)
     );
 
-    await setDoc(
-      doc(db, "lessonProgress", user.id),
-{
-  userId: user.id,
-  userEmail: user.primaryEmailAddress?.emailAddress || "",
-  userName: user.firstName || user.username || "TradeNestX Student",
-  completedLessons,
-  lessonCompletionDates,
-  currentLesson: activeLesson,
-lastCompletedLesson:
-  completedLessons[completedLessons.length - 1] || "",
+    try {
+      const response = await fetch("/api/lesson-progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "SAVE_PROGRESS",
+          expectedUserId: user.id,
+          progress: {
+            completedLessons,
+            lessonCompletionDates,
+            currentLesson: activeLesson,
+            onboardingCompleted,
+            learningMode,
+          },
+        }),
+      });
 
-onboardingCompleted,
-learningMode,
-
-updatedAt: new Date().toISOString(),
-},
-{ merge: true }
-    );
+      if (!response.ok) {
+        throw new Error("Failed to save lesson progress");
+      }
+    } catch (error) {
+      console.error("Failed to save lesson progress:", error);
+    }
   }
 
   saveProgress();
@@ -465,53 +470,25 @@ async function queueDiscordLessonMessage(lessonId: string) {
 
   if (!lesson) return;
 
-const progressSnap = await getDoc(
-  doc(db, "lessonProgress", user.id)
-);
-
-const progressData = progressSnap.exists()
-  ? progressSnap.data()
-  : null;
-
-const oldQueues = await getDocs(
-  query(
-    collection(db, "discordLessonQueue"),
-    where("userId", "==", user.id)
-  )
-);
-
-for (const queueDoc of oldQueues.docs) {
-  const queueData = queueDoc.data();
-
-  if (
-    queueData.status === "sent" ||
-    queueData.status === "pending"
-  ) {
-    await updateDoc(queueDoc.ref, {
-      status: "superseded",
-      supersededAt: new Date().toISOString(),
+  try {
+    const response = await fetch("/api/lesson-progress", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "QUEUE_DISCORD_LESSON",
+        expectedUserId: user.id,
+        lessonId,
+      }),
     });
-  }
-}
 
-await setDoc(
-  doc(
-    db,
-    "discordLessonQueue",
-    `${user.id}_${lessonId}_${Date.now()}`
-  ),
-  {
-    userId: user.id,
-    userEmail: user.primaryEmailAddress?.emailAddress || "",
-    userName: user.firstName || user.username || "TradeNestX Student",
-    lessonId,
-    lessonTitle: lesson.label,
-    discordUserId: progressData?.discordUserId || "",
-    discordLinked: progressData?.discordLinked || false,
-    status: "pending",
-    createdAt: new Date().toISOString(),
+    if (!response.ok) {
+      throw new Error("Failed to queue Discord lesson");
+    }
+  } catch (error) {
+    console.error("Failed to queue Discord lesson:", error);
   }
-);
 }
 
 function completeLesson() {
@@ -684,26 +661,13 @@ return (
 
 {process.env.NODE_ENV === "development" && (
   <button
-    onClick={async () => {
+    onClick={() => {
       localStorage.removeItem("tradenestxLearnProgress");
       localStorage.removeItem("tradenestxLessonDates");
 
       setCompletedLessons([]);
       setLessonCompletionDates({});
-
-      if (user) {
-        await setDoc(
-          doc(db, "lessonProgress", user.id),
-          {
-            completedLessons: [],
-            lessonCompletionDates: {},
-            currentLesson: "roadmap",
-            lastCompletedLesson: "",
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-      }
+      setActiveLesson("roadmap");
     }}
     className="mb-4 w-full rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs font-black text-red-300 transition-all duration-300 hover:bg-red-500/20"
   >
