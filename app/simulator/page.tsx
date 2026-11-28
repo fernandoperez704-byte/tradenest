@@ -195,6 +195,16 @@ function buildTradePriceActionContext(history: any[], openedAt?: string) {
 }
 
 export default function SimulatorPage() {
+  const { user, isLoaded } = useUser();
+
+  if (!isLoaded) return null;
+
+  return (
+    <SimulatorPageContent key={user?.id ?? "guest"} />
+  );
+}
+
+function SimulatorPageContent() {
   const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
 
@@ -251,6 +261,11 @@ useEffect(() => {
 
 function requireSignIn() {
   if (user) {
+    if (!subscriptionLoaded || !sessionLoaded || (isPaid && !portfolioLoaded)) {
+      setMessage("Please wait for your practice account to finish loading.");
+      return false;
+    }
+
     return true;
   }
 
@@ -719,6 +734,7 @@ const [spotRiskSettings, setSpotRiskSettings] = useState<
 >({});
 
   const [balance, setBalance] = useState(startingBalance);
+  const [portfolioLoaded, setPortfolioLoaded] = useState(false);
 
 useEffect(() => {
   function startTour() {
@@ -742,24 +758,73 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  if (!user?.id || !subscriptionLoaded || !isPaid) return;
+
+  const accountId = user.id;
+
+  const savedSession = localStorage.getItem(
+    `tradenestx-simulator-session-${accountId}`
+  );
+
+  if (savedSession) {
+    setPortfolioLoaded(true);
+    return;
+  }
+
+  const controller = new AbortController();
+
   async function loadPortfolio() {
-    if (!user || !subscriptionLoaded || !isPaid) return;
+    try {
+      const response = await fetch("/api/simulator-portfolio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          action: "GET_PORTFOLIO",
+          expectedUserId: accountId,
+        }),
+      });
 
-    const snap = await getDoc(doc(db, "portfolios", user.id));
-    if (!snap.exists()) return;
+      if (!response.ok) {
+        throw new Error("Portfolio loading failed");
+      }
 
-    const data = snap.data();
-    if (data.balance) setBalance(data.balance);
-    if (data.positions) setPositions(data.positions);
-    if (data.averagePrices) setAveragePrices(data.averagePrices);
-if (data.spotPositionFacts) {
-  setSpotPositionFacts(data.spotPositionFacts);
-}
+      const result = await response.json();
 
+      if (controller.signal.aborted) return;
+
+      const data = result.portfolio;
+
+      if (!data) {
+        setPortfolioLoaded(true);
+        return;
+      }
+
+      if (typeof data.balance === "number") {
+        setBalance(data.balance);
+      }
+
+      if (data.positions) setPositions(data.positions);
+      if (data.averagePrices) setAveragePrices(data.averagePrices);
+      if (data.spotPositionFacts) {
+        setSpotPositionFacts(data.spotPositionFacts);
+      }
+
+      setPortfolioLoaded(true);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+
+      console.error("Failed to load portfolio:", error);
+      setMessage("Unable to load your portfolio. Please refresh the page.");
+    }
   }
 
   loadPortfolio();
-}, [user, subscriptionLoaded, isPaid]);
+
+  return () => controller.abort();
+}, [user?.id, subscriptionLoaded, isPaid]);
 
 useEffect(() => {
   async function loadTrades() {
@@ -1109,13 +1174,15 @@ stockHistoryRef.current = stockHistory;
 useEffect(() => {
   if (!subscriptionLoaded) return;
 
-if (!isPaid) {
+if (!isPaid || !user?.id) {
   setSessionLoaded(true);
   setSimulatorReady(true);
   return;
 }
 
-  const saved = localStorage.getItem("tradenestx-simulator-session");
+  if (!portfolioLoaded) return;
+
+  const saved = localStorage.getItem(`tradenestx-simulator-session-${user?.id}`);
 
   if (!saved) {
     setSessionLoaded(true);
@@ -1164,13 +1231,13 @@ if (data.offshoreLeverage) setOffshoreLeverage(data.offshoreLeverage);
 
   setSessionLoaded(true);
   setSimulatorReady(true);
-}, [subscriptionLoaded, isPaid]);
+}, [subscriptionLoaded, isPaid, user?.id, portfolioLoaded]);
 
 useEffect(() => {
-  if (!sessionLoaded || !subscriptionLoaded || !isPaid) return;
+  if (!sessionLoaded || !subscriptionLoaded || !isPaid || !user?.id) return;
 
   localStorage.setItem(
-    "tradenestx-simulator-session",
+    `tradenestx-simulator-session-${user?.id}`,
 JSON.stringify({
   balance,
   positions,
@@ -1234,6 +1301,7 @@ activeBottomTab,
 sessionLoaded,
 subscriptionLoaded,
 isPaid,
+user?.id,
 ]);
 
 useEffect(() => {
@@ -3865,23 +3933,40 @@ closedAt: new Date().toISOString(),
   }
 
 if (user && isPaid) {
-    await setDoc(doc(db, "portfolios", user.id), {
-      userName: user.firstName || "Trader",
-      balance: balance + netSellValue,
-      positions: {
-        ...positions,
-        [coin]: Math.max(0, ownedAmount - quantityToClose),
-      },
-      averagePrices: {
-        ...averagePrices,
-        [coin]:
-          ownedAmount - quantityToClose <= 0
-            ? 0
-            : averagePrices[coin],
-      },
-      spotPositionFacts: nextSpotPositionFacts,
-      updated: new Date(),
-    });
+    try {
+      const response = await fetch("/api/simulator-portfolio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "SAVE_PORTFOLIO",
+          expectedUserId: user.id,
+          portfolio: {
+            balance: balance + netSellValue,
+            positions: {
+              ...positions,
+              [coin]: Math.max(0, ownedAmount - quantityToClose),
+            },
+            averagePrices: {
+              ...averagePrices,
+              [coin]:
+                ownedAmount - quantityToClose <= 0
+                  ? 0
+                  : averagePrices[coin],
+            },
+            spotPositionFacts: nextSpotPositionFacts,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Portfolio saving failed");
+      }
+    } catch (error) {
+      console.error("Failed to save Spot portfolio:", error);
+      setMessage("Trade completed, but cloud portfolio saving failed.");
+    }
   }
 
 
@@ -4033,20 +4118,37 @@ const nextSpotPositionFacts = {
 setSpotPositionFacts(nextSpotPositionFacts);
 
 if (user && isPaid) {
-  setDoc(doc(db, "portfolios", user.id), {
-    userName: user.firstName || "Trader",
-    balance: balance - executionAmount - spotEntryFee,
-    positions: {
-      ...positions,
-      [executionCoin]: newQty,
+  fetch("/api/simulator-portfolio", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-    averagePrices: {
-      ...averagePrices,
-      [executionCoin]: newAvg,
-    },
-    spotPositionFacts: nextSpotPositionFacts,
-    updated: new Date(),
-  });
+    body: JSON.stringify({
+      action: "SAVE_PORTFOLIO",
+      expectedUserId: user.id,
+      portfolio: {
+        balance: balance - executionAmount - spotEntryFee,
+        positions: {
+          ...positions,
+          [executionCoin]: newQty,
+        },
+        averagePrices: {
+          ...averagePrices,
+          [executionCoin]: newAvg,
+        },
+        spotPositionFacts: nextSpotPositionFacts,
+      },
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Portfolio saving failed");
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to save Spot portfolio:", error);
+      setMessage("Trade completed, but cloud portfolio saving failed.");
+    });
 }
 
 if (oldQty <= 0) {
@@ -4503,6 +4605,8 @@ function sellCoin() {
 }
 
 function resetAccount() {
+  if (!requireSignIn()) return;
+
   setBalance(startingBalance);
   setPositions(emptyPositions);
   setAveragePrices(emptyPositions);
@@ -4530,9 +4634,27 @@ setOrderType("MARKET");
 setOffshoreLeverage(1);
 
   setMessage("Practice account reset.");
-localStorage.removeItem("tradenestx-simulator-session");
+localStorage.removeItem(`tradenestx-simulator-session-${user?.id}`);
 if (user && isPaid) {
-  deleteDoc(doc(db, "portfolios", user.id));
+  fetch("/api/simulator-portfolio", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "RESET_PORTFOLIO",
+      expectedUserId: user.id,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Portfolio reset failed");
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to reset cloud portfolio:", error);
+      setMessage("Practice account reset, but cloud portfolio reset failed.");
+    });
 
   const q = query(
     collection(db, "trades"),
