@@ -7,14 +7,7 @@ import { saveGabyConversation, getGabyConversations } from "@/lib/gaby/memory/co
 import { usePendingBeginnerCoaching } from "@/lib/gabyCoaching/usePendingBeginnerCoaching";
 import { latestTradeNestXUpdate } from "@/lib/gaby/core/tradenestxUpdates";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { db } from "@/app/firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+
 import {
   completeSnapshot,
   isSnapshotComplete,
@@ -830,23 +823,23 @@ async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
         )
       );
     }
-if (!isPaid) return;
-    const q = query(
-      collection(db, "tradeReviews"),
-      where("snapshotId", "==", completedSnapshot.snapshotId)
-    );
+    if (!isPaid || !user?.id) return;
 
-    const snapshot = await getDocs(q);
-
-    if (!isMountedRef.current) return;
-
-    snapshot.docs.forEach(async (reviewDoc) => {
-      if (!isMountedRef.current) return;
-
-      await updateDoc(reviewDoc.ref, {
-        review: completedSnapshot,
-      });
+    const response = await fetch("/api/simulator-trade-reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "UPDATE_REVIEW",
+        expectedUserId: user.id,
+        completedSnapshot,
+      }),
     });
+
+    if (!response.ok) {
+      throw new Error("Failed to update completed trade review");
+    }
   }
 
 const containsTemporaryMarketData = useCallback((value: string) => {

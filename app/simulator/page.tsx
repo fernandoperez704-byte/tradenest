@@ -85,18 +85,7 @@ import {
   type DetectedTrendline,
 } from "@/lib/patternRecognition";
 
-import { db } from "../firebase";
-import {
-  collection,
-  addDoc,
-  doc,
-  setDoc,
-  getDoc,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-} from "firebase/firestore";
+
 
 import type {
   PricePoint,
@@ -888,29 +877,53 @@ useEffect(() => {
 }, [user?.id, subscriptionLoaded, isPaid]);
 
 useEffect(() => {
-  async function loadTradeReviews() {
-    if (!subscriptionLoaded) return;
+  if (!subscriptionLoaded) return;
 
-    if (!user || !isPaid) {
-      setTradeReviewsLoaded(true);
-      return;
-    }
-
-    setTradeReviewsLoaded(false);
-
-    const snap = await getDocs(
-      query(collection(db, "tradeReviews"), where("userId", "==", user.id))
-    );
-
-    setTradeReviews(
-      snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as any[]
-    );
-
+  if (!user?.id || !isPaid) {
     setTradeReviewsLoaded(true);
+    return;
+  }
+
+  const accountId = user.id;
+  const controller = new AbortController();
+
+  setTradeReviewsLoaded(false);
+
+  async function loadTradeReviews() {
+    try {
+      const response = await fetch("/api/simulator-trade-reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          action: "GET_REVIEWS",
+          expectedUserId: accountId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Trade reviews loading failed");
+      }
+
+      const result = await response.json();
+
+      if (controller.signal.aborted) return;
+
+      setTradeReviews(result.reviews);
+      setTradeReviewsLoaded(true);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+
+      console.error("Failed to load trade reviews:", error);
+    }
   }
 
   loadTradeReviews();
-}, [user, subscriptionLoaded, isPaid]);
+
+  return () => controller.abort();
+}, [user?.id, subscriptionLoaded, isPaid]);
 
   const [message, setMessage] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
@@ -3516,48 +3529,61 @@ if (position.id) {
 }
 
   if (user && isPaid) {
-    await addDoc(collection(db, "tradeReviews"), {
-      userId: user.id,
-      userName: user.firstName || "Trader",
-      snapshotId,
+    try {
+      const response = await fetch("/api/simulator-trade-reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "SAVE_REVIEW",
+          expectedUserId: user.id,
+          review: {
+            snapshotId,
+            mode: position.marketMode ?? "FUTURES",
+            coin: position.coin,
+            side: position.side,
 
-mode: position.marketMode ?? "FUTURES",
-coin: position.coin,
-side: position.side,
+            leverage: position.leverage,
+            margin: position.margin,
+            positionSize:
+              position.positionSize ||
+              position.margin * position.leverage,
+            balanceAtEntry:
+              position.balanceAtEntry || startingBalance,
 
-leverage: position.leverage,
-margin: position.margin,
-positionSize:
-  position.positionSize ||
-  position.margin * position.leverage,
-balanceAtEntry:
-  position.balanceAtEntry || startingBalance,
+            tradeContext: position.tradeContext || null,
+            review: automaticReview,
 
-      tradeContext: position.tradeContext || null,
-      review: automaticReview,
+            tradeResult: {
+              entryPrice: position.entryPrice,
+              exitPrice,
+              pnl: netPnl,
+              grossPnl: pnl,
+              entryFee: position.entryFee || 0,
+              exitFee,
+              totalFees: (position.entryFee || 0) + exitFee,
+              status:
+                reason === "TP"
+                  ? "TAKE PROFIT"
+                  : reason === "SL"
+                  ? "STOP LOSS"
+                  : reason === "LIQUIDATION"
+                  ? "LIQUIDATED"
+                  : "MANUAL CLOSE",
+              closedReason: reason,
+              closedAt: new Date().toISOString(),
+            },
+          },
+        }),
+      });
 
-      tradeResult: {
-        entryPrice: position.entryPrice,
-        exitPrice,
-        pnl: netPnl,
-        grossPnl: pnl,
-        entryFee: position.entryFee || 0,
-        exitFee,
-        totalFees: (position.entryFee || 0) + exitFee,
-        status:
-          reason === "TP"
-            ? "TAKE PROFIT"
-            : reason === "SL"
-            ? "STOP LOSS"
-            : reason === "LIQUIDATION"
-            ? "LIQUIDATED"
-            : "MANUAL CLOSE",
-        closedReason: reason,
-        closedAt: new Date().toISOString(),
-      },
-
-      created: new Date(),
-    });
+      if (!response.ok) {
+        throw new Error("Futures trade review saving failed");
+      }
+    } catch (error) {
+      console.error("Failed to save Futures trade review:", error);
+    }
   }
 
   setFuturesHistory((prev) => [
@@ -3873,38 +3899,52 @@ management: automaticReview.engine.management,
 });
 
   if (user && isPaid) {
-    await addDoc(collection(db, "tradeReviews"), {
-      userId: user.id,
-      userName: user.firstName || "Trader",
-      snapshotId,
+    try {
+      const response = await fetch("/api/simulator-trade-reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "SAVE_REVIEW",
+          expectedUserId: user.id,
+          review: {
+            snapshotId,
 
-      mode: "SPOT",
-      coin,
-      side: "LONG",
+            mode: "SPOT",
+            coin,
+            side: "LONG",
 
-      tradeContext,
-      review: automaticReview,
+            tradeContext,
+            review: automaticReview,
 
-      tradeResult: {
-        entryPrice: avgEntryPrice,
-        exitPrice: currentPrice,
-        pnl: spotPnl,
-        grossPnl: grossSpotPnl,
-        entryFee: spotEntryFeePaid,
-        exitFee: spotExitFee,
-        totalFees: spotEntryFeePaid + spotExitFee,
-        status:
-          reason === "TP"
-            ? "TAKE PROFIT"
-            : reason === "SL"
-            ? "STOP LOSS"
-            : "MANUAL CLOSE",
-        closedReason: reason,
-        closedAt: new Date().toISOString(),
-      },
+            tradeResult: {
+              entryPrice: avgEntryPrice,
+              exitPrice: currentPrice,
+              pnl: spotPnl,
+              grossPnl: grossSpotPnl,
+              entryFee: spotEntryFeePaid,
+              exitFee: spotExitFee,
+              totalFees: spotEntryFeePaid + spotExitFee,
+              status:
+                reason === "TP"
+                  ? "TAKE PROFIT"
+                  : reason === "SL"
+                  ? "STOP LOSS"
+                  : "MANUAL CLOSE",
+              closedReason: reason,
+              closedAt: new Date().toISOString(),
+            },
+          },
+        }),
+      });
 
-      created: new Date(),
-    });
+      if (!response.ok) {
+        throw new Error("Spot trade review saving failed");
+      }
+    } catch (error) {
+      console.error("Failed to save Spot trade review:", error);
+    }
   }
 
 if (user && isPaid) {

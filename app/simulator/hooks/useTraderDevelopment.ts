@@ -7,11 +7,7 @@ import { buildExitManagementAnalysis } from "@/lib/traderDevelopment/exitManagem
 import { buildTimeframeAnalysis } from "@/lib/traderDevelopment/timeframeAnalysis";
 import { reviewTrade } from "@/lib/tradeReview/reviewTrade";
 import { getBeginnerCoachingTrigger } from "@/lib/gabyCoaching/getBeginnerCoachingTrigger";
-import { db } from "../../firebase";
-import {
-  addDoc,
-  collection,
-} from "firebase/firestore";
+
 
 const REPORT_INTERVAL = 20;
 
@@ -350,18 +346,36 @@ function registerStockReview(trade: {
   ]);
 
   if (userId) {
-    void addDoc(collection(db, "tradeReviews"), {
-      userId,
-      userName,
-      ...savedReview,
-      tradeResult: trade.pnl > 0 ? "PROFIT" : trade.pnl < 0 ? "LOSS" : "BREAKEVEN",
-      created: new Date().toISOString(),
-    }).catch((error) => {
-      console.error(
-        "Failed to save Stock trade review:",
-        error
-      );
-    });
+    void fetch("/api/simulator-trade-reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "SAVE_REVIEW",
+        expectedUserId: userId,
+        review: {
+          ...savedReview,
+          tradeResult:
+            trade.pnl > 0
+              ? "PROFIT"
+              : trade.pnl < 0
+              ? "LOSS"
+              : "BREAKEVEN",
+        },
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Stock trade review saving failed");
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Failed to save Stock trade review:",
+          error
+        );
+      });
   }
 
   return {
