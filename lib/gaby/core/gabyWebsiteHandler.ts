@@ -113,13 +113,44 @@ export async function handleWebsiteGaby(body: any) {
         ? body.message.trim()
         : "";
 
-    const lesson =
+      const context =
+      body?.context === "SUPPORT" ? "SUPPORT" : "LEARN";
+
+    const lessonId =
       typeof body?.lesson === "string"
         ? body.lesson
-        : "No specific lesson selected";
+        : "";
 
-  const context =
-  body?.context === "SUPPORT" ? "SUPPORT" : "LEARN";  
+    const lessonTitles: Record<string, string> = {
+      buying: "What Are You Buying?",
+      market: "How The Market Works",
+      orders: "Market vs Limit Orders",
+      risk: "Protecting Your Capital",
+      candlesticks: "Candlestick Basics",
+      timeframes: "Trading Timeframes",
+      volume: "Volume Basics",
+      support: "Support & Resistance",
+      supplydemand: "Supply & Demand",
+      patterns: "Chart Patterns",
+      setups: "Building A Trade Plan",
+      psychology: "Trading Psychology",
+      vocabulary: "Essential Trading Terms",
+      quiz: "Trader Checkpoint",
+      "moving-averages": "Moving Averages & Trend Direction",
+      "market-structure": "Market Structure",
+      "rsi-momentum": "RSI & Momentum",
+      "futures-leverage": "Futures & Leverage",
+      "fibonacci-retracement": "Fibonacci Retracement",
+      "trend-lines": "Trend Lines",
+      "market-corrections": "Market Corrections",
+    };
+
+    const lesson =
+      context === "SUPPORT"
+        ? "TradeNestX Website Support"
+        : Object.hasOwn(lessonTitles, lessonId)
+          ? lessonTitles[lessonId]
+          : lessonId || "No specific lesson selected";
   
 const now = new Date();
 

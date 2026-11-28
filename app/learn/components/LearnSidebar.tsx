@@ -22,10 +22,10 @@ export default function LearnSidebar({
   activeLesson,
   setActiveLesson,
   completedLessons = [],
-  isAdvancedUnlocked = false,
+
 }: LearnSidebarProps) {
   return (
-    <aside className="flex h-fit min-w-0 self-start flex-col bg-black px-3 py-4 xl:sticky xl:top-0 xl:border-r xl:border-zinc-800 xl:pr-4">
+    <aside className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-black px-3 py-4 xl:border-r xl:border-zinc-800 xl:pr-4">
 
       {/* Sidebar Header */}
 
@@ -57,13 +57,11 @@ export default function LearnSidebar({
           </Link>
 
           <Link
-            href={isAdvancedUnlocked ? "/learn/advanced" : "#"}
+            href="/learn/advanced"
             className={`rounded-md border px-2 py-2 text-center text-xs font-bold transition ${
               mode === "ADVANCED"
                 ? "border-cyan-400 bg-cyan-400 text-black"
-                : isAdvancedUnlocked
-                ? "border-zinc-700 text-zinc-400 hover:border-cyan-400 hover:text-cyan-400"
-                : "cursor-not-allowed border-zinc-800 text-zinc-600"
+                : "border-zinc-700 text-zinc-400 hover:border-cyan-400 hover:text-cyan-400"
             }`}
           >
             Advanced
@@ -73,7 +71,7 @@ export default function LearnSidebar({
 
       {/* Lesson Navigation */}
 
-      <nav className="w-full space-y-5 xl:space-y-1">
+      <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto education-scrollbar xl:-mr-4 xl:space-y-1 xl:pr-4 max-xl:![scrollbar-width:none] max-xl:[&::-webkit-scrollbar]:!hidden xl:[scrollbar-width:thin]">
         {lessons.map((lesson) => {
           const isCompleted = completedLessons.includes(lesson.id);
           const isActive = activeLesson === lesson.id;
@@ -96,8 +94,22 @@ export default function LearnSidebar({
                 </span>
 
                 {mode === "BASIC" && isCompleted && (
-                  <span className="shrink-0 font-bold text-emerald-400">
-                    ✓
+                  <span
+                    title="Lesson completed"
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-emerald-950"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 12 4 4 8-8" />
+                    </svg>
                   </span>
                 )}
               </div>
