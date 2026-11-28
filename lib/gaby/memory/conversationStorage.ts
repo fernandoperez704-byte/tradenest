@@ -28,6 +28,7 @@ export async function saveGabyConversation({
     },
     body: JSON.stringify({
       action: "SAVE_CONVERSATION",
+      expectedUserId: userId,
       question: question.trim(),
       answer: answer.trim(),
       topic,
@@ -40,9 +41,11 @@ export async function saveGabyConversation({
 }
 
 export async function getGabyConversations(
+  userId: string,
   startDate: Date,
   endDate: Date
 ): Promise<GabySavedConversation[]> {
+  if (!userId) return [];
   const response = await fetch("/api/gaby-memory", {
     method: "POST",
     headers: {
@@ -50,6 +53,7 @@ export async function getGabyConversations(
     },
     body: JSON.stringify({
       action: "GET_CONVERSATIONS",
+      expectedUserId: userId,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     }),

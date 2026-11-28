@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/app/firebase";
+
 import Navbar from "../components/Navbar";
 type ConversationMessage = {
   role: "user" | "assistant";
@@ -139,6 +138,12 @@ const sections = [
 ];
 
 export default function SupportPage() {
+  const { user } = useUser();
+
+  return <SupportPageContent key={user?.id ?? "guest"} />;
+}
+
+function SupportPageContent() {
   const [open, setOpen] = useState<string | null>(null);
 const [question, setQuestion] = useState("");
 const [answer, setAnswer] = useState("");
@@ -151,6 +156,16 @@ const { user } = useUser();
 const [isPaid, setIsPaid] = useState(false);
 const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
 const [memoryLoaded, setMemoryLoaded] = useState(false);
+
+const isMountedRef = useRef(false);
+
+useEffect(() => {
+  isMountedRef.current = true;
+
+  return () => {
+    isMountedRef.current = false;
+  };
+}, []);
 
 useEffect(() => {
   if (!user?.id) {
@@ -175,21 +190,51 @@ useEffect(() => {
     return;
   }
 
-  getDoc(doc(db, "gabySimulatorMemory", user.id))
-    .then((snap) => {
-      const memory = snap.data();
+  setMemoryLoaded(false);
+  setConversationHistory([]);
 
-      const history: ConversationMessage[] = Array.isArray(
-        memory?.conversationHistory
-      )
-        ? memory.conversationHistory.slice(-12)
+  fetch("/api/gaby-memory", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "GET_MEMORY",
+      expectedUserId: user.id,
+    }),
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error("Failed to load Support Gaby memory");
+      }
+
+      const { memory } = await response.json();
+
+      if (!isMountedRef.current) return;
+
+      const storedHistory =
+        memory?.supportConversationHistory ??
+        memory?.conversationHistory;
+
+      const history: ConversationMessage[] = Array.isArray(storedHistory)
+        ? storedHistory
+            .filter(
+              (item: any) =>
+                item &&
+                (item.role === "user" ||
+                  item.role === "assistant") &&
+                typeof item.content === "string"
+            )
+            .slice(-12)
         : [];
 
       setConversationHistory(history);
-
-
+      setMemoryLoaded(true);
     })
-    .finally(() => setMemoryLoaded(true));
+    .catch((error) => {
+      console.error("Failed to load Support Gaby memory:", error);
+      setMemoryLoaded(false);
+    });
 }, [user?.id, isPaid, subscriptionLoaded]);
 
 useEffect(() => {
@@ -201,14 +246,26 @@ useEffect(() => {
   ) {
     return;
   }
-
-  setDoc(
-    doc(db, "gabySimulatorMemory", user.id),
-    {
-      conversationHistory: conversationHistory.slice(-12),
+  fetch("/api/gaby-memory", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-    { merge: true }
-  );
+    body: JSON.stringify({
+      action: "SAVE_SUPPORT_HISTORY",
+      expectedUserId: user.id,
+      conversationHistory: conversationHistory.slice(-12),
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to save Support Gaby memory");
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to save Support Gaby memory:", error);
+    });
+
 }, [user?.id, isPaid, memoryLoaded, conversationHistory]);
 
   async function askGaby(customQuestion?: string) {
@@ -223,6 +280,7 @@ useEffect(() => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
 body: JSON.stringify({
+  expectedUserId: user?.id ?? null,
   message: finalQuestion,
   lesson: "TradeNestX Support",
   context: "SUPPORT",
@@ -233,6 +291,8 @@ body: JSON.stringify({
       });
 
 const data = await res.json();
+
+if (!isMountedRef.current) return;
 
 const gabyAnswer =
   data.answer || "Gaby is having trouble responding right now.";

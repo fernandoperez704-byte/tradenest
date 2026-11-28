@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export type AdvancedLessonSection = {
   label?: string;
@@ -25,13 +26,27 @@ type AdvancedLessonLayoutProps = {
   questions: string[];
 };
 
-export default function AdvancedLessonLayout({
+export default function AdvancedLessonLayout(
+  props: AdvancedLessonLayoutProps
+) {
+  const { user } = useUser();
+
+  return (
+    <AdvancedLessonContent
+      key={user?.id ?? "guest"}
+      {...props}
+    />
+  );
+}
+
+function AdvancedLessonContent({
   title,
   description,
   images = [],
   sections = [],
   questions,
 }: AdvancedLessonLayoutProps) {
+  const { user } = useUser();
   const [slide, setSlide] = useState(0);
   const [message, setMessage] = useState("");
   const [gabyAnswer, setGabyAnswer] = useState("");
@@ -62,6 +77,7 @@ export default function AdvancedLessonLayout({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          expectedUserId: user?.id ?? null,
           message: finalQuestion,
           lesson: `advanced-${title}`,
           conversationHistory: previousHistory,

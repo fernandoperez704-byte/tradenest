@@ -10,11 +10,8 @@ import { useClerk, useUser } from "@clerk/nextjs";
 import { db } from "@/app/firebase";
 import {
   collection,
-  doc,
-  getDoc,
   getDocs,
   query,
-  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -189,9 +186,19 @@ My trading psychology
 Leverage & liquidation
 Stop losses
 How the simulator works   `);
-
 const [loading, setLoading] = useState(false);
+const isMountedRef = useRef(false);
+
+useEffect(() => {
+  isMountedRef.current = true;
+
+  return () => {
+    isMountedRef.current = false;
+  };
+}, []);
+
 const previousTimeframeRef = useRef(selectedTimeframe);
+
 const [upgradeRequired, setUpgradeRequired] = useState(false);
 const [listening, setListening] = useState(false);
 const [voiceMode, setVoiceMode] = useState(false);
@@ -216,12 +223,7 @@ type GabyLongTermMemory = {
   importantContext: string[];
 };
 
-type GabyMemoryAction = {
-  action: "ADD" | "UPDATE" | "REMOVE" | "NONE";
-  category: keyof GabyLongTermMemory | null;
-  value: string | null;
-  oldValue: string | null;
-};
+
 
 const [longTermMemory, setLongTermMemory] = useState<GabyLongTermMemory>({
   goals: [],
@@ -280,10 +282,26 @@ useEffect(() => {
 
   (async () => {
     try {
-      const snap = await getDoc(doc(db, "gabySimulatorMemory", user.id));
+      const response = await fetch("/api/gaby-memory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "GET_MEMORY",
+          expectedUserId: user.id,
+        }),
+      });
 
-      if (snap.exists()) {
-        const memory = snap.data();
+      if (!response.ok) {
+        throw new Error("Failed to load Gaby memory");
+      }
+
+      const { memory } = await response.json();
+
+      if (!isMountedRef.current) return;
+
+      if (memory) {
 
         if (memory.longTermMemory) {
   setLongTermMemory({
@@ -317,10 +335,10 @@ useEffect(() => {
         if (memory.conversationState)
           setConversationState(memory.conversationState);
       }
+      setGabyMemoryLoaded(true);
     } catch (error) {
       console.error("Failed to load Gaby memory:", error);
-    } finally {
-      setGabyMemoryLoaded(true);
+      setGabyMemoryLoaded(false);
     }
   })();
 }, [user?.id, isPaid]);
@@ -339,26 +357,35 @@ useEffect(() => {
 useEffect(() => {
   if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
 
-  setDoc(
-    doc(db, "gabySimulatorMemory", user.id),
-    {
-      conversationHistory: conversationHistory.slice(-12),
-      longTermMemory,
-      lastTopic,
-      lastReferencedLevel,
-      conversationState,
-      updatedAt: new Date().toISOString(),
+  fetch("/api/gaby-memory", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-    { merge: true }
-  ).catch((error) =>
-    console.error("Failed to save Gaby memory:", error)
-  );
+    body: JSON.stringify({
+      action: "SAVE_MEMORY",
+      expectedUserId: user.id,
+      memory: {
+        conversationHistory: conversationHistory.slice(-12),
+        lastTopic,
+        lastReferencedLevel,
+        conversationState,
+      },
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to save Gaby memory");
+      }
+    })
+    .catch((error) =>
+      console.error("Failed to save Gaby memory:", error)
+    );
 }, [
   user?.id,
   isPaid,
   gabyMemoryLoaded,
   conversationHistory,
-  longTermMemory,
   lastTopic,
   lastReferencedLevel,
   conversationState,
@@ -772,6 +799,7 @@ function getMarketModeLabel(value: string) {
 }, [mode, futuresHistory, stockHistory, trades, selectedCoin]);
 
 async function persistCompletedTradeReviewSnapshot(completedSnapshot: any) {
+  if (!isMountedRef.current) return;
   if (!completedSnapshot?.snapshotId) return;
 
     // Optimized: Only map scan on the track arrays tied to the active mode state
@@ -810,7 +838,11 @@ if (!isPaid) return;
 
     const snapshot = await getDocs(q);
 
+    if (!isMountedRef.current) return;
+
     snapshot.docs.forEach(async (reviewDoc) => {
+      if (!isMountedRef.current) return;
+
       await updateDoc(reviewDoc.ref, {
         review: completedSnapshot,
       });
@@ -844,55 +876,53 @@ const containsTemporaryMarketData = useCallback((value: string) => {
 }, []);
 
 const addLongTermMemory = useCallback(
-  (category: keyof GabyLongTermMemory, value: string) => {
+  async (category: keyof GabyLongTermMemory, value: string) => {
+    if (!isMountedRef.current) return;
+    if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
+
     const cleanValue = value.trim();
 
     if (!cleanValue) return;
     if (containsTemporaryMarketData(cleanValue)) return;
 
-    setLongTermMemory((prev) => {
-      if (prev[category].includes(cleanValue)) return prev;
+    try {
+      const response = await fetch("/api/gaby-memory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "APPLY_MEMORY_ACTION",
+          expectedUserId: user.id,
+          category,
+          value: cleanValue,
+        }),
+      });
 
-      return {
-        ...prev,
-        [category]: [...prev[category], cleanValue].slice(-20),
-      };
-    });
+      if (!response.ok) {
+        throw new Error("Failed to add Gaby memory");
+      }
+
+      const data = await response.json();
+
+      if (!isMountedRef.current) return;
+
+      if (data.longTermMemory) {
+        setLongTermMemory(data.longTermMemory);
+      }
+    } catch (error) {
+      console.error("Failed to add Gaby memory:", error);
+    }
   },
-  [containsTemporaryMarketData]
+  [
+    user?.id,
+    isPaid,
+    gabyMemoryLoaded,
+    containsTemporaryMarketData,
+  ]
 );
 
-const removeLongTermMemory = useCallback(
-  (category: keyof GabyLongTermMemory, value: string) => {
-    setLongTermMemory((prev) => ({
-      ...prev,
-      [category]: prev[category].filter((item) => item !== value),
-    }));
-  },
-  []
-);
 
-const updateLongTermMemory = useCallback(
-  (
-    category: keyof GabyLongTermMemory,
-    oldValue: string,
-    newValue: string
-  ) => {
-    const cleanValue = newValue.trim();
-
-    if (!cleanValue) return;
-    if (containsTemporaryMarketData(cleanValue)) return;
-
-    setLongTermMemory((prev) => ({
-      ...prev,
-      [category]: prev[category]
-        .map((item) => (item === oldValue ? cleanValue : item))
-        .filter((item, index, items) => items.indexOf(item) === index)
-        .slice(-20),
-    }));
-  },
-  [containsTemporaryMarketData]
-);
 
 function selectTradingExperience(
   level: "NEW" | "SOME" | "EXPERIENCED"
@@ -920,6 +950,7 @@ function selectTradingExperience(
 
 const processLongTermMemory = useCallback(
   async (userMessage: string, gabyMessage: string) => {
+    if (!isMountedRef.current) return;
     if (!user?.id || !isPaid || !gabyMemoryLoaded) return;
 
     try {
@@ -929,53 +960,31 @@ const processLongTermMemory = useCallback(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          expectedUserId: user.id,
           userMessage,
           gabyMessage,
-          longTermMemory,
         }),
       });
 
       if (!res.ok) return;
 
       const data = await res.json();
-      const memoryAction = data.memoryAction as GabyMemoryAction | undefined;
 
-      if (!memoryAction || memoryAction.action === "NONE") return;
-      if (!memoryAction.category) return;
-
-      if (memoryAction.action === "ADD" && memoryAction.value) {
-        addLongTermMemory(memoryAction.category, memoryAction.value);
-        return;
+      if (!isMountedRef.current) return;
+      if (data.longTermMemory) {
+        setLongTermMemory(data.longTermMemory);
       }
 
-      if (
-        memoryAction.action === "UPDATE" &&
-        memoryAction.oldValue &&
-        memoryAction.value
-      ) {
-        updateLongTermMemory(
-          memoryAction.category,
-          memoryAction.oldValue,
-          memoryAction.value
-        );
-        return;
-      }
-
-      if (memoryAction.action === "REMOVE" && memoryAction.oldValue) {
-        removeLongTermMemory(memoryAction.category, memoryAction.oldValue);
-      }
+      return data.memoryAction;
     } catch (error) {
       console.error("Failed to process Gaby long-term memory:", error);
     }
+
   },
   [
     user?.id,
     isPaid,
     gabyMemoryLoaded,
-    longTermMemory,
-    addLongTermMemory,
-    updateLongTermMemory,
-    removeLongTermMemory,
   ]
 );
 
@@ -985,6 +994,8 @@ const processLongTermMemory = useCallback(
   reviewOverride?: any,
   options?: { internal?: boolean }
 ) => {
+    if (!isMountedRef.current) return;
+
     let finalQuestion = customQuestion || question;
     let reviewSnapshot = reviewOverride || null;
 let reviewTradeRecord: any = null;
@@ -1168,6 +1179,7 @@ if (
       if (user?.id && isPaid) {
         try {
           savedConversations = await getGabyConversations(
+  user?.id ?? "",
             new Date(0),
             new Date()
           );
@@ -1175,6 +1187,40 @@ if (
           console.error("Gaby conversation retrieval failed:", error);
         }
       }
+
+let latestLongTermMemory = longTermMemory;
+
+if (user?.id && isPaid) {
+  try {
+    const memoryResponse = await fetch("/api/gaby-memory", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "GET_MEMORY",
+        expectedUserId: user.id,
+      }),
+    });
+
+    if (!memoryResponse.ok) {
+      throw new Error("Failed to synchronize Gaby memory");
+    }
+
+    const { memory } = await memoryResponse.json();
+
+    if (!isMountedRef.current) return;
+
+    if (memory?.longTermMemory) {
+      latestLongTermMemory = memory.longTermMemory;
+      setLongTermMemory(latestLongTermMemory);
+    }
+  } catch (error) {
+    console.error("Gaby memory synchronization failed:", error);
+  }
+}
+
+if (!isMountedRef.current) return;
 
 console.log("GABY MARKET DEBUG", {
   direction: movingAverageAnalysis?.direction,
@@ -1188,12 +1234,13 @@ console.log("GABY MARKET DEBUG", {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          expectedUserId: user?.id ?? null,
           question: finalQuestion,
           lastReferencedLevel,
           lastReviewData: reviewSnapshot,
           conversationHistory: conversationHistory.slice(-8),
           savedConversations,
-longTermMemory,
+longTermMemory: latestLongTermMemory,
 simulatorContext: {
   userId,
   userFirstName: user?.firstName || null,
@@ -1271,11 +1318,30 @@ futuresPositionManagement,
 
 const data = await res.json();
 
+if (!isMountedRef.current) return;
+
 console.log("GABY CHART COMMAND:", data.chartCommand);
 console.log("GABY PANEL COMMAND:", data.panelCommand);
 
-const gabyAnswer =
+let gabyAnswer =
   data.answer || "Gaby could not respond right now.";
+
+if (!options?.internal && res.ok && !data.upgradeRequired) {
+  const memoryAction = await processLongTermMemory(
+    finalQuestion,
+    gabyAnswer
+  );
+
+  if (!isMountedRef.current) return;
+
+  if (memoryAction?.action === "ADD") {
+    gabyAnswer += `\n\nSaved to your learning memory: ${memoryAction.value}`;
+  } else if (memoryAction?.action === "UPDATE") {
+    gabyAnswer += `\n\nUpdated your learning memory: ${memoryAction.value}`;
+  } else if (memoryAction?.action === "REMOVE") {
+    gabyAnswer += `\n\nRemoved from your learning memory: ${memoryAction.oldValue}`;
+  }
+}
 
 setAnswer(gabyAnswer);
 setUpgradeRequired(Boolean(data.upgradeRequired));
@@ -1298,6 +1364,8 @@ if (
 if (reviewSnapshot && !reviewSnapshot.gaby?.generated) {
   const completedSnapshot = completeSnapshot(reviewSnapshot, gabyAnswer);
   await persistCompletedTradeReviewSnapshot(completedSnapshot);
+
+  if (!isMountedRef.current) return;
 
   if (conversationIntent === "TRADE_REVIEW") {
     onInfoPanelCommand?.({
@@ -1351,7 +1419,7 @@ if (conversationSubject || conversationState.awaitingFollowUp) {
         });
       }
 
-      void processLongTermMemory(finalQuestion, gabyAnswer);
+
     }
 
       setQuestion("");

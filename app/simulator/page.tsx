@@ -198,29 +198,56 @@ export default function SimulatorPage() {
   const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
 
-  const [isPaid, setIsPaid] = useState(false);
-  const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<{
+    userId: string;
+    isPaid: boolean;
+  } | null>(null);
+
+  const isPaid =
+    !!isSignedIn &&
+    !!user?.id &&
+    subscriptionStatus?.userId === user.id &&
+    subscriptionStatus.isPaid;
+
+  const subscriptionLoaded =
+    isSignedIn === false ||
+    (!!user?.id && subscriptionStatus?.userId === user.id);
 
 useEffect(() => {
-  if (!isSignedIn) {
-    setIsPaid(false);
-    setSubscriptionLoaded(true);
-    return;
-  }
+  setSubscriptionStatus(null);
 
-  setSubscriptionLoaded(false);
+  if (!isSignedIn || !user?.id) return;
 
-  fetch("/api/subscription/status")
-    .then((res) => res.json())
+  const accountId = user.id;
+  const controller = new AbortController();
+
+  fetch("/api/subscription/status", {
+    signal: controller.signal,
+    cache: "no-store",
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("Subscription check failed");
+      return res.json();
+    })
     .then((data) => {
-      setIsPaid(Boolean(data.isPaid));
-      setSubscriptionLoaded(true);
+      if (controller.signal.aborted) return;
+
+      setSubscriptionStatus({
+        userId: accountId,
+        isPaid: data.isPaid === true,
+      });
     })
     .catch(() => {
-      setIsPaid(false);
-      setSubscriptionLoaded(true);
+      if (controller.signal.aborted) return;
+
+      setSubscriptionStatus({
+        userId: accountId,
+        isPaid: false,
+      });
     });
-}, [isSignedIn]);
+
+  return () => controller.abort();
+}, [isSignedIn, user?.id]);
 
 function requireSignIn() {
   if (user) {
@@ -4750,6 +4777,7 @@ onSetHorizontalLineLabelPosition={handleSetHorizontalLineLabelPosition}
   className="relative z-50 mt-3 w-full xl:fixed xl:bottom-[72px] xl:left-[24px] xl:mt-0 xl:w-[500px]"
 >
 <GabySimulatorCoach
+  key={user?.id || "guest"}
   userId={user?.id || ""}
   isPaid={isPaid}
   onClose={() => {

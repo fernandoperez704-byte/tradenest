@@ -11,8 +11,6 @@ import { db } from "../../firebase";
 import {
   addDoc,
   collection,
-  doc,
-  getDoc,
 } from "firebase/firestore";
 
 const REPORT_INTERVAL = 20;
@@ -36,15 +34,29 @@ type UseTraderDevelopmentProps = {
 };
 
 async function getGabyBeginnerMemory(userId: string) {
-  const memoryRef = doc(db, "gabySimulatorMemory", userId);
-  const memorySnap = await getDoc(memoryRef);
+  const response = await fetch("/api/gaby-memory", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "GET_MEMORY",
+      expectedUserId: userId,
+    }),
+  });
 
-  if (!memorySnap.exists()) {
+  if (response.status === 401 || response.status === 403) {
     return null;
   }
 
+  if (!response.ok) {
+    throw new Error("Failed to retrieve Gaby beginner memory");
+  }
+
+  const { memory } = await response.json();
+
   const longTermMemory =
-    memorySnap.data()?.longTermMemory;
+    memory?.longTermMemory;
 
   if (!longTermMemory) {
     return null;

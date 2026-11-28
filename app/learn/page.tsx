@@ -18,6 +18,12 @@ import Navbar from "../components/Navbar";
 import GabyCoach from "../components/GabyCoach";
 import GabyIntro from "../components/GabyIntro";
 export default function LearnPage() {
+  const { user } = useUser();
+
+  return <LearnPageContent key={user?.id ?? "guest"} />;
+}
+
+function LearnPageContent() {
   const { user, isLoaded } = useUser();
 
   const [activeLesson, setActiveLesson] = useState("roadmap");
@@ -586,6 +592,7 @@ async function askGaby(customQuestion?: string) {
         "Content-Type": "application/json",
       },
 body: JSON.stringify({
+  expectedUserId: user?.id ?? null,
   message: question,
   lesson: activeLesson,
   conversationHistory: previousHistory,

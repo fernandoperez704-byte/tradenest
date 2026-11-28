@@ -1,14 +1,17 @@
-import OpenAI from "openai";
+import { generateGabyResponse } from "@/lib/gaby/core/gabyEngine";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { buildTraderDevelopmentReport } from "@/lib/traderDevelopment/report";
 import { GABY_CORE_PROMPT } from "@/lib/gaby/core/gabyCore";
 import { tradenestxKnowledge } from "@/lib/gaby/core/tradenestxKnowledge";
 import { tradenestxUpdates } from "@/lib/gaby/core/tradenestxUpdates";
-import { checkGabyUsage, useGabyQuestion } from "@/lib/gabyUsage";
+import {
+  reserveGabyQuestion,
+  refundGabyQuestion,
+} from "@/lib/gabyUsage";
+import { handleWebsiteGaby } from "@/lib/gaby/core/gabyWebsiteHandler";
+import { isPaidUser } from "@/lib/subscription";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+
 
 function formatPrice(price: number | null | undefined) {
   if (price == null || !Number.isFinite(price)) {
@@ -30,8 +33,28 @@ function formatPrice(price: number | null | undefined) {
 }
 
 export async function POST(req: Request) {
+  let reservedFreeQuestionUserId: string | null = null;
+
+  function completeGabyResponse(data: Record<string, unknown>) {
+    const response = Response.json(data);
+    reservedFreeQuestionUserId = null;
+    return response;
+  }
+
   try {
+    const body = await req.json();
     const { userId } = await auth();
+
+    if (body?.expectedUserId !== (userId ?? null)) {
+      return Response.json(
+        { answer: "Account mismatch. Please refresh and try again." },
+        { status: 403 }
+      );
+    }
+
+    if (body?.context === "LEARN" || body?.context === "SUPPORT") {
+      return handleWebsiteGaby(body);
+    }
 
 const clerkUser = userId ? await currentUser() : null;
 
@@ -50,7 +73,7 @@ const {
   lastReferencedLevel,
   lastTopic,
   
-} = await req.json();
+} = body;
 
 
 const normalizedQuestion = question?.trim().toLowerCase() || "";
@@ -163,7 +186,7 @@ async function requireGabyAccess() {
     );
   }
 
-  const usage = await checkGabyUsage(userId);
+      const usage = await reserveGabyQuestion(userId);
 
   if (!usage.allowed) {
     return Response.json({
@@ -173,8 +196,12 @@ async function requireGabyAccess() {
     });
   }
 
+  if (!usage.isPaid) {
+    reservedFreeQuestionUserId = userId;
+  }
+
 return null;
-}    
+}
 
 const sanitizedLongTermMemory = {
   goals: Array.isArray(longTermMemory?.goals)
@@ -340,11 +367,9 @@ if ((development?.totalTrades ?? 0) < 20) {
   const totalTrades = development?.totalTrades ?? 0;
   const remainingTrades = 20 - totalTrades;
 
-  if (userId) {
-    await useGabyQuestion(userId);
-  }
 
-  return Response.json({
+
+  return completeGabyResponse({
     answer: `Complete ${remainingTrades} more reviewed trades to unlock your full Trader Development Report.
 
 Once you've reached 20 reviewed trades, you'll receive:
@@ -358,11 +383,9 @@ Once you've reached 20 reviewed trades, you'll receive:
   });
 }
 
-if (userId) {
-  await useGabyQuestion(userId);
-}
 
-  return Response.json({
+
+  return completeGabyResponse({
     answer: `**Development Report**
 
 Total Trades: ${development?.totalTrades}
@@ -477,8 +500,8 @@ Rules:
 `;
 
   const completion =
-    await openai.chat.completions.create({
-      model: "gpt-5.6-luna",
+    await generateGabyResponse({
+      
       messages: [
         {
           role: "system",
@@ -502,11 +525,9 @@ if (!answer) {
   });
 }
 
-if (userId) {
-  await useGabyQuestion(userId);
-}
 
-return Response.json({
+
+return completeGabyResponse({
   answer,
 });
 }
@@ -522,9 +543,12 @@ const isNextSupportQuestion =
   );
 
 if (isNextSupportQuestion && marketFacts.nextSupport) {
+  const accessResponse = await requireGabyAccess();
+  if (accessResponse) return accessResponse;
+
   const support = marketFacts.nextSupport;
 
-  return Response.json({
+  return completeGabyResponse({
     answer:
       support.low === support.high
         ? `The next support area is around $${formatPrice(support.low)}.`
@@ -580,6 +604,9 @@ if (isNearestSupportQuestion) {
     });
   }
 
+const accessResponse = await requireGabyAccess();
+if (accessResponse) return accessResponse;
+
 const supportPrompt = `
 User Question:
 ${question}
@@ -611,8 +638,8 @@ Rules:
 - Use only the facts above.
 `;
 
-const completion = await openai.chat.completions.create({
-  model: "gpt-5.6-luna",
+const completion = await generateGabyResponse({
+  
   messages: [
     {
       role: "system",
@@ -636,7 +663,7 @@ const supportAlreadyPinned =
   marketFacts.chartHighlightState?.pinned === true &&
   marketFacts.chartHighlightState?.type === "SUPPORT";
 
-return Response.json({
+return completeGabyResponse({
   answer: supportAlreadyPinned
     ? supportAnswer
     : `${supportAnswer}\n\nI highlighted this area on the chart. I can leave it highlighted if you want.`,
@@ -663,9 +690,12 @@ const isNextResistanceQuestion =
   normalizedQuestion.includes("second resistance");
 
 if (isNextResistanceQuestion && marketFacts.nextResistance) {
+  const accessResponse = await requireGabyAccess();
+  if (accessResponse) return accessResponse;
+
   const resistance = marketFacts.nextResistance;
 
-  return Response.json({
+  return completeGabyResponse({
     answer:
       resistance.low === resistance.high
         ? `The next resistance area is around $${formatPrice(resistance.low)}.`
@@ -721,6 +751,9 @@ if (isNearestResistanceQuestion) {
     });
   }
 
+  const accessResponse = await requireGabyAccess();
+  if (accessResponse) return accessResponse;
+
   const resistancePrompt = `
 User Question:
 ${question}
@@ -757,8 +790,8 @@ Rules:
 - Use ONLY the engine facts above.
 `;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5.6-luna",
+  const completion = await generateGabyResponse({
+    
     messages: [
       {
         role: "system",
@@ -782,7 +815,7 @@ const resistanceAlreadyPinned =
   marketFacts.chartHighlightState?.pinned === true &&
   marketFacts.chartHighlightState?.type === "RESISTANCE";
 
-return Response.json({
+return completeGabyResponse({
   answer: resistanceAlreadyPinned
     ? resistanceAnswer
     : `${resistanceAnswer}\n\nI highlighted this area on the chart. I can leave it highlighted if you want.`,
@@ -854,6 +887,9 @@ const currentPrice = marketFacts.currentPrice;
       answer: `I don't have enough market data to determine the overall direction on the selected **${timeframe}** timeframe.`,
     });
   }
+
+const accessResponse = await requireGabyAccess();
+if (accessResponse) return accessResponse;
 
 const directionPrompt = `
 User Question:
@@ -927,8 +963,8 @@ Rules:
 `;
 
   const completion =
-    await openai.chat.completions.create({
-      model: "gpt-5.6-luna",
+    await generateGabyResponse({
+      
       messages: [
         {
           role: "system",
@@ -942,7 +978,7 @@ Rules:
       ],
     });
 
-return Response.json({
+return completeGabyResponse({
   answer:
     completion.choices[0].message.content ||
     `The overall market direction for **${coin}** on the selected **${timeframe}** timeframe is **${direction}**.`,
@@ -979,11 +1015,9 @@ if (isBitcoinWhitepaperQuestion) {
   const accessResponse = await requireGabyAccess();
   if (accessResponse) return accessResponse;
 
-  if (userId) {
-    await useGabyQuestion(userId);
-  }
 
-  return Response.json({
+
+  return completeGabyResponse({
     answer:
       "Here is the original Bitcoin whitepaper by Satoshi Nakamoto.",
 
@@ -1025,12 +1059,23 @@ const isTradeReviewFollowUp =
     )
   );
 
+const sharedMemoryEnabled =
+  !!userId && await isPaidUser(userId);
+
 const systemPrompt = `
 ${GABY_CORE_PROMPT}
 
 ${tradenestxKnowledge}
 
 ${tradenestxUpdates}
+
+MEMORY MANAGEMENT RULES:
+- Persistent learning memory is ${sharedMemoryEnabled ? "enabled" : "disabled"} for this user.
+- When persistent memory is enabled, acknowledge memory change requests naturally without claiming that the change has already been completed.
+- The backend will provide confirmation after a successful memory operation.
+- Do not claim that a memory was saved, updated, or removed before backend confirmation.
+- When persistent memory is disabled, explain that persistent learning memory is unavailable.
+- Do not redirect users to customer support for routine memory changes.
 
 CURRENT DATE AND TIME:
 Current date: ${currentDate}
@@ -1529,8 +1574,8 @@ ${lastTopic || "NONE"}
 `;
 
   // 5. Gaby + chart command in one response
-const completion = await openai.chat.completions.create({
-  model: "gpt-5.6-luna",
+const completion = await generateGabyResponse({
+  
 
   response_format: {
     type: "json_object",
@@ -1820,7 +1865,8 @@ parsed = {
 };
 }
 
-const answer = parsed.answer;
+const answer =
+  typeof parsed?.answer === "string" ? parsed.answer.trim() : "";
 
 if (!answer) {
   return Response.json({
@@ -1828,11 +1874,9 @@ if (!answer) {
   });
 }
 
-if (userId) {
-  await useGabyQuestion(userId);
-}
 
-return Response.json({
+
+return completeGabyResponse({
   answer,
 
   chartCommand:
@@ -1854,5 +1898,13 @@ return Response.json({
     return Response.json({
       answer: "Gaby is having trouble reviewing the simulator right now.",
     });
+  } finally {
+    if (reservedFreeQuestionUserId) {
+      try {
+        await refundGabyQuestion(reservedFreeQuestionUserId);
+      } catch (error) {
+        console.error("Failed to refund Gaby question:", error);
+      }
+    }
   }
 }
